@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+@theme {
+  --font-handwriting: 'Patrick Hand', 'Mali', cursive, sans-serif;
+  --font-cute: 'Mali', cursive, sans-serif;
+  --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  --color-paper: #F5EFE6;
+  --color-grid: #C9D1DB;
+  --color-bo: #E8A33D;
+  --color-tutor: #4E9B87;
+  --color-sticky: #F5D65D;
+  --color-moss: #6B9E5C;
+  --color-washi-blue: #A9C8E0;
+  --color-washi-pink: #E8B4BC;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #ECE5D8;
+  color: #2F2B28;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Authentic Vietnamese handwriting font */
+.font-handwriting {
+  font-family: 'Patrick Hand', 'Mali', 'Be Vietnam Pro', cursive, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+.font-cute {
+  font-family: 'Mali', 'Patrick Hand', 'Be Vietnam Pro', cursive, sans-serif;
+}
+
+/* Desk flatlay with wooden/cork tone accents */
+.desk-bg {
+  background-color: #E7DFD0;
+  background-image: 
+    radial-gradient(#D6CCC0 0.75px, transparent 0.75px),
+    linear-gradient(to right, rgba(200, 190, 175, 0.25) 1px, transparent 1px);
+  background-size: 20px 20px, 120px 120px;
+}
+
+/* Paper Grid for notebook sheets */
+.notebook-sheet {
+  background-color: #FAF6EE;
+  background-image: 
+    linear-gradient(to right, rgba(201, 209, 219, 0.45) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(201, 209, 219, 0.45) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Lined notebook paper texture */
+.lined-paper {
+  background-color: #FFFEFA;
+  background-image: linear-gradient(to bottom, transparent 27px, #E5DCB8 28px);
+  background-size: 100% 28px;
+}
+
+/* Spiral binding spine */
+.spiral-binder {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 16px,
+    #5A524A 16px,
+    #8A7E73 18px,
+    #36302B 20px,
+    transparent 20px,
+    transparent 32px
+  );
+}
+
+/* Natural paper shadows */
+.sketchbook-shadow {
+  box-shadow: 
+    -2px 10px 24px -4px rgba(44, 38, 30, 0.16),
+    0 4px 8px -2px rgba(44, 38, 30, 0.08),
+    0 0 0 1px rgba(70, 60, 50, 0.08);
+}
+
+.subtle-paper-shadow {
+  box-shadow: 
+    2px 8px 20px -3px rgba(44, 38, 30, 0.12),
+    0 2px 5px rgba(44, 38, 30, 0.06);
+}
+
+.polaroid-shadow {
+  box-shadow: 
+    2px 8px 18px -2px rgba(44, 38, 30, 0.14),
+    0 2px 4px rgba(44, 38, 30, 0.08);
+}
+
+/* Washi tape effects */
+.washi-tape-blue {
+  background: rgba(169, 200, 224, 0.88);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-left: 2px dashed rgba(255, 255, 255, 0.6);
+  border-right: 2px dashed rgba(255, 255, 255, 0.6);
+}
+
+.washi-tape-pink {
+  background: rgba(232, 180, 188, 0.88);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-left: 2px dashed rgba(255, 255, 255, 0.6);
+  border-right: 2px dashed rgba(255, 255, 255, 0.6);
+}
+
+.washi-tape-yellow {
+  background: rgba(245, 214, 93, 0.88);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-left: 2px dashed rgba(255, 255, 255, 0.6);
+  border-right: 2px dashed rgba(255, 255, 255, 0.6);
+}
+
+.washi-tape-green {
+  background: rgba(158, 207, 178, 0.88);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-left: 2px dashed rgba(255, 255, 255, 0.6);
+  border-right: 2px dashed rgba(255, 255, 255, 0.6);
+}
+
+/* Torn paper edge simulation */
+.torn-bottom-edge {
+  background-image: radial-gradient(circle at 10px -5px, transparent 12px, #FAF6EE 13px);
+  background-size: 20px 20px;
+}

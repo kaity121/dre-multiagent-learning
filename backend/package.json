@@ -1,0 +1,17 @@
+{
+  "name": "dre-backend",
+  "version": "0.1.0",
+  "description": "DRE (Diagnose - Repair - Explain) — orchestrator gọi GPT API thật cho Bo (bạn học) và Cô Lam (giáo viên)",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test:cli": "node test-cli.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "openai": "^4.67.3"
+  }
+}
