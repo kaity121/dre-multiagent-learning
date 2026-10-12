@@ -25,7 +25,7 @@ Nhóm đã không dừng lại ở nghiên cứu lý thuyết hay bản vẽ moc
 [ Đề bài yêu cầu: Research + 1 Slice + Ảnh Mockup ]
                         │
                         ▼ 
-[ Thực tế đạt được: Full-Stack Working Prototype + 4 Trạm Sư phạm Khép kín + Multi-Agent GPT-4o ]
+[ Thực tế đạt được: Full-Stack Working Prototype + 4 Trạm Sư phạm Khép kín + Multi-Agent GPT-6 ]
 ```
 
 ### Bảng đối chiếu tiến độ chi tiết:
@@ -34,7 +34,7 @@ Nhóm đã không dừng lại ở nghiên cứu lý thuyết hay bản vẽ moc
 | :--- | :--- | :--- |
 | **Phạm vi sư phạm** | Chọn 1 lát cắt (slice) nhỏ. | Xây dựng **trọn vẹn 4 Trạm Học Tập Chuẩn Quốc Tế** (chu trình nhận thức khép kín):<br>1. *Trạm 1: Khởi động Video & Bạn học Bo phản biện (Peer Clash)*<br>2. *Trạm 2: Vở bài tập chẩn đoán lỗi sai DRE (Worksheet Diagnosis)*<br>3. *Trạm 3: Cá cược trực giác & thực nghiệm bảng phấn POE (Predict-Observe-Explain)*<br>4. *Trạm 4: Đóng vai gia sư dạy lại cho Bo (Protégé Effect)*. |
 | **Giao diện & Trải nghiệm (UI/UX)** | Brainstorm ý tưởng, gen ảnh tĩnh minh họa. | • **Ứng dụng web chạy thực tế 100% (React + TypeScript + Tailwind)**.<br>• Thiết kế độc bản phong cách Sổ tay thủ công (Scrapbook / Detective Board) gợi cảm hứng học sinh.<br>• Giải quyết triệt để lỗi che chữ, tối ưu responsive trên mọi cỡ màn hình laptop 13"-14".<br>• Xóa sạch hoàn toàn emoji hệ điều hành Android/Windows, chuyển sang **100% icon SVG vẽ tay thủ công**. |
-| **Trí tuệ nhân tạo (AI Engine)** | Chỉ yêu cầu vẽ luồng giả định trên giấy. | Xây dựng hoàn chỉnh **Backend Multi-Agent 3 lớp** kết nối trực tiếp OpenAI LLM (`gpt-4o` & `gpt-4o-mini`):<br>• *Agent Bạn học Bo:* Tranh luận phản biện, biết cãi cùn và biết tâm phục khẩu phục.<br>• *Agent Giáo viên Cô Lam:* Định hướng, chốt quy tắc vàng sư phạm.<br>• *Agent Evaluator:* Chấm điểm lý lẽ học sinh theo rubric toán học chuẩn xác.<br>• Có bảng **Multi-Agent Inspector** cho phép xem trace suy nghĩ của AI theo thời gian thực. |
+| **Trí tuệ nhân tạo (AI Engine)** | Chỉ yêu cầu vẽ luồng giả định trên giấy. | Xây dựng hoàn chỉnh **Backend Multi-Agent Router** kết nối trực tiếp OpenAI LLM (`gpt-6-sol` & `gpt-6.1-sol`):<br>• *Agent Bạn học Bo:* Tranh luận phản biện, biết cãi cùn và biết tâm phục khẩu phục.<br>• *Agent Giáo viên Cô Lam:* Định hướng, chốt quy tắc vàng sư phạm.<br>• *Agent Evaluator:* Chấm điểm lý lẽ học sinh theo rubric toán học chuẩn xác.<br>• *Agent Trợ giảng TA An:* Ghim tóm tắt và đồng hành cùng lớp học.<br>• Có bảng **Multi-Agent Inspector** cho phép xem trace suy nghĩ của AI theo thời gian thực. |
 | **Tính bền vững của hệ thống** | Không yêu cầu kỹ thuật sâu. | Bổ sung cơ chế **Local Storage Persistence** cho tính năng "Tạm dừng, quay lại sau", lưu trữ chính xác bài học và tiến độ của học sinh, ngăn ngừa mất dữ liệu khi tải lại trang. |
 
 ---
@@ -151,7 +151,7 @@ Prototype Web này không phải là một sản phẩm tách rời, mà chính 
 
 * **Phong cách Thiết kế:** Sổ tay học sinh (Scrapbook / Detective Board) với giấy kẻ ô, băng dính washi tape, ghim bấm thủ công và dấu mộc cao su "ĐÚNG RỒI" tạo cảm giác gần gũi, xoá bỏ căng thẳng thi cử.
 * **Góc Tranh Luận & Đối Chất:** Huy hiệu Vàng Hổ Phách viền đôi nổi bật, ghim bấm đặt ở viền giấy tinh tế, không che lấp chữ, 100% icon SVG sắc nét trên mọi độ phân giải.
-* **Bảng Thanh Tra Multi-Agent:** Cửa sổ debug trực tiếp cho thấy thời gian phản hồi của OpenAI (`gpt-4o` & `gpt-4o-mini`), trạng thái hoạt động của từng Agent và lịch sử hội thoại chi tiết.
+* **Bảng Thanh Tra Multi-Agent:** Cửa sổ debug trực tiếp cho thấy thời gian phản hồi của OpenAI (`gpt-6-sol` & `gpt-6.1-sol`), trạng thái hoạt động của từng Agent và lịch sử hội thoại chi tiết.
 
 ---
 

@@ -1,7 +1,7 @@
 /**
  * DRE Backend API Client
  * Bridges the React frontend with the dre-backend Express server (running on http://localhost:3001)
- * Powered by OpenAI GPT-4o-mini (Bo & Assessor) and GPT-4o (Cô Lam).
+ * Powered by OpenAI GPT-6 (Bo, Assessor & TA An on gpt-6-sol, Cô Lam on gpt-6.1-sol).
  */
 
 const API_BASE_URL = (import.meta as any).env?.VITE_DRE_API_URL || 'http://localhost:3001';

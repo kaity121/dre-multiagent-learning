@@ -1,6 +1,6 @@
 # Nền tảng Học tập Đối chất Đa tác nhân (DRE Multi-Agent Interactive Learning)
 
-> **Dự án Sư phạm Đột phá:** Kết hợp Học tập Đối chất (Peer Debate), Bẻ gãy Ngộ nhận (Misconception Diagnosis), và Chu trình POE / Protégé Effect trên nền tảng Trí tuệ nhân tạo Multi-Agent (GPT-4o).  
+> **Dự án Sư phạm Đột phá:** Kết hợp Học tập Đối chất (Peer Debate), Bẻ gãy Ngộ nhận (Misconception Diagnosis), và Chu trình POE / Protégé Effect trên nền tảng Trí tuệ nhân tạo Multi-Agent (GPT-6 / OpenMAIC).  
 > **Định hướng chiến lược:** Hạt nhân nhận thức & kịch bản hội thoại sư phạm cho dự án Lớp học Thực tế Ảo VR 360°.
 
 ---
@@ -16,9 +16,9 @@ DRE-prototype/
 │   └── types/                # Hệ thống kiểu dữ liệu sư phạm DRE
 ├── backend/                  # Backend: Node.js Express Multi-Agent Gateway
 │   ├── src/
-│   │   ├── agents/           # 3 Agents: Bo (Bạn học), Cô Lam (Giáo viên), Assessor (Chấm điểm)
+│   │   ├── agents/           # 4 Agents: Bo (Bạn học), Cô Lam (Giáo viên), TA An (Trợ giảng), Assessor (Chấm điểm)
 │   │   ├── orchestrator.js   # Bộ điều phối luồng đối chất
-│   │   └── openaiClient.js   # Kết nối OpenAI API (GPT-4o & GPT-4o-mini)
+│   │   └── openaiClient.js   # Kết nối OpenAI API (Mô hình GPT-6)
 │   ├── server.js             # REST API server (Port 3001)
 │   ├── .env.example          # Mẫu cấu hình API key
 │   └── package.json
@@ -45,9 +45,9 @@ Mở file `backend/.env` và điền key OpenAI:
 ```env
 PORT=3001
 OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-ASSESSOR_MODEL=gpt-4o-mini
-BO_MODEL=gpt-4o-mini
-COLAM_MODEL=gpt-4o
+BO_MODEL=gpt-6-sol
+ASSESSOR_MODEL=gpt-6-sol
+COLAM_MODEL=gpt-6.1-sol
 ```
 
 Khởi động server Backend:
