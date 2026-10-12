@@ -37,6 +37,8 @@ Server chạy ở `http://localhost:3001` (đổi qua biến `PORT` trong `.env`
 | `/api/session/start` | POST | `{ misconceptionId }` | Bước 1: Cô Lam khởi động checkpoint |
 | `/api/session/:id/answer` | POST | `{ cauTraLoi }` | Bước 2-5: Assessor chấm → chọn bẫy → Bo thách thức |
 | `/api/session/:id/rebuttal` | POST | `{ phanBien }` | Bước 6-8: Assessor chấm phản biện → concede/hint/chốt |
+| `/api/ta/pinned/:id` | GET | — | TA An: Ghim tóm tắt & lời nhắc nhở lớp học |
+| `/api/peer/:peerId/chat` | POST | `{ message, topic }` | Chat trực tiếp 1-1 với Trí, Linh Chi, Minh Khang, Bo qua GPT-6 |
 
 Gọi `/rebuttal` lặp lại cho tới khi response trả `"done": true`.
 
@@ -44,12 +46,16 @@ Gọi `/rebuttal` lặp lại cho tới khi response trả `"done": true`.
 
 ```
 src/
-  config.js          model routing (Bo/Assessor rẻ, Cô Lam tốt hơn) + API key
+  config.js          model routing (Bo/Trí/Linh Chi/Minh Khang/Assessor dùng gpt-6-sol, Cô Lam dùng gpt-6.1-sol)
   openaiClient.js     wrapper gọi Chat Completions, ép JSON, parse an toàn
   contentLibrary.js   8 bài mẫu MISC_001-008 (có field monHoc để sau này thêm môn khác)
   sessionStore.js     lưu trạng thái phiên — hiện tại in-memory, thay bằng DB khi cần
   agents/bo.js        persona Bo — lượt thách thức + lượt phản ứng sau khi bị bẻ lại
   agents/colam.js     persona Cô Lam — khởi động / can thiệp gợi ý / chốt kiến thức
+  agents/ta.js        persona TA An — ghim tóm tắt, nhắc nhở định nghĩa, giữ nhịp học
+  agents/tri.js       persona Trí — Deep Thinker đào sâu bản chất toán học & điều kiện biên
+  agents/linhchi.js   persona Linh Chi — Note Taker ghi chú công thức chuẩn & sổ tay bỏ túi
+  agents/minhkhang.js persona Minh Khang — Inquisitive Mind với ẩn dụ đời sống trực quan
   agents/assessor.js  chấm câu trả lời gốc + chấm phản biện, tách riêng để giữ ổn định
   orchestrator.js     FSM nối tất cả lại theo đúng luồng 8 bước đã thiết kế
 server.js             Express API

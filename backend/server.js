@@ -90,6 +90,34 @@ app.get('/api/ta/pinned/:id', async (req, res) => {
   }
 });
 
+// POST /api/peer/:peerId/chat — OpenMAIC: Nhắn tin trực tiếp với Trí, Linh Chi, Minh Khang hoặc Bo qua GPT-6
+app.post('/api/peer/:peerId/chat', async (req, res) => {
+  try {
+    const { peerId } = req.params;
+    const { message, topic = 'Toán học THCS', mathProblem = '' } = req.body;
+    let result;
+
+    if (peerId === 'tri') {
+      const { triDeepThink } = await import('./src/agents/tri.js');
+      result = await triDeepThink({ baiToan: mathProblem, chuDe: topic, cauHoiHocVien: message });
+    } else if (peerId === 'linhchi') {
+      const { linhChiTakeNotes } = await import('./src/agents/linhchi.js');
+      result = await linhChiTakeNotes({ baiToan: mathProblem, chuDe: topic, cauHoiHocVien: message });
+    } else if (peerId === 'minhkhang') {
+      const { minhKhangAnalogy } = await import('./src/agents/minhkhang.js');
+      result = await minhKhangAnalogy({ baiToan: mathProblem, chuDe: topic, cauHoiHocVien: message });
+    } else {
+      // Default to Bo
+      const { boChallenge } = await import('./src/agents/bo.js');
+      result = await boChallenge({ baiToan: mathProblem || topic, cauTraLoiHocVien: message, danhGia: 'dung', loaiBay: 'shortcut_fallacy' });
+    }
+
+    res.json({ ok: true, peerId, result });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.listen(config.port, () => {
   console.log(`DRE backend đang chạy ở http://localhost:${config.port}`);
 });

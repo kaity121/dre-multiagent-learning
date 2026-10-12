@@ -16,8 +16,15 @@ DRE-prototype/
 │   └── types/                # Hệ thống kiểu dữ liệu sư phạm DRE
 ├── backend/                  # Backend: Node.js Express Multi-Agent Gateway
 │   ├── src/
-│   │   ├── agents/           # 4 Agents: Bo (Bạn học), Cô Lam (Giáo viên), TA An (Trợ giảng), Assessor (Chấm điểm)
-│   │   ├── orchestrator.js   # Bộ điều phối luồng đối chất
+│   │   ├── agents/           # 6 Agents chuẩn OpenMAIC:
+│   │   │   ├── bo.js         # Bo (Bạn học cãi bướng / Sparring partner)
+│   │   │   ├── colam.js      # Cô Lam (Giáo viên dẫn dắt Socratic)
+│   │   │   ├── ta.js         # TA An (Trợ giảng ghim bài & đo lường)
+│   │   │   ├── tri.js        # Trí (Deep Thinker - Đào sâu bản chất)
+│   │   │   ├── linhchi.js    # Linh Chi (Note Taker - Ghi chú công thức)
+│   │   │   ├── minhkhang.js  # Minh Khang (Inquisitive - Ẩn dụ đời sống)
+│   │   │   └── assessor.js   # Assessor (Trọng tài chấm ngầm & Action Layer)
+│   │   ├── orchestrator.js   # Bộ điều phối luồng đối chất FSM
 │   │   └── openaiClient.js   # Kết nối OpenAI API (Mô hình GPT-6)
 │   ├── server.js             # REST API server (Port 3001)
 │   ├── .env.example          # Mẫu cấu hình API key
