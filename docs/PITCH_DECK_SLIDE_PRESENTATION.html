@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>DRE Learning - Pitch Deck 10/20/30 (Đạt 9/9 Tiêu Chí)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* 10/20/30 Enforcement: Large legible typography, high contrast */
+    .slide-title {
+      font-size: 38px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+    .slide-body {
+      font-size: 30px;
+      line-height: 1.4;
+      font-weight: 500;
+    }
+    .slide-badge {
+      font-size: 18px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body class="bg-[#1C1917] text-[#FAF7F2] font-sans antialiased min-h-screen flex flex-col justify-between p-6 select-none">
+
+  <!-- Top Controller Bar -->
+  <header class="max-w-6xl w-full mx-auto flex items-center justify-between pb-4 border-b border-[#3E3834] text-sm">
+    <div class="flex items-center gap-3">
+      <span class="w-8 h-8 rounded bg-[#E8A33D] text-white font-bold flex items-center justify-center text-base">D</span>
+      <span class="font-bold tracking-tight text-lg text-white">DRE LEARNING · PITCH DECK</span>
+      <span class="slide-badge px-2.5 py-0.5 rounded-full bg-[#342D26] text-[#E8A33D] border border-[#524436]">
+        Chuẩn 10/20/30 · Đạt 9/9 Tiêu Chí
+      </span>
+    </div>
+
+    <!-- Slide Navigation & 20-min Timer -->
+    <div class="flex items-center gap-4">
+      <div class="font-mono text-xs bg-[#2B2520] px-3 py-1.5 rounded-lg border border-[#443A30] text-[#A89885]">
+        ⏱️ Thời gian: <span id="timer" class="text-white font-bold">20:00</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button onclick="prevSlide()" class="px-3 py-1.5 rounded bg-[#38312B] hover:bg-[#4E443C] text-white font-bold cursor-pointer text-sm">❮ Trước</button>
+        <span class="font-mono text-sm px-2 text-[#E8A33D] font-bold"><span id="slide-num">1</span> / 10</span>
+        <button onclick="nextSlide()" class="px-3 py-1.5 rounded bg-[#E8A33D] hover:bg-[#D9932B] text-black font-bold cursor-pointer text-sm">Sau ❯</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Slide Arena Container -->
+  <main class="max-w-6xl w-full mx-auto my-auto py-6">
+
+    <!-- ==================== SLIDE 1 ==================== -->
+    <div class="slide flex flex-col justify-center min-h-[440px] space-y-6">
+      <span class="slide-badge text-[#E8A33D] uppercase tracking-widest font-mono">SLIDE 01 · TITLE & HOOK</span>
+      <h1 class="slide-title text-[#FFFDF7] text-5xl">
+        DRE LEARNING: BIẾN NGỘ NHẬN TOÁN HỌC THÀNH BƯỚC ĐỘT PHÁ TƯ DUY
+      </h1>
+      <p class="slide-body text-[#D4C7B5]">
+        Lớp học đa tác tử AI mô phỏng xã hội giúp học sinh THCS thoát khỏi ảo giác hiểu bài thông qua đối chất phản biện.
+      </p>
+      <div class="pt-4 flex items-center gap-6 text-[#9E8F7F] text-xl font-mono">
+        <span>💡 Nudges, Not Answers</span>
+        <span>•</span>
+        <span>Tsinghua OpenMAIC Framework</span>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 2 ==================== -->
+    <div class="slide hidden flex flex-col justify-center min-h-[440px] space-y-6">
+      <span class="slide-badge text-[#E8A33D] uppercase tracking-widest font-mono">SLIDE 02 · TARGET USER & PROBLEM</span>
+      <h2 class="slide-title text-[#FF7A59]">
+        ẢO GIÁC HIỂU BÀI & CÁCH HỌC SINH THCS XOAY XỞ BẾ TẮC
+      </h2>
+      <ul class="slide-body space-y-4 text-[#EFEBE4]">
+        <li class="flex items-start gap-3">
+          <span class="text-[#FF7A59]">•</span>
+          <span><strong>Người thụ hưởng cụ thể:</strong> Học sinh THCS (lớp 7–9) tự học Toán qua video để ôn thi vào 10.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-[#FF7A59]">•</span>
+          <span><strong>70% học sinh</strong> xem video tưởng đã hiểu, nhưng tự làm bài thì bế tắc hoàn toàn.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-[#FF7A59]">•</span>
+          <span><strong>Chatbot giải bài hộ:</strong> Chép bài thụ động, mất phản xạ nhận diện sai lầm.</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- ==================== SLIDE 3 ==================== -->
+    <div class="slide hidden flex flex-col justify-center min-h-[440px] space-y-6">
+      <span class="slide-badge text-[#E8A33D] uppercase tracking-widest font-mono">SLIDE 03 · THE DRE SOLUTION</span>
+      <h2 class="slide-title text-[#4E9B87]">
+        DRE: QUY TRÌNH 3 BƯỚC THẤU SUỐT BẢN CHẤT
+      </h2>
+      <div class="grid grid-cols-3 gap-6 pt-2">
+        <div class="p-6 rounded-xl bg-[#292420] border-2 border-[#4E9B87] space-y-2">
+          <div class="text-[#4E9B87] font-bold text-2xl font-mono">1. DIAGNOSE</div>
+          <div class="text-xl font-bold text-white">Soi Lỗi Bài Giải</div>
+          <p class="text-base text-[#B0A292]">Học sinh tìm và đánh dấu bước biến đổi sai của bạn học AI.</p>
+        </div>
+        <div class="p-6 rounded-xl bg-[#292420] border-2 border-[#E8A33D] space-y-2">
+          <div class="text-[#E8A33D] font-bold text-2xl font-mono">2. REPAIR</div>
+          <div class="text-xl font-bold text-white">Đấu Trí Với Bo</div>
+          <p class="text-base text-[#B0A292]">Bạn Bo cãi bướng bẫy trực giác, kích thích học sinh phản biện.</p>
+        </div>
+        <div class="p-6 rounded-xl bg-[#292420] border-2 border-[#6B9E5C] space-y-2">
+          <div class="text-[#6B9E5C] font-bold text-2xl font-mono">3. EXPLAIN</div>
+          <div class="text-xl font-bold text-white">Thuyết Phục Chân Lý</div>
+          <p class="text-base text-[#B0A292]">Học sinh tự tay gõ lập luận, khuất phục Bo và nhận chứng nhận.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 4 ==================== -->
+    <div class="slide hidden flex flex-col justify-center min-h-[440px] space-y-6">
+      <span class="slide-badge text-[#E8A33D] uppercase tracking-widest font-mono">SLIDE 04 · AGENT ACTION LAYER</span>
+      <h2 class="slide-title text-[#E8A33D]">
+        AGENT HÀNH ĐỘNG THỰC TẾ & RANH GIỚI ĐẠO ĐỨC
+      </h2>
+      <ul class="slide-body space-y-4 text-[#EFEBE4]">
+        <li class="flex items-start gap-3">
+          <span class="text-[#E8A33D]">⚡</span>
+          <span><strong>AI là bắt buộc:</strong> Bỏ AI chỉ còn video và quiz tĩnh. AI tạo xung đột nhận thức và scaffold theo Bloom.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-[#E8A33D]">⚡</span>
+          <span><strong>Hành động ghi dữ liệu thật:</strong> Tạo learning record, cập nhật trạng thái mastery, tạo review task.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-[#E8A33D]">⚡</span>
+          <span><strong>Ranh giới đạo đức:</strong> Không giả danh người thật, không giải bài hộ, chặn 100% PII.</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- ==================== SLIDE 5 ==================== -->
+    <div class="slide hidden flex flex-col justify-center min-h-[440px] space-y-6">
+      <span class="slide-badge text-[#E8A33D] uppercase tracking-widest font-mono">SLIDE 05 · BUSINESS & VERIFICATION</span>
+      <h2 class="slide-title text-[#FFFDF7]">
+        MÔ HÌNH KINH DOANH & BẮT BUỘC XÁC MINH
+      </h2>
+      <div class="grid grid-cols-2 gap-8 pt-2">
+        <div class="p-6 rounded-xl bg-[#292420] border-2 border-[#E8A33D] space-y-2">
+          <div class="text-2xl font-bold text-[#E8A33D]">Quy Tắc Bắt Buộc Xác Minh</div>
+          <p class="text-lg text-[#D4C7B5]">Chọn đúng đáp án <strong>chưa đủ</strong>. Học sinh bắt buộc phải <strong>giải thích lý do hoặc làm bài biến thể</strong> mới được ghi nhận Mastered.</p>
+        </div>
+        <div class="p-6 rounded-xl bg-[#292420] border-2 border-[#4E9B87] space-y-2">
+          <div class="text-2xl font-bold text-[#4E9B87]">Doanh Thu B2C & B2B SDK</div>
+          <p class="text-lg text-[#D4C7B5]">B2C Pro <strong>99.000đ/tháng</strong> (GPT-6 không giới hạn). B2B cung cấp <strong>DRE Plug-in SDK</strong> biến video LMS tĩnh thành lớp học tranh biện.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 6 ==================== -->
+    <div class="slide hidden flex flex-col justify-center min-h-[440px] space-y-6">
+      <span class="slide-badge text-[#E8A33D] uppercase tracking-widest font-mono">SLIDE 06 · GO-TO-MARKET (GTM)</span>
+      <h2 class="slide-title text-[#FFFDF7]">
+        CHIẾN LƯỢC LAN TỎA "BẮT BẺ TOÁN HỌC"
+      </h2>
+      <ul class="slide-body space-y-4 text-[#EFEBE4]">
+        <li class="flex items-start gap-3">
+          <span class="text-[#E8A33D]">🎯</span>
+          <span><strong>Viral TikTok/Reels:</strong> "Thử thách bắt bẻ Bo ngây ngô" với các cạm bẫy toán THCS kinh điển.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-[#E8A33D]">🎯</span>
+          <span><strong>Pilot học đường:</strong> Thử nghiệm tại 5 trường THCS, kiểm chứng bằng bộ Metrics của An.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-[#E8A33D]">🎯</span>
+          <span><strong>B2B Expansion:</strong> Phân phối sỉ license cho trung tâm bồi dưỡng và trường liên cấp.</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- ==================== SLIDE 7 ==================== -->
+    <div class="slide hidden flex flex-col justify-center min-h-[440px] space-y-4">
+      <span class="slide-badge text-[#E8A33D] uppercase tracking-widest font-mono">SLIDE 07 · PHÂN TÍCH ĐỐI THỦ (COMPETITIVE ANALYSIS)</span>
+      <h2 class="slide-title text-[#FFFDF7] text-3xl font-extrabold">
+        VƯỢT LÊN TRÊN COURSERA & LỚP LIVE ZOOM/MEET
+      </h2>
+      <div class="slide-body grid grid-cols-2 gap-3 text-sm">
+        <!-- Competitor 1: MOOCs -->
+        <div class="p-3 bg-[#292420] rounded-xl border border-[#44382E] space-y-1">
+          <div class="flex items-center justify-between text-yellow-400 font-bold text-base">
+            <span>🌐 Coursera / edX (MOOCs)</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-yellow-950 text-yellow-300">Asynchronous</span>
+          </div>
+          <p class="text-xs text-[#D4C7B5]"><strong>Điểm nghẽn:</strong> Dropout 85–90%. Học sinh đơn độc bấm Play xem video 1 chiều, không ai đồng hành, trắc nghiệm bấm bừa.</p>
+        </div>
+
+        <!-- Competitor 2: Live Video -->
+        <div class="p-3 bg-[#292420] rounded-xl border border-[#44382E] space-y-1">
+          <div class="flex items-center justify-between text-blue-400 font-bold text-base">
+            <span>📹 Zoom / Google Meet</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-blue-950 text-blue-300">Synchronous</span>
+          </div>
+          <p class="text-xs text-[#D4C7B5]"><strong>Điểm nghẽn:</strong> "Tắt cam tắt mic" vì sợ bị gọi tên; không kèm sát từng học sinh; chi phí gia sư đắt đỏ ($15–$30/h), không thể scale.</p>
+        </div>
+
+        <!-- Competitor 3: AI Solvers -->
+        <div class="p-3 bg-[#292420] rounded-xl border border-[#44382E] space-y-1">
+          <div class="flex items-center justify-between text-red-400 font-bold text-base">
+            <span>⚡ ChatGPT / Photomath</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-red-950 text-red-300">Spoon-feeding</span>
+          </div>
+          <p class="text-xs text-[#D4C7B5]"><strong>Điểm nghẽn:</strong> Đưa lời giải sẵn $\rightarrow$ học sinh chép bài thụ động, triệt tiêu tư duy phản biện, ảo giác hiểu bài.</p>
+        </div>
+
+        <!-- Winner: DRE Learning -->
+        <div class="p-3 bg-[#1e3429] rounded-xl border-2 border-[#4E9B87] space-y-1 shadow-lg shadow-[#4E9B87]/20">
+          <div class="flex items-center justify-between text-[#5EEAD4] font-bold text-base">
+            <span>🎯 DRE LEARNING PLATFORM</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-[#0f2d22] text-[#34D399] font-mono">The Sweet Spot</span>
+          </div>
+          <p class="text-xs text-[#E6F4EA]"><strong>Đột phá:</strong> Sống động & gắn kết như <strong>Zoom</strong> + Tự do & chi phí biên bằng 0 như <strong>Coursera</strong> + <strong>Sư phạm Scaffolding</strong> (Bo sai trước làm bạn học an toàn).</p>
+        </div>
+      </div>
+      <div class="p-2.5 rounded-lg bg-[#241F1A] border-l-4 border-[#E8A33D] text-xs text-[#D4C7B5] flex items-center justify-between">
+        <span>💡 <strong>Định vị 2x2:</strong> Khả năng scale vô hạn (Infinite Scale) $\times$ Chiều sâu sư phạm tương tác cao (Deep Scaffolding Engagement).</span>
+        <span class="text-[#E8A33D] font-mono font-bold ml-2">Zero Marginal Cost</span>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 8 ==================== -->
+    <div class="slide hidden flex flex-col justify-center min-h-[440px] space-y-6">
+      <span class="slide-badge text-[#E8A33D] uppercase tracking-widest font-mono">SLIDE 08 · THE TEAM</span>
+      <h2 class="slide-title text-[#FFFDF7]">
+        ĐỘI NGŨ CÂN BẰNG: SƯ PHẠM · AI · TRẢI NGHIỆM
+      </h2>
+      <div class="grid grid-cols-4 gap-4 pt-2">
+        <div class="p-4 rounded-lg bg-[#292420] border border-[#44382E] text-center space-y-1">
+          <div class="text-2xl">🎨</div>
+          <div class="font-bold text-white text-lg">Khuê Minh</div>
+          <div class="text-xs text-[#E8A33D] font-mono">Frontend & UX Lead</div>
+          <p class="text-xs text-[#9E8F7F]">SuperrBook Tactile UI, 70/30 Layout, Web Audio.</p>
+        </div>
+        <div class="p-4 rounded-lg bg-[#292420] border border-[#44382E] text-center space-y-1">
+          <div class="text-2xl">🤖</div>
+          <div class="font-bold text-white text-lg">Hiếu</div>
+          <div class="text-xs text-[#E8A33D] font-mono">AI Backend Lead</div>
+          <p class="text-xs text-[#9E8F7F]">Multi-Agent Router (GPT-6), Action Pipeline.</p>
+        </div>
+        <div class="p-4 rounded-lg bg-[#292420] border border-[#44382E] text-center space-y-1">
+          <div class="text-2xl">📊</div>
+          <div class="font-bold text-white text-lg">An</div>
+          <div class="text-xs text-[#E8A33D] font-mono">Pedagogy & Metrics</div>
+          <p class="text-xs text-[#9E8F7F]">OpenMAIC Paper Research, Learner Modeling.</p>
+        </div>
+        <div class="p-4 rounded-lg bg-[#292420] border border-[#44382E] text-center space-y-1">
+          <div class="text-2xl">📋</div>
+          <div class="font-bold text-white text-lg">Blu e's</div>
+          <div class="text-xs text-[#E8A33D] font-mono">Product Management</div>
+          <p class="text-xs text-[#9E8F7F]">Điều phối nguồn lực và an toàn AI.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 9 ==================== -->
+    <div class="slide hidden flex flex-col justify-center min-h-[440px] space-y-6">
+      <span class="slide-badge text-[#E8A33D] uppercase tracking-widest font-mono">SLIDE 09 · TEST CASES & 2 NORTH STARS</span>
+      <h2 class="slide-title text-[#4E9B87]">
+        10 TEST CASES ĐÚNG/SAI & 2 CHỈ SỐ BẮC ĐẨU
+      </h2>
+      <ul class="slide-body space-y-4 text-[#EFEBE4]">
+        <li class="flex items-start gap-3">
+          <span class="text-[#4E9B87]">🎯</span>
+          <span><strong>10 Test Cases chuẩn xác:</strong> Đo đếm rành mạch đúng/sai, mastered/chưa mastered, an toàn PII và guardrail ngoài chủ đề.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-[#4E9B87]">⭐</span>
+          <span><strong>Chỉ số 1: Checkpoint Mastery Rate</strong> &ge; 60% học sinh đạt chuẩn sau khi có phản biện/thử lại.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-[#4E9B87]">⭐</span>
+          <span><strong>Chỉ số 2: Transfer Success Rate</strong> &ge; 50% học sinh làm đúng bài biến thể sau khi hiểu khái niệm.</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- ==================== SLIDE 10 ==================== -->
+    <div class="slide hidden flex flex-col justify-center min-h-[440px] space-y-6">
+      <span class="slide-badge text-[#E8A33D] uppercase tracking-widest font-mono">SLIDE 10 · SUMMARY & THE ASK</span>
+      <h2 class="slide-title text-[#E8A33D]">
+        AGENT HỌC TẬP CÓ HÀNH ĐỘNG, BƯỚC XÁC MINH & CHỈ SỐ ĐO ĐƯỢC
+      </h2>
+      <p class="slide-body text-[#FFFDF7]">
+        DRE tiên phong chuyển từ "chatbot trả lời" sang "agent học tập có trách nhiệm". Chúng tôi tìm kiếm Cố vấn Sư phạm & Đối tác Trường học để triển khai Pilot 1.000 học sinh.
+      </p>
+      <div class="p-6 bg-[#2B241E] border-2 border-[#E8A33D] rounded-xl flex items-center justify-between">
+        <div>
+          <div class="text-xl font-bold text-white">DRE Learning Project Team</div>
+          <div class="text-base text-[#B3A18F]">Sẵn sàng kết nối & Demo hệ thống trực tiếp.</div>
+        </div>
+        <span class="px-5 py-2.5 bg-[#E8A33D] text-black font-bold rounded-lg text-lg">Liên Hệ Ngay</span>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Bottom Instruction Footer -->
+  <footer class="max-w-6xl w-full mx-auto pt-4 border-t border-[#3E3834] flex items-center justify-between text-xs text-[#8C7E70] font-mono">
+    <span>Dùng phím [◀ Trái] và [Phải ▶] trên bàn phím để chuyển slide</span>
+    <span>DRE Multi-Agent Classroom · Đạt 9/9 Tiêu Chí Thẩm Định Sản Phẩm</span>
+  </footer>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+
+    function showSlide(index) {
+      slides.forEach((s, idx) => {
+        if (idx === index) {
+          s.classList.remove('hidden');
+        } else {
+          s.classList.add('hidden');
+        }
+      });
+      document.getElementById('slide-num').innerText = index + 1;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) {
+        currentSlide++;
+        showSlide(currentSlide);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        showSlide(currentSlide);
+      }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+      if (e.key === 'ArrowLeft') prevSlide();
+    });
+
+    // 20-minute countdown timer
+    let timeLeft = 20 * 60;
+    setInterval(() => {
+      if (timeLeft > 0) {
+        timeLeft--;
+        const mins = Math.floor(timeLeft / 60);
+        const secs = timeLeft % 60;
+        document.getElementById('timer').innerText = 
+          `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

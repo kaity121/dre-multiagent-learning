@@ -104,15 +104,25 @@ Hệ thống dẫn dắt học sinh vượt qua xung đột nhận thức (Cogni
 
 ---
 
-## SLIDE 7: PHÂN TÍCH ĐỐI THỦ CẠNH TRANH (COMPETITIVE MATRIX)
+## SLIDE 7: PHÂN TÍCH ĐỐI THỦ CẠNH TRANH (COMPETITIVE ANALYSIS & 2X2 MATRIX)
+### **VƯỢT LÊN TRÊN MOOCS TĨNH VÀ LỚP HỌC TRỰC TUYẾN TRUYỀN THỐNG**
 
-| Tiêu chí so sánh | Chatbot Giải Đề (Photomath, Qanda) | Video MOOCs Tĩnh (Kyna, Hocmai) | DRE LEARNING PLATFORM |
-| :--- | :---: | :---: | :---: |
-| **Bản chất sư phạm** | Giải bài hộ $\rightarrow$ Học sinh chép sẵn | Xem thụ động $\rightarrow$ Tỉ lệ bỏ học 85% | **Đối chất phản biện 3 bước (DRE)** |
-| **Hành động Agent** | Chỉ trả lời text đơn thuần | Không có agent | **Action ghi record, cập nhật mastery & review task** |
-| **Cơ chế xác minh** | Không có (chấp nhận kết quả) | Trắc nghiệm bấm bừa là qua | **Bắt buộc giải thích lý do / làm bài biến thể** |
-| **Tâm lý học tập** | Mặc cảm, sợ sai khi tự làm | Ảo giác hiểu bài | **Xóa bỏ mặc cảm nhờ Bo sai trước** |
-| **Giao diện UI/UX** | Form tra cứu khô khan | Cửa sổ video thông thường | **Sổ tay xúc giác SuperrBook, 70/30 Zero Scroll** |
+#### 1. Ma trận đối sánh trực diện 4 mô hình giáo dục:
+| Tiêu chí so sánh | MOOCs Toàn cầu (Coursera, edX, Hocmai) | Live Video Class (Zoom, Google Meet) | AI Solver / GenAI (ChatGPT, Photomath) | DRE LEARNING PLATFORM |
+| :--- | :--- | :--- | :--- | :--- |
+| **Mô hình trải nghiệm** | **Asynchronous 1 chiều:** Ngồi xem video bài giảng tĩnh một mình | **Synchronous Live Stream:** 1 giáo viên nói cho 30-40 học sinh qua camera | **Single-Turn Q&A:** Hỏi - đáp văn bản đơn tuyến | **Simulated Social Classroom:** Phòng học đa tác nhân tương tác 2 chiều 24/7 |
+| **Điểm nghẽn chí mạng (Pain Points)** | 🔻 **Dropout 85–90%:** Người học cô đơn, thụ động bấm Play rồi bỏ cuộc | 🔻 **Hội chứng "Tắt Cam Tắt Mic":** Áp lực bị gọi tên (Spotlight Anxiety); chi phí gia sư cực đắt ($15–$30/h) | 🔻 **Spoon-feeding:** Đưa sẵn đáp án $\rightarrow$ Học sinh ỷ lại chép bài, thui chột tư duy | 🟢 **An toàn tâm lý (Psychological Safety):** Bạn Bo "sai trước", xóa tan mặc cảm; học sinh tự tin sửa sai |
+| **Phương pháp Sư phạm** | Trắc nghiệm bấm bừa $\rightarrow$ Ảo giác hiểu bài (Illusion of Competence) | Giáo viên dạy theo tốc độ trung bình, không thể kèm tư duy sai của từng em | Không có xác minh $\rightarrow$ Học sinh chép bài mà không hiểu bản chất | 🟢 **Giàn giáo Scaffolding 3 tầng + Bloom:** Bắt buộc đối chất giải thích lý do & làm bài biến thể |
+| **Khả năng Scale & Chi phí** | Scale cao, nhưng hiệu quả chuyển hóa tri thức thấp | **Không thể scale:** Phụ thuộc 100% người thật, chi phí biên tăng tịnh tiến | Scale cao, nhưng đối mặt rủi ro gian lận học đường | 🟢 **Infinite Scale, Zero Marginal Cost:** Trải nghiệm sống động như lớp học với chi phí biên $\approx 0$ |
+
+#### 2. Ma trận Định vị 2x2 (The EdTech Sweet Spot):
+* **Trục Tung (Y - Trải nghiệm Tương tác & Chiều sâu Sư phạm):** Từ *Thụ động / Giải bài hộ* lên *Tương tác Phản biện & Giàn giáo Tư duy*.
+* **Trục Hoành (X - Khả năng Mở rộng Quy mô & Chi phí Biên):** Từ *Phụ thuộc người thật / Đắt đỏ* sang *Tự động hóa hoàn toàn / Chi phí biên $\approx 0$*.
+* **Định vị chiến lược:**
+  * **Coursera / edX:** Góc Dưới - Phải (Quy mô cực lớn nhưng cô đơn, thụ động, tỉ lệ hoàn thành $< 10\%$).
+  * **Zoom / Google Meet (Gia sư):** Góc Trên - Trái (Tương tác trực tiếp nhưng đắt đỏ, không scale được, học sinh ngại mở mic).
+  * **ChatGPT / Photomath:** Góc Dưới - Giữa (Nhanh nhưng spoon-feeding làm học sinh mất kỹ năng tư duy).
+  * 🎯 **DRE LEARNING PLATFORM (Góc Trên - Phải - The Sweet Spot):** **Kết hợp tính linh hoạt, chi phí thấp của Coursera với sự sống động, gắn kết của Zoom — nâng cấp bằng Sư phạm phản biện AI độc bản.**
 
 ---
 
