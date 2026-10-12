@@ -73,6 +73,23 @@ app.post('/api/session/:id/rebuttal', async (req, res) => {
   }
 });
 
+// GET /api/ta/pinned/:id — OpenMAIC: TA agent sinh lưu ý/định nghĩa ghim cho bài học
+app.get('/api/ta/pinned/:id', async (req, res) => {
+  try {
+    const { generateTAPinnedNote } = await import('./src/agents/ta.js');
+    const { getMisconception } = await import('./src/contentLibrary.js');
+    const misc = getMisconception(req.params.id);
+    const result = await generateTAPinnedNote({
+      baiToan: misc.baiToan,
+      chuDe: misc.chuDe,
+      goiY: misc.goiY1
+    });
+    res.json({ ok: true, result });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.listen(config.port, () => {
   console.log(`DRE backend đang chạy ở http://localhost:${config.port}`);
 });

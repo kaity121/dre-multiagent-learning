@@ -7,124 +7,107 @@ import React from 'react';
  * 100% custom SVGs - Zero standard OS emoji dependencies!
  */
 
-// Super Cute Bo Polaroid Portrait with dynamic emotional expressions
+// Superr.ai Storybook Style Bo Portrait (Warm, authentic hand-drawn kid character)
 export const BoAvatar: React.FC<{ 
   size?: 'sm' | 'md' | 'lg'; 
   className?: string;
   expression?: 'confident' | 'skeptical' | 'embarrassed' | 'happy';
 }> = ({ size = 'md', className = '', expression = 'confident' }) => {
-  const dim = size === 'sm' ? 'w-14 h-16' : size === 'lg' ? 'w-28 h-32' : 'w-20 h-24';
+  const dim = size === 'sm' ? 'w-12 h-14' : size === 'lg' ? 'w-24 h-28' : 'w-16 h-20';
   return (
-    <div className={`relative inline-block bg-white p-2 pb-3.5 border border-[#E3DDD1] rounded-xs polaroid-shadow transition-transform hover:rotate-0 -rotate-2 ${dim} ${className}`}>
-      {/* Handcrafted silver paperclip on top-left corner */}
-      <div className="absolute -top-3.5 left-1.5 z-10 w-4 h-7 text-[#737F8E]">
-        <svg viewBox="0 0 24 38" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M7 14V6a4 4 0 0 1 8 0v18a6 6 0 0 1-12 0V11a2.5 2.5 0 0 1 5 0v15" />
-        </svg>
-      </div>
+    <div className={`relative inline-block bg-white p-1.5 pb-2.5 border border-[#DDD3C4] rounded-sm drop-shadow-sm transition-transform hover:rotate-0 -rotate-1 ${dim} ${className}`}>
+      {/* Small warm washi tape tag at top */}
+      <div className="absolute -top-2 left-3 w-8 h-3 bg-[#E8A33D]/80 rounded-xs rotate-[-2deg] shadow-2xs z-10" />
 
-      <div className="w-full h-full bg-[#FFF8EB] rounded-xs flex items-center justify-center overflow-hidden border border-[#F5E2C4]">
-        {/* Adorable Chibi Bo SVG */}
+      <div className="w-full h-full bg-[#FFF9EE] rounded-xs flex items-center justify-center overflow-hidden border border-[#F2E5D0]">
         <svg viewBox="0 0 100 100" className="w-full h-full">
-          {/* Soft amber glow aura */}
-          <circle cx="50" cy="50" r="44" fill={expression === 'embarrassed' ? '#FFE8E0' : '#FFF2D6'} />
+          {/* Warm background tint */}
+          <circle cx="50" cy="50" r="46" fill="#FFF4DE" />
 
-          {/* Tousled cute anime/chibi hair */}
-          <path d="M18 48 C16 26, 32 14, 52 14 C72 14, 84 26, 82 48 C78 40, 72 34, 62 34 C54 34, 50 38, 42 32 C34 35, 28 40, 22 48 Z" fill="#2E2825" />
-          <path d="M26 34 C30 20, 44 14, 52 14 C62 14, 74 20, 74 34" stroke="#443934" strokeWidth="2" fill="none" />
-          
-          {/* Round ears with inner pink/warm tint */}
-          <circle cx="24" cy="53" r="7" fill="#F7D3B5" />
-          <circle cx="24" cy="53" r="3.5" fill="#E8B49E" />
-          <circle cx="76" cy="53" r="7" fill="#F7D3B5" />
-          <circle cx="76" cy="53" r="3.5" fill="#E8B49E" />
+          {/* Superr-style character: Warm amber hoodie body */}
+          <path d="M24 82 C24 68, 76 68, 76 82 L78 98 L22 98 Z" fill="#E8963D" />
+          <path d="M42 74 L50 82 L58 74" fill="#D47B22" />
 
-          {/* Chubby cheeks face shape */}
-          <path d="M27 48 C27 72, 73 72, 73 48 C73 44, 27 44, 27 48 Z" fill="#FFE5D1" />
+          {/* Neck */}
+          <rect x="44" y="60" width="12" height="10" rx="3" fill="#FADBC0" />
 
-          {/* Dynamic expressions for debate / doubt / concession */}
+          {/* Ears */}
+          <ellipse cx="28" cy="48" rx="5" ry="7" fill="#FADBC0" />
+          <ellipse cx="72" cy="48" rx="5" ry="7" fill="#FADBC0" />
+
+          {/* Head (Hand-drawn organic oval) */}
+          <ellipse cx="50" cy="48" rx="22" ry="20" fill="#FFE5CC" />
+
+          {/* Storybook messy hair with textured fringe */}
+          <path d="M26 42 C24 24, 38 18, 50 18 C62 18, 76 24, 74 42 C70 34, 62 30, 54 30 C46 30, 42 34, 34 32 C30 36, 28 38, 26 42 Z" fill="#423429" />
+          <path d="M38 28 C42 22, 48 20, 52 24" stroke="#2B211A" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+          <path d="M54 22 C60 20, 66 24, 68 28" stroke="#2B211A" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+
+          {/* Soft rosy cheeks (Superr-style pastel blush) */}
+          <ellipse cx="36" cy="54" rx="4.5" ry="3" fill="#F59E7A" opacity="0.5" />
+          <ellipse cx="64" cy="54" rx="4.5" ry="3" fill="#F59E7A" opacity="0.5" />
+
+          {/* Expression-dependent eyes & eyebrows */}
           {expression === 'skeptical' ? (
-            /* Skeptical Bo: Raised eyebrow, smirking doubt, questioning gaze */
             <g>
-              <ellipse cx="38" cy="49" rx="5.5" ry="6" fill="#2E2825" />
-              <circle cx="36" cy="47" r="2" fill="#FFFFFF" />
-              <circle cx="39" cy="51" r="1" fill="#FFFFFF" />
+              {/* Questioning raised eyebrows */}
+              <path d="M33 38 Q38 34 43 38" stroke="#382920" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+              <path d="M57 41 Q62 43 67 40" stroke="#382920" strokeWidth="2.4" strokeLinecap="round" fill="none" />
 
-              <ellipse cx="62" cy="50" rx="4.5" ry="5.5" fill="#2E2825" />
-              <circle cx="61" cy="49" r="1.8" fill="#FFFFFF" />
+              {/* Eyes looking sideways with doubt */}
+              <circle cx="39" cy="46" r="3.2" fill="#2B211A" />
+              <circle cx="38" cy="45" r="1" fill="#FFFFFF" />
+              <circle cx="61" cy="46" r="3.2" fill="#2B211A" />
+              <circle cx="60" cy="45" r="1" fill="#FFFFFF" />
 
-              {/* Left eyebrow raised high in skepticism */}
-              <path d="M31 36 Q38 32 44 37" stroke="#2E2825" strokeWidth="2.8" strokeLinecap="round" fill="none" />
-              {/* Right eyebrow pressed down in scrutiny */}
-              <path d="M56 44 Q62 46 68 42" stroke="#2E2825" strokeWidth="2.8" strokeLinecap="round" fill="none" />
-
-              {/* Skeptical smirking mouth */}
-              <path d="M42 62 Q48 58 56 61" stroke="#2E2825" strokeWidth="2.8" strokeLinecap="round" fill="none" />
+              {/* Doubtful wavy mouth */}
+              <path d="M43 58 Q49 55 57 58" stroke="#382920" strokeWidth="2.4" strokeLinecap="round" fill="none" />
             </g>
           ) : expression === 'embarrassed' ? (
-            /* Embarrassed / Conceding Bo: Big sweat drop, awkward sheepish smile */
             <g>
-              {/* Giant cartoon sweatdrop */}
-              <path d="M72 32 C70 30, 68 34, 68 37 C68 40, 72 43, 75 40 C77 38, 74 34, 72 32 Z" fill="#88C7E0" stroke="#5DA0B8" strokeWidth="1" />
+              {/* Cute sweatdrop */}
+              <path d="M74 34 C72 32, 70 35, 70 38 C70 41, 74 44, 76 41 C78 39, 76 35, 74 34 Z" fill="#78C6E2" />
 
-              <ellipse cx="38" cy="50" rx="6" ry="6.5" fill="#2E2825" />
-              <circle cx="37" cy="47" r="2.2" fill="#FFFFFF" />
-              <circle cx="40" cy="52" r="1.2" fill="#FFFFFF" />
+              {/* Worry eyebrows */}
+              <path d="M35 40 Q40 43 44 40" stroke="#382920" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+              <path d="M56 40 Q60 43 65 40" stroke="#382920" strokeWidth="2.2" strokeLinecap="round" fill="none" />
 
-              <ellipse cx="62" cy="50" rx="6" ry="6.5" fill="#2E2825" />
-              <circle cx="61" cy="47" r="2.2" fill="#FFFFFF" />
-              <circle cx="64" cy="52" r="1.2" fill="#FFFFFF" />
+              {/* Wide apologetic eyes */}
+              <circle cx="40" cy="47" r="3.6" fill="#2B211A" />
+              <circle cx="39" cy="45.5" r="1.2" fill="#FFFFFF" />
+              <circle cx="60" cy="47" r="3.6" fill="#2B211A" />
+              <circle cx="59" cy="45.5" r="1.2" fill="#FFFFFF" />
 
-              {/* Worried / sheepish eyebrows */}
-              <path d="M33 42 Q38 45 44 41" stroke="#2E2825" strokeWidth="2.4" strokeLinecap="round" fill="none" />
-              <path d="M56 41 Q62 45 67 42" stroke="#2E2825" strokeWidth="2.4" strokeLinecap="round" fill="none" />
-
-              {/* Sheepish sideways smile */}
-              <path d="M41 62 Q49 67 56 60" stroke="#2E2825" strokeWidth="2.8" strokeLinecap="round" fill="#E26D5C" />
-            </g>
-          ) : expression === 'happy' ? (
-            /* Happy Bo: Eyes curved into joyful crescents */
-            <g>
-              <path d="M33 50 Q39 44 45 50" stroke="#2E2825" strokeWidth="3" strokeLinecap="round" fill="none" />
-              <path d="M55 50 Q61 44 67 50" stroke="#2E2825" strokeWidth="3" strokeLinecap="round" fill="none" />
-              <path d="M32 40 Q38 37 44 41" stroke="#2E2825" strokeWidth="2.4" strokeLinecap="round" fill="none" />
-              <path d="M56 41 Q62 37 68 40" stroke="#2E2825" strokeWidth="2.4" strokeLinecap="round" fill="none" />
-              <path d="M41 58 Q49 70 57 58" stroke="#2E2825" strokeWidth="2.8" strokeLinecap="round" fill="#E26D5C" />
+              {/* Sheepish smile */}
+              <path d="M43 59 Q50 64 57 58" stroke="#382920" strokeWidth="2.4" strokeLinecap="round" fill="#E86A58" />
             </g>
           ) : (
-            /* Confident / default energetic Bo */
             <g>
-              <ellipse cx="38" cy="50" rx="5.5" ry="6.5" fill="#2E2825" />
-              <circle cx="36.5" cy="48" r="2" fill="#FFFFFF" />
-              <circle cx="39.5" cy="52.5" r="1" fill="#FFFFFF" />
+              {/* Friendly open smile & clear eyes */}
+              <path d="M35 39 Q40 37 44 40" stroke="#382920" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+              <path d="M56 40 Q60 37 65 39" stroke="#382920" strokeWidth="2.2" strokeLinecap="round" fill="none" />
 
-              <ellipse cx="62" cy="50" rx="5.5" ry="6.5" fill="#2E2825" />
-              <circle cx="60.5" cy="48" r="2" fill="#FFFFFF" />
-              <circle cx="63.5" cy="52.5" r="1" fill="#FFFFFF" />
+              <circle cx="40" cy="46" r="3.4" fill="#2B211A" />
+              <circle cx="39" cy="45" r="1" fill="#FFFFFF" />
+              <circle cx="60" cy="46" r="3.4" fill="#2B211A" />
+              <circle cx="59" cy="45" r="1" fill="#FFFFFF" />
 
-              <path d="M33 41 Q38 38 43 42" stroke="#2E2825" strokeWidth="2.4" strokeLinecap="round" fill="none" />
-              <path d="M57 42 Q62 38 67 41" stroke="#2E2825" strokeWidth="2.4" strokeLinecap="round" fill="none" />
-
-              <path d="M43 59 Q50 67 57 59" stroke="#2E2825" strokeWidth="2.8" strokeLinecap="round" fill="#E26D5C" />
-              <path d="M46 60 Q50 63 54 60" fill="#FFFFFF" opacity="0.8" />
+              {/* Warm gentle smile */}
+              <path d="M43 57 Q50 63 57 57" stroke="#382920" strokeWidth="2.4" strokeLinecap="round" fill="#E86A58" />
             </g>
           )}
 
-          {/* Rosy warm amber cheeks */}
-          <ellipse cx="32" cy="58" rx="5" ry="3.5" fill="#E8A33D" opacity="0.45" />
-          <ellipse cx="68" cy="58" rx="5" ry="3.5" fill="#E8A33D" opacity="0.45" />
-
-          {/* Hoodie / Yellow-amber scarf */}
-          <path d="M30 76 C36 71, 64 71, 70 76 L74 88 L26 88 Z" fill="#E8A33D" />
-          <path d="M45 74 L50 82 L55 74" fill="#C98420" />
+          {/* Cute button nose */}
+          <path d="M49 51 Q50 53 51 51" stroke="#B87848" strokeWidth="1.8" strokeLinecap="round" fill="none" />
         </svg>
       </div>
-      <div className="text-[11px] text-center font-handwriting font-bold text-[#5A4E42] mt-0.5 leading-none">
-        {expression === 'skeptical' ? 'Bo (Tranh luận)' : expression === 'embarrassed' ? 'Bo (À ha...)' : 'Bo'}
+      <div className="text-[10px] text-center font-handwriting font-bold text-[#6B5A4B] mt-0.5 leading-none">
+        {expression === 'skeptical' ? 'Bo nghi vấn' : expression === 'embarrassed' ? 'Bo hiểu rồi' : 'Bo'}
       </div>
     </div>
   );
 };
+
 
 // Super Cute Cô Lam Polaroid Portrait (Gentle, warm, charming young teacher)
 export const TutorLamAvatar: React.FC<{ size?: 'sm' | 'md' | 'lg'; className?: string }> = ({ size = 'md', className = '' }) => {
@@ -459,5 +442,199 @@ export const LinkChainIcon: React.FC<{ className?: string }> = ({ className = 'w
     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
   </svg>
 );
+
+// Superr.ai Wooden Pencil Attached to Notebook Spine/Edge
+export const WoodenPencil: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <div className={`relative flex flex-col items-center select-none pointer-events-none drop-shadow-md ${className}`} style={{ width: '18px' }}>
+    {/* Pencil Tip (Graphite lead + wood cone) */}
+    <svg viewBox="0 0 20 28" className="w-full">
+      {/* Wood cone */}
+      <polygon points="10,0 2,28 18,28" fill="#F4D3A1" stroke="#D1A76E" strokeWidth="1" />
+      {/* Graphite point */}
+      <polygon points="10,0 6,10 14,10" fill="#2E2B27" />
+    </svg>
+    {/* Pencil Body (Warm yellow/mustard hexagonal wood) */}
+    <div className="w-[14px] h-48 bg-gradient-to-r from-[#D9822B] via-[#F5B041] to-[#E08A27] border-x border-[#B26414] relative flex justify-center">
+      {/* Pencil facet highlight stripe */}
+      <div className="w-[2px] h-full bg-white/40" />
+      {/* Subtle brand imprint */}
+      <span className="absolute bottom-12 text-[7px] font-mono tracking-widest text-[#783E0A] rotate-90 select-none opacity-70">
+        2B · DRE
+      </span>
+    </div>
+    {/* Metal Ferrule (Silver ferrule ring) */}
+    <div className="w-[14px] h-4 bg-gradient-to-r from-[#9E9E9E] via-[#E0E0E0] to-[#757575] border-y border-[#616161] flex flex-col justify-around py-0.5">
+      <div className="w-full h-[1px] bg-black/30" />
+      <div className="w-full h-[1px] bg-black/30" />
+    </div>
+    {/* Pink Rubber Eraser */}
+    <div className="w-[14px] h-5 bg-[#F28B82] rounded-b-md border border-[#D96B62]" />
+  </div>
+);
+
+// Classroom Live TA Avatar (Trợ giảng An: Kính tròn thư sinh, áo xanh mint phong cách tranh vẽ Superr)
+export const TaAvatar: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
+  <div className={`rounded-full bg-[#E8F5F1] border border-[#4E9B87] flex items-center justify-center shrink-0 overflow-hidden shadow-2xs ${className}`}>
+    <svg viewBox="0 0 40 40" className="w-full h-full">
+      <circle cx="20" cy="20" r="19" fill="#EBF7F3" />
+      {/* Hair */}
+      <path d="M10 18 C10 8, 30 8, 30 18 C28 14, 24 13, 20 13 C16 13, 12 14, 10 18 Z" fill="#2D3B36" />
+      {/* Head */}
+      <circle cx="20" cy="20" r="9" fill="#FFE5D1" />
+      {/* Glasses */}
+      <circle cx="17" cy="19" r="3" stroke="#2E6859" strokeWidth="1.2" fill="white" fillOpacity="0.4" />
+      <circle cx="23" cy="19" r="3" stroke="#2E6859" strokeWidth="1.2" fill="white" fillOpacity="0.4" />
+      <line x1="20" y1="19" x2="20" y2="19" stroke="#2E6859" strokeWidth="1.2" />
+      {/* Eyes & Smile */}
+      <circle cx="17" cy="19" r="1" fill="#2D3B36" />
+      <circle cx="23" cy="19" r="1" fill="#2D3B36" />
+      <path d="M18 24 Q20 26 22 24" stroke="#2D3B36" strokeWidth="1" strokeLinecap="round" fill="none" />
+      {/* Mint collar */}
+      <path d="M11 36 C13 29, 27 29, 29 36 Z" fill="#4E9B87" />
+    </svg>
+  </div>
+);
+
+// Classmate Avatar (Bạn học trong lớp: Vẽ mặt bạn học chibi Superr sinh động với tóc tém / tóc búi)
+export const ClassmateAvatar: React.FC<{ name?: string; className?: string }> = ({ name = 'Bạn học', className = 'w-6 h-6' }) => {
+  const isFemale = name.includes('Phương') || name.includes('Mai') || name.includes('Linh');
+  return (
+    <div className={`rounded-full bg-[#FFF5E6] border border-[#F2C078] flex items-center justify-center shrink-0 overflow-hidden shadow-2xs ${className}`}>
+      <svg viewBox="0 0 40 40" className="w-full h-full">
+        <circle cx="20" cy="20" r="19" fill={isFemale ? '#FFF0F5' : '#FFF9EB'} />
+        {/* Hair */}
+        {isFemale ? (
+          <g>
+            <circle cx="10" cy="14" r="3.5" fill="#4A3428" />
+            <circle cx="30" cy="14" r="3.5" fill="#4A3428" />
+            <path d="M11 20 C10 10, 30 10, 29 20 C26 15, 23 14, 20 14 C17 14, 14 15, 11 20 Z" fill="#4A3428" />
+          </g>
+        ) : (
+          <path d="M11 18 C11 9, 29 9, 29 18 C26 14, 24 13, 20 13 C16 13, 14 14, 11 18 Z" fill="#382C26" />
+        )}
+        {/* Face */}
+        <circle cx="20" cy="20" r="8.5" fill="#FFE8D6" />
+        {/* Blushing cheeks */}
+        <circle cx="15" cy="22" r="1.5" fill="#FCA5A5" opacity="0.6" />
+        <circle cx="25" cy="22" r="1.5" fill="#FCA5A5" opacity="0.6" />
+        {/* Cute eyes & Smile */}
+        <circle cx="16.5" cy="19.5" r="1.1" fill="#2E2825" />
+        <circle cx="23.5" cy="19.5" r="1.1" fill="#2E2825" />
+        <path d="M18 23 Q20 25 22 23" stroke="#2E2825" strokeWidth="1" strokeLinecap="round" fill="none" />
+        {/* Colorful shirt */}
+        <path d="M11 36 C13 29, 27 29, 29 36 Z" fill={isFemale ? '#F472B6' : '#60A5FA'} />
+      </svg>
+    </div>
+  );
+};
+
+
+// Live Chat Stream Icon
+export const LiveChatStreamIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    <line x1="8" y1="9" x2="16" y2="9" />
+    <line x1="8" y1="13" x2="14" y2="13" />
+  </svg>
+);
+
+// Sound Speaker Icon (for tactile stationery audio toggle)
+export const SoundSpeakerIcon: React.FC<{ isMuted?: boolean; className?: string }> = ({ isMuted = false, className = 'w-4 h-4' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" fillOpacity="0.2" />
+    {isMuted ? (
+      <line x1="23" y1="9" x2="17" y2="15" strokeWidth="2.5" />
+    ) : (
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" />
+    )}
+  </svg>
+);
+
+// MAIC Peer 1: Trí (Deep Thinker - Suy ngẫm sâu)
+export const TriDeepThinkerAvatar: React.FC<{ className?: string }> = ({ className = 'w-7 h-7' }) => (
+  <div className={`rounded-full bg-[#EBF0FF] border-1.5 border-[#4B6CB7] flex items-center justify-center shrink-0 overflow-hidden shadow-2xs ${className}`}>
+    <svg viewBox="0 0 40 40" className="w-full h-full">
+      <circle cx="20" cy="20" r="19" fill="#EDF2FF" />
+      {/* Neat parted hair */}
+      <path d="M10 18 C10 8, 30 7, 30 18 C28 12, 23 11, 20 12 C16 11, 12 12, 10 18 Z" fill="#1E2A38" />
+      <circle cx="20" cy="20" r="8.5" fill="#FFE8D6" />
+      {/* Focused thoughtful eyes looking slightly up */}
+      <circle cx="16.5" cy="18.5" r="1.3" fill="#1E2A38" />
+      <circle cx="23.5" cy="18.5" r="1.3" fill="#1E2A38" />
+      <path d="M15 15.5 Q17 14.5 19 16" stroke="#1E2A38" strokeWidth="1" strokeLinecap="round" fill="none" />
+      <path d="M21 16 Q23 14.5 25 15.5" stroke="#1E2A38" strokeWidth="1" strokeLinecap="round" fill="none" />
+      {/* Small calm mouth */}
+      <path d="M18.5 23.5 L21.5 23.5" stroke="#1E2A38" strokeWidth="1.2" strokeLinecap="round" />
+      {/* Deep navy sweater */}
+      <path d="M10 36 C12 28, 28 28, 30 36 Z" fill="#3B5998" />
+    </svg>
+  </div>
+);
+
+// MAIC Peer 2: Linh Chi (Note Taker - Ghi chép tóm tắt)
+export const LinhChiNoteTakerAvatar: React.FC<{ className?: string }> = ({ className = 'w-7 h-7' }) => (
+  <div className={`rounded-full bg-[#FFF0F5] border-1.5 border-[#E27396] flex items-center justify-center shrink-0 overflow-hidden shadow-2xs ${className}`}>
+    <svg viewBox="0 0 40 40" className="w-full h-full">
+      <circle cx="20" cy="20" r="19" fill="#FFF2F6" />
+      {/* Cute twin bob hair */}
+      <circle cx="10" cy="15" r="3.5" fill="#3D261D" />
+      <circle cx="30" cy="15" r="3.5" fill="#3D261D" />
+      <path d="M10 20 C10 9, 30 9, 30 20 C26 14, 23 13, 20 13 C17 13, 14 14, 10 20 Z" fill="#3D261D" />
+      {/* Pink hair pin */}
+      <circle cx="12" cy="12" r="1.5" fill="#E27396" />
+      <circle cx="20" cy="20" r="8.5" fill="#FFEFE5" />
+      {/* Rosy cheeks */}
+      <circle cx="15" cy="22" r="1.8" fill="#FCA5A5" opacity="0.6" />
+      <circle cx="25" cy="22" r="1.8" fill="#FCA5A5" opacity="0.6" />
+      {/* Friendly bright eyes & smile */}
+      <circle cx="16.5" cy="19" r="1.2" fill="#2E2825" />
+      <circle cx="23.5" cy="19" r="1.2" fill="#2E2825" />
+      <path d="M18 23.5 Q20 25.5 22 23.5" stroke="#2E2825" strokeWidth="1" strokeLinecap="round" fill="none" />
+      {/* Coral shirt */}
+      <path d="M10 36 C12 28, 28 28, 30 36 Z" fill="#EA7A8E" />
+    </svg>
+  </div>
+);
+
+// MAIC Peer 3: Minh Khang (Inquisitive Mind - Tò mò thực tế)
+export const MinhKhangInquisitiveAvatar: React.FC<{ className?: string }> = ({ className = 'w-7 h-7' }) => (
+  <div className={`rounded-full bg-[#E0F7FA] border-1.5 border-[#0097A7] flex items-center justify-center shrink-0 overflow-hidden shadow-2xs ${className}`}>
+    <svg viewBox="0 0 40 40" className="w-full h-full">
+      <circle cx="20" cy="20" r="19" fill="#E6FAFC" />
+      {/* Messy curly hair */}
+      <path d="M10 18 C9 8, 31 8, 30 18 C28 13, 24 11, 20 12 C16 11, 12 13, 10 18 Z" fill="#423429" />
+      <circle cx="14" cy="9" r="2.5" fill="#423429" />
+      <circle cx="20" cy="7" r="2.5" fill="#423429" />
+      <circle cx="26" cy="9" r="2.5" fill="#423429" />
+      <circle cx="20" cy="20" r="8.5" fill="#FFE8D6" />
+      {/* Wide curious eyes */}
+      <circle cx="16.5" cy="19" r="1.5" fill="#2E2825" />
+      <circle cx="16" cy="18.5" r="0.5" fill="white" />
+      <circle cx="23.5" cy="19" r="1.5" fill="#2E2825" />
+      <circle cx="23" cy="18.5" r="0.5" fill="white" />
+      {/* Excited open smile */}
+      <path d="M18 23 Q20 26 22 23" stroke="#2E2825" strokeWidth="1.2" strokeLinecap="round" fill="#E86A58" />
+      {/* Teal hoodie */}
+      <path d="M10 36 C12 28, 28 28, 30 36 Z" fill="#00A896" />
+    </svg>
+  </div>
+);
+
+// Heatmap / Misconception Flame Icon
+export const HeatmapFlameIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z" fill="#E8A33D" fillOpacity="0.4" />
+  </svg>
+);
+
+// Flag / Report Icon for AI Ethics
+export const FlagReportIcon: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+    <line x1="4" y1="22" x2="4" y2="15" />
+  </svg>
+);
+
+
 
 

@@ -34,12 +34,19 @@ import { LessonSelectorDrawer } from './components/LessonSelectorDrawer';
 import { ScenarioPlayerBar } from './components/ScenarioPlayerBar';
 import { MultiAgentInspectorModal } from './components/MultiAgentInspectorModal';
 import { LearningFlowGuideModal } from './components/LearningFlowGuideModal';
+import { MaicPeerClassroomDock } from './components/MaicPeerClassroomDock';
+import { sound } from './utils/soundEffects';
 import { 
   WashiTape, 
   SparkleIcon, 
   OpenBookIcon, 
   SwordsDebateIcon, 
-  ChalkboardIcon 
+  ChalkboardIcon,
+  WoodenPencil,
+  PencilIcon,
+  VideoPlayIcon,
+  CompassIcon,
+  TeacherHatIcon
 } from './components/HandmadeArtwork';
 import { 
   evaluateStepAndExplanation, 
@@ -553,6 +560,78 @@ export default function App() {
     setLiveHintDialogue(null);
   };
 
+  const LEARNING_STATIONS: {
+    id: LearningMode;
+    stationNumber: string;
+    stageLabel: string;
+    title: string;
+    color: string;
+    activeBg: string;
+    activeText: string;
+    activeBorder: string;
+    inactiveBg: string;
+    inactiveText: string;
+    inactiveBorder: string;
+    icon: React.ReactNode;
+  }[] = [
+    {
+      id: 'video_clash',
+      stationNumber: 'Trạm 1',
+      stageLabel: 'Khởi động',
+      title: 'Video & Bo cãi',
+      color: '#4E9B87',
+      activeBg: 'bg-[#E1F2ED]',
+      activeText: 'text-[#1B5749]',
+      activeBorder: 'border-[#3D8F7B]',
+      inactiveBg: 'bg-[#EDF7F3]/90',
+      inactiveText: 'text-[#3E7D6F]',
+      inactiveBorder: 'border-[#BDDFD5]',
+      icon: <VideoPlayIcon className="w-3.5 h-3.5 text-[#2C7866]" />,
+    },
+    {
+      id: 'worksheet',
+      stationNumber: 'Trạm 2',
+      stageLabel: 'Luyện tập',
+      title: 'Sổ tay bắt lỗi',
+      color: '#E8A33D',
+      activeBg: 'bg-[#FFF5E0]',
+      activeText: 'text-[#7D490E]',
+      activeBorder: 'border-[#E8A33D]',
+      inactiveBg: 'bg-[#FFF8EA]/90',
+      inactiveText: 'text-[#8A5F1F]',
+      inactiveBorder: 'border-[#ECD7AF]',
+      icon: <PencilIcon className="w-3.5 h-3.5 text-[#B8781B]" />,
+    },
+    {
+      id: 'predict_poe',
+      stationNumber: 'Trạm 3',
+      stageLabel: 'Thử thách',
+      title: 'Đoán kết quả (POE)',
+      color: '#E2B124',
+      activeBg: 'bg-[#FEF8DC]',
+      activeText: 'text-[#7A5B05]',
+      activeBorder: 'border-[#D9A716]',
+      inactiveBg: 'bg-[#FCF9E8]/90',
+      inactiveText: 'text-[#856611]',
+      inactiveBorder: 'border-[#E8DC9E]',
+      icon: <SparkleIcon className="w-3.5 h-3.5 text-[#B3870E]" />,
+    },
+    {
+      id: 'protege_teaching',
+      stationNumber: 'Trạm 4',
+      stageLabel: 'Làm chủ',
+      title: 'Dạy kèm Bo',
+      color: '#6B9E5C',
+      activeBg: 'bg-[#EBF7E7]',
+      activeText: 'text-[#2B6121]',
+      activeBorder: 'border-[#5FA04E]',
+      inactiveBg: 'bg-[#F2F9EF]/90',
+      inactiveText: 'text-[#427A34]',
+      inactiveBorder: 'border-[#C4E3BA]',
+      icon: <TeacherHatIcon className="w-3.5 h-3.5 text-[#3D7C2D]" />,
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-[#ECE4D5] text-[#2F2923] flex flex-col desk-bg selection:bg-[#F5D65D]">
       {/* Scenario Bar for dev/QA: ONLY rendered if ?debug=1 is in the URL */}
@@ -590,20 +669,20 @@ export default function App() {
         onOpenFlowGuide={() => setIsFlowGuideOpen(true)}
       />
 
-      {/* Main Learning Workspace: Realistic Open Sketchbook lying on desk */}
-      <main className="flex-1 max-w-6xl w-full mx-auto p-2 sm:p-4 lg:p-6 flex flex-col justify-start">
+      {/* Main Learning Workspace: Realistic Open Sketchbook lying on desk (Expanded to cover ~85% of screen width) */}
+      <main className="flex-1 w-[92vw] max-w-[1520px] mx-auto p-2 sm:p-3 lg:p-4 flex flex-col justify-start">
         {/* Workspace State Ribbon */}
-        <div className="mb-2 sm:mb-3 flex flex-wrap items-center justify-between text-xs text-[#7A6D5E] px-1 gap-2">
+        <div className="mb-2 flex flex-wrap items-center justify-between text-xs text-[#7A6D5E] px-2 gap-2">
           <div className="flex items-center gap-2">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#E8A33D]" />
-            <span className="font-mono uppercase font-bold text-[#8C5D19]">
+            <span className="inline-block w-2 h-2 rounded-full bg-[#E8A33D]" />
+            <span className="font-mono uppercase font-bold text-[#8C5D19] text-[11px]">
               {currentMode === 'worksheet' && `Trạng thái: ${currentState}`}
               {currentMode === 'video_clash' && `Video: ${videoPhase}`}
               {currentMode === 'predict_poe' && 'Chế độ: Dự đoán kết quả (POE)'}
               {currentMode === 'protege_teaching' && 'Chế độ: Gia sư nhí cho Bo'}
             </span>
             <span className="text-[#A39686]">·</span>
-            <span className="font-handwriting text-sm text-[#4E4135] font-semibold">
+            <span className="font-handwriting text-xs sm:text-sm text-[#4E4135] font-semibold">
               {currentMode === 'worksheet'
                 ? currentLesson.topic
                 : currentMode === 'video_clash'
@@ -614,43 +693,147 @@ export default function App() {
             </span>
           </div>
 
-          {/* Quick Lesson Switcher on Ribbon */}
-          {currentMode === 'worksheet' ? (
+          <div className="hidden md:flex items-center gap-2">
             <button
-              onClick={() => setIsLessonDrawerOpen(true)}
-              className="hover:underline font-handwriting text-sm text-[#377A69] font-bold flex items-center gap-1 cursor-pointer"
+              onClick={() => setIsFlowGuideOpen(true)}
+              type="button"
+              className="px-2.5 py-0.5 bg-[#FAF6EE] hover:bg-white text-[#5C4F42] hover:text-[#377A69] border border-[#D5C9B5] rounded-full text-xs font-handwriting font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+              title="Xem bản đồ hướng dẫn lộ trình 4 trạm học tập"
             >
-              <OpenBookIcon className="w-3.5 h-3.5 text-[#377A69]" />
-              <span>Mở sổ chọn bài khác</span>
+              <CompassIcon className="w-3.5 h-3.5 text-[#377A69]" />
+              <span>Hướng dẫn lộ trình 4 trạm</span>
             </button>
-          ) : currentMode === 'video_clash' ? (
-            <div className="flex items-center gap-1.5 font-handwriting text-xs">
-              <span className="text-[#8A7D6F]">Chọn bài video:</span>
-              {VIDEO_LESSON_LIBRARY.map((v) => (
-                <button
-                  key={v.id}
-                  onClick={() => handleSwitchVideoLesson(v)}
-                  type="button"
-                  className={`px-2 py-0.5 rounded-xs border cursor-pointer ${
-                    currentVideoLesson.id === v.id
-                      ? 'bg-[#4E9B87] text-white font-bold border-[#3A7564]'
-                      : 'bg-white/80 text-[#5C4F42] border-[#DFD6C4] hover:bg-white'
-                  }`}
-                >
-                  {v.id}
-                </button>
-              ))}
-            </div>
-          ) : null}
+          </div>
         </div>
 
-        {/* The Open Sketchbook Spine & Dual Sheets Container */}
-        <div className="relative bg-[#FAF6EE] p-3 sm:p-5 lg:p-6 rounded-md sketchbook-shadow border-2 sm:border-4 border-[#E0D7C6]">
-          {/* Decorative Corner Washi Tapes */}
-          <WashiTape variant="blue" className="absolute -top-3 left-12 w-28 -rotate-2 z-10" />
-          <WashiTape variant="pink" className="absolute -top-3 right-16 w-24 rotate-3 z-10" />
-          <WashiTape variant="yellow" className="absolute -bottom-3 right-20 w-24 -rotate-1 z-10" />
-          <WashiTape variant="green" className="absolute -bottom-3 left-16 w-20 rotate-2 z-10" />
+        {/* Superrbook Top Divider Index Tabs (Phương án 1: Thẻ phân trang nhô lên từ mép trên quyển sổ) */}
+        <div className="flex items-end justify-between px-2 sm:px-6 relative z-10 -mb-[2px]">
+          {/* Left: 4 tactile Index Divider Tabs */}
+          <div className="flex items-end gap-1 sm:gap-2">
+            {LEARNING_STATIONS.map((station) => {
+              const isActive = currentMode === station.id;
+              return (
+                <button
+                  key={station.id}
+                  onClick={() => {
+                    sound.playPageFlip();
+                    setCurrentMode(station.id);
+                    if (station.id === 'video_clash') {
+                      handleJumpToCheckpoint();
+                    }
+                  }}
+                  type="button"
+                  className={`group relative flex items-center gap-1.5 sm:gap-2.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-t-lg sm:rounded-t-xl border-t-2 border-l-2 border-r-2 font-handwriting transition-all cursor-pointer select-none ${
+                    isActive
+                      ? `${station.activeBg} ${station.activeText} ${station.activeBorder} -translate-y-1 shadow-md z-20 pb-3 border-b-0`
+                      : `${station.inactiveBg} ${station.inactiveText} ${station.inactiveBorder} hover:-translate-y-0.5 hover:opacity-100 opacity-90 z-10`
+                  }`}
+                  style={{
+                    boxShadow: isActive ? '0 -3px 8px -1px rgba(0,0,0,0.08)' : undefined
+                  }}
+                >
+                  {/* Colored washi tape tag on top edge */}
+                  <div
+                    className="absolute -top-1.5 left-2 sm:left-3 w-6 sm:w-8 h-2 rounded-xs opacity-80 shadow-2xs"
+                    style={{ backgroundColor: station.color }}
+                  />
+
+                  {/* Icon */}
+                  <span className="shrink-0">{station.icon}</span>
+
+                  {/* Labels */}
+                  <div className="text-left flex flex-col">
+                    <div className="flex items-center gap-1 leading-none mb-0.5">
+                      <span className="text-[10px] uppercase font-mono font-bold opacity-80">
+                        {station.stationNumber}
+                      </span>
+                      <span className="hidden md:inline text-[10px] opacity-75">· {station.stageLabel}</span>
+                    </div>
+                    <span className="text-xs sm:text-sm font-bold tracking-tight whitespace-nowrap">
+                      {station.title}
+                    </span>
+                  </div>
+
+                  {/* Active pulse dot */}
+                  {isActive && (
+                    <span
+                      className="w-1.5 h-1.5 rounded-full ml-0.5 animate-pulse"
+                      style={{ backgroundColor: station.color }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right: Quick Switcher for current station */}
+          <div className="hidden lg:flex items-center gap-2 mb-1.5">
+            {currentMode === 'worksheet' && (
+              <button
+                onClick={() => setIsLessonDrawerOpen(true)}
+                className="hover:underline font-handwriting text-xs text-[#377A69] font-bold flex items-center gap-1 cursor-pointer bg-white/80 px-2.5 py-1 rounded-full border border-[#D5C9B5] shadow-2xs"
+              >
+                <OpenBookIcon className="w-3 h-3 text-[#377A69]" />
+                <span>Mở sổ đổi bài</span>
+              </button>
+            )}
+
+            {currentMode === 'video_clash' && (
+              <div className="flex items-center gap-1 font-handwriting text-xs bg-white/80 px-2 py-0.5 rounded-full border border-[#D5C9B5] shadow-2xs">
+                <span className="text-[#8A7D6F] text-[11px]">Chọn bài video:</span>
+                {VIDEO_LESSON_LIBRARY.map((v) => (
+                  <button
+                    key={v.id}
+                    onClick={() => handleSwitchVideoLesson(v)}
+                    type="button"
+                    className={`px-1.5 py-0.5 rounded-xs border text-[11px] cursor-pointer ${
+                      currentVideoLesson.id === v.id
+                        ? 'bg-[#4E9B87] text-white font-bold border-[#3A7564]'
+                        : 'bg-white/90 text-[#5C4F42] border-[#DFD6C4] hover:bg-white'
+                    }`}
+                  >
+                    {v.id}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* The Open Sketchbook Container (Superr.ai Open Book with Kraft Leather Cover Flap & Pencil) */}
+        <div className="relative superr-cover p-2.5 sm:p-4 rounded-xl shadow-2xl">
+          {/* Kraft Left Flap Accent (Visible left border flap like Superrbook open view) */}
+          <div className="absolute top-2 bottom-2 left-2 w-8 bg-[#8C5D3A] rounded-l-lg border-r border-[#724828]/40 pointer-events-none hidden md:block" />
+
+          {/* Superr.ai Wooden Pencil Attached to Side with leather loop */}
+          <div className="hidden xl:flex flex-col items-center absolute -right-6 top-16 z-20">
+            {/* Leather pencil loop */}
+            <div className="w-5 h-8 bg-[#6F472B] rounded-xs border border-[#52331C] shadow-inner mb-[-12px] z-0" />
+            <div className="z-10">
+              <WoodenPencil />
+            </div>
+          </div>
+
+          {/* Inner Open Book Pages (Ivory paper) */}
+          <div className="relative bg-[#FAF6EE] superr-page p-3 sm:p-4 lg:p-5 rounded-lg border border-[#DDD0BD]">
+            {/* Book Spine Crease Down the Middle (aligned with 70% left page) */}
+            <div className="hidden lg:block absolute top-0 bottom-0 left-[70%] w-[1.5px] bg-gradient-to-b from-transparent via-[#D2C5B4] to-transparent pointer-events-none z-0 shadow-xs" />
+
+            {/* Living MAIC Classmate Peer Dock: Bộ tứ bạn học MAIC, Heatmap & Âm thanh xúc giác */}
+            <div className="mb-3 relative z-10">
+              <MaicPeerClassroomDock 
+                currentMode={currentMode}
+                currentState={currentState}
+                lessonTopic={currentLesson.topic}
+                errorStepIndex={currentLesson.errorStepIndex}
+              />
+            </div>
+
+            {/* Decorative Corner Washi Tapes */}
+            <WashiTape variant="blue" className="absolute -top-3 left-12 w-28 -rotate-2 z-10" />
+            <WashiTape variant="pink" className="absolute -top-3 right-16 w-24 rotate-3 z-10" />
+            <WashiTape variant="yellow" className="absolute -bottom-3 right-20 w-24 -rotate-1 z-10" />
+            <WashiTape variant="green" className="absolute -bottom-3 left-16 w-20 rotate-2 z-10" />
 
           {/* ========================================================================= */}
           {/* MODE 1: WORKSHEET (DRE Classic) */}
@@ -697,10 +880,11 @@ export default function App() {
           )}
 
           {/* ========================================================================= */}
-          {/* MODE 2: VIDEO CHECKPOINT & PEER CLASH (The Requested Feature) */}
+          {/* MODE 2: VIDEO CHECKPOINT & PEER CLASH (Superr.ai Open Book View: Exact 70/30 Ratio) */}
           {/* ========================================================================= */}
           {currentMode === 'video_clash' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-10 gap-4 sm:gap-5 items-start relative z-10">
+              {/* Left Page (70%): Video Player */}
               <div className="lg:col-span-7">
                 <VideoPlayerSheet
                   lesson={currentVideoLesson}
@@ -715,10 +899,12 @@ export default function App() {
                 />
               </div>
 
-              <div className="lg:col-span-5">
+              {/* Right Page (30%): Classroom Stream & Interactive Debates */}
+              <div className="lg:col-span-3">
                 <VideoDebateSheet
                   lesson={currentVideoLesson}
                   phase={videoPhase}
+                  currentTime={videoCurrentTime}
                   isBackendLive={isBackendLive}
                   isLoadingAi={isLoadingAi}
                   liveBoDialogue={liveBoDialogue}
@@ -746,6 +932,7 @@ export default function App() {
               onPoeTopicChange={(topic) => setCurrentPoeTopic(topic)}
             />
           )}
+          </div>
         </div>
       </main>
 

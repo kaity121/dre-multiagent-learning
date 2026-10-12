@@ -15,15 +15,21 @@ const client = new OpenAI({ apiKey: config.openaiApiKey });
  * @returns {Promise<Object>} object JSON đã parse từ model
  */
 export async function chatJSON({ model, systemPrompt, userPayload, temperature = 0.7 }) {
-  const response = await client.chat.completions.create({
+  const requestBody = {
     model,
-    temperature,
     response_format: { type: 'json_object' },
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: JSON.stringify(userPayload) },
     ],
-  });
+  };
+
+  // Only pass custom temperature if the model supports it (gpt-6 / reasoning models require default or omit)
+  if (!model.startsWith('gpt-6') && !model.startsWith('o1') && !model.startsWith('o3')) {
+    requestBody.temperature = temperature;
+  }
+
+  const response = await client.chat.completions.create(requestBody);
 
   const raw = response.choices?.[0]?.message?.content ?? '{}';
 

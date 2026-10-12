@@ -33,13 +33,25 @@ body {
   font-family: 'Mali', 'Patrick Hand', 'Be Vietnam Pro', cursive, sans-serif;
 }
 
-/* Desk flatlay with wooden/cork tone accents */
-.desk-bg {
-  background-color: #E7DFD0;
+/* Superr.ai Warm Kraft / Moleskine Notebook Cover */
+.superr-cover {
+  background-color: #A37551;
   background-image: 
-    radial-gradient(#D6CCC0 0.75px, transparent 0.75px),
-    linear-gradient(to right, rgba(200, 190, 175, 0.25) 1px, transparent 1px);
-  background-size: 20px 20px, 120px 120px;
+    linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%),
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  background-size: 100% 100%, 8px 8px;
+  box-shadow: 
+    0 20px 45px -10px rgba(50, 35, 20, 0.28),
+    0 8px 18px -4px rgba(50, 35, 20, 0.16),
+    inset 0 1px 2px rgba(255, 255, 255, 0.25),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.superr-page {
+  background-color: #FFFDF7;
+  box-shadow: 
+    inset 4px 0 12px -2px rgba(0, 0, 0, 0.07),
+    0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 /* Paper Grid for notebook sheets */

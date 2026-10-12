@@ -14,6 +14,44 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
       'Cô Lam: "Cả hai vế đều xuất hiện x. Nhiều bạn rất thích làm một thao tác nhanh chóng..."',
       'Cô Lam dừng phấn: "Huy và Bo thử tìm nghiệm của phương trình này xem sao nhé!"'
     ],
+    timelineComments: [
+      {
+        id: 'tc_101',
+        second: 5,
+        author: 'Trợ giảng An',
+        role: 'ta',
+        text: '📌 Nhắc bài: Luôn để ý điều kiện xác định và phân tích nhân tử trước khi biến đổi!',
+        isPinned: true
+      },
+      {
+        id: 'tc_102',
+        second: 12,
+        author: 'Bo Ngây Ngô',
+        role: 'classmate',
+        text: 'Phương trình này nhìn quen quá, có x ở cả 2 vế kìa cô ơi! 🤩'
+      },
+      {
+        id: 'tc_103',
+        second: 24,
+        author: 'Minh Phương',
+        role: 'classmate',
+        text: 'Em đoán phải chuyển vế sang trái rồi mới đặt thừa số chung.'
+      },
+      {
+        id: 'tc_104',
+        second: 36,
+        author: 'Bo Ngây Ngô',
+        role: 'classmate',
+        text: 'Ủa sao không chia x cho nhanh? 2 bên đều có x mà ta? 🤔'
+      },
+      {
+        id: 'tc_105',
+        second: 48,
+        author: 'Trợ giảng An',
+        role: 'ta',
+        text: 'Sắp tới câu hỏi suy ngẫm của Cô Lam, cả lớp chuẩn bị trả lời nhé!'
+      }
+    ],
     checkpointQuestion: {
       prompt: 'Theo em, phương trình x(x − 2) = 3x có nghiệm là gì và nên giải thế nào?',
       options: [
@@ -155,6 +193,44 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
       'Cô Lam viết: −2x > 6',
       'Cô Lam: "Muốn tìm x, ta cần chia cả hai vế cho −2."',
       'Cô Lam: "Vậy nghiệm của bất phương trình là gì? Cả lớp cùng làm nhé!"'
+    ],
+    timelineComments: [
+      {
+        id: 'tc_301',
+        second: 4,
+        author: 'Trợ giảng An',
+        role: 'ta',
+        text: '📌 Chú ý: Trọng tâm bài là chiều của bất đẳng thức khi nhân/chia số âm!',
+        isPinned: true
+      },
+      {
+        id: 'tc_302',
+        second: 15,
+        author: 'Bo Ngây Ngô',
+        role: 'classmate',
+        text: 'Chia 6 cho −2 thì ra −3 quá dễ rồi cô ơi! 🚀'
+      },
+      {
+        id: 'tc_303',
+        second: 28,
+        author: 'Minh Phương',
+        role: 'classmate',
+        text: 'Khoan Bo ơi, nhớ vụ số âm đổi chiều chưa, bài trước mới bị trừ điểm đấy!'
+      },
+      {
+        id: 'tc_304',
+        second: 42,
+        author: 'Bo Ngây Ngô',
+        role: 'classmate',
+        text: 'Ủa sao phải đổi dấu? Dấu lớn hơn thì cứ để lớn hơn chứ ta? 🤔'
+      },
+      {
+        id: 'tc_305',
+        second: 52,
+        author: 'Trợ giảng An',
+        role: 'ta',
+        text: 'Đến đoạn câu hỏi dừng! Cả lớp chọn đáp án để giải thích cho Bo nhé.'
+      }
     ],
     checkpointQuestion: {
       prompt: 'Nghiệm của bất phương trình −2x > 6 là:',

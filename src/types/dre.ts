@@ -68,6 +68,16 @@ export interface RebuttalSticker {
   feedback: string;
 }
 
+export interface TimelineComment {
+  id: string;
+  second: number;
+  author: string; // 'Bo Ngây Ngô' | 'Trợ giảng An' | 'Minh Phương' | 'Cô Lam' | string
+  role: 'classmate' | 'ta' | 'teacher';
+  avatar?: string;
+  text: string;
+  isPinned?: boolean; // Pinned note from TA or Teacher
+}
+
 export interface VideoLessonItem {
   id: string;
   title: string;
@@ -77,6 +87,7 @@ export interface VideoLessonItem {
   videoUrl?: string; // Optional YouTube / MP4 video link
   blackboardTitle: string;
   lectureNotes: string[];
+  timelineComments?: TimelineComment[]; // Ambient classroom chat stream
   checkpointQuestion: {
     prompt: string;
     options: {

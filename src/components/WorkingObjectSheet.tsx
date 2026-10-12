@@ -8,6 +8,7 @@ import {
   HandPointIcon,
   CheckCircleIcon
 } from './HandmadeArtwork';
+import { sound } from '../utils/soundEffects';
 
 interface WorkingObjectSheetProps {
   lesson: MisconceptionItem;
@@ -143,9 +144,12 @@ export const WorkingObjectSheet: React.FC<WorkingObjectSheetProps> = ({
           return (
             <button
               key={step.stepNumber}
-              onClick={() => onSelectStep(step.stepNumber)}
+              onClick={() => {
+                sound.playPencilTap();
+                onSelectStep(step.stepNumber);
+              }}
               type="button"
-              className={`relative w-full text-left p-2 sm:p-2.5 rounded-xs border-2 transition-all cursor-pointer group flex items-start gap-2.5 ${stepContainerClasses}`}
+              className={`relative w-full text-left p-2.5 sm:p-3 rounded-xl border-2 transition-all cursor-pointer group flex items-start gap-2.5 hover:-translate-y-0.5 hover:shadow-xs active:scale-99 ${stepContainerClasses}`}
             >
               {highlightStroke}
 

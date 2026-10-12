@@ -13,6 +13,7 @@ import {
   PinTackIcon,
   GoldenStarIcon
 } from './HandmadeArtwork';
+import { sound } from '../utils/soundEffects';
 
 export interface AlternativeFlowsSheetProps {
   mode: 'predict_poe' | 'protege_teaching';
@@ -283,6 +284,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
 
   // Handle switching POE lesson
   const handleSwitchPoeLesson = (index: number) => {
+    sound.playPageFlip();
     setSelectedLessonIndex(index);
     setPoePhase('PREDICT');
     setStudentBet(null);
@@ -293,12 +295,19 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
   // Step into OBSERVE phase
   const handleStartObserve = () => {
     if (!studentBet) return;
+    sound.playPageFlip();
     setPoePhase('OBSERVE');
     setObserveProgressStep(currentPoe.observeSteps.length);
   };
 
   // Step into EXPLAIN phase
   const handleProceedToExplain = () => {
+    const win = studentBet === (currentPoe.options.find(o => o.isCorrect)?.key);
+    if (win) {
+      sound.playSuccessChime();
+    } else {
+      sound.playBubblePop();
+    }
     setPoePhase('EXPLAIN');
   };
 

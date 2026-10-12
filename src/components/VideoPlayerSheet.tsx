@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { VideoLessonItem, VideoCheckpointPhase } from '../types/dre';
 import { VIDEO_LESSON_LIBRARY } from '../data/videoLessons';
 import { 
@@ -85,6 +85,62 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   onSwitchVideoLesson,
 }) => {
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
+  const [hasTriggeredCheckpoint, setHasTriggeredCheckpoint] = useState<boolean>(false);
+  const videoElementRef = useRef<HTMLVideoElement | null>(null);
+
+  // Sync isPlaying state with HTML5 video element
+  useEffect(() => {
+    if (videoElementRef.current) {
+      if (isPlaying && videoElementRef.current.paused) {
+        videoElementRef.current.play().catch(() => {});
+      } else if (!isPlaying && !videoElementRef.current.paused) {
+        videoElementRef.current.pause();
+      }
+    }
+  }, [isPlaying]);
+
+  // Sync playback speed
+  useEffect(() => {
+    if (videoElementRef.current) {
+      videoElementRef.current.playbackRate = playbackSpeed;
+    }
+  }, [playbackSpeed]);
+
+  // Keyboard shortcut listener: Space to play/pause, 'K' to trigger "Khoan đã cô ơi!"
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input or textarea
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
+        return;
+      }
+      if (e.code === 'KeyK') {
+        e.preventDefault();
+        onTriggerFreeze();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onTriggerFreeze]);
+
+  // Reset checkpoint trigger state when lesson changes
+  useEffect(() => {
+    setHasTriggeredCheckpoint(false);
+  }, [lesson.id]);
+
+  // Handle HTML5 video time update
+  const handleHtml5TimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const time = Math.floor(e.currentTarget.currentTime);
+    onSeek(time);
+
+    // Auto trigger checkpoint only once unless reset or seeked back
+    if (time >= lesson.checkpointTimestamp && phase === 'WATCHING' && !hasTriggeredCheckpoint) {
+      setHasTriggeredCheckpoint(true);
+      if (videoElementRef.current) {
+        videoElementRef.current.pause();
+      }
+      onJumpToCheckpoint();
+    }
+  };
 
   // Custom Video URL States (YouTube / MP4)
   const [videoSourceType, setVideoSourceType] = useState<'chalkboard' | 'youtube' | 'mp4'>('chalkboard');
@@ -247,13 +303,13 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   const visibleNotesCount = Math.max(1, Math.min(notesCount, Math.ceil(progressRatio * notesCount)));
 
   return (
-    <div className="relative w-full bg-[#FAF6EE] border-2 border-[#DDD6C8] rounded-sm p-3.5 sm:p-5 sketchbook-shadow notebook-sheet rotate-[-0.4deg] transition-transform hover:rotate-0">
+    <div className="relative w-full bg-[#FAF6EE] border-2 border-[#DDD6C8] rounded-sm p-3 sm:p-3.5 sketchbook-shadow notebook-sheet rotate-[-0.2deg] transition-transform hover:rotate-0">
       {/* Top washi tape & pin */}
-      <WashiTape variant="blue" className="absolute -top-2.5 left-8 w-28 -rotate-1 z-10" />
-      <PushPin color="#4E9B87" className="absolute top-3 right-4 z-10" />
+      <WashiTape variant="blue" className="absolute -top-2.5 left-8 w-24 -rotate-1 z-10" />
+      <PushPin color="#4E9B87" className="absolute top-2.5 right-3 z-10" />
 
       {/* Video Lesson Header with Custom URL button */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 mb-3 border-b border-[#E8DFD0]">
+      <div className="flex flex-wrap items-center justify-between gap-1.5 pb-2 mb-2 border-b border-[#E8DFD0]">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-handwriting font-bold text-xs bg-[#4E9B87]/15 text-[#2E6859] px-2 py-0.5 rounded-xs border border-[#4E9B87]/30 flex items-center gap-1">
             <ChalkboardIcon className="w-3.5 h-3.5 text-[#2E6859]" />
@@ -530,9 +586,17 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
 
             <div className="relative w-full aspect-video rounded-xs overflow-hidden border border-white/20 bg-black">
               <video
+                ref={videoElementRef}
                 src={customMp4Url}
                 controls
-                autoPlay
+                autoPlay={isPlaying}
+                onTimeUpdate={handleHtml5TimeUpdate}
+                onPlay={() => {
+                  if (!isPlaying) onTogglePlay();
+                }}
+                onPause={() => {
+                  if (isPlaying) onTogglePlay();
+                }}
                 className="w-full h-full"
               />
             </div>
@@ -681,15 +745,16 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 </button>
               </div>
 
-              {/* "Khoan đã cô ơi!" Button (Student-initiated freeze) */}
+              {/* "Khoan đã cô ơi!" Button (Student-initiated freeze: Mouse, Touch, Keyboard 'K') */}
               <button
                 onClick={onTriggerFreeze}
                 type="button"
                 className="px-2.5 py-1 bg-[#FFF8EB] hover:bg-white text-[#7B4E12] font-handwriting font-bold text-xs rounded-xs border border-[#F0D5A3] shadow-xs flex items-center gap-1.5 transition-transform active:scale-95 cursor-pointer"
-                title="Dừng video để xem tóm tắt hoặc đặt câu hỏi"
+                title="Dừng video để xem tóm tắt hoặc đặt câu hỏi (Phím tắt: K)"
               >
                 <HandStopIcon className="w-3.5 h-3.5 text-[#E8A33D]" />
                 <span>Khoan đã cô ơi!</span>
+                <kbd className="hidden sm:inline-block px-1 py-0.2 bg-[#EBE3D0] text-[#5C4F42] rounded-xs text-[10px] font-mono font-bold">K</kbd>
               </button>
             </div>
           </div>

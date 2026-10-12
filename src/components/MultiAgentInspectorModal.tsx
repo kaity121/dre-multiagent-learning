@@ -99,7 +99,7 @@ export const MultiAgentInspectorModal: React.FC<MultiAgentInspectorModalProps> =
             <span className={`w-3 h-3 rounded-full ${isBackendLive ? 'bg-[#6B9E5C] animate-pulse' : 'bg-[#E8A33D]'}`} />
             <div>
               <div className="text-xs font-mono font-bold text-[#8CE6CF]">
-                {isBackendLive ? 'OpenAI GPT-4o Multi-Agent: HOẠT ĐỘNG THẬT 100%' : 'Chế độ Fallback offline'}
+                {isBackendLive ? 'OpenAI GPT-6 Multi-Agent: HOẠT ĐỘNG THẬT 100%' : 'Chế độ Fallback offline'}
               </div>
               <div className="text-[11px] font-mono text-[#D2E3DC]">
                 Backend: http://localhost:3001 · Key đã được tải vào tiến trình
@@ -143,7 +143,7 @@ export const MultiAgentInspectorModal: React.FC<MultiAgentInspectorModalProps> =
         {/* 3 AI Agents Architecture Grid */}
         <div className="space-y-3 mb-5">
           <div className="text-xs font-handwriting font-bold text-[#6B5E51] uppercase tracking-wider">
-            3 Agent AI cùng phối hợp trong mỗi lượt học:
+            3 Agent AI cùng phối hợp trong mỗi lượt học (Hệ sinh thái GPT-6):
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
@@ -151,7 +151,7 @@ export const MultiAgentInspectorModal: React.FC<MultiAgentInspectorModalProps> =
             <div className="p-3 bg-white border border-[#DFD7C9] rounded-xs space-y-1">
               <div className="font-mono font-bold text-[#2E6859] flex items-center justify-between">
                 <span>1. Assessor Agent</span>
-                <span className="text-[10px] bg-[#EEF8F5] text-[#1F453B] px-1 py-0.5 rounded-xs">gpt-4o-mini</span>
+                <span className="text-[10px] bg-[#EEF8F5] text-[#1F453B] px-1 py-0.5 rounded-xs font-bold">gpt-6-sol</span>
               </div>
               <p className="text-[#6E6152] font-handwriting text-xs">
                 Chấm ngữ nghĩa câu trả lời (đúng/sai) không dựa theo từ khóa cố định, tự động phân loại bẫy tư duy (shortcut fallacy / edge case).
@@ -162,7 +162,7 @@ export const MultiAgentInspectorModal: React.FC<MultiAgentInspectorModalProps> =
             <div className="p-3 bg-white border border-[#DFD7C9] rounded-xs space-y-1">
               <div className="font-mono font-bold text-[#8C5D19] flex items-center justify-between">
                 <span>2. Bo Agent</span>
-                <span className="text-[10px] bg-[#FFF8EB] text-[#8C5D19] px-1 py-0.5 rounded-xs">gpt-4o-mini</span>
+                <span className="text-[10px] bg-[#FFF8EB] text-[#8C5D19] px-1 py-0.5 rounded-xs font-bold">gpt-6-sol</span>
               </div>
               <p className="text-[#6E6152] font-handwriting text-xs">
                 Đóng vai bạn học AI, tự động sinh lời thách thức và phản biện cá tính dựa trên chính xác câu trả lời của em.
@@ -173,7 +173,7 @@ export const MultiAgentInspectorModal: React.FC<MultiAgentInspectorModalProps> =
             <div className="p-3 bg-white border border-[#DFD7C9] rounded-xs space-y-1">
               <div className="font-mono font-bold text-[#4B2F89] flex items-center justify-between">
                 <span>3. Cô Lam Agent</span>
-                <span className="text-[10px] bg-[#F2EDFF] text-[#4B2F89] px-1 py-0.5 rounded-xs">gpt-4o</span>
+                <span className="text-[10px] bg-[#F2EDFF] text-[#4B2F89] px-1 py-0.5 rounded-xs font-bold">gpt-6.1-sol</span>
               </div>
               <p className="text-[#6E6152] font-handwriting text-xs">
                 Giáo viên Socratic can thiệp theo nấc gợi ý và chốt bản chất toán học sâu sắc khi cuộc tranh biện kết thúc.
@@ -197,7 +197,7 @@ export const MultiAgentInspectorModal: React.FC<MultiAgentInspectorModalProps> =
                 <div className="font-mono font-bold text-[#8C5D19] text-[11px] mb-1 flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
                     <LightningZapIcon className="w-3.5 h-3.5 text-[#E8A33D]" />
-                    <span>Bo vừa sinh qua GPT-4o-mini:</span>
+                    <span>Bo vừa sinh qua GPT-6-sol:</span>
                   </span>
                   <span className="text-[10px] text-[#4E9B87] font-bold">● Sinh động lực</span>
                 </div>
@@ -209,7 +209,7 @@ export const MultiAgentInspectorModal: React.FC<MultiAgentInspectorModalProps> =
                   <div className="font-mono font-bold text-[#234F42] text-[11px] mb-1 flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
                       <TutorLamAvatar size="sm" className="scale-60 -translate-x-1" />
-                      <span>Cô Lam vừa chốt qua GPT-4o:</span>
+                      <span>Cô Lam vừa chốt qua GPT-6.1-sol:</span>
                     </span>
                     <span className="text-[10px] text-[#4E9B87] font-bold">● Chốt kiến thức</span>
                   </div>

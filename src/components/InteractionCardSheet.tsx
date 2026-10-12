@@ -13,6 +13,7 @@ import {
   HandPointIcon,
   SwordsDebateIcon
 } from './HandmadeArtwork';
+import { sound } from '../utils/soundEffects';
 
 interface InteractionCardSheetProps {
   lesson: MisconceptionItem;
@@ -63,6 +64,13 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = ({
   useEffect(() => {
     setHintCount(0);
   }, [lesson.id]);
+
+  // Tactile celebration chime on successful CLOSE
+  useEffect(() => {
+    if (currentState === 'CLOSE') {
+      sound.playSuccessChime();
+    }
+  }, [currentState]);
 
   const canSubmit = explanationText.trim().length > 0;
 
@@ -203,7 +211,7 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = ({
               <div className="flex items-center gap-3 p-3 bg-[#FFFBF0] border-2 border-dashed border-[#E8A33D] rounded-xs animate-pulse">
                 <div className="w-5 h-5 border-2 border-[#E8A33D] border-t-transparent rounded-full animate-spin shrink-0" />
                 <div className="text-xs font-handwriting text-[#8C5D19]">
-                  <strong>Assessor &amp; Bo (GPT-4o)</strong> đang phân tích lập luận của em...
+                  <strong>Assessor &amp; Bo (GPT-6 Sol)</strong> đang phân tích lập luận của em...
                 </div>
               </div>
             )}
