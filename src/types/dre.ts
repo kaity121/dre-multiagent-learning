@@ -1,34 +1,30 @@
-/**
- * DRE (Diagnose -> Repair -> Explain) Architecture Types
- */
+// File: src/types/dre.ts
 
 export type DREState = 
   | 'ONBOARDING'
   | 'IDLE'
   | 'MARKED'
   | 'EXPLAIN_PROMPT'
-  | 'BO_CHALLENGE'        // Bo tung lập luận thách thức / ngụy biện trực giác
-  | 'AWAITING_REBUTTAL'    // Chờ học viên gõ phản biện đáp trả Bo
+  | 'BO_CHALLENGE'
+  | 'AWAITING_REBUTTAL'
   | 'CLOSE'
   | 'PROBE'
   | 'HINT'
   | 'TUTOR_NUDGE';
 
-export type LearningMode = 
-  | 'worksheet'        // Sổ tay bắt lỗi 3 bước (DRE Classic)
-  | 'video_clash'      // Video bài giảng & Bo nghi vấn phản biện
-  | 'predict_poe'      // Dự đoán kết quả (Predict - Observe - Explain)
-  | 'protege_teaching'; // Học viên làm gia sư giảng lại cho Bo
+export type LearnerLevel = 'beginner' | 'intermediate' | 'advanced';
+
+export type LearningMode = 'video_clash' | 'worksheet' | 'predict_poe' | 'protege_teaching';
 
 export type VideoCheckpointPhase = 
-  | 'WATCHING'             // Video đang phát
-  | 'CHECKPOINT_REACHED'   // Dừng lại suy ngẫm, hiện câu hỏi
-  | 'BO_DEBATE'            // Bo nghi vấn, đấu đá bẫy trực giác
-  | 'BO_CONCEDED'          // Bo nhận ra sơ hở, gãi đầu chịu thua
-  | 'CO_LAM_CLOSURE'       // Cô Lam làm trọng tài chốt kiến thức chuẩn
-  | 'STUDENT_FREEZE';      // Học viên bấm "Khoan đã cô ơi!"
+  | 'WATCHING'
+  | 'CHECKPOINT_REACHED'
+  | 'BO_DEBATE'
+  | 'BO_CONCEDED'
+  | 'CO_LAM_CLOSURE'
+  | 'STUDENT_FREEZE';
 
-export type LearnerLevel = 'beginner' | 'intermediate' | 'advanced';
+export type BloomLevel = 'Remember' | 'Understand' | 'Apply' | 'Analyze' | 'Evaluate' | 'Create';
 
 export interface SolutionStep {
   stepNumber: number;
@@ -44,14 +40,20 @@ export interface MisconceptionItem {
     title: string;
     steps: SolutionStep[];
   };
-  errorStepIndex: number; // 1-indexed (e.g. 2 or 3)
+  errorStepIndex: number;
   errorType: string;
   errorDescription: string;
   standardExplanation: string;
   hintLevel1: string;
   hintLevel2?: string;
+  nudgeStarter?: string;
   keywords: string[];
-  nudgeStarter: string;
+  // Bổ sung Cheat Sheet của Linh Chi cho Trạm 2
+  linhChiCheatSheet?: {
+    title: string;
+    rules: string[];
+    commonTrap: string;
+  };
 }
 
 export interface EvaluationResult {
@@ -61,33 +63,81 @@ export interface EvaluationResult {
   reactionBo?: string;
 }
 
+export interface VideoChapter {
+  id: string;
+  title: string;
+  startSecond: number;
+  hasCheckpoint?: boolean;
+  formulaPreview?: string;
+}
+
+export interface TranscriptCue {
+  id: string;
+  start: number;
+  end: number;
+  speaker: 'Cô Lam' | 'Bo' | 'Bảng Phấn';
+  text: string;
+  formula?: string;
+  tag?: 'formula' | 'trap' | 'checkpoint' | 'rule';
+}
+
 export interface RebuttalSticker {
   id: string;
   text: string;
   isEffective: boolean;
+  bloomLevel?: BloomLevel;
   feedback: string;
 }
 
 export interface TimelineComment {
   id: string;
   second: number;
-  author: string; // 'Bo Ngây Ngô' | 'Trợ giảng An' | 'Minh Phương' | 'Cô Lam' | string
+  author: string;
   role: 'classmate' | 'ta' | 'teacher';
-  avatar?: string;
   text: string;
-  isPinned?: boolean; // Pinned note from TA or Teacher
+  isPinned?: boolean;
+}
+
+export interface PeerContextData {
+  bo: {
+    hotTake: string;
+    quickPrompts: string[];
+    defaultReply: string;
+  };
+  tri: {
+    edgeCaseNote: string;
+    quickPrompts: string[];
+    defaultReply: string;
+  };
+  linhchi: {
+    cheatSheetTitle: string;
+    cheatSheetBullets: string[];
+    quickPrompts: string[];
+    defaultReply: string;
+  };
+  minhkhang: {
+    analogyTitle: string;
+    analogyContent: string;
+    quickPrompts: string[];
+    defaultReply: string;
+  };
 }
 
 export interface VideoLessonItem {
   id: string;
   title: string;
   subject: string;
-  duration: number; // seconds
-  checkpointTimestamp: number; // seconds where video pauses
-  videoUrl?: string; // Optional YouTube / MP4 video link
+  duration: number;
+  checkpointTimestamp: number;
+  videoUrl?: string;
+  youtubeId?: string;
   blackboardTitle: string;
   lectureNotes: string[];
-  timelineComments?: TimelineComment[]; // Ambient classroom chat stream
+  // Phân cảnh & Bản chép lời từng giây kiểu YouTube/Coursera
+  chapters?: VideoChapter[];
+  transcriptCues?: TranscriptCue[];
+  // Dữ liệu Sổ tay & Chat riêng đồng bộ theo đúng bài học cho 4 bạn
+  peerContext?: PeerContextData;
   checkpointQuestion: {
     prompt: string;
     options: {
@@ -95,6 +145,7 @@ export interface VideoLessonItem {
       label: string;
       isStandardBest: boolean;
       feedback: string;
+      remediationSecond?: number;
     }[];
   };
   boArgument: {
@@ -112,5 +163,16 @@ export interface VideoLessonItem {
     goldenRule: string;
   };
   freezeNote: string;
+  timelineComments?: TimelineComment[];
 }
 
+// Lưu trữ ngầm dữ liệu Bloom & Action Layer (Zero Pressure trong lúc học)
+export interface SilentLearningRecord {
+  id: string;
+  timestamp: string;
+  station: LearningMode;
+  actionName: 'create_learning_record' | 'update_mastery_state' | 'create_review_task';
+  bloomLevel: BloomLevel;
+  status: 'mastered' | 'consolidated' | 'attempted' | 'skipped_not_mastered';
+  detail: string;
+}

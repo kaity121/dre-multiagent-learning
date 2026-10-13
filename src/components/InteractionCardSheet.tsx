@@ -82,19 +82,31 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = ({
 
       {/* STATE 1: IDLE */}
       {currentState === 'IDLE' && (
-        <div className="flex-1 flex flex-col items-center justify-center text-center p-4 my-auto">
-          <div className="w-12 h-12 rounded-full bg-[#FFF5DC] border-2 border-[#ECD9B5] flex items-center justify-center shadow-xs mb-2 rotate-[-4deg]">
-            <MagnifyIcon className="w-6 h-6 text-[#E8A33D]" />
+        <div className="flex-1 flex flex-col justify-between p-3 space-y-4">
+          <div className="flex flex-col items-center text-center my-auto">
+            <div className="w-12 h-12 rounded-full bg-[#FFF5DC] border-2 border-[#ECD9B5] flex items-center justify-center shadow-xs mb-2">
+              <MagnifyIcon className="w-6 h-6 text-[#E8A33D]" />
+            </div>
+            <h2 className="font-handwriting text-2xl font-bold text-[#3B3227] mb-1">
+              Góc quan sát & Đối chiếu quy tắc
+            </h2>
+            <p className="font-handwriting text-base text-[#786B5D] max-w-xs leading-snug">
+              “Bấm vào dòng em nghi ngờ Bo đã giải sai ở trang bên trái để bắt đầu nhé.”
+            </p>
           </div>
-          <h2 className="font-handwriting text-xl sm:text-2xl font-bold text-[#3B3227] mb-1.5">
-            Góc quan sát của em
-          </h2>
-          <p className="font-handwriting text-base text-[#786B5D] max-w-xs leading-relaxed">
-            &ldquo;Bấm vào bất kỳ dòng nào em nghĩ là Bo đã giải sai ở trang bên trái để bắt đầu nhé.&rdquo;
-          </p>
-          <div className="mt-4 px-3 py-1.5 bg-[#FFF9EC] border border-[#ECD9B5] rounded-xs text-xs text-[#8A744C] font-handwriting flex items-center gap-2">
-            <GentleLightbulb className="w-4 h-4 shrink-0 text-[#E8A33D]" />
-            <span>Gợi ý: Đọc từng bước một cách cẩn thận xem quy tắc chuyển vế hoặc tính toán có bị nhầm dấu không.</span>
+
+          {/* Tờ Sổ tay cứu viện của Linh Chi ngay trên Trang Phải của Trạm 2 */}
+          <div className="p-3.5 bg-[#FFF0F5] border-2 border-[#F29BB7] rounded-md text-xs font-handwriting space-y-1.5 shadow-2xs">
+            <div className="font-bold text-[#8C2852] text-sm flex items-center justify-between">
+              <span>🌸 Sổ tay Quy tắc chuẩn của Linh Chi:</span>
+              <span className="text-[10px] font-mono bg-white/80 px-1.5 py-0.5 rounded">Gợi ý đối chiếu</span>
+            </div>
+            <p className="text-[#4A152B] leading-snug">
+              • <strong>Quy tắc chuẩn:</strong> {lesson.standardExplanation}
+            </p>
+            <p className="text-[#8C2852] italic">
+              💡 Mẹo của Chi: {lesson.hintLevel1}
+            </p>
           </div>
         </div>
       )}

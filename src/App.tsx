@@ -62,8 +62,8 @@ import {
 } from './services/dreBackendApi';
 
 export default function App() {
-  // Current active mode (Default to worksheet DRE classic notebook)
-  const [currentMode, setCurrentMode] = useState<LearningMode>('worksheet');
+  // Current active mode (Default to Trạm 1: Video Checkpoint & Bo phản biện)
+  const [currentMode, setCurrentMode] = useState<LearningMode>('video_clash');
 
   // Backend Multi-Agent AI States (Connected to dre-backend Express on port 3001)
   const [isBackendLive, setIsBackendLive] = useState<boolean>(false);
@@ -672,14 +672,29 @@ export default function App() {
       {/* Main Learning Workspace: Realistic Open Sketchbook lying on desk (Expanded to cover ~85% of screen width) */}
       <main className="flex-1 w-[92vw] max-w-[1520px] mx-auto p-2 sm:p-3 lg:p-4 flex flex-col justify-start">
         {/* Workspace State Ribbon */}
-        <div className="mb-2 flex flex-wrap items-center justify-between text-xs text-[#7A6D5E] px-2 gap-2">
+        <div className="mb-1.5 flex flex-wrap items-center justify-between text-xs text-[#7A6D5E] px-2 gap-2">
           <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-[#E8A33D]" />
-            <span className="font-mono uppercase font-bold text-[#8C5D19] text-[11px]">
-              {currentMode === 'worksheet' && `Trạng thái: ${currentState}`}
-              {currentMode === 'video_clash' && `Video: ${videoPhase}`}
-              {currentMode === 'predict_poe' && 'Chế độ: Dự đoán kết quả (POE)'}
-              {currentMode === 'protege_teaching' && 'Chế độ: Gia sư nhí cho Bo'}
+            <span className="inline-block w-2 h-2 rounded-full bg-[#E8A33D] animate-pulse" />
+            <span className="font-handwriting font-bold text-[#8C5D19] text-xs sm:text-sm">
+              {currentMode === 'worksheet' && (
+                currentState === 'IDLE' ? '● Đang chọn bước cần sửa' :
+                currentState === 'MARKED' || currentState === 'EXPLAIN_PROMPT' ? '✍️ Đang viết lời giải thích' :
+                currentState === 'BO_CHALLENGE' ? '⚔️ Bo đang cãi lý' :
+                currentState === 'CLOSE' ? '✨ Hoàn thành bài học' :
+                currentState === 'TUTOR_NUDGE' ? '💡 Cô Lam gợi ý nhẹ' :
+                currentState === 'HINT' ? '🔍 Cần soi lại bước khác' :
+                `● ${currentState}`
+              )}
+              {currentMode === 'video_clash' && (
+                videoPhase === 'WATCHING' ? '● Đang nghe giảng' :
+                videoPhase === 'CHECKPOINT_REACHED' ? '⚡ Điểm dừng suy ngẫm' :
+                videoPhase === 'STUDENT_FREEZE' ? '⏸️ Bạn bấm dừng bài' :
+                videoPhase === 'BO_DEBATE' ? '⚔️ Bo đang tranh biện' :
+                videoPhase === 'BO_CONCEDED' ? '🎉 Bo đã tâm phục khẩu phục' :
+                `● ${videoPhase}`
+              )}
+              {currentMode === 'predict_poe' && '🎯 Chế độ: Dự đoán kết quả (POE)'}
+              {currentMode === 'protege_teaching' && '🧑‍🏫 Chế độ: Dạy kèm cho Bo'}
             </span>
             <span className="text-[#A39686]">·</span>
             <span className="font-handwriting text-xs sm:text-sm text-[#4E4135] font-semibold">
@@ -689,7 +704,7 @@ export default function App() {
                 ? currentVideoLesson.title
                 : currentMode === 'predict_poe'
                 ? currentPoeTopic
-                : 'Toán 7 · Quy đồng mẫu số phân số'}
+                : 'Toán 8 · Phương trình tích x(x − 2) = 3x'}
             </span>
           </div>
 
@@ -819,13 +834,14 @@ export default function App() {
             {/* Book Spine Crease Down the Middle (aligned with 70% left page) */}
             <div className="hidden lg:block absolute top-0 bottom-0 left-[70%] w-[1.5px] bg-gradient-to-b from-transparent via-[#D2C5B4] to-transparent pointer-events-none z-0 shadow-xs" />
 
-            {/* Living MAIC Classmate Peer Dock: Bộ tứ bạn học MAIC, Heatmap & Âm thanh xúc giác */}
-            <div className="mb-3 relative z-10">
+            {/* Living MAIC Classmate Peer Dock: Bộ tứ bạn học MAIC */}
+            <div className="mb-2 relative z-10">
               <MaicPeerClassroomDock 
                 currentMode={currentMode}
                 currentState={currentState}
-                lessonTopic={currentLesson.topic}
+                lessonTopic={currentMode === 'video_clash' ? currentVideoLesson.title : currentLesson.topic}
                 errorStepIndex={currentLesson.errorStepIndex}
+                peerContext={currentVideoLesson.peerContext}
               />
             </div>
 
@@ -910,6 +926,7 @@ export default function App() {
                   liveBoDialogue={liveBoDialogue}
                   liveCoLamDialogue={liveCoLamDialogue}
                   liveHintDialogue={liveHintDialogue}
+                  onSeekVideo={handleSeekVideo}
                   onAnswerCheckpoint={handleAnswerCheckpoint}
                   onSubmitRebuttal={handleSubmitRebuttal}
                   onResumeVideo={handleResumeVideoAfterClosure}
@@ -935,20 +952,6 @@ export default function App() {
           </div>
         </div>
       </main>
-
-      {/* Tactile Footer */}
-      <footer className="w-full border-t border-[#DFD6C4] bg-[#FAF6EE]/75 py-3 text-center text-xs text-[#8A7D6F] font-handwriting">
-        <div className="max-w-6xl mx-auto flex items-center justify-center gap-2">
-          <SparkleIcon className="w-3.5 h-3.5 text-[#E8A33D]" />
-          <span>
-            {currentMode === 'worksheet' && 'Sổ tay học Toán DRE · Cơ chế Tự giải thích & Bắt lỗi bạn học'}
-            {currentMode === 'video_clash' && 'Video Bài Giảng Tương Tác · Bo Nghi Vấn Đấu Đá & Phản Biện Socratic'}
-            {currentMode === 'predict_poe' && 'Predict-Observe-Explain (POE) · Dự đoán trước khi hé lộ kết quả'}
-            {currentMode === 'protege_teaching' && 'Protégé Effect · Học viên đóng vai gia sư giảng lại cho Bo'}
-          </span>
-          <SparkleIcon className="w-3.5 h-3.5 text-[#E8A33D]" />
-        </div>
-      </footer>
 
       {/* Modals & Drawers */}
       <MultiAgentInspectorModal
