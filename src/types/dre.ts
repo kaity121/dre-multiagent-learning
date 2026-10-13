@@ -79,6 +79,9 @@ export interface TranscriptCue {
   text: string;
   formula?: string;
   tag?: 'formula' | 'trap' | 'checkpoint' | 'rule';
+  // Bổ sung cho tính năng "Khoan đã cô ơi!" theo từng giây (OpenMAIC Director)
+  minhKhangAnalogy?: string;
+  linhChiNote?: string;
 }
 
 export interface RebuttalSticker {

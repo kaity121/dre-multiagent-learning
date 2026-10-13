@@ -2,6 +2,37 @@ import { MisconceptionItem } from '../types/dre';
 
 export const MISCONCEPTION_LIBRARY: MisconceptionItem[] = [
   {
+    id: 'MISC_VECTO_12',
+    topic: 'Toán 12: Vectơ trong không gian — Bẫy quy tắc trừ & tách độ dài (Thầy Nguyễn Phan Tiến)',
+    level: 'intermediate',
+    levelLabel: 'Toán 12 (SGK Mới)',
+    workingObject: {
+      title: "Ví dụ 10 (Phút 1:40:10): Cho lăng trụ ABC.A'B'C'. Đặt AA'⃗ = a⃗, AB⃗ = b⃗, AC⃗ = c⃗. Hãy biểu diễn vectơ B'C⃗ theo a⃗, b⃗, c⃗:",
+      steps: [
+        { stepNumber: 1, content: "Chèn điểm A vào vectơ B'C⃗ theo quy tắc hiệu (Chung đầu A):" },
+        { stepNumber: 2, content: "B'C⃗ = AB'⃗ − AC⃗ (Lấy điểm trước trừ điểm sau)" },
+        { stepNumber: 3, content: "Vì AB'⃗ = AA'⃗ + AB⃗ = a⃗ + b⃗ nên B'C⃗ = a⃗ + b⃗ − c⃗" }
+      ]
+    },
+    errorStepIndex: 2,
+    errorType: 'Quy tắc hiệu (Quên "Chung đầu - Lộn ngược")',
+    errorDescription: "Áp dụng sai quy tắc hiệu khi chèn điểm A: B'C⃗ phải bằng AC⃗ − AB'⃗ (sau trừ trước), nhưng Bo lại viết ngược thành AB'⃗ − AC⃗.",
+    standardExplanation: "Theo khẩu quyết \"Chung đầu - Lộn ngược\" của thầy Tiến ở phút [57:02]: B'C⃗ = AC⃗ − AB'⃗ = c⃗ − (a⃗ + b⃗) = c⃗ − a⃗ − b⃗.",
+    hintLevel1: 'Hãy nhớ khẩu quyết quy tắc hiệu ở phút [57:02]: "Chung đầu A thì phải LỘN NGƯỢC thứ tự hai điểm cuối!"',
+    hintLevel2: "Với B'C⃗, khi chèn điểm A làm gốc chung thì điểm C (đứng sau) phải viết trước hay điểm B' (đứng trước) viết trước?",
+    nudgeStarter: "Ở bước 2, theo quy tắc hiệu chung đầu lộn ngược thì B'C⃗ phải bằng ",
+    keywords: ['lộn ngược', 'ac - ab', 'sau trừ trước', 'ngược dấu', 'c - a - b', 'chung đầu'],
+    linhChiCheatSheet: {
+      title: "📝 Sổ tay Quy tắc Hiệu Vectơ (Thầy Nguyễn Phan Tiến)",
+      rules: [
+        "1. Khẩu quyết 'Chung đầu - Lộn ngược' (57:02): OA⃗ − OB⃗ = BA⃗ (Điểm sau B viết trước, điểm trước A viết sau).",
+        "2. Chèn điểm A vào B'C⃗: B'C⃗ = AC⃗ − AB'⃗ = c⃗ − (a⃗ + b⃗) = c⃗ − a⃗ − b⃗.",
+        "3. Chuyển trừ thành cộng vectơ đối: B'C⃗ = B'B⃗ + BC⃗ = −AA'⃗ + (AC⃗ − AB⃗) = −a⃗ + c⃗ − b⃗."
+      ],
+      commonTrap: "Cạm bẫy Bo hay mắc: Thấy B' đứng trước C nên viết B'C⃗ = AB'⃗ − AC⃗ (quên lộn ngược vị trí sau trừ trước)."
+    }
+  },
+  {
     id: 'MISC_001',
     topic: 'Phương trình bậc 2, nhầm dấu khi chuyển vế',
     level: 'beginner',

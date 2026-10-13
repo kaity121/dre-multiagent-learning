@@ -74,7 +74,7 @@ export default function App() {
   const [liveHintDialogue, setLiveHintDialogue] = useState<string | null>(null);
 
   // Worksheet Mode States
-  const [selectedLevel, setSelectedLevel] = useState<LearnerLevel>('beginner');
+  const [selectedLevel, setSelectedLevel] = useState<LearnerLevel>(MISCONCEPTION_LIBRARY[0].level);
   const [currentLesson, setCurrentLesson] = useState<MisconceptionItem>(MISCONCEPTION_LIBRARY[0]);
   const [currentState, setCurrentState] = useState<DREState>('IDLE');
   const [selectedStep, setSelectedStep] = useState<number | null>(null);
@@ -87,7 +87,7 @@ export default function App() {
   const [videoPhase, setVideoPhase] = useState<VideoCheckpointPhase>('CHECKPOINT_REACHED');
   const [videoCurrentTime, setVideoCurrentTime] = useState<number>(VIDEO_LESSON_LIBRARY[0].checkpointTimestamp);
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
-  const [currentPoeTopic, setCurrentPoeTopic] = useState<string>('Toán 8 · Phá ngoặc & Đổi dấu: B = 7x − (2x − 5)');
+  const [currentPoeTopic, setCurrentPoeTopic] = useState<string>('Toán 12 · Biến thể Vectơ trong không gian (Thầy Nguyễn Phan Tiến)');
 
   // Modals & Drawers
   const [isPauseOpen, setIsPauseOpen] = useState(false);
@@ -704,7 +704,7 @@ export default function App() {
                 ? currentVideoLesson.title
                 : currentMode === 'predict_poe'
                 ? currentPoeTopic
-                : 'Toán 8 · Phương trình tích x(x − 2) = 3x'}
+                : 'Toán 12 · Vectơ trong không gian (Thầy Nguyễn Phan Tiến)'}
             </span>
           </div>
 
@@ -807,7 +807,7 @@ export default function App() {
                         : 'bg-white/90 text-[#5C4F42] border-[#DFD6C4] hover:bg-white'
                     }`}
                   >
-                    {v.id}
+                    {v.id === 'VID_VECTO_12' ? 'Vectơ 12 (Thầy Tiến)' : v.id}
                   </button>
                 ))}
               </div>

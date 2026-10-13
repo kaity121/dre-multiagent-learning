@@ -98,15 +98,28 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = ({
           {/* Tờ Sổ tay cứu viện của Linh Chi ngay trên Trang Phải của Trạm 2 */}
           <div className="p-3.5 bg-[#FFF0F5] border-2 border-[#F29BB7] rounded-md text-xs font-handwriting space-y-1.5 shadow-2xs">
             <div className="font-bold text-[#8C2852] text-sm flex items-center justify-between">
-              <span>🌸 Sổ tay Quy tắc chuẩn của Linh Chi:</span>
+              <span>🌸 {lesson.linhChiCheatSheet?.title || 'Sổ tay Quy tắc chuẩn của Linh Chi:'}</span>
               <span className="text-[10px] font-mono bg-white/80 px-1.5 py-0.5 rounded">Gợi ý đối chiếu</span>
             </div>
-            <p className="text-[#4A152B] leading-snug">
-              • <strong>Quy tắc chuẩn:</strong> {lesson.standardExplanation}
-            </p>
-            <p className="text-[#8C2852] italic">
-              💡 Mẹo của Chi: {lesson.hintLevel1}
-            </p>
+            {lesson.linhChiCheatSheet ? (
+              <div className="space-y-1 text-[#4A152B] leading-snug">
+                {lesson.linhChiCheatSheet.rules.map((r, i) => (
+                  <p key={i}>• {r}</p>
+                ))}
+                <p className="text-[#8C2852] italic pt-0.5">
+                  ⚠️ {lesson.linhChiCheatSheet.commonTrap}
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="text-[#4A152B] leading-snug">
+                  • <strong>Quy tắc chuẩn:</strong> {lesson.standardExplanation}
+                </p>
+                <p className="text-[#8C2852] italic">
+                  💡 Mẹo của Chi: {lesson.hintLevel1}
+                </p>
+              </>
+            )}
           </div>
         </div>
       )}
