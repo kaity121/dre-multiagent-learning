@@ -45,35 +45,39 @@ flowchart LR
 
 ---
 
-## SLIDE 3: GIẢI PHÁP SẢN PHẨM (THE DRE SOLUTION)
-### **QUY TRÌNH 3 BƯỚC: SOI LỖI (DIAGNOSE) ➔ SỬA SAI (REPAIR) ➔ PHẢN BIỆN (EXPLAIN)**
+## SLIDE 3: GIẢI PHÁP SẢN PHẨM & TRẢI NGHIỆM KÉP (THE DRE SOLUTION)
+### **TỪ XEM VIDEO THỤ ĐỘNG SANG ĐIỂM DỪNG TƯƠNG TÁC (VIDEO CHECKPOINT & DEBATE)**
 
-Hệ thống dẫn dắt học sinh vượt qua xung đột nhận thức (Cognitive Conflict):
+DRE biến bài giảng một chiều thành môi trường học tập tương tác hai chiều qua **Trải nghiệm Kép (Dual Experience)**:
 
-* **Bước 1 — Soi bẫy (Diagnose):** Học sinh trực tiếp đánh dấu bước biến đổi sai trong bài giải của bạn học AI.
-* **Bước 2 — Đấu trí đối chất (Repair):** Bạn học Bo ngây ngô tung lập luận cãi cùn trực giác (*"Ủa chia phăng ẩn x đi cho nhanh!"*), buộc học sinh phải bảo vệ nguyên lý toán học.
-* **Bước 3 — Thấu suốt bản chất (Explain):** Học sinh gõ lý lẽ để khuất phục Bo và nhận chứng nhận làm chủ kiến thức từ Cô Lam.
+* **1. Điểm Dừng Video Tương Tác (Video Interactive Checkpoint Quiz):**
+  * Video bài giảng tự động tạm dừng ở các mốc cạm bẫy ngộ nhận (Ví dụ: phương trình $x(x - 2) = 3x$).
+  * **Cô Lam dừng video đặt câu hỏi chẩn đoán:** Bắt học sinh chọn phương án xử lý (chia hai vế cho $x$ hay chuyển vế đặt nhân tử chung).
+  * **Không dừng lại ở trắc nghiệm tĩnh:** Chọn đúng (A) $\rightarrow$ Bạn Bo nhảy vào bắt bẻ *"Sao không chia cho x cho nhanh?"* $\rightarrow$ Ép học sinh bước vào vòng **Tranh biện (Rebuttal)** dán sticker hoặc gõ lý lẽ để khuất phục Bo.
+  * **Bỏ qua câu hỏi (Skip):** Được phép xem tiếp nhưng hệ thống ghi nhận `skipped_not_mastered`, không cấp chứng nhận.
+* **2. Sổ Tay Bài Tập Xúc Giác (SuperrBook Worksheet 70/30):**
+  * Quy trình 3 bước kinh điển: Soi lỗi sai trên trang vở của Bo (Diagnose) $\rightarrow$ Tranh biện bẻ gãy ngụy biện (Repair) $\rightarrow$ Thấu suốt bản chất toán học cùng Cô Lam (Explain).
 
-> **Tác động tâm lý:** Xóa bỏ hoàn toàn mặc cảm sợ sai — Bo sai trước, học sinh đóng vai người hùng đi sửa sai cho bạn học.
+> **Tác động tâm lý:** Xóa bỏ hoàn toàn mặc cảm sợ sai — Bo sai trước, học sinh đóng vai người hùng đi sửa sai và bảo vệ chân lý toán học.
 
 ---
 
-## SLIDE 4: CÔNG NGHỆ CỐT LÕI & AGENT ACTION LAYER (UNDERLYING MAGIC)
-### **AI BẮT BUỘC · AGENT HÀNH ĐỘNG THỰC TẾ · RANH GIỚI ĐẠO ĐỨC RÕ RÀNG**
+## SLIDE 4: CÔNG NGHỆ CỐT LÕI & MULTI-AGENT CLASSROOM (UNDERLYING MAGIC)
+### **PHÒNG HỌC MÔ PHỎNG 6 AGENT · ACTION LAYER GHI DỮ LIỆU THẬT · ĐẠO ĐỨC MINH BẠCH**
 
-* **AI là bắt buộc (Tiêu chí 2):**  
-  *Bỏ AI, DRE chỉ còn video và quiz tĩnh thông thường. AI là lớp tạo xung đột nhận thức, scaffold theo Bloom và phản biện theo ngữ cảnh — thứ web tra cứu không làm được.*
+* **Phòng học Đa Tác Nhân (Simulated Multi-Agent Classroom - OpenMAIC):**  
+  * **Cô Lam (TI):** Dừng video, điều phối nhịp độ và chốt chuẩn kiến thức.
+  * **TA An (ID):** Bảng ghim bài học, cấp giàn giáo gợi ý 3 tầng (Nudges, not answers).
+  * **4 Bạn học đồng hành (Peers):** **Bo** (hay làm sai/đi tắt), **Trí** (logic/bắt bẻ điều kiện biên), **Linh Chi** (tư duy hình ảnh/trục số), **Minh Khang** (hòa giải/tóm tắt bằng ngôn ngữ dễ hiểu).
+  * Bình luận của các bạn AI trôi theo thời gian thực (Live Chat Stream) như lớp học Zoom/YouTube Live.
 * **Agent Action Layer — Hành động ghi dữ liệu thật (Tiêu chí 3):**  
-  Agent **không chỉ trả lời/hỏi đáp**. Sau mỗi tương tác, agent thực thi 3 action hệ thống:
+  Agent **không chỉ trả lời text đơn thuần**. Sau mỗi lượt trả lời và phản biện, hệ thống thực thi 3 action:
   1. `create_learning_record`: Ghi nhận `checkpoint_result`, `misconceptionId`, `hint_level` vào hệ thống.
   2. `update_mastery_state`: Cập nhật trạng thái năng lực học tập của học viên.
-  3. `create_review_task`: Tự động tạo bài tập biến thể cần ôn lại nếu học sinh chưa đạt chuẩn.
-* **Điều Agent KHÔNG ĐƯỢC LÀM (Ranh giới AI Ethics - Tiêu chí 5):**  
-  * Không giả danh người thật (luôn gắn nhãn `[🤖 AI mô phỏng]`).  
-  * Không giải bài hộ trước khi học sinh tự thử sức.  
-  * Không tự chấm điểm chính thức (chỉ formative feedback).  
-  * Chặn và redact 100% dữ liệu cá nhân (PII: SĐT, tên thật, địa chỉ).  
-  * Không dùng "guilt loop" gây áp lực tâm lý (*"Bo sẽ buồn nếu em rời lớp"*).
+  3. `create_review_task`: Tự động tạo bài tập biến thể cần ôn lại nếu chọn sai hoặc bấm bỏ qua (Skip).
+* **Ranh giới Đạo đức AI Minh bạch (Tiêu chí 5):**  
+  * Nhãn minh bạch `[🤖 AI mô phỏng]` trên từng bình luận, có nút Flag/Report báo cáo vi phạm.  
+  * Không giải bài hộ; không dùng "guilt loop" gây áp lực tâm lý.
 
 ---
 
