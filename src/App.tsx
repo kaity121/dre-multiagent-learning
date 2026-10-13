@@ -907,11 +907,17 @@ export default function App() {
                   phase={videoPhase}
                   currentTime={videoCurrentTime}
                   isPlaying={isVideoPlaying}
+                  isLoadingAi={isLoadingAi}
+                  liveBoDialogue={liveBoDialogue}
+                  liveCoLamDialogue={liveCoLamDialogue}
                   onTogglePlay={handleToggleVideoPlay}
                   onSeek={handleSeekVideo}
                   onTriggerFreeze={handleTriggerFreeze}
                   onJumpToCheckpoint={handleJumpToCheckpoint}
                   onSwitchVideoLesson={handleSwitchVideoLesson}
+                  onAnswerCheckpoint={handleAnswerCheckpoint}
+                  onSubmitRebuttal={handleSubmitRebuttal}
+                  onResumeVideo={handleResumeVideoAfterClosure}
                 />
               </div>
 
