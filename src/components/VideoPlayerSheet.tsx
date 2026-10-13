@@ -48,6 +48,7 @@ const extractYouTubeId = (url?: string): string | null => {
 
 export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   lesson,
+  phase,
   currentTime,
   isPlaying,
   isLoadingAi = false,
@@ -65,8 +66,8 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   const defaultYtId = lesson.youtubeId || extractYouTubeId(lesson.videoUrl) || 'phvpqxLNTUQ';
   const [activeYoutubeId, setActiveYoutubeId] = useState<string>(defaultYtId);
 
-  // Mặc định khởi đầu ở trạng thái WATCHING để khi video chạy tới 37:13 sẽ tự động dừng!
-  const [internalPhase, setInternalPhase] = useState<VideoCheckpointPhase>('WATCHING');
+  // Mặc định khởi đầu ở trạng thái WATCHING
+  const [internalPhase, setInternalPhase] = useState<VideoCheckpointPhase>(phase || 'WATCHING');
   const [, setSelectedOption] = useState<{
     id: string;
     label: string;
@@ -88,6 +89,16 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   const playerContainerId = useRef<string>(`yt-player-${Math.random().toString(36).slice(2, 8)}`);
   // Cờ kiểm soát tự động dừng đúng 1 lần khi chạm mốc checkpoint (tránh lặp vô hạn sau khi bấm Xem tiếp)
   const hasAutoPausedAtCheckpointRef = useRef<boolean>(false);
+
+  // Luôn đồng bộ khi prop phase thay đổi từ App.tsx
+  useEffect(() => {
+    if (phase) {
+      setInternalPhase(phase);
+      if (phase === 'CHECKPOINT_REACHED' || phase === 'BO_DEBATE') {
+        setIsQuizMinimized(false);
+      }
+    }
+  }, [phase]);
 
   useEffect(() => {
     const newYtId = lesson.youtubeId || extractYouTubeId(lesson.videoUrl) || 'phvpqxLNTUQ';
@@ -120,14 +131,14 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
         },
         events: {
           onStateChange: (event: any) => {
-            // Khi học sinh bấm Play trên YouTube -> Đưa về trạng thái WATCHING để rình bắt mốc Checkpoint!
+            // Khi học sinh bấm Play trên YouTube
             if (event.data === 1) {
               const sec = Math.floor(ytPlayerRef.current?.getCurrentTime?.() || 0);
-              // Nếu tua về trước mốc checkpoint thì reset cờ tự dừng để khi chạy qua 37:13 sẽ tự dừng lại!
-              if (sec < lesson.checkpointTimestamp - 2) {
+              // Chỉ reset về WATCHING khi học sinh tua về trước mốc checkpoint ít nhất 3 giây!
+              if (sec < lesson.checkpointTimestamp - 3) {
                 hasAutoPausedAtCheckpointRef.current = false;
+                setInternalPhase('WATCHING');
               }
-              setInternalPhase('WATCHING');
               if (!isPlaying) onTogglePlay();
             } else if (event.data === 2 && isPlaying) {
               onTogglePlay();
@@ -165,7 +176,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
           onSeek(sec);
 
           // Nếu học sinh tua về trước mốc checkpoint -> Cho phép tự dừng lại khi chạm mốc
-          if (sec < lesson.checkpointTimestamp - 2) {
+          if (sec < lesson.checkpointTimestamp - 3) {
             hasAutoPausedAtCheckpointRef.current = false;
           }
 
@@ -176,7 +187,9 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
             !hasAutoPausedAtCheckpointRef.current
           ) {
             hasAutoPausedAtCheckpointRef.current = true;
-            ytPlayerRef.current.pauseVideo();
+            if (ytPlayerRef.current?.pauseVideo) {
+              ytPlayerRef.current.pauseVideo();
+            }
             sound.playBubblePop();
             setInternalPhase('CHECKPOINT_REACHED');
             setIsOverlayDrawerOpen(false);
@@ -191,7 +204,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
 
   const handleSeekBoth = (targetSec: number) => {
     sound.playPencilTap();
-    if (targetSec < lesson.checkpointTimestamp - 2) {
+    if (targetSec < lesson.checkpointTimestamp - 3) {
       hasAutoPausedAtCheckpointRef.current = false;
     }
     onSeek(targetSec);
@@ -200,14 +213,16 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
     }
   };
 
-  // Khi bấm nút "Tới câu hỏi 37:13" (Hoặc tua tới 37:10 để xem nó tự dừng ở 37:13)
+  // Khi bấm nút "Tới câu hỏi 37:13"
   const handleTriggerCheckpointNow = () => {
     hasAutoPausedAtCheckpointRef.current = true;
     setIsOverlayDrawerOpen(false);
     setIsQuizMinimized(false);
-    handleSeekBoth(lesson.checkpointTimestamp);
-    if (ytPlayerRef.current?.pauseVideo) ytPlayerRef.current.pauseVideo();
     setInternalPhase('CHECKPOINT_REACHED');
+    handleSeekBoth(lesson.checkpointTimestamp);
+    setTimeout(() => {
+      if (ytPlayerRef.current?.pauseVideo) ytPlayerRef.current.pauseVideo();
+    }, 150);
     onJumpToCheckpoint();
   };
 
@@ -249,6 +264,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
     setInternalPhase('WATCHING');
     setSelectedOption(null);
     setRebuttalFeedback(null);
+    setIsQuizMinimized(false);
     if (ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
       ytPlayerRef.current.seekTo(lesson.checkpointTimestamp + 5, true);
       ytPlayerRef.current.playVideo();
@@ -286,11 +302,14 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   );
 
   const boDebateSpeech = cleanText(liveBoDialogue || lesson.boArgument.speech);
+
+  // Pha hoạt động: ưu tiên trạng thái nào khác WATCHING
+  const activePhase = internalPhase !== 'WATCHING' ? internalPhase : (phase !== 'WATCHING' ? phase : 'WATCHING');
   const isCheckpointActive =
-    internalPhase === 'CHECKPOINT_REACHED' ||
-    internalPhase === 'BO_DEBATE' ||
-    internalPhase === 'BO_CONCEDED' ||
-    internalPhase === 'CO_LAM_CLOSURE';
+    activePhase === 'CHECKPOINT_REACHED' ||
+    activePhase === 'BO_DEBATE' ||
+    activePhase === 'BO_CONCEDED' ||
+    activePhase === 'CO_LAM_CLOSURE';
   const showQuizOverlay = isCheckpointActive && !isQuizMinimized && !isOverlayDrawerOpen;
 
   return (
@@ -301,7 +320,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
       <div className="relative flex-1 w-full bg-black overflow-hidden">
         <div id={playerContainerId.current} className="w-full h-full" />
 
-        {/* KHAY KÍNH MỜ "PHÂN CẢNH | BẢN CHÉP LỜI" (Chỉ hiện khi bấm nút dưới đáy) */}
+        {/* KHAY KÍNH MỜ "PHÂN CẢNH | BẢN CHÉP LỜI" */}
         {isOverlayDrawerOpen && (
           <div className="absolute top-2 bottom-2 right-2 w-[290px] sm:w-[320px] yt-frosted-glass text-white rounded-xl shadow-2xl z-30 flex flex-col overflow-hidden animate-in fade-in slide-in-from-right-3 duration-150">
             <div className="p-2.5 border-b border-white/10 space-y-2 shrink-0">
@@ -422,9 +441,9 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
           <div className="absolute inset-x-4 bottom-4 z-20 dre-frosted-light text-[#2F2923] rounded-xl p-3.5 shadow-2xl animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-black/10 pb-1.5 mb-2">
               <span className="px-2.5 py-0.5 rounded-full bg-[#F5D65D] text-[#2F2923] font-handwriting font-bold text-xs">
-                {internalPhase === 'CHECKPOINT_REACHED' && `⚡ Điểm dừng kiểm tra độ tập trung [${formatTime(lesson.checkpointTimestamp)}]`}
-                {internalPhase === 'BO_DEBATE' && '⚔️ Bo nhảy vào phản đối lựa chọn của em!'}
-                {(internalPhase === 'BO_CONCEDED' || internalPhase === 'CO_LAM_CLOSURE') && '🌟 Đã thông suốt bản chất!'}
+                {activePhase === 'CHECKPOINT_REACHED' && `⚡ Điểm dừng kiểm tra độ tập trung [${formatTime(lesson.checkpointTimestamp)}]`}
+                {activePhase === 'BO_DEBATE' && '⚔️ Bo nhảy vào phản đối lựa chọn của em!'}
+                {(activePhase === 'BO_CONCEDED' || activePhase === 'CO_LAM_CLOSURE') && '🌟 Đã thông suốt bản chất!'}
               </span>
 
               <div className="flex items-center gap-2">
@@ -432,10 +451,11 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                   type="button"
                   onClick={() => setIsQuizMinimized(true)}
                   className="px-2.5 py-0.5 rounded-full bg-black/10 hover:bg-black/15 text-[#2F2923] font-handwriting font-bold text-xs cursor-pointer"
+                  title="Tạm ẩn để nhìn bảng thầy"
                 >
                   👁️ Nhìn bảng thầy
                 </button>
-                {internalPhase === 'CHECKPOINT_REACHED' && (
+                {activePhase === 'CHECKPOINT_REACHED' && (
                   <button
                     type="button"
                     onClick={onSkipCheckpoint || handleResumeAfterQuiz}
@@ -447,7 +467,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
               </div>
             </div>
 
-            {internalPhase === 'CHECKPOINT_REACHED' && (
+            {activePhase === 'CHECKPOINT_REACHED' && (
               <div className="space-y-2">
                 <p className="font-bold text-xs sm:text-sm text-[#1E3B33] leading-snug">
                   {cleanText(lesson.checkpointQuestion.prompt)}
@@ -470,7 +490,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
               </div>
             )}
 
-            {internalPhase === 'BO_DEBATE' && (
+            {activePhase === 'BO_DEBATE' && (
               <div className="space-y-2">
                 <div className="flex items-start gap-2 p-2 rounded-lg bg-[#FFF8EB] border border-[#E8A33D]/60">
                   <BoAvatar size="sm" expression="skeptical" className="shrink-0 scale-90" />
@@ -519,7 +539,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
               </div>
             )}
 
-            {(internalPhase === 'BO_CONCEDED' || internalPhase === 'CO_LAM_CLOSURE') && (
+            {(activePhase === 'BO_CONCEDED' || activePhase === 'CO_LAM_CLOSURE') && (
               <div className="flex items-center justify-between gap-2 pt-1">
                 <div className="flex items-center gap-2">
                   <RubberStampSuccess className="scale-75 shrink-0" />
@@ -598,10 +618,16 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
 
           <button
             type="button"
-            onClick={handleTriggerCheckpointNow}
-            className="px-2.5 py-1 rounded-full bg-[#E8A33D] hover:bg-[#D9932B] text-black font-handwriting font-bold text-xs cursor-pointer"
+            onClick={() => {
+              if (isQuizMinimized) {
+                setIsQuizMinimized(false);
+              } else {
+                handleTriggerCheckpointNow();
+              }
+            }}
+            className="px-2.5 py-1 rounded-full bg-[#E8A33D] hover:bg-[#D9932B] text-black font-handwriting font-bold text-xs cursor-pointer shadow-xs"
           >
-            ⚡ Câu hỏi ({formatTime(lesson.checkpointTimestamp)})
+            ⚡ {isQuizMinimized ? 'Mở lại câu hỏi' : 'Câu hỏi'} ({formatTime(lesson.checkpointTimestamp)})
           </button>
 
           <button
