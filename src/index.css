@@ -155,26 +155,28 @@ body {
   scrollbar-width: none !important;
 }
 
-/* 3. Kính mờ chuẩn YouTube / Coursera hiện đại */
+/* Làm phẳng mọi tờ giấy, xóa đường kẻ ô vuông gây rối mắt */
+.notebook-sheet,
+.sketchbook-shadow {
+  background-image: none !important;
+  background-color: transparent !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Kính mờ chuẩn YouTube / Coursera */
 .yt-frosted-glass {
-  background: rgba(18, 22, 20, 0.84);
+  background: rgba(18, 22, 20, 0.86);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .dre-frosted-light {
-  background: rgba(255, 253, 249, 0.94);
+  background: rgba(255, 253, 249, 0.96);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(226, 214, 195, 0.9);
+  border: 1px solid rgba(226, 214, 195, 0.95);
 }
 
-/* Tắt kẻ ô vuông & làm sang mặt giấy */
-.notebook-sheet {
-  background-image: none !important;
-  background-color: #FFFDF7 !important;
-  transform: none !important;
-  border-radius: 12px !important;
-}
 

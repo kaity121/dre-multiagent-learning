@@ -663,10 +663,10 @@ export default function App() {
       />
 
       {/* Main Learning Workspace: Realistic Open Sketchbook lying on desk (Expanded to cover ~85% of screen width) */}
-      <main className="flex-1 min-h-0 w-[96vw] max-w-[1600px] mx-auto px-2 py-1.5 flex flex-col">
-        {/* 4 Thẻ phân trang gọn gàng */}
-        <div className="flex items-end justify-between px-3 relative z-10 -mb-[2px] shrink-0">
-          <div className="flex items-end gap-1.5">
+      <main className="flex-1 min-h-0 w-[96vw] max-w-[1600px] mx-auto px-2 py-2 flex flex-col">
+        {/* THANH ĐIỀU HƯỚNG TRÊN CÙNG: Trái là 4 Tab Trạm học · Phải là 1 Nút Sổ tay 4 bạn (Không bao giờ tràn lề!) */}
+        <div className="flex items-center justify-between px-2 mb-1.5 shrink-0 gap-2">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
             {LEARNING_STATIONS.map((station) => {
               const isActive = currentMode === station.id;
               return (
@@ -677,14 +677,14 @@ export default function App() {
                     setCurrentMode(station.id);
                   }}
                   type="button"
-                  className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg border-t-2 border-x-2 font-handwriting transition-all cursor-pointer select-none ${
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border text-xs transition-all cursor-pointer select-none whitespace-nowrap ${
                     isActive
-                      ? `${station.activeBg} ${station.activeText} ${station.activeBorder} font-bold z-20 pb-2`
-                      : `${station.inactiveBg} ${station.inactiveText} ${station.inactiveBorder} opacity-85 hover:opacity-100 z-10`
+                      ? 'bg-[#1B4338] text-white border-[#1B4338] font-bold shadow-xs'
+                      : 'bg-white/85 hover:bg-white text-[#4B5563] border-[#D8CEBC] font-medium'
                   }`}
                 >
                   <span className="shrink-0">{station.icon}</span>
-                  <span className="text-xs font-bold whitespace-nowrap">
+                  <span>
                     {station.stationNumber}: {station.title}
                   </span>
                 </button>
@@ -692,141 +692,114 @@ export default function App() {
             })}
           </div>
 
-          {/* Gộp 4 Bạn học MAIC thành các pill nhỏ trên thanh Tab */}
-          <div className="flex items-center gap-2 pb-1">
-            <MaicPeerClassroomDock 
+          {/* Cụm phải: Nút Sổ tay & Hỏi riêng 4 bạn gọn gàng */}
+          <div className="flex items-center gap-2 shrink-0">
+            <MaicPeerClassroomDock
               currentMode={currentMode}
               currentState={currentState}
               lessonTopic={currentMode === 'video_clash' ? currentVideoLesson.title : currentLesson.topic}
               errorStepIndex={currentLesson.errorStepIndex}
               peerContext={currentVideoLesson.peerContext}
-              variant="compact"
             />
-            {currentMode === 'video_clash' && (
-              <div className="hidden 2xl:flex items-center gap-1 font-handwriting text-xs bg-white/80 px-2 py-0.5 rounded-full border border-[#D5C9B5]">
-                <span className="text-[#8A7D6F] text-[11px]">Bài:</span>
-                {VIDEO_LESSON_LIBRARY.map((v) => (
-                  <button
-                    key={v.id}
-                    onClick={() => handleSwitchVideoLesson(v)}
-                    type="button"
-                    className={`px-2 py-0.5 rounded-full text-[11px] cursor-pointer ${
-                      currentVideoLesson.id === v.id
-                        ? 'bg-[#4E9B87] text-white font-bold'
-                        : 'text-[#5C4F42] hover:bg-black/5'
-                    }`}
-                  >
-                    {v.id === 'VID_VECTO_12' ? 'Vectơ 12' : v.id}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Khung Sổ Tay Mở Rộng (Tự co giãn vừa khít chiều cao còn lại của màn hình!) */}
-        <div className="flex-1 min-h-0 superr-cover p-2 rounded-xl shadow-xl flex flex-col">
-          <div className="flex-1 min-h-0 bg-[#FAF6EE] superr-page p-2.5 rounded-lg border border-[#DDD0BD] flex flex-col">
-            {/* VÙNG NỘI DUNG CHÍNH: TỈ LỆ 7:3 CHUẨN, CHIỀU CAO BẰNG NHAU 100% */}
-            <div className="flex-1 min-h-0 overflow-hidden">
-              {currentMode === 'video_clash' && (
-                <div className="grid grid-cols-1 lg:grid-cols-10 gap-3 h-full items-stretch">
-                  {/* CỘT TRÁI 70% (7/10): VIDEO YOUTUBE THẬT + KÍNH MỜ */}
-                  <div className="lg:col-span-7 h-full min-h-0">
-                    <VideoPlayerSheet
-                      lesson={currentVideoLesson}
-                      phase={videoPhase}
-                      currentTime={videoCurrentTime}
-                      isPlaying={isVideoPlaying}
-                      isLoadingAi={isLoadingAi}
-                      liveBoDialogue={liveBoDialogue}
-                      liveCoLamDialogue={liveCoLamDialogue}
-                      onTogglePlay={handleToggleVideoPlay}
-                      onSeek={handleSeekVideo}
-                      onTriggerFreeze={handleTriggerFreeze}
-                      onJumpToCheckpoint={handleJumpToCheckpoint}
-                      onSwitchVideoLesson={handleSwitchVideoLesson}
-                      onAnswerCheckpoint={handleAnswerCheckpoint}
-                      onSubmitRebuttal={handleSubmitRebuttal}
-                      onResumeVideo={handleResumeVideoAfterClosure}
-                    />
-                  </div>
+        {/* KHUNG SỔ TAY CHÍNH: 1 Mặt phẳng duy nhất (#FFFDF7), không còn hộp lồng hộp! */}
+        <div className="flex-1 min-h-0 bg-[#FFFDF7] rounded-2xl border-2 border-[#C8B69E] shadow-lg p-3 sm:p-4 flex flex-col overflow-hidden">
+          {currentMode === 'video_clash' && (
+            <div className="grid grid-cols-1 lg:grid-cols-10 gap-4 h-full items-stretch">
+              <div className="lg:col-span-7 h-full min-h-0">
+                <VideoPlayerSheet
+                  lesson={currentVideoLesson}
+                  phase={videoPhase}
+                  currentTime={videoCurrentTime}
+                  isPlaying={isVideoPlaying}
+                  isLoadingAi={isLoadingAi}
+                  liveBoDialogue={liveBoDialogue}
+                  liveCoLamDialogue={liveCoLamDialogue}
+                  onTogglePlay={handleToggleVideoPlay}
+                  onSeek={handleSeekVideo}
+                  onTriggerFreeze={handleTriggerFreeze}
+                  onJumpToCheckpoint={handleJumpToCheckpoint}
+                  onSwitchVideoLesson={handleSwitchVideoLesson}
+                  onAnswerCheckpoint={handleAnswerCheckpoint}
+                  onSubmitRebuttal={handleSubmitRebuttal}
+                  onResumeVideo={handleResumeVideoAfterClosure}
+                />
+              </div>
 
-                  {/* CỘT PHẢI 30% (3/10): LỚP HỌC 6 AGENT CAO BẰNG KHUNG VIDEO */}
-                  <div className="lg:col-span-3 h-full min-h-0">
-                    <VideoDebateSheet
-                      lesson={currentVideoLesson}
-                      phase={videoPhase}
-                      currentTime={videoCurrentTime}
-                      isBackendLive={isBackendLive}
-                      isLoadingAi={isLoadingAi}
-                      liveBoDialogue={liveBoDialogue}
-                      liveCoLamDialogue={liveCoLamDialogue}
-                      liveHintDialogue={liveHintDialogue}
-                      onSeekVideo={handleSeekVideo}
-                      onAnswerCheckpoint={handleAnswerCheckpoint}
-                      onSubmitRebuttal={handleSubmitRebuttal}
-                      onResumeVideo={handleResumeVideoAfterClosure}
-                      onDismissFreeze={() => {
-                        setVideoPhase('WATCHING');
-                        setIsVideoPlaying(true);
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {currentMode === 'worksheet' && (
-                <div className="grid grid-cols-1 lg:grid-cols-10 gap-4 h-full overflow-y-auto no-scrollbar">
-                  <div className="lg:col-span-6">
-                    <WorkingObjectSheet
-                      lesson={currentLesson}
-                      currentState={currentState}
-                      selectedStep={selectedStep}
-                      onSelectStep={handleSelectStep}
-                      boSpeechOverride={boSpeechOverride}
-                    />
-                  </div>
-                  <div className="lg:col-span-4">
-                    <InteractionCardSheet
-                      lesson={currentLesson}
-                      currentState={currentState}
-                      selectedStep={selectedStep}
-                      explanationText={explanationText}
-                      rebuttalText={worksheetRebuttalText}
-                      onExplanationChange={handleExplanationChange}
-                      onRebuttalChange={setWorksheetRebuttalText}
-                      onSubmitExplanation={handleSubmitExplanation}
-                      onSubmitRebuttal={handleSubmitWorksheetRebuttal}
-                      onRequestHint={handleRequestHint}
-                      onNextLesson={handleNextLesson}
-                      onRetryLesson={handleRetryLesson}
-                      onAcceptNudgeHint={() => {
-                        setExplanationText(prev => prev || currentLesson.nudgeStarter || '');
-                        setCurrentState('EXPLAIN_PROMPT');
-                      }}
-                      onDismissNudge={handleDismissNudge}
-                      tutorFeedbackOverride={tutorFeedbackOverride}
-                      probeQuestionOverride={probeQuestionOverride}
-                      boSpeechOverride={boSpeechOverride}
-                      isLoadingAi={isLoadingAi}
-                      hintLevel={worksheetHintLevel}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {(currentMode === 'predict_poe' || currentMode === 'protege_teaching') && (
-                <div className="h-full overflow-y-auto no-scrollbar">
-                  <AlternativeFlowsSheet
-                    mode={currentMode}
-                    onSwitchMode={(mode) => setCurrentMode(mode)}
-                    onPoeTopicChange={(topic) => setCurrentPoeTopic(topic)}
-                  />
-                </div>
-              )}
+              <div className="lg:col-span-3 h-full min-h-0 border-t lg:border-t-0 lg:border-l border-[#EAE3D5]">
+                <VideoDebateSheet
+                  lesson={currentVideoLesson}
+                  phase={videoPhase}
+                  currentTime={videoCurrentTime}
+                  isBackendLive={isBackendLive}
+                  isLoadingAi={isLoadingAi}
+                  liveBoDialogue={liveBoDialogue}
+                  liveCoLamDialogue={liveCoLamDialogue}
+                  liveHintDialogue={liveHintDialogue}
+                  onSeekVideo={handleSeekVideo}
+                  onAnswerCheckpoint={handleAnswerCheckpoint}
+                  onSubmitRebuttal={handleSubmitRebuttal}
+                  onResumeVideo={handleResumeVideoAfterClosure}
+                  onDismissFreeze={() => {
+                    setVideoPhase('WATCHING');
+                    setIsVideoPlaying(true);
+                  }}
+                />
+              </div>
             </div>
-          </div>
+          )}
+
+          {currentMode === 'worksheet' && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 h-full divide-y lg:divide-y-0 lg:divide-x divide-[#EAE3D5] overflow-y-auto no-scrollbar">
+              <div className="lg:col-span-7 h-full">
+                <WorkingObjectSheet
+                  lesson={currentLesson}
+                  currentState={currentState}
+                  selectedStep={selectedStep}
+                  onSelectStep={handleSelectStep}
+                  boSpeechOverride={boSpeechOverride}
+                />
+              </div>
+              <div className="lg:col-span-5 h-full">
+                <InteractionCardSheet
+                  lesson={currentLesson}
+                  currentState={currentState}
+                  selectedStep={selectedStep}
+                  explanationText={explanationText}
+                  rebuttalText={worksheetRebuttalText}
+                  onExplanationChange={handleExplanationChange}
+                  onRebuttalChange={setWorksheetRebuttalText}
+                  onSubmitExplanation={handleSubmitExplanation}
+                  onSubmitRebuttal={handleSubmitWorksheetRebuttal}
+                  onRequestHint={handleRequestHint}
+                  onNextLesson={handleNextLesson}
+                  onRetryLesson={handleRetryLesson}
+                  onAcceptNudgeHint={() => {
+                    setExplanationText(prev => prev || currentLesson.nudgeStarter || '');
+                    setCurrentState('EXPLAIN_PROMPT');
+                  }}
+                  onDismissNudge={handleDismissNudge}
+                  tutorFeedbackOverride={tutorFeedbackOverride}
+                  probeQuestionOverride={probeQuestionOverride}
+                  boSpeechOverride={boSpeechOverride}
+                  isLoadingAi={isLoadingAi}
+                  hintLevel={worksheetHintLevel}
+                />
+              </div>
+            </div>
+          )}
+
+          {(currentMode === 'predict_poe' || currentMode === 'protege_teaching') && (
+            <div className="h-full overflow-hidden">
+              <AlternativeFlowsSheet
+                mode={currentMode}
+                onSwitchMode={(mode) => setCurrentMode(mode)}
+                onPoeTopicChange={(topic) => setCurrentPoeTopic(topic)}
+              />
+            </div>
+          )}
         </div>
       </main>
 
