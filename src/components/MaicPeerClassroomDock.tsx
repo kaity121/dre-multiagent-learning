@@ -239,35 +239,58 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
 
   const containerClasses =
     variant === 'compact'
-      ? 'relative flex items-center gap-1.5 flex-wrap select-none'
+      ? 'relative flex items-center gap-1.5 select-none'
       : 'relative w-full bg-white border border-[#E2D9C8] rounded-lg px-3 py-1.5 flex items-center justify-between gap-2 text-xs shadow-2xs select-none';
 
   return (
     <div className={containerClasses}>
-      {/* Thanh 4 Nút Bạn học gọn gàng */}
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-[#6E6254] flex items-center gap-1.5 hidden lg:flex">
-          <span className="w-2 h-2 rounded-full bg-[#10B981]" />
-          <span>Hỏi riêng 4 bạn:</span>
+      {/* Thanh 4 Nút Bạn học gọn gàng trên 1 dòng duy nhất (Không bao giờ bị rớt chữ xuống dòng!) */}
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-[#6E6254] flex items-center gap-1.5 whitespace-nowrap shrink-0">
+          <span className="w-2 h-2 rounded-full bg-[#10B981] shrink-0" />
+          <span>Sổ tay 4 bạn:</span>
         </span>
 
         {(['bo', 'tri', 'linhchi', 'minhkhang'] as const).map((id) => {
           const isSelected = activePeer === id;
           const meta = peerMeta[id];
+          const shortTag =
+            id === 'bo'
+              ? 'Phản biện'
+              : id === 'tri'
+              ? 'Đào sâu'
+              : id === 'linhchi'
+              ? 'Công thức'
+              : 'Trực quan';
+
           return (
             <button
               key={id}
               type="button"
               onClick={() => handleOpenPeer(id)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border font-semibold text-xs transition-all cursor-pointer ${
-                isSelected ? `${meta.activeBg} shadow-xs scale-[1.02]` : `${meta.badgeBg} hover:opacity-90`
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border font-semibold text-xs whitespace-nowrap shrink-0 transition-all cursor-pointer ${
+                isSelected ? `${meta.activeBg} shadow-xs` : `${meta.badgeBg} hover:opacity-90`
               }`}
             >
-              {id === 'tri' && <TriDeepThinkerAvatar className="w-3.5 h-3.5" />}
-              {id === 'linhchi' && <LinhChiNoteTakerAvatar className="w-3.5 h-3.5" />}
-              {id === 'minhkhang' && <MinhKhangInquisitiveAvatar className="w-3.5 h-3.5" />}
+              {/* Đủ 4 Avatar tròn đồng bộ kích thước w-4 h-4 cho cả 4 bạn */}
+              {id === 'bo' && (
+                <div className="w-4 h-4 rounded-full overflow-hidden bg-white shrink-0 border border-[#F59E0B]">
+                  <svg viewBox="0 0 100 100" className="w-full h-full">
+                    <circle cx="50" cy="50" r="48" fill="#FFF4DE" />
+                    <path d="M26 42 C24 24, 38 18, 50 18 C62 18, 76 24, 74 42 Z" fill="#423429" />
+                    <circle cx="50" cy="54" r="22" fill="#FFE5CC" />
+                    <circle cx="41" cy="51" r="3.5" fill="#2B211A" />
+                    <circle cx="59" cy="51" r="3.5" fill="#2B211A" />
+                    <path d="M43 61 Q50 66 57 61" stroke="#382920" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+                  </svg>
+                </div>
+              )}
+              {id === 'tri' && <TriDeepThinkerAvatar className="w-4 h-4 shrink-0" />}
+              {id === 'linhchi' && <LinhChiNoteTakerAvatar className="w-4 h-4 shrink-0" />}
+              {id === 'minhkhang' && <MinhKhangInquisitiveAvatar className="w-4 h-4 shrink-0" />}
+
               <span>
-                {meta.name} ({meta.role})
+                {meta.name} ({shortTag})
               </span>
             </button>
           );
