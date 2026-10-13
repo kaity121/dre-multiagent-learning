@@ -156,10 +156,13 @@ body {
 }
 
 /* Làm phẳng mọi tờ giấy, xóa đường kẻ ô vuông gây rối mắt */
-.notebook-sheet,
-.sketchbook-shadow {
+.notebook-sheet {
   background-image: none !important;
-  background-color: transparent !important;
+  background-color: #FFFDF7 !important; /* Nền kem đặc 100%, không bị trong suốt */
+  transform: none !important;
+}
+
+.sketchbook-shadow {
   transform: none !important;
   box-shadow: none !important;
 }

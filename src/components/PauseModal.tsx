@@ -1,96 +1,134 @@
+// File: src/components/PauseModal.tsx
 import React from 'react';
-import { WashiTape, PushPin, TutorLamAvatar, CoffeeMugIcon, OpenBookIcon, CheckCircleIcon } from './HandmadeArtwork';
+import { 
+  TutorLamAvatar, 
+  CoffeeCupIcon, 
+  OpenBookIcon, 
+  CheckCircleIcon 
+} from './HandmadeArtwork';
 
-interface PauseModalProps {
+export interface PauseModalProps {
   isOpen: boolean;
-  onClose: () => void;
-  onResetOrChange: () => void;
-  topicTitle: string;
+  onClose?: () => void;
+  onResume?: () => void;
+  onResetOrChange?: () => void;
+  onOpenLessonDrawer?: () => void;
+  topicTitle?: string;
+  currentLesson?: { topic?: string };
   savedTimestamp?: number;
+  lastSavedTime?: string | null;
   onClearSavedProgress?: () => void;
+  onResetProgress?: () => void;
 }
+
+const cleanText = (str?: string) => (str ? str.replace(/\u20d7/g, '') : '');
 
 export const PauseModal: React.FC<PauseModalProps> = ({
   isOpen,
   onClose,
+  onResume,
   onResetOrChange,
-  topicTitle,
+  onOpenLessonDrawer,
+  topicTitle = '',
+  currentLesson,
   savedTimestamp,
+  lastSavedTime,
   onClearSavedProgress,
+  onResetProgress,
 }) => {
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2C2A29]/35 backdrop-blur-xs">
-      <div className="relative max-w-md w-full bg-[#FAF6EE] border-2 border-[#DFD7C7] rounded-sm p-6 sketchbook-shadow notebook-sheet rotate-1">
-        {/* Decorative corner tape */}
-        <WashiTape variant="blue" className="absolute -top-2.5 left-8 w-20 rotate-[-3deg]" />
-        <PushPin color="#4E9B87" className="absolute top-3 right-4" />
+  const handleResume = onResume || onClose || (() => {});
+  const handleOpenDrawer = onOpenLessonDrawer || onResetOrChange || (() => {});
+  const handleReset = onResetProgress || onClearSavedProgress || (() => {});
+  const displayTitle = cleanText(currentLesson?.topic || topicTitle || 'Toán 12: Vectơ trong không gian');
+  const formattedSavedTime = lastSavedTime || (savedTimestamp ? new Date(savedTimestamp).toLocaleTimeString('vi-VN') : null);
 
-        <div className="flex items-center gap-3 mb-4">
-          <TutorLamAvatar size="sm" className="rotate-[-2deg]" />
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-md animate-in fade-in duration-150">
+      {/* Khung Modal đục đặc 100% (#FFFDF7), phẳng, bo góc hiện đại, không băng dính/đinh ghim */}
+      <div className="relative w-full max-w-lg bg-[#FFFDF7] border border-[#E2D9C8] rounded-2xl p-6 shadow-2xl space-y-5 text-[#1E242B]">
+        
+        {/* Header: Avatar Cô Lam gọn đẹp + Tiêu đề rõ nét */}
+        <div className="flex items-center gap-3.5">
+          <div className="w-14 h-14 rounded-2xl bg-[#EBF7F3] border border-[#99D5C4] flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
+            <TutorLamAvatar size="sm" />
+          </div>
           <div>
-            <h2 className="text-2xl font-bold font-handwriting text-[#2D453E]">
+            <h2 className="font-extrabold text-xl text-[#1E242B] tracking-tight">
               Gấp sổ nghỉ tay một lát nhé!
             </h2>
-            <p className="text-xs text-[#6F645A] font-handwriting">
-              Tự học là một chặng đường dài, mệt thì cứ dừng lại.
+            <p className="text-xs sm:text-sm text-[#6E6254] mt-0.5">
+              Tự học là một chặng đường dài, mệt thì cứ dừng lại nghỉ ngơi.
             </p>
           </div>
         </div>
 
-        <div className="p-4 bg-[#FFFDF7] border border-[#EBE3D3] rounded-xs mb-5">
-          <div className="flex items-center justify-between text-xs text-[#8A7C6E] font-handwriting font-bold mb-1">
-            <span>Đang học dở bài:</span>
-            <span className="text-[11px] font-mono text-[#2E6859] bg-[#E8F5F1] px-2 py-0.5 rounded-full border border-[#BCE1D7] flex items-center gap-1">
-              <CheckCircleIcon className="w-3 h-3 text-[#2E6859]" />
+        {/* Thẻ thông tin bài đang học dở */}
+        <div className="p-4 rounded-xl bg-white border border-[#E2D9C8] shadow-2xs space-y-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#8A7D6F]">
+              Đang học dở bài:
+            </span>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EBF7F3] border border-[#99D5C4] text-[#1B4338] font-mono text-[11px] font-semibold">
+              <CheckCircleIcon className="w-3.5 h-3.5 text-[#1B4338]" />
               <span>Đã lưu vào máy</span>
             </span>
           </div>
-          <div className="text-sm font-semibold text-[#3C342C]">
-            {topicTitle}
+
+          <div className="font-bold text-sm sm:text-base text-[#1E242B] leading-snug">
+            {displayTitle}
           </div>
-          <p className="text-sm font-handwriting text-[#3D695D] mt-2 italic">
-            &ldquo;Vị trí của em và mọi câu chữ đã được lưu vào bộ nhớ trình duyệt. Khi nào sẵn sàng, em quay lại học tiếp cùng Bo và cô nhé.&rdquo;
+
+          <p className="text-xs text-[#2E6859] italic leading-relaxed bg-[#FAF8F5] p-2.5 rounded-lg border border-[#EFE8DC]">
+            “Vị trí của bạn và mọi ghi chú đã được lưu vào bộ nhớ trình duyệt. Khi nào sẵn sàng, bạn quay lại học tiếp cùng nhóm nhé.”
           </p>
-          {savedTimestamp && (
-            <div className="text-[10px] text-[#A69784] font-mono mt-1 text-right">
-              Lưu lúc: {new Date(savedTimestamp).toLocaleTimeString('vi-VN')}
+
+          {formattedSavedTime && (
+            <div className="text-right font-mono text-[11px] text-[#8A7D6F]">
+              Lưu lúc: {formattedSavedTime}
             </div>
           )}
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3">
+        {/* Cụm nút hành động */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <button
-            onClick={onClose}
             type="button"
-            className="flex-1 px-4 py-2.5 bg-[#4E9B87] hover:bg-[#438775] text-white font-handwriting text-base font-bold rounded-xs border border-[#377A69] shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+            onClick={handleResume}
+            className="w-full py-2.5 px-4 rounded-xl bg-[#2E7D67] hover:bg-[#236351] text-white font-bold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-colors"
           >
-            <CoffeeMugIcon className="w-4 h-4 text-white" />
+            <CoffeeCupIcon className="w-4 h-4 text-white" />
             <span>Quay lại học tiếp</span>
           </button>
+
           <button
-            onClick={onResetOrChange}
             type="button"
-            className="px-4 py-2.5 bg-white hover:bg-[#F3EFE6] text-[#54483C] font-handwriting text-sm font-bold rounded-xs border border-[#DED7C9] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+            onClick={() => {
+              handleResume();
+              handleOpenDrawer();
+            }}
+            className="w-full py-2.5 px-4 rounded-xl bg-[#F3EFE6] hover:bg-[#E6DFD1] border border-[#D8CEBC] text-[#1E242B] font-bold text-sm flex items-center justify-center gap-2 cursor-pointer transition-colors"
           >
-            <OpenBookIcon className="w-3.5 h-3.5 text-[#8A7246]" />
+            <OpenBookIcon className="w-4 h-4 text-[#5C5043]" />
             <span>Xem danh sách bài</span>
           </button>
         </div>
 
-        {onClearSavedProgress && (
-          <div className="mt-3 text-center">
-            <button
-              onClick={onClearSavedProgress}
-              type="button"
-              className="text-xs font-handwriting text-[#A39281] hover:text-[#7A6B5C] underline cursor-pointer"
-            >
-              Xoá bản lưu &amp; bắt đầu lại từ đầu
-            </button>
-          </div>
-        )}
+        {/* Nút reset nhỏ ở đáy */}
+        <div className="text-center pt-1">
+          <button
+            type="button"
+            onClick={handleReset}
+            className="text-xs font-medium text-[#8A7D6F] hover:text-[#DC2626] underline cursor-pointer transition-colors"
+          >
+            Xoá bản lưu & bắt đầu lại từ đầu
+          </button>
+        </div>
+
       </div>
     </div>
   );
 };
+
+export const PauseOverlay = PauseModal;
