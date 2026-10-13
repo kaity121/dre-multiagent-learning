@@ -447,13 +447,14 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
               )}
             </div>
 
-            {/* TAB 1: DANH SÁCH PHÂN CẢNH TỐI GIẢN (Bỏ cục đen thô kệch, đọc trọn câu!) */}
+            {/* TAB 1: DANH SÁCH PHÂN CẢNH VỚI ẢNH THUMBNAIL THẬT TỪ YOUTUBE */}
             {drawerTab === 'chapters' && (
-              <div className="flex-1 overflow-y-auto no-scrollbar p-2.5 space-y-1">
+              <div className="flex-1 overflow-y-auto no-scrollbar p-2.5 space-y-2">
                 {chapters.map((ch, idx) => {
                   const isCurrentChap = currentChapter?.id === ch.id;
-                  // Bỏ số "1. ", "2. " ở đầu chuỗi nếu đã có cột số thứ tự riêng
                   const cleanTitle = cleanText(ch.title).replace(/^\d+\.\s*/, '');
+                  // Lấy trực tiếp ảnh thumbnail chuẩn từ YouTube theo ID bài học
+                  const ytThumbUrl = `https://img.youtube.com/vi/${activeYoutubeId}/hqdefault.jpg`;
 
                   return (
                     <button
@@ -463,51 +464,46 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                         handleSeekBoth(ch.startSecond);
                         if (ch.hasCheckpoint) handleTriggerCheckpointNow();
                       }}
-                      className={`w-full text-left px-3 py-2.5 rounded-xl cursor-pointer transition-all flex items-start gap-3 group ${
+                      className={`w-full text-left p-2 rounded-xl cursor-pointer transition-all flex items-center gap-3 group ${
                         isCurrentChap
-                          ? 'bg-white/[0.14] ring-1 ring-white/20'
-                          : 'hover:bg-white/[0.06]'
+                          ? 'bg-white/[0.14] ring-2 ring-[#10B981]'
+                          : 'hover:bg-white/[0.08]'
                       }`}
                     >
-                      {/* Cột trái: Số thứ tự mảnh & hiện đại */}
-                      <span
-                        className={`w-5 h-5 rounded-md font-mono text-[11px] font-semibold flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                          isCurrentChap
-                            ? 'bg-[#10B981] text-[#0B1310] font-bold'
-                            : 'bg-white/[0.08] text-white/60 group-hover:text-white/90'
-                        }`}
-                      >
-                        {idx + 1}
-                      </span>
+                      {/* Ảnh Thumbnail chụp từ video YouTube (Y hệt giao diện YouTube thật) */}
+                      <div className="relative w-20 h-12 rounded-lg bg-black/60 overflow-hidden shrink-0 border border-white/15">
+                        <img
+                          src={ytThumbUrl}
+                          alt={cleanTitle}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 opacity-85 group-hover:opacity-100"
+                          onError={(e) => {
+                            // Fallback nếu ảnh hỏng thì hiện khung màu xám
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                        {/* Lớp mờ thời gian đè lên góc phải ảnh thumbnail */}
+                        <span className="absolute bottom-1 right-1 px-1.5 py-0.2 rounded bg-black/80 font-mono text-[9px] font-bold text-white">
+                          {formatTime(ch.startSecond)}
+                        </span>
+                      </div>
 
-                      {/* Cột giữa: Tên chương (Đọc trọn vẹn 2 dòng) + Pill công thức nhẹ nhàng */}
+                      {/* Tiêu đề phân cảnh */}
                       <div className="flex-1 min-w-0">
                         <div
                           className={`text-xs leading-snug line-clamp-2 ${
-                            isCurrentChap ? 'font-semibold text-white' : 'font-medium text-white/85 group-hover:text-white'
+                            isCurrentChap ? 'font-bold text-white' : 'font-medium text-white/85 group-hover:text-white'
                           }`}
                         >
+                          <span className="text-[#10B981] font-mono mr-1">{idx + 1}.</span>
                           {cleanTitle}
                         </div>
 
                         {ch.formulaPreview && (
-                          <div className="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/[0.06] border border-white/10 font-mono text-[10px] text-white/75">
-                            {ch.hasCheckpoint && (
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#F5D65D]" />
-                            )}
+                          <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-white/[0.08] font-mono text-[10px] text-[#F5D65D]">
                             <span>{cleanText(ch.formulaPreview)}</span>
                           </div>
                         )}
                       </div>
-
-                      {/* Cột phải: Thời gian căn lề phải sạch mắt */}
-                      <span
-                        className={`font-mono text-[11px] shrink-0 mt-0.5 ${
-                          isCurrentChap ? 'text-[#34D399] font-semibold' : 'text-white/45 group-hover:text-white/75'
-                        }`}
-                      >
-                        {formatTime(ch.startSecond)}
-                      </span>
                     </button>
                   );
                 })}
