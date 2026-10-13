@@ -169,3 +169,12 @@ body {
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(226, 214, 195, 0.9);
 }
+
+/* Tắt kẻ ô vuông & làm sang mặt giấy */
+.notebook-sheet {
+  background-image: none !important;
+  background-color: #FFFDF7 !important;
+  transform: none !important;
+  border-radius: 12px !important;
+}
+
