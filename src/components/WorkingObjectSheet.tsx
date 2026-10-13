@@ -12,7 +12,7 @@ interface WorkingObjectSheetProps {
   boSpeechOverride?: string | null;
 }
 
-const cleanText = (str?: string) => (str ? str.replace(/\u20d7/g, '') : '');
+const cleanText = (str?: string | null) => (str ? str.replace(/\u20d7/g, '') : '');
 
 export const WorkingObjectSheet: React.FC<WorkingObjectSheetProps> = ({
   lesson,

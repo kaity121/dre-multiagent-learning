@@ -829,10 +829,8 @@ export default function App() {
       <LessonSelectorDrawer
         isOpen={isLessonDrawerOpen}
         onClose={() => setIsLessonDrawerOpen(false)}
-        currentLesson={currentLesson}
+        currentLessonId={currentLesson.id}
         onSelectLesson={handleSwitchLesson}
-        selectedLevel={selectedLevel}
-        onSelectLevel={setSelectedLevel}
       />
     </div>
   );
