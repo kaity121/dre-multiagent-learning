@@ -633,7 +633,7 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#ECE4D5] text-[#2F2923] flex flex-col desk-bg selection:bg-[#F5D65D]">
+    <div className="h-screen overflow-hidden bg-[#ECE4D5] text-[#2F2923] flex flex-col desk-bg selection:bg-[#F5D65D]">
       {/* Scenario Bar for dev/QA: ONLY rendered if ?debug=1 is in the URL */}
       {showQaBar && (
         <ScenarioPlayerBar
@@ -670,61 +670,10 @@ export default function App() {
       />
 
       {/* Main Learning Workspace: Realistic Open Sketchbook lying on desk (Expanded to cover ~85% of screen width) */}
-      <main className="flex-1 w-[92vw] max-w-[1520px] mx-auto p-2 sm:p-3 lg:p-4 flex flex-col justify-start">
-        {/* Workspace State Ribbon */}
-        <div className="mb-1.5 flex flex-wrap items-center justify-between text-xs text-[#7A6D5E] px-2 gap-2">
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-[#E8A33D] animate-pulse" />
-            <span className="font-handwriting font-bold text-[#8C5D19] text-xs sm:text-sm">
-              {currentMode === 'worksheet' && (
-                currentState === 'IDLE' ? '● Đang chọn bước cần sửa' :
-                currentState === 'MARKED' || currentState === 'EXPLAIN_PROMPT' ? '✍️ Đang viết lời giải thích' :
-                currentState === 'BO_CHALLENGE' ? '⚔️ Bo đang cãi lý' :
-                currentState === 'CLOSE' ? '✨ Hoàn thành bài học' :
-                currentState === 'TUTOR_NUDGE' ? '💡 Cô Lam gợi ý nhẹ' :
-                currentState === 'HINT' ? '🔍 Cần soi lại bước khác' :
-                `● ${currentState}`
-              )}
-              {currentMode === 'video_clash' && (
-                videoPhase === 'WATCHING' ? '● Đang nghe giảng' :
-                videoPhase === 'CHECKPOINT_REACHED' ? '⚡ Điểm dừng suy ngẫm' :
-                videoPhase === 'STUDENT_FREEZE' ? '⏸️ Bạn bấm dừng bài' :
-                videoPhase === 'BO_DEBATE' ? '⚔️ Bo đang tranh biện' :
-                videoPhase === 'BO_CONCEDED' ? '🎉 Bo đã tâm phục khẩu phục' :
-                `● ${videoPhase}`
-              )}
-              {currentMode === 'predict_poe' && '🎯 Chế độ: Dự đoán kết quả (POE)'}
-              {currentMode === 'protege_teaching' && '🧑‍🏫 Chế độ: Dạy kèm cho Bo'}
-            </span>
-            <span className="text-[#A39686]">·</span>
-            <span className="font-handwriting text-xs sm:text-sm text-[#4E4135] font-semibold">
-              {currentMode === 'worksheet'
-                ? currentLesson.topic
-                : currentMode === 'video_clash'
-                ? currentVideoLesson.title
-                : currentMode === 'predict_poe'
-                ? currentPoeTopic
-                : 'Toán 12 · Vectơ trong không gian (Thầy Nguyễn Phan Tiến)'}
-            </span>
-          </div>
-
-          <div className="hidden md:flex items-center gap-2">
-            <button
-              onClick={() => setIsFlowGuideOpen(true)}
-              type="button"
-              className="px-2.5 py-0.5 bg-[#FAF6EE] hover:bg-white text-[#5C4F42] hover:text-[#377A69] border border-[#D5C9B5] rounded-full text-xs font-handwriting font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
-              title="Xem bản đồ hướng dẫn lộ trình 4 trạm học tập"
-            >
-              <CompassIcon className="w-3.5 h-3.5 text-[#377A69]" />
-              <span>Hướng dẫn lộ trình 4 trạm</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Superrbook Top Divider Index Tabs (Phương án 1: Thẻ phân trang nhô lên từ mép trên quyển sổ) */}
-        <div className="flex items-end justify-between px-2 sm:px-6 relative z-10 -mb-[2px]">
-          {/* Left: 4 tactile Index Divider Tabs */}
-          <div className="flex items-end gap-1 sm:gap-2">
+      <main className="flex-1 min-h-0 w-[96vw] max-w-[1600px] mx-auto px-2 py-1.5 flex flex-col">
+        {/* 4 Thẻ phân trang gọn gàng */}
+        <div className="flex items-end justify-between px-3 relative z-10 -mb-[2px] shrink-0">
+          <div className="flex items-end gap-1.5">
             {LEARNING_STATIONS.map((station) => {
               const isActive = currentMode === station.id;
               return (
@@ -733,109 +682,51 @@ export default function App() {
                   onClick={() => {
                     sound.playPageFlip();
                     setCurrentMode(station.id);
-                    if (station.id === 'video_clash') {
-                      handleJumpToCheckpoint();
-                    }
                   }}
                   type="button"
-                  className={`group relative flex items-center gap-1.5 sm:gap-2.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-t-lg sm:rounded-t-xl border-t-2 border-l-2 border-r-2 font-handwriting transition-all cursor-pointer select-none ${
+                  className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg border-t-2 border-x-2 font-handwriting transition-all cursor-pointer select-none ${
                     isActive
-                      ? `${station.activeBg} ${station.activeText} ${station.activeBorder} -translate-y-1 shadow-md z-20 pb-3 border-b-0`
-                      : `${station.inactiveBg} ${station.inactiveText} ${station.inactiveBorder} hover:-translate-y-0.5 hover:opacity-100 opacity-90 z-10`
+                      ? `${station.activeBg} ${station.activeText} ${station.activeBorder} font-bold z-20 pb-2`
+                      : `${station.inactiveBg} ${station.inactiveText} ${station.inactiveBorder} opacity-85 hover:opacity-100 z-10`
                   }`}
-                  style={{
-                    boxShadow: isActive ? '0 -3px 8px -1px rgba(0,0,0,0.08)' : undefined
-                  }}
                 >
-                  {/* Colored washi tape tag on top edge */}
-                  <div
-                    className="absolute -top-1.5 left-2 sm:left-3 w-6 sm:w-8 h-2 rounded-xs opacity-80 shadow-2xs"
-                    style={{ backgroundColor: station.color }}
-                  />
-
-                  {/* Icon */}
                   <span className="shrink-0">{station.icon}</span>
-
-                  {/* Labels */}
-                  <div className="text-left flex flex-col">
-                    <div className="flex items-center gap-1 leading-none mb-0.5">
-                      <span className="text-[10px] uppercase font-mono font-bold opacity-80">
-                        {station.stationNumber}
-                      </span>
-                      <span className="hidden md:inline text-[10px] opacity-75">· {station.stageLabel}</span>
-                    </div>
-                    <span className="text-xs sm:text-sm font-bold tracking-tight whitespace-nowrap">
-                      {station.title}
-                    </span>
-                  </div>
-
-                  {/* Active pulse dot */}
-                  {isActive && (
-                    <span
-                      className="w-1.5 h-1.5 rounded-full ml-0.5 animate-pulse"
-                      style={{ backgroundColor: station.color }}
-                    />
-                  )}
+                  <span className="text-xs font-bold whitespace-nowrap">
+                    {station.stationNumber}: {station.title}
+                  </span>
                 </button>
               );
             })}
           </div>
 
-          {/* Right: Quick Switcher for current station */}
-          <div className="hidden lg:flex items-center gap-2 mb-1.5">
-            {currentMode === 'worksheet' && (
-              <button
-                onClick={() => setIsLessonDrawerOpen(true)}
-                className="hover:underline font-handwriting text-xs text-[#377A69] font-bold flex items-center gap-1 cursor-pointer bg-white/80 px-2.5 py-1 rounded-full border border-[#D5C9B5] shadow-2xs"
-              >
-                <OpenBookIcon className="w-3 h-3 text-[#377A69]" />
-                <span>Mở sổ đổi bài</span>
-              </button>
-            )}
-
-            {currentMode === 'video_clash' && (
-              <div className="flex items-center gap-1 font-handwriting text-xs bg-white/80 px-2 py-0.5 rounded-full border border-[#D5C9B5] shadow-2xs">
-                <span className="text-[#8A7D6F] text-[11px]">Chọn bài video:</span>
-                {VIDEO_LESSON_LIBRARY.map((v) => (
-                  <button
-                    key={v.id}
-                    onClick={() => handleSwitchVideoLesson(v)}
-                    type="button"
-                    className={`px-1.5 py-0.5 rounded-xs border text-[11px] cursor-pointer ${
-                      currentVideoLesson.id === v.id
-                        ? 'bg-[#4E9B87] text-white font-bold border-[#3A7564]'
-                        : 'bg-white/90 text-[#5C4F42] border-[#DFD6C4] hover:bg-white'
-                    }`}
-                  >
-                    {v.id === 'VID_VECTO_12' ? 'Vectơ 12 (Thầy Tiến)' : v.id}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Chọn nhanh bài video ở góc phải */}
+          {currentMode === 'video_clash' && (
+            <div className="flex items-center gap-1 font-handwriting text-xs bg-white/80 px-2 py-0.5 rounded-full border border-[#D5C9B5] mb-1">
+              <span className="text-[#8A7D6F] text-[11px]">Bài giảng:</span>
+              {VIDEO_LESSON_LIBRARY.map((v) => (
+                <button
+                  key={v.id}
+                  onClick={() => handleSwitchVideoLesson(v)}
+                  type="button"
+                  className={`px-2 py-0.5 rounded-full text-[11px] cursor-pointer ${
+                    currentVideoLesson.id === v.id
+                      ? 'bg-[#4E9B87] text-white font-bold'
+                      : 'text-[#5C4F42] hover:bg-black/5'
+                  }`}
+                >
+                  {v.id === 'VID_VECTO_12' ? 'Vectơ 12 (Thầy Tiến)' : v.id}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* The Open Sketchbook Container (Superr.ai Open Book with Kraft Leather Cover Flap & Pencil) */}
-        <div className="relative superr-cover p-2.5 sm:p-4 rounded-xl shadow-2xl">
-          {/* Kraft Left Flap Accent (Visible left border flap like Superrbook open view) */}
-          <div className="absolute top-2 bottom-2 left-2 w-8 bg-[#8C5D3A] rounded-l-lg border-r border-[#724828]/40 pointer-events-none hidden md:block" />
-
-          {/* Superr.ai Wooden Pencil Attached to Side with leather loop */}
-          <div className="hidden xl:flex flex-col items-center absolute -right-6 top-16 z-20">
-            {/* Leather pencil loop */}
-            <div className="w-5 h-8 bg-[#6F472B] rounded-xs border border-[#52331C] shadow-inner mb-[-12px] z-0" />
-            <div className="z-10">
-              <WoodenPencil />
-            </div>
-          </div>
-
-          {/* Inner Open Book Pages (Ivory paper) */}
-          <div className="relative bg-[#FAF6EE] superr-page p-3 sm:p-4 lg:p-5 rounded-lg border border-[#DDD0BD]">
-            {/* Book Spine Crease Down the Middle (aligned with 70% left page) */}
-            <div className="hidden lg:block absolute top-0 bottom-0 left-[70%] w-[1.5px] bg-gradient-to-b from-transparent via-[#D2C5B4] to-transparent pointer-events-none z-0 shadow-xs" />
-
-            {/* Living MAIC Classmate Peer Dock: Bộ tứ bạn học MAIC */}
-            <div className="mb-2 relative z-10">
+        {/* Khung Sổ Tay Mở Rộng (Tự co giãn vừa khít chiều cao còn lại của màn hình!) */}
+        <div className="flex-1 min-h-0 superr-cover p-2 rounded-xl shadow-xl flex flex-col">
+          <div className="flex-1 min-h-0 bg-[#FAF6EE] superr-page p-2.5 rounded-lg border border-[#DDD0BD] flex flex-col gap-2">
+            
+            {/* Thanh Hỏi nhỏ 4 bạn (1 dòng siêu gọn) */}
+            <div className="shrink-0">
               <MaicPeerClassroomDock 
                 currentMode={currentMode}
                 currentState={currentState}
@@ -845,116 +736,105 @@ export default function App() {
               />
             </div>
 
-            {/* Decorative Corner Washi Tapes */}
-            <WashiTape variant="blue" className="absolute -top-3 left-12 w-28 -rotate-2 z-10" />
-            <WashiTape variant="pink" className="absolute -top-3 right-16 w-24 rotate-3 z-10" />
-            <WashiTape variant="yellow" className="absolute -bottom-3 right-20 w-24 -rotate-1 z-10" />
-            <WashiTape variant="green" className="absolute -bottom-3 left-16 w-20 rotate-2 z-10" />
+            {/* VÙNG NỘI DUNG CHÍNH: TỈ LỆ 7:3 CHUẨN, CHIỀU CAO BẰNG NHAU 100% */}
+            <div className="flex-1 min-h-0 overflow-hidden">
+              {currentMode === 'video_clash' && (
+                <div className="grid grid-cols-1 lg:grid-cols-10 gap-3 h-full items-stretch">
+                  {/* CỘT TRÁI 70% (7/10): VIDEO YOUTUBE THẬT + KÍNH MỜ */}
+                  <div className="lg:col-span-7 h-full min-h-0">
+                    <VideoPlayerSheet
+                      lesson={currentVideoLesson}
+                      phase={videoPhase}
+                      currentTime={videoCurrentTime}
+                      isPlaying={isVideoPlaying}
+                      isLoadingAi={isLoadingAi}
+                      liveBoDialogue={liveBoDialogue}
+                      liveCoLamDialogue={liveCoLamDialogue}
+                      onTogglePlay={handleToggleVideoPlay}
+                      onSeek={handleSeekVideo}
+                      onTriggerFreeze={handleTriggerFreeze}
+                      onJumpToCheckpoint={handleJumpToCheckpoint}
+                      onSwitchVideoLesson={handleSwitchVideoLesson}
+                      onAnswerCheckpoint={handleAnswerCheckpoint}
+                      onSubmitRebuttal={handleSubmitRebuttal}
+                      onResumeVideo={handleResumeVideoAfterClosure}
+                    />
+                  </div>
 
-          {/* ========================================================================= */}
-          {/* MODE 1: WORKSHEET (DRE Classic) */}
-          {/* ========================================================================= */}
-          {currentMode === 'worksheet' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative z-10">
-              <div className="lg:col-span-7">
-                <WorkingObjectSheet
-                  lesson={currentLesson}
-                  currentState={currentState}
-                  selectedStep={selectedStep}
-                  onSelectStep={handleSelectStep}
-                  boSpeechOverride={boSpeechOverride}
-                />
-              </div>
+                  {/* CỘT PHẢI 30% (3/10): LỚP HỌC 6 AGENT CAO BẰNG KHUNG VIDEO */}
+                  <div className="lg:col-span-3 h-full min-h-0">
+                    <VideoDebateSheet
+                      lesson={currentVideoLesson}
+                      phase={videoPhase}
+                      currentTime={videoCurrentTime}
+                      isBackendLive={isBackendLive}
+                      isLoadingAi={isLoadingAi}
+                      liveBoDialogue={liveBoDialogue}
+                      liveCoLamDialogue={liveCoLamDialogue}
+                      liveHintDialogue={liveHintDialogue}
+                      onSeekVideo={handleSeekVideo}
+                      onAnswerCheckpoint={handleAnswerCheckpoint}
+                      onSubmitRebuttal={handleSubmitRebuttal}
+                      onResumeVideo={handleResumeVideoAfterClosure}
+                      onDismissFreeze={() => {
+                        setVideoPhase('WATCHING');
+                        setIsVideoPlaying(true);
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
 
-              <div className="lg:col-span-5">
-                <InteractionCardSheet
-                  lesson={currentLesson}
-                  currentState={currentState}
-                  selectedStep={selectedStep}
-                  explanationText={explanationText}
-                  rebuttalText={worksheetRebuttalText}
-                  onExplanationChange={handleExplanationChange}
-                  onRebuttalChange={setWorksheetRebuttalText}
-                  onSubmitExplanation={handleSubmitExplanation}
-                  onSubmitRebuttal={handleSubmitWorksheetRebuttal}
-                  onRequestHint={handleRequestHint}
-                  onNextLesson={handleNextLesson}
-                  onRetryLesson={handleRetryLesson}
-                  onAcceptNudgeHint={() => {
-                    setExplanationText(prev => prev || currentLesson.nudgeStarter);
-                    setCurrentState('EXPLAIN_PROMPT');
-                  }}
-                  onDismissNudge={handleDismissNudge}
-                  tutorFeedbackOverride={tutorFeedbackOverride}
-                  probeQuestionOverride={probeQuestionOverride}
-                  boSpeechOverride={boSpeechOverride}
-                  isLoadingAi={isLoadingAi}
-                  hintLevel={worksheetHintLevel}
-                />
-              </div>
+              {currentMode === 'worksheet' && (
+                <div className="grid grid-cols-1 lg:grid-cols-10 gap-4 h-full overflow-y-auto no-scrollbar">
+                  <div className="lg:col-span-6">
+                    <WorkingObjectSheet
+                      lesson={currentLesson}
+                      currentState={currentState}
+                      selectedStep={selectedStep}
+                      onSelectStep={handleSelectStep}
+                      boSpeechOverride={boSpeechOverride}
+                    />
+                  </div>
+                  <div className="lg:col-span-4">
+                    <InteractionCardSheet
+                      lesson={currentLesson}
+                      currentState={currentState}
+                      selectedStep={selectedStep}
+                      explanationText={explanationText}
+                      rebuttalText={worksheetRebuttalText}
+                      onExplanationChange={handleExplanationChange}
+                      onRebuttalChange={setWorksheetRebuttalText}
+                      onSubmitExplanation={handleSubmitExplanation}
+                      onSubmitRebuttal={handleSubmitWorksheetRebuttal}
+                      onRequestHint={handleRequestHint}
+                      onNextLesson={handleNextLesson}
+                      onRetryLesson={handleRetryLesson}
+                      onAcceptNudgeHint={() => {
+                        setExplanationText(prev => prev || currentLesson.nudgeStarter || '');
+                        setCurrentState('EXPLAIN_PROMPT');
+                      }}
+                      onDismissNudge={handleDismissNudge}
+                      tutorFeedbackOverride={tutorFeedbackOverride}
+                      probeQuestionOverride={probeQuestionOverride}
+                      boSpeechOverride={boSpeechOverride}
+                      isLoadingAi={isLoadingAi}
+                      hintLevel={worksheetHintLevel}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {(currentMode === 'predict_poe' || currentMode === 'protege_teaching') && (
+                <div className="h-full overflow-y-auto no-scrollbar">
+                  <AlternativeFlowsSheet
+                    mode={currentMode}
+                    onSwitchMode={(mode) => setCurrentMode(mode)}
+                    onPoeTopicChange={(topic) => setCurrentPoeTopic(topic)}
+                  />
+                </div>
+              )}
             </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* MODE 2: VIDEO CHECKPOINT & PEER CLASH (Superr.ai Open Book View: Exact 70/30 Ratio) */}
-          {/* ========================================================================= */}
-          {currentMode === 'video_clash' && (
-            <div className="grid grid-cols-1 lg:grid-cols-10 gap-4 sm:gap-5 items-start relative z-10">
-              {/* Left Page (70%): Video Player */}
-              <div className="lg:col-span-7">
-                <VideoPlayerSheet
-                  lesson={currentVideoLesson}
-                  phase={videoPhase}
-                  currentTime={videoCurrentTime}
-                  isPlaying={isVideoPlaying}
-                  isLoadingAi={isLoadingAi}
-                  liveBoDialogue={liveBoDialogue}
-                  liveCoLamDialogue={liveCoLamDialogue}
-                  onTogglePlay={handleToggleVideoPlay}
-                  onSeek={handleSeekVideo}
-                  onTriggerFreeze={handleTriggerFreeze}
-                  onJumpToCheckpoint={handleJumpToCheckpoint}
-                  onSwitchVideoLesson={handleSwitchVideoLesson}
-                  onAnswerCheckpoint={handleAnswerCheckpoint}
-                  onSubmitRebuttal={handleSubmitRebuttal}
-                  onResumeVideo={handleResumeVideoAfterClosure}
-                />
-              </div>
-
-              {/* Right Page (30%): Classroom Stream & Interactive Debates */}
-              <div className="lg:col-span-3">
-                <VideoDebateSheet
-                  lesson={currentVideoLesson}
-                  phase={videoPhase}
-                  currentTime={videoCurrentTime}
-                  isBackendLive={isBackendLive}
-                  isLoadingAi={isLoadingAi}
-                  liveBoDialogue={liveBoDialogue}
-                  liveCoLamDialogue={liveCoLamDialogue}
-                  liveHintDialogue={liveHintDialogue}
-                  onSeekVideo={handleSeekVideo}
-                  onAnswerCheckpoint={handleAnswerCheckpoint}
-                  onSubmitRebuttal={handleSubmitRebuttal}
-                  onResumeVideo={handleResumeVideoAfterClosure}
-                  onDismissFreeze={() => {
-                    setVideoPhase('WATCHING');
-                    setIsVideoPlaying(true);
-                  }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* MODE 3 & 4: ALTERNATIVE FLOWS (POE & Protégé) */}
-          {/* ========================================================================= */}
-          {(currentMode === 'predict_poe' || currentMode === 'protege_teaching') && (
-            <AlternativeFlowsSheet
-              mode={currentMode}
-              onSwitchMode={(mode) => setCurrentMode(mode)}
-              onPoeTopicChange={(topic) => setCurrentPoeTopic(topic)}
-            />
-          )}
           </div>
         </div>
       </main>

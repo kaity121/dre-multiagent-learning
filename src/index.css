@@ -138,3 +138,30 @@ body {
   background-image: radial-gradient(circle at 10px -5px, transparent 12px, #FAF6EE 13px);
   background-size: 20px 20px;
 }
+
+/* Ẩn hoàn toàn thanh cuộn (Scrollbar) nhưng vẫn lăn chuột mượt mà */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* Hiệu ứng kính mờ chuẩn YouTube Dark Glass */
+.yt-frosted-glass {
+  background: rgba(20, 24, 22, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* Hiệu ứng kính mờ sáng nhẹ cho thẻ Quiz */
+.dre-frosted-light {
+  background: rgba(255, 253, 247, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(232, 163, 61, 0.6);
+}
