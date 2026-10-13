@@ -144,6 +144,25 @@ export const contentLibrary = {
     goiY1: 'Khi chia hai vế bất phương trình cho một số âm, có quy tắc đặc biệt nào không?',
     goiY2: null,
   },
+
+  MISC_VECTO_12: {
+    id: 'MISC_VECTO_12',
+    monHoc: 'Toán',
+    chuDe: 'Vectơ trong không gian',
+    doKho: 'Toán 12 (SGK Mới)',
+    loaiLoi: 'Quy tắc hiệu (Chung đầu - Lộn ngược)',
+    baiToan: "Ví dụ 10 (1:40:10): Cho lăng trụ ABC.A'B'C'. Đặt AA' = a, AB = b, AC = c. Hãy biểu diễn vectơ B'C theo a, b, c",
+    baiGiai: [
+      "Chèn điểm A vào vectơ B'C theo quy tắc hiệu (Chung đầu A):",
+      "B'C = AB' − AC (Lấy điểm trước trừ điểm sau)",
+      "Vì AB' = AA' + AB = a + b nên B'C = a + b − c"
+    ],
+    viTriLoiChuan: 'Bước 2',
+    moTaLoi: "Áp dụng sai quy tắc hiệu: B'C phải bằng AC − AB' (sau trừ trước), nhưng Bo lại viết ngược thành AB' − AC.",
+    giaiThichChuan: "Theo quy tắc hiệu chung gốc A: B'C = AC − AB' = c − (a + b) = c − a − b.",
+    goiY1: 'Hãy nhớ khẩu quyết quy tắc hiệu: Chung đầu A thì phải LỘN NGƯỢC thứ tự hai điểm cuối!',
+    goiY2: "Với B'C, khi chèn điểm A làm gốc chung thì điểm C (đứng sau) phải viết trước hay điểm B' (đứng trước) viết trước?",
+  },
 };
 
 export function getMisconception(id) {
