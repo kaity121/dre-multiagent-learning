@@ -95,28 +95,30 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = ({
             </p>
           </div>
 
-          {/* Tờ Sổ tay cứu viện của Linh Chi ngay trên Trang Phải của Trạm 2 */}
-          <div className="p-3.5 bg-[#FFF0F5] border-2 border-[#F29BB7] rounded-md text-xs font-handwriting space-y-1.5 shadow-2xs">
-            <div className="font-bold text-[#8C2852] text-sm flex items-center justify-between">
-              <span>🌸 {lesson.linhChiCheatSheet?.title || 'Sổ tay Quy tắc chuẩn của Linh Chi:'}</span>
-              <span className="text-[10px] font-mono bg-white/80 px-1.5 py-0.5 rounded">Gợi ý đối chiếu</span>
+          {/* Thẻ Sổ tay Quy tắc chuẩn của Linh Chi ở Trang Phải Trạm 2 (Zero Emoji) */}
+          <div className="p-3.5 bg-[#FFF5F9] border border-[#F472B6] rounded-xl text-xs space-y-1.5 shadow-2xs">
+            <div className="font-bold text-[#9D174D] text-sm flex items-center justify-between">
+              <span>{lesson.linhChiCheatSheet?.title || 'Sổ tay Quy tắc Hiệu Vectơ (Linh Chi)'}</span>
+              <span className="text-[10px] font-mono bg-white px-2 py-0.5 rounded-md border border-[#FBCFE8]">
+                Gợi ý đối chiếu
+              </span>
             </div>
             {lesson.linhChiCheatSheet ? (
-              <div className="space-y-1 text-[#4A152B] leading-snug">
+              <div className="space-y-1 text-[#374151] leading-relaxed">
                 {lesson.linhChiCheatSheet.rules.map((r, i) => (
-                  <p key={i}>• {r}</p>
+                  <p key={i}>• {r.replace(/\u20d7/g, '')}</p>
                 ))}
-                <p className="text-[#8C2852] italic pt-0.5">
-                  ⚠️ {lesson.linhChiCheatSheet.commonTrap}
+                <p className="text-[#9D174D] font-medium pt-0.5">
+                  Lưu ý bẫy: {lesson.linhChiCheatSheet.commonTrap.replace(/\u20d7/g, '')}
                 </p>
               </div>
             ) : (
               <>
-                <p className="text-[#4A152B] leading-snug">
-                  • <strong>Quy tắc chuẩn:</strong> {lesson.standardExplanation}
+                <p className="text-[#374151] leading-relaxed">
+                  • <strong>Quy tắc chuẩn:</strong> {lesson.standardExplanation.replace(/\u20d7/g, '')}
                 </p>
-                <p className="text-[#8C2852] italic">
-                  💡 Mẹo của Chi: {lesson.hintLevel1}
+                <p className="text-[#9D174D] font-medium pt-0.5">
+                  Lưu ý bẫy: {lesson.hintLevel1.replace(/\u20d7/g, '')}
                 </p>
               </>
             )}

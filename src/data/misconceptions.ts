@@ -23,7 +23,7 @@ export const MISCONCEPTION_LIBRARY: MisconceptionItem[] = [
     nudgeStarter: "Ở bước 2, theo quy tắc hiệu chung đầu lộn ngược thì B'C phải bằng ",
     keywords: ['lộn ngược', 'ac - ab', 'sau trừ trước', 'ngược dấu', 'c - a - b', 'chung đầu'],
     linhChiCheatSheet: {
-      title: "📝 Sổ tay Quy tắc Hiệu Vectơ (Thầy Nguyễn Phan Tiến)",
+      title: "Sổ tay Quy tắc Hiệu Vectơ (Thầy Nguyễn Phan Tiến)",
       rules: [
         "1. Khẩu quyết 'Chung đầu - Lộn ngược' (57:02): OA − OB = BA (Điểm sau B viết trước, điểm trước A viết sau).",
         "2. Chèn điểm A vào B'C: B'C = AC − AB' = c − (a + b) = c − a − b.",

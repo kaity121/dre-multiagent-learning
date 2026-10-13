@@ -18,7 +18,7 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
       '[11:30] Hai vectơ bằng nhau khi và chỉ khi chúng CÙNG HƯỚNG và CÙNG ĐỘ DÀI.',
       ' [22:30] Quy tắc 3 điểm (Nối tiếp): OA + AB = OB & Quy tắc hình bình hành: AB + AD = AC.',
       "[30:13] Quy tắc hình hộp: AB + AD + AA' = AC' (Đường chéo hình lập phương cạnh a là a√3).",
-      " [36:44] ⚡ Ví dụ 3: Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính |BC + DD'|."
+      " [36:44] Ví dụ 3: Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính |BC + DD'|."
     ],
     // 1. ĐÚNG 9 PHÂN CẢNH (CHAPTERS) Y HỆT ẢNH YOUTUBE CỦA BẠN
     chapters: [
@@ -48,10 +48,10 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
       },
       {
         id: 'chap_vt_5',
-        title: '5. Quy Tắc Hình Hộp & ⚡ Điểm Dừng Bẫy Độ Dài (37:13)',
+        title: '5. Quy Tắc Hình Hộp & Điểm Dừng Bẫy Độ Dài (37:13)',
         startSecond: 1813, // 30:13
         hasCheckpoint: true,
-        formulaPreview: '⚡ Quiz tại 37:13'
+        formulaPreview: 'Quiz tại 37:13'
       },
       {
         id: 'chap_vt_6',
@@ -86,8 +86,8 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         end: 47,
         speaker: 'Cô Lam',
         text: 'Bài 1: Vectơ trong không gian. Khái niệm vectơ trong không gian hoàn toàn tương tự như ở lớp 10 các em đã học.',
-        minhKhangAnalogy: '🟢 Minh Khang: Ở lớp 10 mình vẽ mũi tên trên mặt bàn phẳng (2D), còn lên lớp 12 mình gắn thêm chiều cao trong phòng học (3D) thôi, bản chất mũi tên không đổi!',
-        linhChiNote: '🌸 Linh Chi: Vectơ không gian 3D giữ nguyên mọi định nghĩa về điểm đầu, điểm cuối và độ dài như hình học phẳng lớp 10.'
+        minhKhangAnalogy: 'Minh Khang: Ở lớp 10 mình vẽ mũi tên trên mặt bàn phẳng (2D), còn lên lớp 12 mình gắn thêm chiều cao trong phòng học (3D) thôi, bản chất mũi tên không đổi!',
+        linhChiNote: 'Linh Chi: Vectơ không gian 3D giữ nguyên mọi định nghĩa về điểm đầu, điểm cuối và độ dài như hình học phẳng lớp 10.'
       },
       {
         id: 'vt_cue_2',
@@ -97,8 +97,8 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         text: 'Vectơ trong không gian là một đoạn thẳng có hướng. Ký hiệu AB với A là điểm đầu, B là điểm cuối.',
         formula: 'AB (A: Điểm đầu → B: Điểm cuối)',
         tag: 'formula',
-        minhKhangAnalogy: '🟢 Minh Khang: Giống như tấm vé máy bay ghi "Đà Nẵng → Hà Nội" vậy! A là sân bay cất cánh (điểm đầu), B là sân bay hạ cánh (điểm cuối).',
-        linhChiNote: '🌸 Ghi chú công thức: Vectơ ký hiệu bằng 2 chữ cái in hoa có mũi tên trên đầu (AB) hoặc 1 chữ thường (a, b, x, y).'
+        minhKhangAnalogy: 'Minh Khang: Giống như tấm vé máy bay ghi "Đà Nẵng → Hà Nội" vậy! A là sân bay cất cánh (điểm đầu), B là sân bay hạ cánh (điểm cuối).',
+        linhChiNote: 'Ghi chú công thức: Vectơ ký hiệu bằng 2 chữ cái in hoa có mũi tên trên đầu (AB) hoặc 1 chữ thường (a, b, x, y).'
       },
       {
         id: 'vt_cue_3',
@@ -108,8 +108,8 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         text: 'Lưu ý cực kỳ quan trọng (02:24): Đoạn thẳng AB và BA thì bằng nhau, nhưng vectơ AB thì KHÁC vectơ BA vì đi ngược hướng nhau!',
         formula: 'Đoạn AB = BA nhưng AB ≠ BA',
         tag: 'trap',
-        minhKhangAnalogy: '🟢 Minh Khang: Đi từ Nhà tới Trường (AB) và đi từ Trường về Nhà (BA) có cùng quãng đường dài 2km, nhưng hướng đi ngược nhau hoàn toàn nên 2 vectơ này khác nhau (thậm chí là đối nhau)!',
-        linhChiNote: '🌸 Bẫy cần tránh: Đoạn thẳng không quan tâm chiều (AB = BA), nhưng Vectơ bắt buộc xét chiều mũi tên (AB = −BA).'
+        minhKhangAnalogy: 'Minh Khang: Đi từ Nhà tới Trường (AB) và đi từ Trường về Nhà (BA) có cùng quãng đường dài 2km, nhưng hướng đi ngược nhau hoàn toàn nên 2 vectơ này khác nhau (thậm chí là đối nhau)!',
+        linhChiNote: 'Bẫy cần tránh: Đoạn thẳng không quan tâm chiều (AB = BA), nhưng Vectơ bắt buộc xét chiều mũi tên (AB = −BA).'
       },
       {
         id: 'vt_cue_4',
@@ -119,8 +119,8 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         text: 'Độ dài vectơ ký hiệu là |AB| = AB. Còn Giá của vectơ là đường thẳng d đi qua điểm đầu và điểm cuối (như cái giá đỡ vectơ).',
         formula: '|AB| = AB (Độ dài luôn ≥ 0)',
         tag: 'formula',
-        minhKhangAnalogy: '🟢 Minh Khang: "Giá" của vectơ giống như đường ray tàu hỏa kéo dài vô tận đi qua 2 ga A và B, còn vectơ AB là đoàn tàu nằm trên đường ray đó!',
-        linhChiNote: '🌸 Ghi chú: Ký hiệu |AB| đọc là "Độ dài của vectơ AB" (không đọc là trị tuyệt đối). Hai vectơ cùng phương khi 2 đường ray (giá) của chúng song song hoặc trùng nhau.'
+        minhKhangAnalogy: 'Minh Khang: "Giá" của vectơ giống như đường ray tàu hỏa kéo dài vô tận đi qua 2 ga A và B, còn vectơ AB là đoàn tàu nằm trên đường ray đó!',
+        linhChiNote: 'Ghi chú: Ký hiệu |AB| đọc là "Độ dài của vectơ AB" (không đọc là trị tuyệt đối). Hai vectơ cùng phương khi 2 đường ray (giá) của chúng song song hoặc trùng nhau.'
       },
       {
         id: 'vt_cue_5',
@@ -130,8 +130,8 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         text: 'Khi điểm đầu trùng điểm cuối (AA, BB), ta có vectơ-không (0). Độ dài |0| = 0 và nó cùng phương, cùng hướng với MỌI vectơ!',
         formula: 'AA = BB = 0 (Cùng hướng mọi vectơ)',
         tag: 'rule',
-        minhKhangAnalogy: '🟢 Minh Khang: Vectơ 0 là đứng im tại chỗ (chỉ là 1 dấu chấm). Vì qua 1 dấu chấm vẽ được vô số đường thẳng theo mọi hướng, nên nó "hòa đồng" cùng phương, cùng hướng với tất cả các vectơ khác!',
-        linhChiNote: '🌸 Quy ước đặc biệt: |0| = 0. Vectơ 0 cùng phương và cùng hướng với mọi vectơ trong không gian.'
+        minhKhangAnalogy: 'Minh Khang: Vectơ 0 là đứng im tại chỗ (chỉ là 1 dấu chấm). Vì qua 1 dấu chấm vẽ được vô số đường thẳng theo mọi hướng, nên nó "hòa đồng" cùng phương, cùng hướng với tất cả các vectơ khác!',
+        linhChiNote: 'Quy ước đặc biệt: |0| = 0. Vectơ 0 cùng phương và cùng hướng với mọi vectơ trong không gian.'
       },
       {
         id: 'vt_cue_6',
@@ -141,8 +141,8 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         text: 'Phần 2 (11:30): Hai vectơ bằng nhau khi và chỉ khi chúng CÙNG HƯỚNG và CÙNG ĐỘ DÀI. Muốn xét hướng phải xét cùng phương trước!',
         formula: 'AB = CD ⇔ Cùng hướng & |AB| = |CD|',
         tag: 'rule',
-        minhKhangAnalogy: '🟢 Minh Khang: Trong hình lăng trụ hay hình hộp, các cạnh bên (AA\', BB\', CC\') giống như các cây cột nhà dựng song song, cao bằng nhau và cùng chỉ xuống dưới nên chúng bằng nhau hết!',
-        linhChiNote: '🌸 Điều kiện bằng nhau (Đủ 2 ý): 1) Cùng hướng (giá song song/trùng nhau + cùng chiều mũi tên) VÀ 2) Cùng độ dài.'
+        minhKhangAnalogy: 'Minh Khang: Trong hình lăng trụ hay hình hộp, các cạnh bên (AA\', BB\', CC\') giống như các cây cột nhà dựng song song, cao bằng nhau và cùng chỉ xuống dưới nên chúng bằng nhau hết!',
+        linhChiNote: 'Điều kiện bằng nhau (Đủ 2 ý): 1) Cùng hướng (giá song song/trùng nhau + cùng chiều mũi tên) VÀ 2) Cùng độ dài.'
       },
       {
         id: 'vt_cue_7',
@@ -152,8 +152,8 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         text: 'Quy tắc 3 điểm (24:44): Điểm cuối thằng này nối tiếp điểm đầu thằng kia: OA + AB = OB.',
         formula: 'OA + AB = OB (Nối tiếp A - A)',
         tag: 'formula',
-        minhKhangAnalogy: '🟢 Minh Khang: Đúng ví dụ thầy Tiến ở phút [24:58] nè: Đi từ Nhà (O) qua Nhà người yêu (A), rồi từ Nhà người yêu (A) đi đến Trường (B) ➔ Kết quả cuối cùng là đi từ Nhà đến Trường (OB)!',
-        linhChiNote: '🌸 Quy tắc 3 điểm (Cộng nối tiếp): Điểm cuối của vectơ thứ nhất trùng với điểm đầu của vectơ thứ hai thì triệt tiêu điểm giữa: OA + AB = OB.'
+        minhKhangAnalogy: 'Minh Khang: Đúng ví dụ thầy Tiến ở phút [24:58] nè: Đi từ Nhà (O) qua Nhà người yêu (A), rồi từ Nhà người yêu (A) đi đến Trường (B)  Kết quả cuối cùng là đi từ Nhà đến Trường (OB)!',
+        linhChiNote: 'Quy tắc 3 điểm (Cộng nối tiếp): Điểm cuối của vectơ thứ nhất trùng với điểm đầu của vectơ thứ hai thì triệt tiêu điểm giữa: OA + AB = OB.'
       },
       {
         id: 'vt_cue_8',
@@ -163,8 +163,8 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         text: 'Quy tắc hình bình hành (27:26): Hai vectơ chung gốc A sẽ cộng lại ra đường chéo ở giữa: AB + AD = AC.',
         formula: 'AB + AD = AC (Chung gốc A)',
         tag: 'formula',
-        minhKhangAnalogy: '🟢 Minh Khang: Giống như kéo giương cây cung ở đỉnh A theo hai cánh cung AB và AD, mũi tên sẽ bắn vọt thẳng ra đường chéo chính giữa AC!',
-        linhChiNote: '🌸 Phân biệt rõ: Nối tiếp (AB + BC = AC) dùng cho tam giác; còn Chung gốc (AB + AD = AC) dùng cho Hình bình hành ABCD.'
+        minhKhangAnalogy: 'Minh Khang: Giống như kéo giương cây cung ở đỉnh A theo hai cánh cung AB và AD, mũi tên sẽ bắn vọt thẳng ra đường chéo chính giữa AC!',
+        linhChiNote: 'Phân biệt rõ: Nối tiếp (AB + BC = AC) dùng cho tam giác; còn Chung gốc (AB + AD = AC) dùng cho Hình bình hành ABCD.'
       },
       {
         id: 'vt_cue_9',
@@ -174,19 +174,19 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         text: 'Quy tắc hình hộp (31:40): Tổng 3 vectơ chung gốc A theo 3 chiều (dài, rộng, cao) bằng vectơ đường chéo chính: AB + AD + AA\' = AC\'.',
         formula: 'AB + AD + AA\' = AC\'',
         tag: 'rule',
-        minhKhangAnalogy: '🟢 Minh Khang: Nhìn vào góc phòng học của cậu (đỉnh A): Đi dọc theo mép tường trái (AB) + mép tường phải (AD) + cột tường thẳng đứng (AA\') sẽ bắn xuyên tâm căn phòng tới góc đối diện AC\'!',
-        linhChiNote: '🌸 Công thức giải nhanh (41:06): Đường chéo hình vuông cạnh a là a√2; Đường chéo chính hình lập phương cạnh a là a√3.'
+        minhKhangAnalogy: 'Minh Khang: Nhìn vào góc phòng học của cậu (đỉnh A): Đi dọc theo mép tường trái (AB) + mép tường phải (AD) + cột tường thẳng đứng (AA\') sẽ bắn xuyên tâm căn phòng tới góc đối diện AC\'!',
+        linhChiNote: 'Công thức giải nhanh (41:06): Đường chéo hình vuông cạnh a là a√2; Đường chéo chính hình lập phương cạnh a là a√3.'
       },
       {
         id: 'vt_cue_10',
         start: 2204,
         end: 2395,
         speaker: 'Cô Lam',
-        text: '⚡ Ví dụ 3 (36:44 - Điểm dừng 37:13): Hình lập phương cạnh 1. Tính |BC + DD\'|. Cấm tách thành 1 + 1 = 2! Phải thay DD\' = CC\' để được |BC\'| = √2.',
+        text: 'Ví dụ 3 (36:44 - Điểm dừng 37:13): Hình lập phương cạnh 1. Tính |BC + DD\'|. Cấm tách thành 1 + 1 = 2! Phải thay DD\' = CC\' để được |BC\'| = √2.',
         formula: '|BC + DD\'| = |BC + CC\'| = |BC\'| = √2',
         tag: 'checkpoint',
-        minhKhangAnalogy: '🟢 Minh Khang: Thầy Tiến gọi đây là "Tìm người phù hợp" (38:30)! BC kết thúc ở C mà DD\' lại bắt đầu ở D (không nối tiếp được). Ta đổi DD\' thành anh em song sinh của nó là CC\' thì nối được C với C ngay!',
-        linhChiNote: '🌸 Quy tắc bắt buộc khi tính độ dài tổng |a + b|: Bước 1: Dùng quy tắc thế vectơ/3 điểm gom bên trong thành 1 vectơ duy nhất. Bước 2: Tính độ dài đoạn thẳng đó bằng Pytago.'
+        minhKhangAnalogy: 'Minh Khang: Thầy Tiến gọi đây là "Tìm người phù hợp" (38:30)! BC kết thúc ở C mà DD\' lại bắt đầu ở D (không nối tiếp được). Ta đổi DD\' thành anh em song sinh của nó là CC\' thì nối được C với C ngay!',
+        linhChiNote: 'Quy tắc bắt buộc khi tính độ dài tổng |a + b|: Bước 1: Dùng quy tắc thế vectơ/3 điểm gom bên trong thành 1 vectơ duy nhất. Bước 2: Tính độ dài đoạn thẳng đó bằng Pytago.'
       },
       {
         id: 'vt_cue_11',
@@ -196,8 +196,8 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         text: 'Phương pháp chèn điểm (42:04 - "Đua đòi") & Quy tắc hiệu (57:02 - "Chung đầu lộn ngược"): OA − OB = BA.',
         formula: 'OA − OB = BA (Chung đầu O, lộn ngược)',
         tag: 'rule',
-        minhKhangAnalogy: '🟢 Minh Khang: Nhớ 2 câu thần chú của thầy Tiến: 1) Chèn điểm là "Đua đòi" (vế phải có điểm gì, vế trái đòi chèn điểm đó vào). 2) Phép trừ có chung điểm đầu O thì lộn ngược đít lên đầu: OA − OB = BA!',
-        linhChiNote: '🌸 Sổ tay biến đổi: Cách 1: Đổi trừ thành cộng vectơ đối (−CC\' = +C\'C). Cách 2: Chung gốc thì lấy điểm sau viết trước: AC − AB\' = B\'C.'
+        minhKhangAnalogy: 'Minh Khang: Nhớ 2 câu thần chú của thầy Tiến: 1) Chèn điểm là "Đua đòi" (vế phải có điểm gì, vế trái đòi chèn điểm đó vào). 2) Phép trừ có chung điểm đầu O thì lộn ngược đít lên đầu: OA − OB = BA!',
+        linhChiNote: 'Sổ tay biến đổi: Cách 1: Đổi trừ thành cộng vectơ đối (−CC\' = +C\'C). Cách 2: Chung gốc thì lấy điểm sau viết trước: AC − AB\' = B\'C.'
       },
       {
         id: 'vt_cue_12',
@@ -207,8 +207,8 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         text: 'Tích của một số với vectơ (1:05:51) & Quy tắc Trọng tâm (1:12:45): Số 0 · a = 0. Trọng tâm G tam giác BCD: AB + AC + AD = 3AG.',
         formula: 'G là trọng tâm △BCD ⇒ AB + AC + AD = 3AG',
         tag: 'rule',
-        minhKhangAnalogy: '🟢 Minh Khang: Cẩn thận bẫy trắc nghiệm ở phút [1:09:14]: Số 0 nhân với vectơ a phải sinh ra một VECTƠ (là 0 có mũi tên trên đầu), ai khoanh đáp án số 0 trơ trọi là mất điểm!',
-        linhChiNote: '🌸 Bộ 3 công thức Trọng tâm & Trung điểm:\n• M là trung điểm BC ⇒ AB + AC = 2AM\n• G là trọng tâm △BCD ⇒ GB + GC + GD = 0 và AB + AC + AD = 3AG\n• I là trọng tâm tứ diện ABCD ⇒ IA + IB + IC + ID = 0.'
+        minhKhangAnalogy: 'Minh Khang: Cẩn thận bẫy trắc nghiệm ở phút [1:09:14]: Số 0 nhân với vectơ a phải sinh ra một VECTƠ (là 0 có mũi tên trên đầu), ai khoanh đáp án số 0 trơ trọi là mất điểm!',
+        linhChiNote: 'Bộ 3 công thức Trọng tâm & Trung điểm:\n• M là trung điểm BC ⇒ AB + AC = 2AM\n• G là trọng tâm △BCD ⇒ GB + GC + GD = 0 và AB + AC + AD = 3AG\n• I là trọng tâm tứ diện ABCD ⇒ IA + IB + IC + ID = 0.'
       }
     ],
     // 3. SỔ TAY & CHAT RIÊNG CỦA 4 BẠN HỌC (KHỚP 100% VỚI LỜI GIẢNG THẦY TIẾN)
@@ -222,7 +222,7 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         defaultReply: "Ơ... phải gom BC + CC' thành đường chéo mặt bên BC' rồi mới tính độ dài Pytago ra √2 hả?! Hèn gì tớ tách ra 1 + 1 = 2 bị thầy mắng!"
       },
       tri: {
-        edgeCaseNote: "🔍 Góc đào sâu của Trí (Bloom Analyze): Bất đẳng thức tam giác cho vectơ: |a + b| ≤ |a| + |b|. Dấu \"=\" chỉ xảy ra khi a và b CÙNG HƯỚNG! Ở đây BC nằm ngang còn DD' dựng đứng (vuông góc nhau) nên không bao giờ tách thành 1 + 1 = 2 được!",
+        edgeCaseNote: "Góc đào sâu của Trí (Bloom Analyze): Bất đẳng thức tam giác cho vectơ: |a + b| ≤ |a| + |b|. Dấu \"=\" chỉ xảy ra khi a và b CÙNG HƯỚNG! Ở đây BC nằm ngang còn DD' dựng đứng (vuông góc nhau) nên không bao giờ tách thành 1 + 1 = 2 được!",
         quickPrompts: [
           'Khi nào thì |a + b| mới bằng |a| + |b| hả Trí?',
           'Tại sao muốn xét cùng hướng thì bắt buộc phải xét cùng phương trước?'
@@ -230,7 +230,7 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         defaultReply: 'Đúng như thầy Tiến nhấn mạnh ở phút [15:04]: Hai vectơ muốn xét cùng hướng hay ngược hướng thì giá của chúng phải song song hoặc trùng nhau (cùng phương) trước đã!'
       },
       linhchi: {
-        cheatSheetTitle: '📝 Sổ tay Công thức Vàng (Bài 1.1 - Thầy Tiến)',
+        cheatSheetTitle: 'Sổ tay Công thức Vàng (Bài 1.1 - Thầy Tiến)',
         cheatSheetBullets: [
           '1. Quy tắc 3 điểm (Nối tiếp - 25:28): OA + AB = OB (Cuối anh này là đầu anh kia).',
           '2. Quy tắc Hình bình hành (27:26): AB + AD = AC (Chung gốc A bắn ra đường chéo).',
@@ -245,7 +245,7 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         defaultReply: 'Ở phút [1:12:45]: Nếu M là trung điểm BC thì AB + AC = 2AM. Nếu G là trọng tâm tam giác BCD thì GB + GC + GD = 0 và AB + AC + AD = 3AG nhé!'
       },
       minhkhang: {
-        analogyTitle: '🏹 Ẩn dụ Đời sống cực dễ nhớ trong bài giảng',
+        analogyTitle: 'Ẩn dụ Đời sống cực dễ nhớ trong bài giảng',
         analogyContent: '• Cộng nối tiếp (24:58): Đi từ Nhà (O) → Nhà người yêu (A) → Trường (B) = Đi từ Nhà đến Trường (OB).\n• Quy tắc hình bình hành (27:31): Kéo 2 cạnh dây cung AB và AD thì mũi tên bắn thẳng ra đường chéo AC!\n• Phương pháp chèn điểm (42:11): "Đua đòi" — Vế phải có điểm gì thì vế trái chèn điểm đó vào!',
         quickPrompts: [
           "Giải thích tại sao |BC + DD'| = √2 bằng đường đi thực tế đi Khang!",
@@ -324,7 +324,7 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         second: 0,
         author: 'Trợ giảng An',
         role: 'ta',
-        text: '📌 Ghim bài 1.1: 1) Muốn xét cùng hướng phải cùng phương trước. 2) Cộng nối tiếp: Cuối anh này là đầu anh kia. 3) Cấm tách |a + b| = |a| + |b|!',
+        text: 'Ghim bài 1.1: 1) Muốn xét cùng hướng phải cùng phương trước. 2) Cộng nối tiếp: Cuối anh này là đầu anh kia. 3) Cấm tách |a + b| = |a| + |b|!',
         isPinned: true
       },
       {
@@ -332,28 +332,28 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         second: 144,
         author: 'Linh Chi',
         role: 'classmate',
-        text: '📝 Phút [02:24]: Nhớ ghi sổ nha cả lớp, đoạn thẳng AB = BA nhưng vectơ AB ≠ BA vì ngược chiều mũi tên!'
+        text: 'Phút [02:24]: Nhớ ghi sổ nha cả lớp, đoạn thẳng AB = BA nhưng vectơ AB ≠ BA vì ngược chiều mũi tên!'
       },
       {
         id: 'vt_c2',
         second: 380,
         author: 'Trí',
         role: 'classmate',
-        text: '🔍 Phút [06:20]: Điểm đặc biệt của vectơ-không (0) là điểm đầu trùng điểm cuối nên nó cùng phương, cùng hướng với MỌI vectơ!'
+        text: 'Phút [06:20]: Điểm đặc biệt của vectơ-không (0) là điểm đầu trùng điểm cuối nên nó cùng phương, cùng hướng với MỌI vectơ!'
       },
       {
         id: 'vt_c3',
         second: 1498,
         author: 'Minh Khang',
         role: 'classmate',
-        text: '😂 Phút [24:58]: Ví dụ thầy Tiến dễ nhớ thật: Đi từ Nhà (O) → Nhà người yêu (A) → Trường (B) thì chốt lại là OA + AB = OB!'
+        text: 'Phút [24:58]: Ví dụ thầy Tiến dễ nhớ thật: Đi từ Nhà (O) → Nhà người yêu (A) → Trường (B) thì chốt lại là OA + AB = OB!'
       },
       {
         id: 'vt_c4',
         second: 2205,
         author: 'Bo Ngây Ngô',
         role: 'classmate',
-        text: "Ủa câu Ví dụ 3 ở [36:44] tính |BC + DD'| thì cứ tách ra 1 + 1 = 2 luôn cho khỏe chứ ghép vectơ chi cho mệt ta? 🤔"
+        text: "Ủa câu Ví dụ 3 ở [36:44] tính |BC + DD'| thì cứ tách ra 1 + 1 = 2 luôn cho khỏe chứ ghép vectơ chi cho mệt ta? "
       },
       {
         id: 'vt_c5',
@@ -394,20 +394,20 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         id: 'chap_2',
         title: 'Phần 2: Cạm bẫy chia 2 vế cho x của Bo',
         startSecond: 24,
-        formulaPreview: 'Chia cho x ➔ Mất nghiệm?'
+        formulaPreview: 'Chia cho x  Mất nghiệm?'
       },
       {
         id: 'chap_3',
         title: 'Phần 3: Điểm dừng suy ngẫm & Đối chất cùng Bo',
         startSecond: 50,
         hasCheckpoint: true,
-        formulaPreview: '⚡ Quiz tại 00:50'
+        formulaPreview: 'Quiz tại 00:50'
       },
       {
         id: 'chap_4',
         title: 'Phần 4: Chuyển vế đặt nhân tử chung & Chốt quy tắc',
         startSecond: 66,
-        formulaPreview: 'x(x − 5) = 0 ➔ S = {0; 5}'
+        formulaPreview: 'x(x − 5) = 0  S = {0; 5}'
       }
     ],
 
@@ -450,7 +450,7 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         start: 50,
         end: 65,
         speaker: 'Cô Lam',
-        text: '⚡ [ĐIỂM DỪNG SUY NGẪM]: Theo em, phương trình x(x − 2) = 3x có nghiệm là gì và nên giải thế nào để không sót nghiệm?',
+        text: '[ĐIỂM DỪNG SUY NGẪM]: Theo em, phương trình x(x − 2) = 3x có nghiệm là gì và nên giải thế nào để không sót nghiệm?',
         tag: 'checkpoint'
       },
       {
@@ -484,7 +484,7 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         defaultReply: 'Ơ... cậu bảo thay x = 0 vào thì vế trái = 0, vế phải cũng = 0 á? Ủa vậy x = 0 cũng là nghiệm thật hả?!'
       },
       tri: {
-        edgeCaseNote: '🔍 Góc soi điều kiện biên (Bloom Analyze): Trong phép chia A / B, điều kiện bắt buộc là B ≠ 0. Vì ẩn x chưa biết bằng bao nhiêu nên x hoàn toàn có thể bằng 0!',
+        edgeCaseNote: 'Góc soi điều kiện biên (Bloom Analyze): Trong phép chia A / B, điều kiện bắt buộc là B ≠ 0. Vì ẩn x chưa biết bằng bao nhiêu nên x hoàn toàn có thể bằng 0!',
         quickPrompts: [
           'Tại sao chuyển vế thì bảo toàn nghiệm còn chia hai vế lại mất nghiệm?',
           'Khi nào thì mới được phép chia hai vế cho biểu thức chứa x?'
@@ -492,12 +492,12 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         defaultReply: 'Câu hỏi rất sắc bén! Phép cộng/trừ cùng một biểu thức vào 2 vế luôn xác định với mọi x ∈ ℝ. Còn phép chia chỉ tương đương khi ta đã xét riêng trường hợp nhân tử đó bằng 0!'
       },
       linhchi: {
-        cheatSheetTitle: '📝 Sổ tay Phương trình tích A(x)·B(x) = 0',
+        cheatSheetTitle: 'Sổ tay Phương trình tích A(x)·B(x) = 0',
         cheatSheetBullets: [
           'Bước 1: Chuyển tất cả các hạng tử sang vế trái, vế phải bằng 0 (Nhớ đổi dấu: +3x chuyển sang thành −3x).',
           'Bước 2: Đặt nhân tử chung x ra ngoài: x(x − 2 − 3) = 0 ⇔ x(x − 5) = 0.',
           'Bước 3: Cho từng nhân tử bằng 0: x = 0 hoặc x − 5 = 0 ⇒ S = {0; 5}.',
-          '⚠️ Cấm kỵ: Tuyệt đối không gạch bỏ nhân tử chứa ẩn x ở hai vế!'
+          '️ Cấm kỵ: Tuyệt đối không gạch bỏ nhân tử chứa ẩn x ở hai vế!'
         ],
         quickPrompts: [
           'Cho tớ xem lại 3 bước đưa về phương trình tích chuẩn!',
@@ -506,7 +506,7 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         defaultReply: 'Cậu nhìn Bước 2 trên Sổ tay của tớ nhé: Khi chuyển +3x sang trái ta có x(x − 2) − 3x = 0. Đặt x chung thì bên trong ngoặc còn (x − 2 − 3) = (x − 5) đó!'
       },
       minhkhang: {
-        analogyTitle: '🍕 Ẩn dụ Đời sống & Hình ảnh Đồ thị',
+        analogyTitle: 'Ẩn dụ Đời sống & Hình ảnh Đồ thị',
         analogyContent: 'Hãy tưởng tượng hai vế y = x(x − 2) (đường cong Parabol) và y = 3x (đường thẳng). Nếu vẽ lên mặt phẳng tọa độ, đường thẳng cắt đường cong tại ĐÚNG 2 ĐIỂM là gốc tọa độ (0;0) và điểm (5;15). Làm như Bo là chặt đứt mất 1 giao điểm ở gốc tọa độ rồi!',
         quickPrompts: [
           'Giải thích kiểu chiếc cân thăng bằng cho bài này thế nào Khang?',
@@ -586,7 +586,7 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         second: 0,
         author: 'Trợ giảng An',
         role: 'ta',
-        text: '📌 Nhắc bài: Luôn để ý điều kiện xác định và đặt nhân tử chung trước khi rút gọn!',
+        text: 'Nhắc bài: Luôn để ý điều kiện xác định và đặt nhân tử chung trước khi rút gọn!',
         isPinned: true
       },
       {
@@ -594,7 +594,7 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         second: 12,
         author: 'Linh Chi',
         role: 'classmate',
-        text: '📝 Tớ chép đề vào sổ tay rồi nhé: Giải phương trình x(x − 2) = 3x.'
+        text: 'Tớ chép đề vào sổ tay rồi nhé: Giải phương trình x(x − 2) = 3x.'
       },
       {
         id: 'tc_2',
@@ -608,7 +608,7 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         second: 36,
         author: 'Bo Ngây Ngô',
         role: 'classmate',
-        text: 'Ủa sao không chia x cho nhanh? 2 bên đều có x mà ta, gạch cái rẹt là xong! 🤔'
+        text: 'Ủa sao không chia x cho nhanh? 2 bên đều có x mà ta, gạch cái rẹt là xong! '
       },
       {
         id: 'tc_4',
@@ -644,13 +644,13 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
     ],
     chapters: [
       { id: 'c3_1', title: 'Phần 1: Nhận diện hệ số âm trước ẩn x', startSecond: 0, formulaPreview: '−2x > 6' },
-      { id: 'c3_2', title: 'Phần 2: Điểm dừng Quiz — Chia hai vế cho −2', startSecond: 45, hasCheckpoint: true, formulaPreview: '⚡ Quiz tại 00:45' },
+      { id: 'c3_2', title: 'Phần 2: Điểm dừng Quiz — Chia hai vế cho −2', startSecond: 45, hasCheckpoint: true, formulaPreview: 'Quiz tại 00:45' },
       { id: 'c3_3', title: 'Phần 3: Quy tắc đổi chiều bất đẳng thức', startSecond: 60, formulaPreview: 'x < −3' }
     ],
     transcriptCues: [
       { id: 'q3_1', start: 0, end: 18, speaker: 'Cô Lam', text: 'Chào các em, cùng quan sát bất phương trình −2x > 6. Hệ số đi với x ở đây là −2 (một số âm).', formula: '−2x > 6', tag: 'formula' },
       { id: 'q3_2', start: 19, end: 44, speaker: 'Bo', text: 'Quá dễ luôn cô ơi! Giống phương trình thôi, lấy 6 chia cho −2 là ra x > −3!', formula: 'Bẫy của Bo: x > −3', tag: 'trap' },
-      { id: 'q3_3', start: 45, end: 59, speaker: 'Cô Lam', text: '⚡ [ĐIỂM DỪNG SUY NGẪM]: Khi chia cả hai vế của −2x > 6 cho −2, tập nghiệm đúng là gì?', tag: 'checkpoint' },
+      { id: 'q3_3', start: 45, end: 59, speaker: 'Cô Lam', text: '[ĐIỂM DỪNG SUY NGẪM]: Khi chia cả hai vế của −2x > 6 cho −2, tập nghiệm đúng là gì?', tag: 'checkpoint' },
       { id: 'q3_4', start: 60, end: 90, speaker: 'Cô Lam', text: 'Khi nhân hoặc chia cả hai vế của bất phương trình cho một số âm, ta BẮT BUỘC phải đổi chiều dấu bất đẳng thức từ > sang <, vậy nghiệm là x < −3!', formula: 'x < −3', tag: 'rule' }
     ],
     peerContext: {
@@ -660,12 +660,12 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         defaultReply: 'Ủa thay x = 0 vào thì −2(0) > 6 ⇔ 0 > 6 (Vô lý!). Sao kỳ vậy ta?!'
       },
       tri: {
-        edgeCaseNote: '🔍 Bản chất trên trục số: Nhân hoặc chia cho số âm là phép lấy đối xứng qua gốc tọa độ 0, làm đảo ngược toàn bộ thứ tự lớn/bé!',
+        edgeCaseNote: 'Bản chất trên trục số: Nhân hoặc chia cho số âm là phép lấy đối xứng qua gốc tọa độ 0, làm đảo ngược toàn bộ thứ tự lớn/bé!',
         quickPrompts: ['Tại sao nhân số âm lại làm đảo chiều trên trục số?'],
         defaultReply: 'Ví dụ 2 < 5, nhưng khi nhân (−1) vào hai vế thì −2 lại lớn hơn −5 (vì nợ 2 đồng ít hơn nợ 5 đồng)!'
       },
       linhchi: {
-        cheatSheetTitle: '📝 Sổ tay Quy tắc dấu Bất phương trình',
+        cheatSheetTitle: 'Sổ tay Quy tắc dấu Bất phương trình',
         cheatSheetBullets: [
           '1. Cộng/Trừ hai vế với cùng một số: GIỮ NGUYÊN chiều.',
           '2. Nhân/Chia hai vế với số DƯƠNG (> 0): GIỮ NGUYÊN chiều.',
@@ -675,7 +675,7 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         defaultReply: 'Cậu nhớ mục số 3 trong sổ tay nhé: Cứ nhân hoặc chia cho số ÂM là phải lật ngược dấu so sánh lại ngay!'
       },
       minhkhang: {
-        analogyTitle: '💰 Ẩn dụ Tiền bạc & Khoảng nợ',
+        analogyTitle: 'Ẩn dụ Tiền bạc & Khoảng nợ',
         analogyContent: 'Bạn A có 10k, bạn B có 20k thì A < B. Nhưng nếu đổi sang "khoảng nợ" (nhân với dấu âm): Nợ 10k (−10) lại giàu hơn nợ 20k (−20), tức là −10 > −20!',
         quickPrompts: ['Lấy ví dụ thử số cụ thể cho bài −2x > 6 đi Khang!'],
         defaultReply: 'Nếu lấy x = −4 (nhỏ hơn −3), nhân với −2 ta được (−2)·(−4) = +8 > 6 (Chuẩn luôn!).'
@@ -707,7 +707,7 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
     },
     freezeNote: 'Gợi ý: Số −2 mang dấu âm. Hãy thử lấy 1 giá trị x cụ thể thay vào để kiểm tra chiều của bất đẳng thức.',
     timelineComments: [
-      { id: 'tc3_pin', second: 0, author: 'Trợ giảng An', role: 'ta', text: '📌 Lưu ý: Nhân/chia số âm vào hai vế bất phương trình thì phải ĐỔI CHIỀU dấu so sánh!', isPinned: true },
+      { id: 'tc3_pin', second: 0, author: 'Trợ giảng An', role: 'ta', text: 'Lưu ý: Nhân/chia số âm vào hai vế bất phương trình thì phải ĐỔI CHIỀU dấu so sánh!', isPinned: true },
       { id: 'tc3_1', second: 19, author: 'Bo Ngây Ngô', role: 'classmate', text: 'Lấy 6 chia −2 ra −3, vậy x > −3 thôi, nhanh gọn!' },
       { id: 'tc3_2', second: 30, author: 'Trí', role: 'classmate', text: '@Bo Cậu thử thay x = 0 vào xem 0 có lớn hơn 6 không mà kết luận x > −3?' }
     ]
