@@ -1,9 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-handwriting: 'Patrick Hand', 'Mali', cursive, sans-serif;
-  --font-cute: 'Mali', cursive, sans-serif;
-  --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  --font-handwriting: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-cute: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
   --color-paper: #F5EFE6;
   --color-grid: #C9D1DB;
   --color-bo: #E8A33D;
@@ -14,23 +16,26 @@
   --color-washi-pink: #E8B4BC;
 }
 
+/* 1. Ép toàn bộ giao diện & class font-handwriting cũ sang Plus Jakarta Sans hiện đại, sang trọng */
+body,
+.font-handwriting,
+.font-cute,
+.font-sans {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
 body {
-  font-family: var(--font-sans);
   background-color: #ECE5D8;
   color: #2F2B28;
   margin: 0;
   padding: 0;
   min-height: 100vh;
-}
-
-/* Authentic Vietnamese handwriting font */
-.font-handwriting {
-  font-family: 'Patrick Hand', 'Mali', 'Be Vietnam Pro', cursive, sans-serif;
-  letter-spacing: 0.01em;
-}
-
-.font-cute {
-  font-family: 'Mali', 'Patrick Hand', 'Be Vietnam Pro', cursive, sans-serif;
 }
 
 /* Superr.ai Warm Kraft / Moleskine Notebook Cover */
@@ -139,7 +144,7 @@ body {
   background-size: 20px 20px;
 }
 
-/* Ẩn hoàn toàn thanh cuộn (Scrollbar) nhưng vẫn lăn chuột mượt mà */
+/* 2. Ẩn hoàn toàn thanh cuộn (Scrollbar) xấu xí */
 .no-scrollbar::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
@@ -150,18 +155,17 @@ body {
   scrollbar-width: none !important;
 }
 
-/* Hiệu ứng kính mờ chuẩn YouTube Dark Glass */
+/* 3. Kính mờ chuẩn YouTube / Coursera hiện đại */
 .yt-frosted-glass {
-  background: rgba(20, 24, 22, 0.78);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(18, 22, 20, 0.84);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
-/* Hiệu ứng kính mờ sáng nhẹ cho thẻ Quiz */
 .dre-frosted-light {
-  background: rgba(255, 253, 247, 0.88);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(232, 163, 61, 0.6);
+  background: rgba(255, 253, 249, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 214, 195, 0.9);
 }

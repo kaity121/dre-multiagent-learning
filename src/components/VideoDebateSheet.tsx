@@ -4,9 +4,42 @@ import { VideoLessonItem, VideoCheckpointPhase, TimelineComment } from '../types
 import { 
   ClassmateAvatar,
   HandStopIcon,
-  LiveChatStreamIcon
+  LiveChatStreamIcon,
+  GentleLightbulb
 } from './HandmadeArtwork';
 import { sound } from '../utils/soundEffects';
+
+// ============================================================================
+// CUSTOM HAND-CRAFTED SVG ICONS CHO KHUNG CHAT & HỘP GIƠ TAY (ZERO EMOJI)
+// ============================================================================
+const ExplainConceptSvg = ({ className = 'w-3.5 h-3.5' }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className}>
+    <circle cx="12" cy="11" r="6" fill="currentColor" fillOpacity="0.18" stroke="currentColor" strokeWidth="1.8" />
+    <path d="M9.5 17.5H14.5M10.5 20.5H13.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <path d="M12 8V11.5L14 12.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+  </svg>
+);
+
+const FormulaNoteSvg = ({ className = 'w-3.5 h-3.5' }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className}>
+    <rect x="4" y="3.5" width="16" height="17" rx="2.5" fill="currentColor" fillOpacity="0.15" stroke="currentColor" strokeWidth="1.8" />
+    <path d="M8 8.5H16M8 12.5H16M8 16.5H12.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+
+const Rewind10sSvg = ({ className = 'w-3.5 h-3.5' }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className}>
+    <path d="M4.5 10.5C5.5 6.8 8.9 4 13 4C17.97 4 22 8.03 22 13C22 17.97 17.97 22 13 22C9.2 22 5.95 19.65 4.63 16.3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <path d="M4 5.5V10.8H9.3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const PinRibbonSvg = ({ className = 'w-3.5 h-3.5' }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className}>
+    <path d="M15 4.5L19.5 9L17.5 11L14.5 9.5L10.5 13.5L12 16.5L10 18.5L5.5 14L7.5 12L10.5 13.5L14.5 9.5L13 6.5L15 4.5Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    <path d="M4 20L7.5 16.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
 
 interface VideoDebateSheetProps {
   lesson: VideoLessonItem;
@@ -25,7 +58,14 @@ interface VideoDebateSheetProps {
   onSkipCheckpoint?: () => void;
 }
 
-const cleanText = (str?: string) => (str ? str.replace(/\u20d7/g, '') : '');
+// Quét sạch cả ký tự ô vuông lẫn các emoji thừa trong chuỗi data
+const cleanText = (str?: string) =>
+  str
+    ? str
+        .replace(/\u20d7/g, '')
+        .replace(/📌|📝|🔍|😂|🤔|🟢|🌸|🧒|👓|⚡/g, '')
+        .trim()
+    : '';
 
 export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   lesson,
@@ -36,10 +76,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 }) => {
   const [liveChatMessages, setLiveChatMessages] = useState<TimelineComment[]>([]);
   const [userChatInput, setUserChatInput] = useState<string>('');
-  const [reportedMessageIds] = useState<Set<string>>(new Set());
   const [selectedFreezeIntent, setSelectedFreezeIntent] = useState<'not_understand' | 'too_fast' | 'take_notes'>('not_understand');
   const [taHintTier, setTaHintTier] = useState<number>(0);
-  const [isPinExpanded, setIsPinExpanded] = useState<boolean>(true);
 
   const chatStreamEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -64,7 +102,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     const newMsg: TimelineComment = {
       id: `user_${Date.now()}`,
       second: currentTime,
-      author: 'Bạn (Học viên)',
+      author: 'Bạn',
       role: 'classmate',
       text
     };
@@ -72,12 +110,12 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     setUserChatInput('');
 
     const lower = text.toLowerCase();
-    let replyAuthor = 'Trí (Đào sâu)';
+    let replyAuthor = 'Trí';
     let replyText = '';
     let replyRole: 'classmate' | 'ta' = 'classmate';
 
     if (lower.includes('bo') || lower.includes('@bo')) {
-      replyAuthor = 'Bo Ngây Ngô';
+      replyAuthor = 'Bo';
       replyText = cleanText(lesson.peerContext?.bo.defaultReply) || 'Tớ vẫn thấy tách ra cộng nhanh hơn mà!';
     } else if (lower.includes('chi') || lower.includes('@linh chi')) {
       replyAuthor = 'Linh Chi';
@@ -116,13 +154,13 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     lesson.transcriptCues?.[0];
 
   return (
-    <div className="relative w-full h-full bg-[#FFFDF7] border border-[#DDD6C8] rounded-xl p-3 shadow-sm flex flex-col justify-between overflow-hidden">
-      {/* 1. HEADER TỐI GIẢN */}
-      <div className="flex items-center justify-between pb-2 border-b border-[#E8DFD0] shrink-0">
-        <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-[#E53E3E] animate-pulse" />
-          <span className="font-handwriting font-bold text-sm text-[#3E342B] flex items-center gap-1">
-            <LiveChatStreamIcon className="w-3.5 h-3.5 text-[#C97A13]" />
+    <div className="relative w-full h-full bg-white border border-[#E2D9C8] rounded-xl p-3.5 shadow-sm flex flex-col justify-between overflow-hidden">
+      {/* 1. HEADER SANG TRỌNG, GỌN GÀNG */}
+      <div className="flex items-center justify-between pb-2.5 border-b border-[#EFE8DC] shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-[#10B981]" />
+          <span className="font-bold text-sm text-[#1E242B] flex items-center gap-1.5">
+            <LiveChatStreamIcon className="w-4 h-4 text-[#1B4338]" />
             <span>Thảo Luận Lớp Học</span>
           </span>
         </div>
@@ -132,78 +170,65 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             sound.playPencilTap();
             setTaHintTier((prev) => (prev + 1) % 4);
           }}
-          className="px-2.5 py-0.5 bg-[#FFF5DC] hover:bg-[#FCEAC1] text-[#8C5D19] border border-[#E8A33D] font-handwriting font-bold text-[11px] rounded-full cursor-pointer"
+          className="px-2.5 py-1 bg-[#F4FBF8] hover:bg-[#E1F3EC] text-[#1B4338] border border-[#BCE1D4] font-semibold text-xs rounded-full cursor-pointer flex items-center gap-1 transition-colors"
         >
-          💡 Gợi ý ({taHintTier}/3)
+          <GentleLightbulb className="w-3.5 h-3.5 text-[#D97706]" />
+          <span>Gợi ý ({taHintTier}/3)</span>
         </button>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 2. THẺ GHIM NỔI BẬT (HIGH-CONTRAST PINNED BANNER - KHÔNG BỊ CHÌM NỮA!)     */}
-      {/* ========================================================================= */}
+      {/* 2. THẺ GHIM KIẾN THỨC NỔI BẬT (100% SVG ICON) */}
       {pinnedComment && (
-        <div className="my-2 rounded-lg bg-[#1B4338] text-white border-l-4 border-[#F5D65D] p-2.5 shadow-md shrink-0 space-y-1">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <span className="px-1.5 py-0.2 rounded bg-[#F5D65D] text-[#1B4338] font-mono font-bold text-[10px] uppercase tracking-wider">
-                📌 GHIM BÀI HỌC
-              </span>
-              <span className="text-xs font-handwriting font-bold text-[#8CE6CF]">
-                {pinnedComment.author}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsPinExpanded(prev => !prev)}
-              className="text-[10px] text-white/70 hover:text-white cursor-pointer font-mono"
-            >
-              {isPinExpanded ? 'Thu gọn ▲' : 'Mở rộng ▼'}
-            </button>
+        <div className="my-2 rounded-xl bg-[#1B4338] text-white border-l-4 border-[#F5D65D] p-3 shadow-sm shrink-0 space-y-1">
+          <div className="flex items-center gap-1.5">
+            <span className="px-2 py-0.5 rounded-md bg-[#F5D65D] text-[#1B4338] font-bold text-[10px] uppercase tracking-wider flex items-center gap-1">
+              <PinRibbonSvg className="w-3 h-3" />
+              <span>Ghim trọng tâm</span>
+            </span>
+            <span className="text-xs font-semibold text-[#8CE6CF]">
+              {pinnedComment.author}
+            </span>
           </div>
-
-          {isPinExpanded && (
-            <p className="text-xs font-handwriting text-white/95 leading-snug pt-0.5">
-              {cleanText(pinnedComment.text).replace('📌 ', '')}
-            </p>
-          )}
-
+          <p className="text-xs text-white/95 leading-relaxed pt-0.5">
+            {cleanText(pinnedComment.text)}
+          </p>
           {taHintTier > 0 && (
-            <div className="mt-1.5 p-2 bg-white text-[#1B4338] rounded border border-[#F5D65D] text-[11px] font-handwriting font-bold">
-              {taHintTier === 1 && '🔹 Gợi ý 1: Kiểm tra điểm cuối của BC và điểm đầu của DD\' đã trùng nhau chưa.'}
-              {taHintTier === 2 && `🔹 Gợi ý 2: ${cleanText(lesson.freezeNote)}`}
-              {taHintTier === 3 && '🔹 Gợi ý 3: Thay DD\' = CC\' thì BC + CC\' = BC\' (đường chéo hình vuông cạnh 1 bằng √2).'}
+            <div className="mt-1.5 p-2 bg-white text-[#1B4338] rounded-lg text-xs font-medium">
+              {taHintTier === 1 && 'Gợi ý 1: Kiểm tra điểm cuối của BC và điểm đầu của DD\' đã trùng nhau chưa.'}
+              {taHintTier === 2 && `Gợi ý 2: ${cleanText(lesson.freezeNote)}`}
+              {taHintTier === 3 && 'Gợi ý 3: Thay DD\' = CC\' thì BC + CC\' = BC\' (đường chéo hình vuông cạnh 1 bằng căn 2).'}
             </div>
           )}
         </div>
       )}
 
-      {/* 3. LUỒNG CHAT (ẨN SCROLLBAR, SẠCH GỌN) */}
+      {/* 3. LUỒNG CHAT HIỆN ĐẠI (ẨN SCROLLBAR) */}
       <div className="flex-1 overflow-y-auto no-scrollbar space-y-2 my-1 pr-0.5">
         {allStreamComments.map((msg) => (
           <div
             key={msg.id}
-            className={`group flex items-start gap-2 p-2 rounded-lg border transition-colors ${
+            className={`flex items-start gap-2.5 p-2.5 rounded-xl border transition-colors ${
               msg.author.includes('Bo')
-                ? 'bg-[#FFF9EE] border-[#F0D5A3] border-l-3 border-l-[#E8A33D]'
-                : 'bg-[#FAF7F2] border-[#ECE5D8]'
+                ? 'bg-[#FFFBF2] border-[#F3DFA8]'
+                : 'bg-[#FAF8F5] border-[#EFEAE1]'
             }`}
           >
-            <ClassmateAvatar name={msg.author} className="w-5 h-5 mt-0.5 shrink-0" />
+            <ClassmateAvatar name={msg.author} className="w-6 h-6 mt-0.5 shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-handwriting font-bold text-[#2F2923] truncate">
+                <span className="text-xs font-bold text-[#1E242B] truncate">
                   {msg.author}
                 </span>
                 <button
                   type="button"
                   onClick={() => onSeekVideo?.(msg.second)}
-                  className="text-[10px] font-mono text-[#2E6859] hover:underline font-bold ml-auto cursor-pointer shrink-0"
+                  className="text-[11px] font-mono text-[#1B4338] hover:underline font-semibold ml-auto cursor-pointer shrink-0"
                 >
-                  ▶ {formatSec(msg.second)}
+                  {formatSec(msg.second)}
                 </button>
               </div>
-              <p className="text-xs font-handwriting text-[#4A3F35] mt-0.5 leading-snug">
-                {reportedMessageIds.has(msg.id) ? '(Đã báo cáo)' : cleanText(msg.text)}
+              <p className="text-xs text-[#374151] mt-0.5 leading-relaxed">
+                {cleanText(msg.text)}
               </p>
             </div>
           </div>
@@ -211,45 +236,71 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
         <div ref={chatStreamEndRef} />
       </div>
 
-      {/* 4. HỘP GIƠ TAY THEO GIÂY */}
+      {/* 4. HỘP GIƠ TAY TẠI GIÂY HIỆN TẠI (ĐÃ XÓA SẠCH EMOJI BÀN PHÍM, THAY BẰNG CUSTOM SVG!) */}
       {phase === 'STUDENT_FREEZE' && (
-        <div className="my-1 p-2.5 bg-[#FFF8EB] border-2 border-[#E8A33D] rounded-lg space-y-1.5 shrink-0">
-          <div className="flex items-center justify-between text-xs font-handwriting font-bold text-[#8C5D19]">
-            <span className="flex items-center gap-1">
-              <HandStopIcon className="w-3.5 h-3.5" />
-              <span>✋ Giơ tay tại [{formatSec(currentTime)}]</span>
+        <div className="my-1.5 p-3 bg-[#FFFBF2] border border-[#E8A33D] rounded-xl space-y-2 shrink-0 shadow-xs">
+          <div className="flex items-center justify-between text-xs font-bold text-[#8C5D19]">
+            <span className="flex items-center gap-1.5">
+              <HandStopIcon className="w-4 h-4 text-[#D97706]" />
+              <span>Giơ tay tại [{formatSec(currentTime)}]</span>
             </span>
-            <button type="button" onClick={onDismissFreeze} className="text-[#2E6859] underline cursor-pointer">
+            <button
+              type="button"
+              onClick={onDismissFreeze}
+              className="text-[#1B4338] hover:underline font-semibold cursor-pointer"
+            >
               Xem tiếp ➔
             </button>
           </div>
-          <div className="grid grid-cols-3 gap-1">
-            {[
-              { id: 'not_understand', label: '🤔 Giải thích' },
-              { id: 'take_notes', label: '📝 Công thức' },
-              { id: 'too_fast', label: '⏪ Lùi 10s' }
-            ].map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  setSelectedFreezeIntent(item.id as any);
-                  if (item.id === 'too_fast') onSeekVideo?.(Math.max(0, currentTime - 10));
-                }}
-                className={`px-1.5 py-1 text-[11px] font-handwriting rounded border cursor-pointer ${
-                  selectedFreezeIntent === item.id
-                    ? 'bg-[#2F2923] text-white font-bold'
-                    : 'bg-white text-[#54483C] border-[#DED7C9]'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
+
+          <div className="grid grid-cols-3 gap-1.5">
+            <button
+              type="button"
+              onClick={() => setSelectedFreezeIntent('not_understand')}
+              className={`px-2 py-1.5 text-xs font-semibold rounded-lg border cursor-pointer flex items-center justify-center gap-1 transition-all ${
+                selectedFreezeIntent === 'not_understand'
+                  ? 'bg-[#1E242B] text-white border-[#1E242B]'
+                  : 'bg-white text-[#374151] border-[#E2D9C8] hover:bg-black/5'
+              }`}
+            >
+              <ExplainConceptSvg className="w-3.5 h-3.5 shrink-0" />
+              <span>Giải thích</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedFreezeIntent('take_notes')}
+              className={`px-2 py-1.5 text-xs font-semibold rounded-lg border cursor-pointer flex items-center justify-center gap-1 transition-all ${
+                selectedFreezeIntent === 'take_notes'
+                  ? 'bg-[#1E242B] text-white border-[#1E242B]'
+                  : 'bg-white text-[#374151] border-[#E2D9C8] hover:bg-black/5'
+              }`}
+            >
+              <FormulaNoteSvg className="w-3.5 h-3.5 shrink-0" />
+              <span>Công thức</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedFreezeIntent('too_fast');
+                onSeekVideo?.(Math.max(0, currentTime - 10));
+              }}
+              className={`px-2 py-1.5 text-xs font-semibold rounded-lg border cursor-pointer flex items-center justify-center gap-1 transition-all ${
+                selectedFreezeIntent === 'too_fast'
+                  ? 'bg-[#1E242B] text-white border-[#1E242B]'
+                  : 'bg-white text-[#374151] border-[#E2D9C8] hover:bg-black/5'
+              }`}
+            >
+              <Rewind10sSvg className="w-3.5 h-3.5 shrink-0" />
+              <span>Lùi 10s</span>
+            </button>
           </div>
-          <p className="text-[11px] font-handwriting text-[#2F2923] bg-white p-1.5 rounded border border-[#F0D5A3] leading-snug">
+
+          <p className="text-xs text-[#1E242B] bg-white p-2 rounded-lg border border-[#EFE8DC] leading-relaxed">
             {selectedFreezeIntent === 'not_understand' && cleanText(activeCue?.minhKhangAnalogy || lesson.freezeNote)}
             {selectedFreezeIntent === 'take_notes' && cleanText(activeCue?.linhChiNote || activeCue?.text)}
-            {selectedFreezeIntent === 'too_fast' && `⏪ Đã lùi về [${formatSec(Math.max(0, currentTime - 10))}] để em nghe lại!`}
+            {selectedFreezeIntent === 'too_fast' && `Đã lùi video về mốc [${formatSec(Math.max(0, currentTime - 10))}] để bạn nghe lại.`}
           </p>
         </div>
       )}
@@ -262,13 +313,13 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             value={userChatInput}
             onChange={(e) => setUserChatInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSendUserChatMessage()}
-            placeholder="Hỏi @Bo, @Trí, @Linh Chi, @Minh Khang..."
-            className="flex-1 bg-white border border-[#DFD6C7] rounded-lg px-2.5 py-1.5 text-xs font-handwriting text-[#3E342B] outline-none focus:border-[#4E9B87]"
+            placeholder="Trao đổi cùng @Bo, @Trí, @Linh Chi..."
+            className="flex-1 bg-[#FAF8F5] border border-[#E2D9C8] rounded-lg px-3 py-1.5 text-xs text-[#1E242B] outline-none focus:border-[#1B4338]"
           />
           <button
             onClick={handleSendUserChatMessage}
             type="button"
-            className="px-3 py-1.5 bg-[#4E9B87] hover:bg-[#3D8270] text-white font-handwriting font-bold text-xs rounded-lg cursor-pointer"
+            className="px-3.5 py-1.5 bg-[#1B4338] hover:bg-[#285E4F] text-white font-semibold text-xs rounded-lg cursor-pointer transition-colors"
           >
             Gửi
           </button>

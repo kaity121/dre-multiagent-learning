@@ -28,11 +28,9 @@ import { InteractionCardSheet } from './components/InteractionCardSheet';
 import { VideoPlayerSheet } from './components/VideoPlayerSheet';
 import { VideoDebateSheet } from './components/VideoDebateSheet';
 import { AlternativeFlowsSheet } from './components/AlternativeFlowsSheet';
-import { OnboardingModal } from './components/OnboardingModal';
 import { PauseModal } from './components/PauseModal';
 import { LessonSelectorDrawer } from './components/LessonSelectorDrawer';
 import { ScenarioPlayerBar } from './components/ScenarioPlayerBar';
-import { MultiAgentInspectorModal } from './components/MultiAgentInspectorModal';
 import { LearningFlowGuideModal } from './components/LearningFlowGuideModal';
 import { MaicPeerClassroomDock } from './components/MaicPeerClassroomDock';
 import { sound } from './utils/soundEffects';
@@ -661,9 +659,7 @@ export default function App() {
         }}
         onOpenPause={() => setIsPauseOpen(true)}
         onOpenLessonDrawer={() => setIsLessonDrawerOpen(true)}
-        onOpenHelp={() => setIsOnboardingOpen(true)}
-        onOpenAiInspector={() => setIsAiInspectorOpen(true)}
-        onOpenFlowGuide={() => setIsFlowGuideOpen(true)}
+        onOpenHelp={() => setCurrentMode('video_clash')}
       />
 
       {/* Main Learning Workspace: Realistic Open Sketchbook lying on desk (Expanded to cover ~85% of screen width) */}
@@ -835,16 +831,6 @@ export default function App() {
       </main>
 
       {/* Modals & Drawers */}
-      <MultiAgentInspectorModal
-        isOpen={isAiInspectorOpen}
-        onClose={() => setIsAiInspectorOpen(false)}
-        isBackendLive={isBackendLive}
-        lastSessionId={backendSessionId}
-        lastBoSpeech={liveBoDialogue || boSpeechOverride}
-        lastCoLamSpeech={Array.isArray(liveCoLamDialogue) ? liveCoLamDialogue.join(' ') : (liveCoLamDialogue || tutorFeedbackOverride)}
-        currentMode={currentMode}
-      />
-
       <LearningFlowGuideModal
         isOpen={isFlowGuideOpen}
         onClose={() => setIsFlowGuideOpen(false)}
@@ -874,22 +860,6 @@ export default function App() {
         onSelectLesson={handleSwitchLesson}
         selectedLevel={selectedLevel}
         onSelectLevel={setSelectedLevel}
-      />
-
-      <OnboardingModal
-        isOpen={isOnboardingOpen}
-        onClose={() => setIsOnboardingOpen(false)}
-        selectedLevel={selectedLevel}
-        onSelectLevel={(lvl) => {
-          setSelectedLevel(lvl);
-          const matching = MISCONCEPTION_LIBRARY.filter(l => l.level === lvl);
-          const randomLesson = matching[Math.floor(Math.random() * matching.length)] || matching[0];
-          handleSwitchLesson(randomLesson);
-        }}
-        onStart={() => {
-          setIsOnboardingOpen(false);
-          setCurrentState('IDLE');
-        }}
       />
     </div>
   );
