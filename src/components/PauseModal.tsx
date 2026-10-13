@@ -51,9 +51,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
         
         {/* Header: Avatar Cô Lam gọn đẹp + Tiêu đề rõ nét */}
         <div className="flex items-center gap-3.5">
-          <div className="w-14 h-14 rounded-2xl bg-[#EBF7F3] border border-[#99D5C4] flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
-            <TutorLamAvatar size="sm" />
-          </div>
+          <TutorLamAvatar size="sm" />
           <div>
             <h2 className="font-extrabold text-xl text-[#1E242B] tracking-tight">
               Gấp sổ nghỉ tay một lát nhé!

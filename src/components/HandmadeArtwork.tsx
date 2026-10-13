@@ -11,15 +11,44 @@ import React from 'react';
 export const BoAvatar: React.FC<{ 
   size?: 'sm' | 'md' | 'lg'; 
   className?: string;
-  expression?: 'confident' | 'skeptical' | 'embarrassed' | 'happy';
-}> = ({ size = 'md', className = '', expression = 'confident' }) => {
-  const dim = size === 'sm' ? 'w-12 h-14' : size === 'lg' ? 'w-24 h-28' : 'w-16 h-20';
-  return (
-    <div className={`relative inline-block bg-white p-1.5 pb-2.5 border border-[#DDD3C4] rounded-sm drop-shadow-sm transition-transform hover:rotate-0 -rotate-1 ${dim} ${className}`}>
-      {/* Small warm washi tape tag at top */}
-      <div className="absolute -top-2 left-3 w-8 h-3 bg-[#E8A33D]/80 rounded-xs rotate-[-2deg] shadow-2xs z-10" />
+  expression?: 'confident' | 'skeptical' | 'embarrassed' | 'happy' | 'normal';
+  showLabel?: boolean;
+}> = ({ size = 'md', className = '', expression = 'confident', showLabel = true }) => {
+  const config = {
+    sm: {
+      wrapper: 'w-16 min-w-[64px]',
+      padding: 'p-1.5 pb-2',
+      imageAspect: 'w-full aspect-square',
+      text: 'text-[10px] mt-1',
+      tape: '-top-2 left-2 w-7 h-3',
+    },
+    md: {
+      wrapper: 'w-20 min-w-[80px]',
+      padding: 'p-2 pb-2.5',
+      imageAspect: 'w-full aspect-square',
+      text: 'text-xs mt-1.5',
+      tape: '-top-2.5 left-2.5 w-8 h-3.5',
+    },
+    lg: {
+      wrapper: 'w-28 min-w-[112px]',
+      padding: 'p-2.5 pb-3',
+      imageAspect: 'w-full aspect-square',
+      text: 'text-sm mt-2',
+      tape: '-top-3 left-3 w-10 h-4',
+    },
+  }[size];
 
-      <div className="w-full h-full bg-[#FFF9EE] rounded-xs flex items-center justify-center overflow-hidden border border-[#F2E5D0]">
+  const labelText =
+    size === 'sm'
+      ? (expression === 'skeptical' ? 'Bo thắc mắc' : expression === 'embarrassed' ? 'Bo hiểu' : 'Bo')
+      : (expression === 'skeptical' ? 'Bo nghi vấn' : expression === 'embarrassed' ? 'Bo hiểu rồi' : 'Bo');
+
+  return (
+    <div className={`relative inline-flex flex-col items-center justify-between bg-white ${config.padding} border border-[#DDD3C4] rounded-lg shadow-sm transition-transform hover:rotate-0 -rotate-1 shrink-0 ${config.wrapper} ${className}`}>
+      {/* Small warm washi tape tag at top */}
+      <div className={`absolute ${config.tape} bg-[#E8A33D]/80 rounded-xs rotate-[-2deg] shadow-2xs z-10`} />
+
+      <div className={`${config.imageAspect} bg-[#FFF9EE] rounded-md flex items-center justify-center overflow-hidden border border-[#F2E5D0] shrink-0`}>
         <svg viewBox="0 0 100 100" className="w-full h-full">
           {/* Warm background tint */}
           <circle cx="50" cy="50" r="46" fill="#FFF4DE" />
@@ -101,23 +130,53 @@ export const BoAvatar: React.FC<{
           <path d="M49 51 Q50 53 51 51" stroke="#B87848" strokeWidth="1.8" strokeLinecap="round" fill="none" />
         </svg>
       </div>
-      <div className="text-[10px] text-center font-handwriting font-bold text-[#6B5A4B] mt-0.5 leading-none">
-        {expression === 'skeptical' ? 'Bo nghi vấn' : expression === 'embarrassed' ? 'Bo hiểu rồi' : 'Bo'}
-      </div>
+
+      {showLabel && (
+        <span className={`${config.text} text-center font-bold text-[#92400E] whitespace-nowrap leading-none select-none tracking-tight`}>
+          {labelText}
+        </span>
+      )}
     </div>
   );
 };
 
 
 // Super Cute Cô Lam Polaroid Portrait (Gentle, warm, charming young teacher)
-export const TutorLamAvatar: React.FC<{ size?: 'sm' | 'md' | 'lg'; className?: string }> = ({ size = 'md', className = '' }) => {
-  const dim = size === 'sm' ? 'w-14 h-16' : size === 'lg' ? 'w-28 h-32' : 'w-20 h-24';
-  return (
-    <div className={`relative inline-block bg-white p-2 pb-3.5 border border-[#E3DDD1] rounded-xs polaroid-shadow transition-transform hover:rotate-0 rotate-2 ${dim} ${className}`}>
-      {/* Pastel washi tape at top corner */}
-      <div className="absolute -top-3 right-1.5 z-10 w-9 h-4 bg-[#A9C8E0]/90 border-l border-r border-white/70 shadow-2xs rotate-6" />
+export const TutorLamAvatar: React.FC<{ 
+  size?: 'sm' | 'md' | 'lg'; 
+  className?: string;
+  showLabel?: boolean;
+}> = ({ size = 'md', className = '', showLabel = true }) => {
+  const config = {
+    sm: {
+      wrapper: 'w-16 min-w-[64px]',
+      padding: 'p-1.5 pb-2',
+      imageAspect: 'w-full aspect-square',
+      text: 'text-[10px] mt-1',
+      tape: '-top-2 right-1 w-7 h-3',
+    },
+    md: {
+      wrapper: 'w-20 min-w-[80px]',
+      padding: 'p-2 pb-2.5',
+      imageAspect: 'w-full aspect-square',
+      text: 'text-xs mt-1.5',
+      tape: '-top-2.5 right-1.5 w-8 h-3.5',
+    },
+    lg: {
+      wrapper: 'w-28 min-w-[112px]',
+      padding: 'p-2.5 pb-3',
+      imageAspect: 'w-full aspect-square',
+      text: 'text-sm mt-2',
+      tape: '-top-3 right-2 w-10 h-4',
+    },
+  }[size];
 
-      <div className="w-full h-full bg-[#EEF8F5] rounded-xs flex items-center justify-center overflow-hidden border border-[#D5EFE7]">
+  return (
+    <div className={`relative inline-flex flex-col items-center justify-between bg-white ${config.padding} border border-[#E3DDD1] rounded-lg shadow-sm transition-transform hover:rotate-0 rotate-1 shrink-0 ${config.wrapper} ${className}`}>
+      {/* Pastel washi tape at top corner */}
+      <div className={`absolute ${config.tape} z-10 bg-[#A9C8E0]/90 border-l border-r border-white/70 shadow-2xs rotate-3`} />
+
+      <div className={`${config.imageAspect} bg-[#EEF8F5] rounded-md flex items-center justify-center overflow-hidden border border-[#D5EFE7] shrink-0`}>
         {/* Adorable Cute Cô Lam SVG */}
         <svg viewBox="0 0 100 100" className="w-full h-full">
           {/* Gentle soft mint aura */}
@@ -156,9 +215,12 @@ export const TutorLamAvatar: React.FC<{ size?: 'sm' | 'md' | 'lg'; className?: s
           <path d="M46 75 L50 82 L54 75" fill="#FFFFFF" />
         </svg>
       </div>
-      <div className="text-[11px] text-center font-handwriting font-bold text-[#326759] mt-0.5 leading-none">
-        Cô Lam
-      </div>
+
+      {showLabel && (
+        <span className={`${config.text} text-center font-bold text-[#1B4338] whitespace-nowrap leading-none select-none tracking-tight`}>
+          Cô Lam
+        </span>
+      )}
     </div>
   );
 };
