@@ -84,8 +84,8 @@ export default function App() {
 
   // Video Mode States
   const [currentVideoLesson, setCurrentVideoLesson] = useState<VideoLessonItem>(VIDEO_LESSON_LIBRARY[0]);
-  const [videoPhase, setVideoPhase] = useState<VideoCheckpointPhase>('CHECKPOINT_REACHED');
-  const [videoCurrentTime, setVideoCurrentTime] = useState<number>(VIDEO_LESSON_LIBRARY[0].checkpointTimestamp);
+  const [videoPhase, setVideoPhase] = useState<VideoCheckpointPhase>('WATCHING');
+  const [videoCurrentTime, setVideoCurrentTime] = useState<number>(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
   const [currentPoeTopic, setCurrentPoeTopic] = useState<string>('Toán 12 · Biến thể Vectơ trong không gian (Thầy Nguyễn Phan Tiến)');
 
@@ -551,8 +551,8 @@ export default function App() {
 
   const handleSwitchVideoLesson = (lesson: VideoLessonItem) => {
     setCurrentVideoLesson(lesson);
-    setVideoCurrentTime(lesson.checkpointTimestamp);
-    setVideoPhase('CHECKPOINT_REACHED');
+    setVideoCurrentTime(0);
+    setVideoPhase('WATCHING');
     setIsVideoPlaying(false);
     setBackendSessionId(null);
     setLiveBoDialogue(null);
@@ -658,9 +658,6 @@ export default function App() {
         isBackendLive={isBackendLive}
         onSelectMode={(mode) => {
           setCurrentMode(mode);
-          if (mode === 'video_clash') {
-            handleJumpToCheckpoint();
-          }
         }}
         onOpenPause={() => setIsPauseOpen(true)}
         onOpenLessonDrawer={() => setIsLessonDrawerOpen(true)}
@@ -699,43 +696,41 @@ export default function App() {
             })}
           </div>
 
-          {/* Chọn nhanh bài video ở góc phải */}
-          {currentMode === 'video_clash' && (
-            <div className="flex items-center gap-1 font-handwriting text-xs bg-white/80 px-2 py-0.5 rounded-full border border-[#D5C9B5] mb-1">
-              <span className="text-[#8A7D6F] text-[11px]">Bài giảng:</span>
-              {VIDEO_LESSON_LIBRARY.map((v) => (
-                <button
-                  key={v.id}
-                  onClick={() => handleSwitchVideoLesson(v)}
-                  type="button"
-                  className={`px-2 py-0.5 rounded-full text-[11px] cursor-pointer ${
-                    currentVideoLesson.id === v.id
-                      ? 'bg-[#4E9B87] text-white font-bold'
-                      : 'text-[#5C4F42] hover:bg-black/5'
-                  }`}
-                >
-                  {v.id === 'VID_VECTO_12' ? 'Vectơ 12 (Thầy Tiến)' : v.id}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Gộp 4 Bạn học MAIC thành các pill nhỏ trên thanh Tab */}
+          <div className="flex items-center gap-2 pb-1">
+            <MaicPeerClassroomDock 
+              currentMode={currentMode}
+              currentState={currentState}
+              lessonTopic={currentMode === 'video_clash' ? currentVideoLesson.title : currentLesson.topic}
+              errorStepIndex={currentLesson.errorStepIndex}
+              peerContext={currentVideoLesson.peerContext}
+              variant="compact"
+            />
+            {currentMode === 'video_clash' && (
+              <div className="hidden 2xl:flex items-center gap-1 font-handwriting text-xs bg-white/80 px-2 py-0.5 rounded-full border border-[#D5C9B5]">
+                <span className="text-[#8A7D6F] text-[11px]">Bài:</span>
+                {VIDEO_LESSON_LIBRARY.map((v) => (
+                  <button
+                    key={v.id}
+                    onClick={() => handleSwitchVideoLesson(v)}
+                    type="button"
+                    className={`px-2 py-0.5 rounded-full text-[11px] cursor-pointer ${
+                      currentVideoLesson.id === v.id
+                        ? 'bg-[#4E9B87] text-white font-bold'
+                        : 'text-[#5C4F42] hover:bg-black/5'
+                    }`}
+                  >
+                    {v.id === 'VID_VECTO_12' ? 'Vectơ 12' : v.id}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Khung Sổ Tay Mở Rộng (Tự co giãn vừa khít chiều cao còn lại của màn hình!) */}
         <div className="flex-1 min-h-0 superr-cover p-2 rounded-xl shadow-xl flex flex-col">
-          <div className="flex-1 min-h-0 bg-[#FAF6EE] superr-page p-2.5 rounded-lg border border-[#DDD0BD] flex flex-col gap-2">
-            
-            {/* Thanh Hỏi nhỏ 4 bạn (1 dòng siêu gọn) */}
-            <div className="shrink-0">
-              <MaicPeerClassroomDock 
-                currentMode={currentMode}
-                currentState={currentState}
-                lessonTopic={currentMode === 'video_clash' ? currentVideoLesson.title : currentLesson.topic}
-                errorStepIndex={currentLesson.errorStepIndex}
-                peerContext={currentVideoLesson.peerContext}
-              />
-            </div>
-
+          <div className="flex-1 min-h-0 bg-[#FAF6EE] superr-page p-2.5 rounded-lg border border-[#DDD0BD] flex flex-col">
             {/* VÙNG NỘI DUNG CHÍNH: TỈ LỆ 7:3 CHUẨN, CHIỀU CAO BẰNG NHAU 100% */}
             <div className="flex-1 min-h-0 overflow-hidden">
               {currentMode === 'video_clash' && (

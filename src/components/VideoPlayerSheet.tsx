@@ -4,12 +4,9 @@ import { VideoLessonItem, VideoCheckpointPhase, RebuttalSticker } from '../types
 import { VIDEO_LESSON_LIBRARY } from '../data/videoLessons';
 import { 
   BoAvatar,
-  VideoPlayIcon, 
-  VideoPauseIcon, 
   HandStopIcon, 
   LinkChainIcon, 
   RubberStampSuccess,
-  GoldenStarIcon,
   CheckCircleIcon
 } from './HandmadeArtwork';
 import { sound } from '../utils/soundEffects';
@@ -51,7 +48,6 @@ const extractYouTubeId = (url?: string): string | null => {
 
 export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   lesson,
-  phase,
   currentTime,
   isPlaying,
   isLoadingAi = false,
@@ -68,8 +64,10 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
 }) => {
   const defaultYtId = lesson.youtubeId || extractYouTubeId(lesson.videoUrl) || 'phvpqxLNTUQ';
   const [activeYoutubeId, setActiveYoutubeId] = useState<string>(defaultYtId);
-  const [internalPhase, setInternalPhase] = useState<VideoCheckpointPhase>(phase);
-  const [selectedOption, setSelectedOption] = useState<{
+
+  // Mặc định khởi đầu ở trạng thái WATCHING để khi video chạy tới 37:13 sẽ tự động dừng!
+  const [internalPhase, setInternalPhase] = useState<VideoCheckpointPhase>('WATCHING');
+  const [, setSelectedOption] = useState<{
     id: string;
     label: string;
     isStandardBest: boolean;
@@ -88,22 +86,19 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
 
   const ytPlayerRef = useRef<any>(null);
   const playerContainerId = useRef<string>(`yt-player-${Math.random().toString(36).slice(2, 8)}`);
-
-  useEffect(() => {
-    setInternalPhase(phase);
-  }, [phase]);
+  // Cờ kiểm soát tự động dừng đúng 1 lần khi chạm mốc checkpoint (tránh lặp vô hạn sau khi bấm Xem tiếp)
+  const hasAutoPausedAtCheckpointRef = useRef<boolean>(false);
 
   useEffect(() => {
     const newYtId = lesson.youtubeId || extractYouTubeId(lesson.videoUrl) || 'phvpqxLNTUQ';
     setActiveYoutubeId(newYtId);
+    setInternalPhase('WATCHING');
     setSelectedOption(null);
     setRebuttalFeedback(null);
     setIsQuizMinimized(false);
+    hasAutoPausedAtCheckpointRef.current = false;
     if (ytPlayerRef.current && typeof ytPlayerRef.current.loadVideoById === 'function') {
-      ytPlayerRef.current.loadVideoById({
-        videoId: newYtId,
-        startSeconds: 0,
-      });
+      ytPlayerRef.current.loadVideoById({ videoId: newYtId, startSeconds: 0 });
     }
   }, [lesson.id, lesson.youtubeId, lesson.videoUrl]);
 
@@ -125,8 +120,18 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
         },
         events: {
           onStateChange: (event: any) => {
-            if (event.data === 1 && !isPlaying) onTogglePlay();
-            else if (event.data === 2 && isPlaying) onTogglePlay();
+            // Khi học sinh bấm Play trên YouTube -> Đưa về trạng thái WATCHING để rình bắt mốc Checkpoint!
+            if (event.data === 1) {
+              const sec = Math.floor(ytPlayerRef.current?.getCurrentTime?.() || 0);
+              // Nếu tua về trước mốc checkpoint thì reset cờ tự dừng để khi chạy qua 37:13 sẽ tự dừng lại!
+              if (sec < lesson.checkpointTimestamp - 2) {
+                hasAutoPausedAtCheckpointRef.current = false;
+              }
+              setInternalPhase('WATCHING');
+              if (!isPlaying) onTogglePlay();
+            } else if (event.data === 2 && isPlaying) {
+              onTogglePlay();
+            }
           },
         },
       });
@@ -146,6 +151,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
     }
   }, [activeYoutubeId]);
 
+  // BỘ RÌNH BẮT GIÂY THẬT TỪ YOUTUBE (Mỗi 400ms): Chạm mốc 37:13 là TỰ ĐỘNG DỪNG VIDEO NGAY!
   useEffect(() => {
     const timer = setInterval(() => {
       if (
@@ -153,11 +159,25 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
         typeof ytPlayerRef.current.getCurrentTime === 'function' &&
         typeof ytPlayerRef.current.getPlayerState === 'function'
       ) {
-        if (ytPlayerRef.current.getPlayerState() === 1) {
+        const state = ytPlayerRef.current.getPlayerState();
+        if (state === 1) {
           const sec = Math.floor(ytPlayerRef.current.getCurrentTime());
           onSeek(sec);
-          if (Math.abs(sec - lesson.checkpointTimestamp) <= 1 && internalPhase === 'WATCHING') {
+
+          // Nếu học sinh tua về trước mốc checkpoint -> Cho phép tự dừng lại khi chạm mốc
+          if (sec < lesson.checkpointTimestamp - 2) {
+            hasAutoPausedAtCheckpointRef.current = false;
+          }
+
+          // KÍCH HOẠT TỰ ĐỘNG DỪNG KHI CHẠM MỐC CHECKPOINT (37:13 -> 37:16)
+          if (
+            sec >= lesson.checkpointTimestamp &&
+            sec <= lesson.checkpointTimestamp + 4 &&
+            !hasAutoPausedAtCheckpointRef.current
+          ) {
+            hasAutoPausedAtCheckpointRef.current = true;
             ytPlayerRef.current.pauseVideo();
+            sound.playBubblePop();
             setInternalPhase('CHECKPOINT_REACHED');
             setIsOverlayDrawerOpen(false);
             setIsQuizMinimized(false);
@@ -165,25 +185,30 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
           }
         }
       }
-    }, 600);
+    }, 400);
     return () => clearInterval(timer);
-  }, [lesson.checkpointTimestamp, internalPhase, onSeek, onJumpToCheckpoint]);
+  }, [lesson.checkpointTimestamp, onSeek, onJumpToCheckpoint]);
 
   const handleSeekBoth = (targetSec: number) => {
     sound.playPencilTap();
+    if (targetSec < lesson.checkpointTimestamp - 2) {
+      hasAutoPausedAtCheckpointRef.current = false;
+    }
     onSeek(targetSec);
     if (ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
       ytPlayerRef.current.seekTo(targetSec, true);
     }
   };
 
-  const handleTogglePlayBoth = () => {
-    if (ytPlayerRef.current && typeof ytPlayerRef.current.getPlayerState === 'function') {
-      const state = ytPlayerRef.current.getPlayerState();
-      if (state === 1) ytPlayerRef.current.pauseVideo();
-      else ytPlayerRef.current.playVideo();
-    }
-    onTogglePlay();
+  // Khi bấm nút "Tới câu hỏi 37:13" (Hoặc tua tới 37:10 để xem nó tự dừng ở 37:13)
+  const handleTriggerCheckpointNow = () => {
+    hasAutoPausedAtCheckpointRef.current = true;
+    setIsOverlayDrawerOpen(false);
+    setIsQuizMinimized(false);
+    handleSeekBoth(lesson.checkpointTimestamp);
+    if (ytPlayerRef.current?.pauseVideo) ytPlayerRef.current.pauseVideo();
+    setInternalPhase('CHECKPOINT_REACHED');
+    onJumpToCheckpoint();
   };
 
   const handleSelectQuizOption = (opt: {
@@ -220,11 +245,12 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   };
 
   const handleResumeAfterQuiz = () => {
+    hasAutoPausedAtCheckpointRef.current = true;
     setInternalPhase('WATCHING');
     setSelectedOption(null);
     setRebuttalFeedback(null);
     if (ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
-      ytPlayerRef.current.seekTo(lesson.checkpointTimestamp + 2, true);
+      ytPlayerRef.current.seekTo(lesson.checkpointTimestamp + 5, true);
       ytPlayerRef.current.playVideo();
     }
     onResumeVideo?.();
@@ -268,49 +294,19 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   const showQuizOverlay = isCheckpointActive && !isQuizMinimized && !isOverlayDrawerOpen;
 
   return (
-    <div className="relative w-full h-full flex flex-col bg-[#141A17] rounded-xl overflow-hidden border border-[#C9B99F] shadow-md">
-      {/* KHUNG VIDEO CHÍNH TRÀN VIỀN 100% */}
+    <div className="relative w-full h-full flex flex-col bg-[#111614] rounded-xl overflow-hidden border border-[#C9B99F] shadow-sm">
+      {/* ========================================================================= */}
+      {/* 1. VÙNG VIDEO YOUTUBE SẠCH 100% (KHÔNG VẼ NÚT ĐÈ LÊN CHỮ CỦA YOUTUBE!)    */}
+      {/* ========================================================================= */}
       <div className="relative flex-1 w-full bg-black overflow-hidden">
         <div id={playerContainerId.current} className="w-full h-full" />
 
-        {/* Thanh nổi siêu mảnh ở góc trên trái Video (Mờ trong suốt kiểu YouTube) */}
-        <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-20">
-          <div className="flex items-center gap-1.5 pointer-events-auto">
-            <button
-              type="button"
-              onClick={() => setIsAttachModalOpen(true)}
-              className="px-2.5 py-1 rounded-full bg-black/55 hover:bg-black/75 backdrop-blur-md text-white/95 border border-white/15 text-xs font-handwriting flex items-center gap-1.5 cursor-pointer transition-all"
-            >
-              <LinkChainIcon className="w-3 h-3 text-[#F5D65D]" />
-              <span>Đổi link YouTube</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setIsOverlayDrawerOpen(false);
-                setIsQuizMinimized(false);
-                handleSeekBoth(lesson.checkpointTimestamp);
-                if (ytPlayerRef.current?.pauseVideo) ytPlayerRef.current.pauseVideo();
-                setInternalPhase('CHECKPOINT_REACHED');
-                onJumpToCheckpoint();
-              }}
-              className="px-2.5 py-1 rounded-full bg-[#E8A33D]/90 hover:bg-[#E8A33D] backdrop-blur-md text-black font-handwriting font-bold text-xs cursor-pointer shadow-sm transition-all"
-            >
-              ⚡ Test Điểm dừng Quiz ({formatTime(lesson.checkpointTimestamp)})
-            </button>
-          </div>
-        </div>
-
-        {/* ========================================================================= */}
-        {/* KHAY KÍNH MỜ TRONG SUỐT "PHÂN CẢNH | BẢN CHÉP LỜI" (ẨN THANH CUỘN 100%)   */}
-        {/* ========================================================================= */}
+        {/* KHAY KÍNH MỜ "PHÂN CẢNH | BẢN CHÉP LỜI" (Chỉ hiện khi bấm nút dưới đáy) */}
         {isOverlayDrawerOpen && (
-          <div className="absolute top-2 bottom-12 right-2 w-[290px] sm:w-[320px] yt-frosted-glass text-white rounded-xl shadow-2xl z-30 flex flex-col overflow-hidden animate-in fade-in slide-in-from-right-3 duration-150">
-            {/* Header Kính mờ */}
+          <div className="absolute top-2 bottom-2 right-2 w-[290px] sm:w-[320px] yt-frosted-glass text-white rounded-xl shadow-2xl z-30 flex flex-col overflow-hidden animate-in fade-in slide-in-from-right-3 duration-150">
             <div className="p-2.5 border-b border-white/10 space-y-2 shrink-0">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-xs text-white/90">Trong video này</span>
+                <span className="font-bold text-xs text-white/95">Trong video này</span>
                 <button
                   type="button"
                   onClick={() => setIsOverlayDrawerOpen(false)}
@@ -320,26 +316,21 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 </button>
               </div>
 
-              {/* 2 Nút Pill giống hệt ảnh YouTube của bạn */}
               <div className="flex items-center gap-1.5 text-xs font-semibold">
                 <button
                   type="button"
                   onClick={() => setDrawerTab('chapters')}
                   className={`px-3 py-1 rounded-full cursor-pointer transition-all ${
-                    drawerTab === 'chapters'
-                      ? 'bg-white text-black font-bold'
-                      : 'bg-white/10 text-white/80 hover:bg-white/20'
+                    drawerTab === 'chapters' ? 'bg-white text-black font-bold' : 'bg-white/10 text-white/80 hover:bg-white/20'
                   }`}
                 >
-                  Phân cảnh
+                  Phân cảnh ({chapters.length})
                 </button>
                 <button
                   type="button"
                   onClick={() => setDrawerTab('transcript')}
                   className={`px-3 py-1 rounded-full cursor-pointer transition-all ${
-                    drawerTab === 'transcript'
-                      ? 'bg-white text-black font-bold'
-                      : 'bg-white/10 text-white/80 hover:bg-white/20'
+                    drawerTab === 'transcript' ? 'bg-white text-black font-bold' : 'bg-white/10 text-white/80 hover:bg-white/20'
                   }`}
                 >
                   Bản chép lời
@@ -360,9 +351,8 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
               )}
             </div>
 
-            {/* Nội dung Phân cảnh (Đã gắn class no-scrollbar ẩn thanh kéo!) */}
             {drawerTab === 'chapters' && (
-              <div className="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1.5 text-xs">
+              <div className="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1 text-xs">
                 {chapters.map((ch) => {
                   const isCurrentChap = currentChapter?.id === ch.id;
                   return (
@@ -370,17 +360,10 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                       key={ch.id}
                       onClick={() => {
                         handleSeekBoth(ch.startSecond);
-                        if (ch.hasCheckpoint) {
-                          setIsOverlayDrawerOpen(false);
-                          setIsQuizMinimized(false);
-                          setInternalPhase('CHECKPOINT_REACHED');
-                          onJumpToCheckpoint();
-                        }
+                        if (ch.hasCheckpoint) handleTriggerCheckpointNow();
                       }}
                       className={`p-2 rounded-lg cursor-pointer transition-all flex items-center gap-2.5 ${
-                        isCurrentChap
-                          ? 'bg-white/20 border-l-3 border-[#F5D65D]'
-                          : 'hover:bg-white/10'
+                        isCurrentChap ? 'bg-white/20 border-l-3 border-[#F5D65D]' : 'hover:bg-white/10'
                       }`}
                     >
                       <div className="w-14 h-9 rounded bg-black/50 border border-white/15 text-[#F5D65D] font-mono text-[10px] font-bold flex items-center justify-center text-center p-1 shrink-0">
@@ -400,7 +383,6 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
               </div>
             )}
 
-            {/* Nội dung Bản chép lời từng giây (Đã gắn no-scrollbar ẩn thanh kéo!) */}
             {drawerTab === 'transcript' && (
               <div className="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1 text-xs">
                 {filteredCues.map((cue) => {
@@ -410,12 +392,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                       key={cue.id}
                       onClick={() => {
                         handleSeekBoth(cue.start);
-                        if (cue.tag === 'checkpoint') {
-                          setIsOverlayDrawerOpen(false);
-                          setIsQuizMinimized(false);
-                          setInternalPhase('CHECKPOINT_REACHED');
-                          onJumpToCheckpoint();
-                        }
+                        if (cue.tag === 'checkpoint') handleTriggerCheckpointNow();
                       }}
                       className={`flex items-start gap-2 p-2 rounded-lg cursor-pointer transition-all ${
                         isActive ? 'bg-white/20 border-l-3 border-[#38BDF8]' : 'hover:bg-white/10'
@@ -440,31 +417,29 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
           </div>
         )}
 
-        {/* ========================================================================= */}
-        {/* THẺ QUIZ KÍNH MỜ TRONG SUỐT NỬA DƯỚI VIDEO (GỌN GÀNG, MƯỢT MÀ)            */}
-        {/* ========================================================================= */}
+        {/* THẺ QUIZ NỔI TRONG SUỐT KHI VIDEO DỪNG TẠI 37:13 */}
         {showQuizOverlay && (
-          <div className="absolute inset-x-3 bottom-12 z-20 dre-frosted-light text-[#2F2923] rounded-xl p-3 shadow-2xl animate-in slide-in-from-bottom-3 duration-150 max-h-[250px] overflow-y-auto no-scrollbar">
+          <div className="absolute inset-x-4 bottom-4 z-20 dre-frosted-light text-[#2F2923] rounded-xl p-3.5 shadow-2xl animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-black/10 pb-1.5 mb-2">
-              <span className="px-2 py-0.5 rounded-full bg-[#F5D65D] text-[#2F2923] font-handwriting font-bold text-xs">
-                {internalPhase === 'CHECKPOINT_REACHED' && `⚡ Câu hỏi dừng [${formatTime(lesson.checkpointTimestamp)}]`}
-                {internalPhase === 'BO_DEBATE' && '⚔️ Bo phản đối lựa chọn của em!'}
-                {(internalPhase === 'BO_CONCEDED' || internalPhase === 'CO_LAM_CLOSURE') && '🌟 Chốt quy tắc vàng'}
+              <span className="px-2.5 py-0.5 rounded-full bg-[#F5D65D] text-[#2F2923] font-handwriting font-bold text-xs">
+                {internalPhase === 'CHECKPOINT_REACHED' && `⚡ Điểm dừng kiểm tra độ tập trung [${formatTime(lesson.checkpointTimestamp)}]`}
+                {internalPhase === 'BO_DEBATE' && '⚔️ Bo nhảy vào phản đối lựa chọn của em!'}
+                {(internalPhase === 'BO_CONCEDED' || internalPhase === 'CO_LAM_CLOSURE') && '🌟 Đã thông suốt bản chất!'}
               </span>
 
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setIsQuizMinimized(true)}
-                  className="px-2 py-0.5 rounded-full bg-black/10 hover:bg-black/15 text-[#2F2923] font-handwriting font-bold text-[11px] cursor-pointer"
+                  className="px-2.5 py-0.5 rounded-full bg-black/10 hover:bg-black/15 text-[#2F2923] font-handwriting font-bold text-xs cursor-pointer"
                 >
-                  👁️ Nhìn bảng
+                  👁️ Nhìn bảng thầy
                 </button>
                 {internalPhase === 'CHECKPOINT_REACHED' && (
                   <button
                     type="button"
                     onClick={onSkipCheckpoint || handleResumeAfterQuiz}
-                    className="text-[11px] font-handwriting text-[#6E6254] hover:text-black underline cursor-pointer"
+                    className="text-xs font-handwriting text-[#6E6254] hover:text-black underline cursor-pointer"
                   >
                     Bỏ qua ➔
                   </button>
@@ -474,18 +449,18 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
 
             {internalPhase === 'CHECKPOINT_REACHED' && (
               <div className="space-y-2">
-                <p className="font-bold text-xs text-[#1E3B33] leading-snug">
+                <p className="font-bold text-xs sm:text-sm text-[#1E3B33] leading-snug">
                   {cleanText(lesson.checkpointQuestion.prompt)}
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {lesson.checkpointQuestion.options.map((opt, idx) => (
                     <button
                       key={opt.id}
                       type="button"
                       onClick={() => handleSelectQuizOption(opt)}
-                      className="p-2 rounded-lg border border-black/15 bg-white/90 hover:bg-[#FFF8EB] hover:border-[#E8A33D] text-left text-xs font-handwriting transition-all cursor-pointer flex items-start gap-1.5"
+                      className="p-2.5 rounded-lg border border-black/15 bg-white hover:bg-[#FFF8EB] hover:border-[#E8A33D] text-left text-xs font-handwriting transition-all cursor-pointer flex items-start gap-2 shadow-2xs"
                     >
-                      <span className="w-4 h-4 rounded-full bg-[#EFE8DA] text-[#3B3026] font-mono font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="w-5 h-5 rounded-full bg-[#EFE8DA] text-[#3B3026] font-mono font-bold text-[10px] flex items-center justify-center shrink-0">
                         {idx === 0 ? 'A' : idx === 1 ? 'B' : 'C'}
                       </span>
                       <span className="leading-snug text-[#2F2923]">{cleanText(opt.label)}</span>
@@ -497,7 +472,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
 
             {internalPhase === 'BO_DEBATE' && (
               <div className="space-y-2">
-                <div className="flex items-start gap-2 p-2 rounded-lg bg-[#FFF8EB]/90 border border-[#E8A33D]/50">
+                <div className="flex items-start gap-2 p-2 rounded-lg bg-[#FFF8EB] border border-[#E8A33D]/60">
                   <BoAvatar size="sm" expression="skeptical" className="shrink-0 scale-90" />
                   <div className="text-xs font-handwriting text-[#3E342B] leading-snug">
                     <span className="font-bold text-[#8C5D19] mr-1">🧒 Bo cãi:</span>
@@ -512,7 +487,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                       type="button"
                       disabled={isLoadingAi}
                       onClick={() => handleStickerClick(stk)}
-                      className="w-full text-left px-2.5 py-1 rounded-lg bg-white/95 hover:bg-[#EDF7F4] border border-[#4E9B87] text-xs font-handwriting text-[#1E3B33] flex items-center justify-between gap-2 cursor-pointer"
+                      className="w-full text-left px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#EDF7F4] border border-[#4E9B87] text-xs font-handwriting text-[#1E3B33] flex items-center justify-between gap-2 cursor-pointer"
                     >
                       <span className="leading-snug">🏷️ “{cleanText(stk.text)}”</span>
                       <span className="text-[10px] font-mono font-bold text-[#2E6859] shrink-0">Phản biện ➔</span>
@@ -532,7 +507,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                     value={customRebuttal}
                     onChange={(e) => setCustomRebuttal(e.target.value)}
                     placeholder="Hoặc tự gõ lý lẽ của em..."
-                    className="flex-1 px-2.5 py-1 bg-white/90 border border-black/15 rounded-lg text-xs font-handwriting outline-none"
+                    className="flex-1 px-2.5 py-1 bg-white border border-black/15 rounded-lg text-xs font-handwriting outline-none"
                   />
                   <button
                     type="submit"
@@ -545,75 +520,89 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
             )}
 
             {(internalPhase === 'BO_CONCEDED' || internalPhase === 'CO_LAM_CLOSURE') && (
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <RubberStampSuccess className="scale-75" />
-                    <span className="font-handwriting font-bold text-xs text-[#2E6859]">
-                      Bo đã phục! {cleanText(lesson.teacherClosure.goldenRule)}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleResumeAfterQuiz}
-                    className="px-3 py-1 bg-[#4E9B87] text-white font-handwriting font-bold text-xs rounded-lg cursor-pointer shrink-0"
-                  >
-                    Xem tiếp ➔
-                  </button>
+              <div className="flex items-center justify-between gap-2 pt-1">
+                <div className="flex items-center gap-2">
+                  <RubberStampSuccess className="scale-75 shrink-0" />
+                  <span className="font-handwriting font-bold text-xs text-[#2E6859]">
+                    {cleanText(lesson.teacherClosure.goldenRule)}
+                  </span>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleResumeAfterQuiz}
+                  className="px-3.5 py-1.5 bg-[#4E9B87] text-white font-handwriting font-bold text-xs rounded-lg cursor-pointer shrink-0"
+                >
+                  Phát tiếp video ➔
+                </button>
               </div>
             )}
           </div>
         )}
+      </div>
 
-        {isCheckpointActive && (isQuizMinimized || isOverlayDrawerOpen) && (
+      {/* ========================================================================= */}
+      {/* 2. THANH BAR TỐI GIẢN NẰM DƯỚI CHÂN VIDEO (KHÔNG BAO GIỜ CHE YOUTUBE!)    */}
+      {/* ========================================================================= */}
+      <div className="bg-[#18201D] px-3 py-2 border-t border-white/10 flex items-center justify-between gap-2 text-xs shrink-0">
+        {/* Trái: Nút mở Phân cảnh & Bản chép lời + Đổi link */}
+        <div className="flex items-center gap-2 min-w-0">
           <button
             type="button"
             onClick={() => {
-              setIsOverlayDrawerOpen(false);
-              setIsQuizMinimized(false);
+              setIsOverlayDrawerOpen((prev) => {
+                const next = !prev;
+                if (next) setIsQuizMinimized(true);
+                return next;
+              });
             }}
-            className="absolute bottom-12 left-3 z-20 px-3 py-1 bg-[#E8A33D] text-black font-handwriting font-bold text-xs rounded-full shadow-lg cursor-pointer"
+            className={`px-3 py-1 rounded-full font-medium text-xs flex items-center gap-1.5 border cursor-pointer transition-all max-w-[270px] ${
+              isOverlayDrawerOpen
+                ? 'bg-white text-black border-white font-bold'
+                : 'bg-white/10 hover:bg-white/20 text-white border-white/15'
+            }`}
           >
-            ⚡ Mở lại Câu hỏi ({formatTime(lesson.checkpointTimestamp)})
-          </button>
-        )}
-
-        {/* ========================================================================= */}
-        {/* THANH ĐÁY KÍNH MỜ TRONG SUỐT ĐÈ LÊN VIDEO (CHUẨN KHUNG ĐỎ YOUTUBE!)       */}
-        {/* ========================================================================= */}
-        <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between gap-2 z-20 pointer-events-none">
-          <div className="flex items-center gap-2 pointer-events-auto">
-            <button
-              type="button"
-              onClick={handleTogglePlayBoth}
-              className="p-1.5 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md text-white border border-white/15 cursor-pointer"
-            >
-              {isPlaying ? <VideoPauseIcon className="w-3.5 h-3.5" /> : <VideoPlayIcon className="w-3.5 h-3.5" />}
-            </button>
-
-            <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/95 font-mono text-[11px] border border-white/10">
-              {formatTime(currentTime)} / {formatTime(lesson.duration)}
+            <span className="truncate">
+              📖 {currentChapter ? cleanText(currentChapter.title) : 'Phân cảnh & Bản chép lời'}
             </span>
+            <span className="font-bold shrink-0">❯</span>
+          </button>
 
-            {/* NÚT VIÊN THUỐC MỜ TRONG SUỐT Y HỆT ẢNH YOUTUBE CỦA BẠN */}
-            <button
-              type="button"
-              onClick={() => {
-                setIsOverlayDrawerOpen((prev) => {
-                  const next = !prev;
-                  if (next) setIsQuizMinimized(true);
-                  return next;
-                });
-              }}
-              className="px-3 py-1 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md text-white text-xs font-medium flex items-center gap-1.5 border border-white/20 cursor-pointer transition-all max-w-[260px]"
-            >
-              <span className="truncate">
-                {currentChapter ? cleanText(currentChapter.title) : 'Định Nghĩa Vectơ'}
-              </span>
-              <span className="text-white/80 font-bold shrink-0">❯</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setIsAttachModalOpen(true)}
+            className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white/85 border border-white/10 text-[11px] font-handwriting flex items-center gap-1 cursor-pointer shrink-0"
+          >
+            <LinkChainIcon className="w-3 h-3 text-[#F5D65D]" />
+            <span>Đổi link</span>
+          </button>
+        </div>
+
+        {/* Phải: Nút Tua sát 37:10 (để xem video tự dừng ở 37:13) + Mở Quiz + Khoan đã cô ơi */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              // Tua tới trước mốc dừng 3 giây (37:10) và phát để Giám khảo thấy tới 37:13 video TỰ ĐỘNG DỪNG!
+              hasAutoPausedAtCheckpointRef.current = false;
+              setInternalPhase('WATCHING');
+              setIsOverlayDrawerOpen(false);
+              const preRoll = Math.max(0, lesson.checkpointTimestamp - 3);
+              handleSeekBoth(preRoll);
+              if (ytPlayerRef.current?.playVideo) ytPlayerRef.current.playVideo();
+            }}
+            className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[#8CE6CF] border border-[#4E9B87]/50 font-handwriting text-[11px] cursor-pointer hidden sm:inline-block"
+            title="Phát từ 37:10 để xem đến đúng 37:13 video tự động dừng và bật câu hỏi"
+          >
+            ▶ Thử tự dừng (37:10 ➔ 37:13)
+          </button>
+
+          <button
+            type="button"
+            onClick={handleTriggerCheckpointNow}
+            className="px-2.5 py-1 rounded-full bg-[#E8A33D] hover:bg-[#D9932B] text-black font-handwriting font-bold text-xs cursor-pointer"
+          >
+            ⚡ Câu hỏi ({formatTime(lesson.checkpointTimestamp)})
+          </button>
 
           <button
             type="button"
@@ -621,10 +610,10 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
               if (ytPlayerRef.current?.pauseVideo) ytPlayerRef.current.pauseVideo();
               onTriggerFreeze();
             }}
-            className="pointer-events-auto px-3 py-1 rounded-full bg-[#FFF8EB]/90 hover:bg-white backdrop-blur-md text-[#7B4E12] font-handwriting font-bold text-xs border border-[#E8A33D] flex items-center gap-1 cursor-pointer shadow-sm"
+            className="px-2.5 py-1 rounded-full bg-[#FFF8EB] hover:bg-white text-[#7B4E12] font-handwriting font-bold text-xs border border-[#E8A33D] flex items-center gap-1 cursor-pointer"
           >
             <HandStopIcon className="w-3.5 h-3.5 text-[#E8A33D]" />
-            <span>✋ Khoan đã cô ơi!</span>
+            <span>Khoan đã cô!</span>
           </button>
         </div>
       </div>

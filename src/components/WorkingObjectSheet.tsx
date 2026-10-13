@@ -18,6 +18,8 @@ interface WorkingObjectSheetProps {
   boSpeechOverride?: string | null;
 }
 
+const cleanText = (str?: string) => (str ? str.replace(/\u20d7/g, '') : '');
+
 export const WorkingObjectSheet: React.FC<WorkingObjectSheetProps> = ({
   lesson,
   currentState,
@@ -93,7 +95,7 @@ export const WorkingObjectSheet: React.FC<WorkingObjectSheetProps> = ({
             Đề bài
           </span>
           <span className="text-sm font-semibold text-[#4A3D2F]">
-            {lesson.workingObject.title}
+            {cleanText(lesson.workingObject.title)}
           </span>
         </div>
         <p className="text-xs text-[#87796D] font-handwriting italic">
@@ -166,7 +168,7 @@ export const WorkingObjectSheet: React.FC<WorkingObjectSheetProps> = ({
 
               {/* Math Expression (Printed clean font, strictly legible) */}
               <div className="flex-1 font-mono text-sm sm:text-base tracking-wide pt-0.5 select-text">
-                {step.content}
+                {cleanText(step.content)}
               </div>
 
               {/* Subtle hover prompt */}
