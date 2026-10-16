@@ -694,3 +694,30 @@ button.quick-prompt-box {
   box-sizing: border-box !important;
 }
 
+/* ==========================================================================
+   3. CHUẨN HÓA HIỂN THỊ KÝ HIỆU VECTƠ (TOÁN 12 - MŨI TÊN TRÊN ĐẦU \vec)
+   ========================================================================== */
+.vec {
+  display: inline-block;
+  position: relative;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', 'Be Vietnam Pro', monospace;
+  margin-left: 0.15em;
+  margin-right: 0.15em;
+  line-height: 1;
+}
+
+.vec::after {
+  content: "→";
+  position: absolute;
+  top: -0.65em;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 0.78em;
+  line-height: 1;
+  pointer-events: none;
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  opacity: 0.85;
+}
+

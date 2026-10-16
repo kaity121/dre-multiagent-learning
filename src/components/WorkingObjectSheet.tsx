@@ -2,6 +2,7 @@
 import React from 'react';
 import { MisconceptionItem, DREState } from '../types/dre';
 import { BoAvatar, CheckCircleIcon } from './HandmadeArtwork';
+import { Vec, PrismVectorDiagram } from './MathVector';
 import { sound } from '../utils/soundEffects';
 
 interface WorkingObjectSheetProps {
@@ -22,6 +23,36 @@ export const WorkingObjectSheet: React.FC<WorkingObjectSheetProps> = ({
   boSpeechOverride,
 }) => {
   const isCompleted = currentState === 'CLOSE';
+
+  // Render nội dung từng bước giải với ký hiệu Vectơ chuẩn xác
+  const renderStepContent = (stepNum: number, defaultContent: string) => {
+    if (lesson.id === 'MISC_VECTO_12') {
+      if (stepNum === 1) {
+        return (
+          <span>
+            Chèn điểm A vào vectơ <Vec className="text-[#0e7490]">B'C</Vec> theo quy tắc hiệu (Chung gốc A):
+          </span>
+        );
+      }
+      if (stepNum === 2) {
+        return (
+          <span className="font-mono text-xs sm:text-sm">
+            <Vec className="text-rose-700">B'C</Vec> = <Vec className="text-slate-800">AB'</Vec> − <Vec className="text-slate-800">AC</Vec>{' '}
+            <span className="font-sans text-xs text-slate-500 font-normal">(Lấy điểm trước trừ điểm sau)</span>
+          </span>
+        );
+      }
+      if (stepNum === 3) {
+        return (
+          <span className="font-mono text-xs sm:text-sm">
+            Vì <Vec>AB'</Vec> = <Vec>AA'</Vec> + <Vec>AB</Vec> = <Vec>a</Vec> + <Vec>b</Vec> nên{' '}
+            <Vec className="text-rose-700">B'C</Vec> = <Vec>a</Vec> + <Vec>b</Vec> − <Vec>c</Vec>
+          </span>
+        );
+      }
+    }
+    return cleanText(defaultContent);
+  };
 
   return (
     <div className="w-full h-full flex flex-col justify-between p-2 sm:p-4 space-y-4">
@@ -49,14 +80,28 @@ export const WorkingObjectSheet: React.FC<WorkingObjectSheetProps> = ({
             Đề bài thực hành
           </span>
           <h2 className="font-bold text-sm sm:text-base text-[#1E242B] leading-relaxed pt-1">
-            {cleanText(lesson.workingObject.title)}
+            {lesson.id === 'MISC_VECTO_12' ? (
+              <span>
+                Ví dụ 10 (Phút 1:40:10): Cho lăng trụ ABC.A'B'C'. Đặt <Vec>a</Vec> = <Vec>AA'</Vec>,{' '}
+                <Vec>b</Vec> = <Vec>AB</Vec>, <Vec>c</Vec> = <Vec>AC</Vec>. Hãy biểu diễn vectơ{' '}
+                <Vec className="text-rose-700 font-bold">B'C</Vec> theo <Vec>a</Vec>, <Vec>b</Vec>, <Vec>c</Vec>:
+              </span>
+            ) : (
+              cleanText(lesson.workingObject.title)
+            )}
           </h2>
         </div>
 
-        {/* Danh sách các bước giải của Bo (Font Plus Jakarta Sans sạch đẹp, dễ đọc) */}
+        {/* HÌNH MINH HỌA TRỰC QUAN KHÔNG GIAN CHO TRẠM 2 (LĂNG TRỤ TAM GIÁC) */}
+        {lesson.id === 'MISC_VECTO_12' && (
+          <PrismVectorDiagram className="animate-in fade-in duration-150" />
+        )}
+
+        {/* Danh sách các bước giải của Bo */}
         <div className="space-y-2.5 pt-1">
-          <div className="text-xs font-medium text-[#6E6254]">
-            Bấm trực tiếp vào bước giải bạn phát hiện có lỗi sai:
+          <div className="text-xs font-medium text-[#6E6254] flex items-center justify-between">
+            <span>Bấm trực tiếp vào bước giải bạn phát hiện có lỗi sai:</span>
+            <span className="text-[11px] text-slate-400">Chọn 1 trong 3 bước</span>
           </div>
 
           {lesson.workingObject.steps.map((step) => {
@@ -90,12 +135,17 @@ export const WorkingObjectSheet: React.FC<WorkingObjectSheetProps> = ({
                 className={`w-full text-left p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${cardStyle}`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className={`px-2.5 py-1 rounded-lg font-bold text-xs shrink-0 ${badgeStyle}`}>
-                    Bước {step.stepNumber}
-                  </span>
-                  <span className="text-xs sm:text-sm font-medium leading-relaxed">
-                    {cleanText(step.content)}
-                  </span>
+                  <div className="flex flex-col items-center gap-0.5 shrink-0">
+                    <span className={`px-2 py-0.5 rounded-md font-bold text-xs ${badgeStyle}`}>
+                      Bước {step.stepNumber}
+                    </span>
+                    <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-tighter">
+                      {step.stepNumber === 1 ? 'Phương pháp' : step.stepNumber === 2 ? 'Biến đổi' : 'Kết luận'}
+                    </span>
+                  </div>
+                  <div className="text-xs sm:text-sm font-medium leading-relaxed">
+                    {renderStepContent(step.stepNumber, step.content)}
+                  </div>
                 </div>
 
                 <span className="text-xs font-semibold text-[#6E6254] shrink-0">

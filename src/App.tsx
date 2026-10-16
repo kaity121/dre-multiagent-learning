@@ -45,7 +45,8 @@ import {
   PencilIcon,
   VideoPlayIcon,
   CompassIcon,
-  TeacherHatIcon
+  TeacherHatIcon,
+  CheckCircleIcon
 } from './components/HandmadeArtwork';
 import { 
   evaluateStepAndExplanation, 
@@ -90,6 +91,7 @@ export default function App() {
   const [isQuizCollapsedToChat, setIsQuizCollapsedToChat] = useState<boolean>(false);
   const [externalQuestionTrigger, setExternalQuestionTrigger] = useState<{ id: number; text: string } | null>(null);
   const [showAllTimeline, setShowAllTimeline] = useState<boolean>(false);
+  const [isPoeCompleted, setIsPoeCompleted] = useState<boolean>(false);
 
   // Modals & Drawers
   const [isPauseOpen, setIsPauseOpen] = useState(false);
@@ -1147,9 +1149,15 @@ export default function App() {
                         sound.playPageFlip();
                         setCurrentMode('predict_poe');
                       }}
-                      className="px-3 py-1 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                      className={`px-3 py-1 rounded-full text-xs flex items-center gap-1 cursor-pointer transition-all shadow-2xs ${
+                        currentState === 'CLOSE'
+                          ? 'bg-amber-600 hover:bg-amber-700 text-white font-bold animate-pulse shadow-sm'
+                          : 'bg-white hover:bg-slate-50 border border-slate-300 text-slate-600 font-medium opacity-85'
+                      }`}
+                      title={currentState === 'CLOSE' ? 'Đã hoàn thành bắt lỗi Bo! Bấm để sang Trạm 3' : 'Hoàn thành bài tập bắt lỗi Bo bên dưới hoặc bấm để sang Trạm 3'}
                     >
-                      <span>Sang Trạm 3: Đoán POE ➔</span>
+                      {currentState === 'CLOSE' && <CheckCircleIcon className="w-3.5 h-3.5 text-white" />}
+                      <span>{currentState === 'CLOSE' ? 'Đã xong Trạm 2 · Sang Trạm 3 ➔' : 'Sang Trạm 3: Đoán POE ➔'}</span>
                     </button>
                   )}
 
@@ -1160,22 +1168,15 @@ export default function App() {
                         sound.playPageFlip();
                         setCurrentMode('protege_teaching');
                       }}
-                      className="px-3 py-1 rounded-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                      className={`px-3 py-1 rounded-full text-xs flex items-center gap-1 cursor-pointer transition-all shadow-2xs ${
+                        isPoeCompleted
+                          ? 'bg-yellow-600 hover:bg-yellow-700 text-white font-bold animate-pulse shadow-sm'
+                          : 'bg-white hover:bg-slate-50 border border-slate-300 text-slate-600 font-medium opacity-85'
+                      }`}
+                      title={isPoeCompleted ? 'Đã hoàn thành dự đoán & giải thích! Bấm để sang Trạm 4' : 'Hoàn thành dự đoán & giải thích nguyên lý bên dưới hoặc bấm để sang Trạm 4'}
                     >
-                      <span>Sang Trạm 4: Dạy kèm Bo ➔</span>
-                    </button>
-                  )}
-
-                  {currentMode === 'protege_teaching' && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        sound.playPageFlip();
-                        setCurrentMode('video_clash');
-                      }}
-                      className="px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
-                    >
-                      <span>↺ Hoàn thành · Quay lại Trạm 1</span>
+                      {isPoeCompleted && <CheckCircleIcon className="w-3.5 h-3.5 text-white" />}
+                      <span>{isPoeCompleted ? 'Đã xong Trạm 3 · Sang Trạm 4 ➔' : 'Sang Trạm 4: Dạy kèm Bo ➔'}</span>
                     </button>
                   )}
 
@@ -1252,6 +1253,7 @@ export default function App() {
                       lesson={currentLesson}
                       currentState={currentState}
                       selectedStep={selectedStep}
+                      onSelectStep={handleSelectStep}
                       explanationText={explanationText}
                       rebuttalText={worksheetRebuttalText}
                       onExplanationChange={handleExplanationChange}
@@ -1282,6 +1284,7 @@ export default function App() {
                     mode={currentMode}
                     onSwitchMode={(mode) => setCurrentMode(mode)}
                     onPoeTopicChange={(topic) => setCurrentPoeTopic(topic)}
+                    onPoeCompletedChange={(completed) => setIsPoeCompleted(completed)}
                   />
                 </div>
               )}
