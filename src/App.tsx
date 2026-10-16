@@ -633,8 +633,8 @@ export default function App() {
   ];
 
   return (
-    <div className="h-screen overflow-hidden bg-[#ECE4D5] text-[#2F2923] flex flex-col desk-bg selection:bg-[#F5D65D]">
-      {/* Scenario Bar for dev/QA: ONLY rendered if ?debug=1 is in the URL */}
+    <>
+      {/* QA Scenario Runner Bar: Only rendered when ?debug=1 */}
       {showQaBar && (
         <ScenarioPlayerBar
           isVisible={showQaBar}
@@ -651,177 +651,357 @@ export default function App() {
         />
       )}
 
-      {/* Top Header Bar with Mode Switcher */}
-      <ScrapbookHeader
-        currentLesson={currentLesson}
-        currentMode={currentMode}
-        isBackendLive={isBackendLive}
-        onSelectMode={(mode) => {
-          setCurrentMode(mode);
-        }}
-        onOpenPause={() => setIsPauseOpen(true)}
-        onOpenLessonDrawer={() => setIsLessonDrawerOpen(true)}
-        onOpenHelp={() => setCurrentMode('video_clash')}
-      />
+      {/* ====================================================================
+          TRẠM 1: LỚP HỌC VIDEO (FULL-BLEED EDTECH ROOM THEO CHUẨN BLU1606 & FIGMA)
+          ==================================================================== */}
+      {currentMode === 'video_clash' ? (
+        <div className="room select-none">
+          {/* 1. ROOM TITLE BAR (56px) */}
+          <header className="room-title">
+            <div className="rt-left flex items-center gap-3 min-w-0">
+              <button
+                type="button"
+                onClick={() => setCurrentMode('video_clash')}
+                className="brand-mark shrink-0 font-bold tracking-tight cursor-pointer"
+                title="DRE Learning Classroom"
+              >
+                DRE
+              </button>
 
-      {/* Main Learning Workspace: Realistic Open Sketchbook lying on desk (Expanded to cover ~85% of screen width) */}
-      <main className="flex-1 min-h-0 w-[96vw] max-w-[1600px] mx-auto px-2 py-2 flex flex-col">
-        {/* THANH TIẾN TRÌNH 4 TRẠM */}
-        <div className="flex items-center justify-between px-2 mb-1.5 shrink-0 gap-2">
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-            {LEARNING_STATIONS.map((station) => {
-              const isActive = currentMode === station.id;
-              return (
+              {/* Dải station pills chuyển trạm nhanh */}
+              <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto no-scrollbar">
+                {LEARNING_STATIONS.map((station) => (
+                  <button
+                    key={station.id}
+                    type="button"
+                    onClick={() => {
+                      sound.playPageFlip();
+                      if (station.id !== 'video_clash') setIsVideoPlaying(false);
+                      setCurrentMode(station.id);
+                    }}
+                    className={`chip ${
+                      currentMode === station.id
+                        ? 'chip--primary'
+                        : 'chip--ghost text-slate-300 border-white/20 hover:text-white'
+                    }`}
+                  >
+                    <span className="shrink-0">{station.icon}</span>
+                    <span>{station.stationNumber}: {station.title}</span>
+                  </button>
+                ))}
+              </div>
+
+              <span className="rt-partno shrink-0 text-white font-semibold">Part 1</span>
+              <span className="rt-goal text-slate-400 truncate">{currentVideoLesson.topic}</span>
+            </div>
+
+            <div className="flex items-center gap-2.5 shrink-0">
+              <span
+                className={`rt-status ${
+                  videoPhase === 'CHECKPOINT_REACHED' || videoPhase === 'BO_DEBATE'
+                    ? 'is-paused'
+                    : isVideoPlaying
+                    ? 'is-playing'
+                    : 'is-paused'
+                }`}
+              >
+                <span className="rt-dot" />
+                <span>
+                  {videoPhase === 'CHECKPOINT_REACHED'
+                    ? 'Dừng bài tập (37:13)'
+                    : videoPhase === 'BO_DEBATE'
+                    ? 'Phản biện Bo'
+                    : isVideoPlaying
+                    ? 'Đang phát'
+                    : 'Tạm dừng'}
+                </span>
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setIsLessonDrawerOpen(true)}
+                className="btn btn--sm btn--on-dark"
+              >
+                Đổi bài
+              </button>
+            </div>
+          </header>
+
+          {/* 2. ROOM STAGE: KHUNG VIDEO BÀI GIẢNG 16:9 */}
+          <section className="room-stage" aria-label="Video bài giảng">
+            <VideoPlayerSheet
+              lesson={currentVideoLesson}
+              phase={videoPhase}
+              currentTime={videoCurrentTime}
+              isPlaying={isVideoPlaying}
+              isLoadingAi={isLoadingAi}
+              liveBoDialogue={liveBoDialogue}
+              liveCoLamDialogue={liveCoLamDialogue}
+              isQuizCollapsedToChat={isQuizCollapsedToChat}
+              onToggleCollapseQuiz={(collapsed) => setIsQuizCollapsedToChat(collapsed)}
+              onSendContextualQuestion={(qText) =>
+                setExternalQuestionTrigger({ id: Date.now(), text: qText })
+              }
+              onTogglePlay={handleToggleVideoPlay}
+              onSeek={handleSeekVideo}
+              onTriggerFreeze={handleTriggerFreeze}
+              onJumpToCheckpoint={() => {
+                setIsQuizCollapsedToChat(false);
+                handleJumpToCheckpoint();
+              }}
+              onSwitchVideoLesson={handleSwitchVideoLesson}
+              onAnswerCheckpoint={handleAnswerCheckpoint}
+              onSubmitRebuttal={handleSubmitRebuttal}
+              onResumeVideo={handleResumeVideoAfterClosure}
+            />
+          </section>
+
+          {/* 3. ROOM PANEL: CỘT PHẢI LỚP HỌC (PEOPLE ROW + TABS + CHAT + COMPOSER) */}
+          <aside className="room-panel">
+            <VideoDebateSheet
+              lesson={currentVideoLesson}
+              phase={videoPhase}
+              currentTime={videoCurrentTime}
+              isBackendLive={isBackendLive}
+              isLoadingAi={isLoadingAi}
+              liveBoDialogue={liveBoDialogue}
+              liveCoLamDialogue={liveCoLamDialogue}
+              liveHintDialogue={liveHintDialogue}
+              isQuizCollapsedToChat={isQuizCollapsedToChat}
+              onExpandQuizBackToVideo={() => setIsQuizCollapsedToChat(false)}
+              externalQuestionTrigger={externalQuestionTrigger}
+              onSeekVideo={handleSeekVideo}
+              onAnswerCheckpoint={handleAnswerCheckpoint}
+              onSubmitRebuttal={handleSubmitRebuttal}
+              onResumeVideo={handleResumeVideoAfterClosure}
+              onDismissFreeze={() => {
+                setVideoPhase('WATCHING');
+                setIsVideoPlaying(true);
+              }}
+            />
+          </aside>
+
+          {/* 4. ROOM BAR: THANH ĐIỀU KHIỂN ĐÁY PHÒNG HỌC (REACTIONS + GIƠ TAY + PHÒNG HỌC) */}
+          <footer className="room-bar">
+            <div className="act-part truncate">
+              Part 1/4 · Định nghĩa vectơ &amp; Quy tắc hình hộp || Thầy Nguyễn Phan Tiến (SGK Mới)
+            </div>
+            <div className="act-group">
+              <button
+                type="button"
+                onClick={() => sound.playPencilTap()}
+                className="act-btn"
+                title="Thả cảm xúc Hay"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="ic">
+                  <path d="M7 11V19M7 19H4C3.44772 19 3 18.5523 3 18V12C3 11.4477 3.44772 11 4 11H7M7 19L11.5 19C12.3284 19 13.0691 18.4984 13.3768 17.7292L15.3768 12.7292C15.4578 12.5266 15.5 12.3093 15.5 12.0901V11C15.5 10.4477 15.0523 10 14.5 10H11L12.5 5.5C12.5 4.5 11.5 4 10.5 4L7 11Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span className="lbl">Hay</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playBubblePop();
+                  handleTriggerFreeze();
+                }}
+                className="act-btn"
+                title="Báo đoạn này khó hiểu"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="ic">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
+                  <path d="M9 10H9.01M15 10H15.01M9.5 16C10.5 14.5 13.5 14.5 14.5 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+                <span className="lbl">Khó hiểu</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playStampThud();
+                  handleTriggerFreeze();
+                }}
+                className="act-btn act-btn--hand"
+                title="Giơ tay hỏi thầy và bạn"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="ic">
+                  <path d="M12 4V13M8 6V13M16 8V13M4 11V14C4 18.4183 7.58172 22 12 22C16.4183 22 20 18.4183 20 14V10C20 8.89543 19.1046 8 18 8C16.8954 8 16 8.89543 16 10M4 11C4 9.89543 4.89543 9 6 9C7.10457 9 8 9.89543 8 11M8 6C8 4.89543 8.89543 4 10 4C11.1046 4 12 4.89543 12 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+                <span>Giơ tay</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsLessonDrawerOpen(true)}
+                className="act-btn"
+                title="Danh sách thành viên lớp học"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="ic">
+                  <path d="M17 21V19C17 16.7909 15.2091 15 13 15H5C2.79086 15 1 16.7909 1 19V21" stroke="currentColor" strokeWidth="1.8"/>
+                  <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.8"/>
+                  <path d="M23 21V19C22.9986 17.1771 21.765 15.5857 20 15.13" stroke="currentColor" strokeWidth="1.8"/>
+                  <path d="M16 3.13C17.7699 3.58316 19.0078 5.17799 19.0078 7.005C19.0078 8.83201 17.7699 10.4268 16 10.88" stroke="currentColor" strokeWidth="1.8"/>
+                </svg>
+                <span className="lbl">Lớp học (4)</span>
+              </button>
+            </div>
+            <div className="act-end">
+              <button
+                type="button"
+                onClick={() => setIsPauseOpen(true)}
+                className="btn btn--sm btn--on-dark"
+              >
+                Tạm dừng
+              </button>
+            </div>
+          </footer>
+        </div>
+      ) : (
+        /* ====================================================================
+            TRẠM 2, 3, 4: KHÔNG GIAN HỌC TẬP EDTECH HIỆN ĐẠI (VIBE-MATCHED)
+            ==================================================================== */
+        <div className="min-h-screen bg-[#f8fafc] text-[#111827] flex flex-col font-sans">
+          {/* MODERN EDTECH APPBAR (60px) */}
+          <header className="appbar">
+            <button
+              type="button"
+              onClick={() => setCurrentMode('video_clash')}
+              className="brand cursor-pointer border-0 bg-transparent"
+              title="Quay lại Trạm 1: Lớp học Video"
+            >
+              <div className="brand-mark">DRE</div>
+              <span className="font-bold text-base">DRE Learning</span>
+            </button>
+
+            {/* Dải station navigation chips */}
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+              {LEARNING_STATIONS.map((station) => (
                 <button
                   key={station.id}
+                  type="button"
                   onClick={() => {
                     sound.playPageFlip();
-                    if (currentMode === 'video_clash' && station.id !== 'video_clash') {
-                      setIsVideoPlaying(false);
-                    }
                     setCurrentMode(station.id);
                   }}
-                  type="button"
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border text-xs transition-all cursor-pointer select-none whitespace-nowrap ${
-                    isActive
-                      ? 'bg-[#1B4338] text-white border-[#1B4338] font-bold shadow-xs'
-                      : 'bg-white/85 hover:bg-white text-[#4B5563] border-[#D8CEBC] font-medium'
-                  }`}
+                  className={`chip ${currentMode === station.id ? 'chip--primary' : ''}`}
                 >
                   <span className="shrink-0">{station.icon}</span>
-                  <span>
-                    {station.stationNumber}: {station.title}
-                  </span>
+                  <span>{station.stationNumber}: {station.title}</span>
                 </button>
-              );
-            })}
-          </div>
-
-          {/* Chỉ hiện nút Sổ tay nổi khi ở Trạm 2, 3, 4 (Vì ở Trạm 1 đã có sẵn People Row ngay đầu cột phải!) */}
-          {currentMode !== 'video_clash' && (
-            <div className="flex items-center gap-2 shrink-0">
-              <MaicPeerClassroomDock
-                currentMode={currentMode}
-                currentState={currentState}
-                lessonTopic={currentLesson.topic}
-                errorStepIndex={currentLesson.errorStepIndex}
-                peerContext={currentVideoLesson.peerContext}
-              />
+              ))}
             </div>
-          )}
-        </div>
 
-        {/* KHUNG SỔ TAY CHÍNH: 1 Mặt phẳng duy nhất (#FFFDF7), không còn hộp lồng hộp! */}
-        <div className="flex-1 min-h-0 bg-[#FFFDF7] rounded-2xl border-2 border-[#C8B69E] shadow-lg p-3 sm:p-4 flex flex-col overflow-hidden">
-          {currentMode === 'video_clash' && (
-            <div className="grid grid-cols-1 lg:grid-cols-10 gap-4 h-full items-stretch">
-              <div className="lg:col-span-7 h-full min-h-0">
-                <VideoPlayerSheet
-                  lesson={currentVideoLesson}
-                  phase={videoPhase}
-                  currentTime={videoCurrentTime}
-                  isPlaying={isVideoPlaying}
-                  isLoadingAi={isLoadingAi}
-                  liveBoDialogue={liveBoDialogue}
-                  liveCoLamDialogue={liveCoLamDialogue}
-                  isQuizCollapsedToChat={isQuizCollapsedToChat}
-                  onToggleCollapseQuiz={(collapsed) => setIsQuizCollapsedToChat(collapsed)}
-                  onSendContextualQuestion={(qText) =>
-                    setExternalQuestionTrigger({ id: Date.now(), text: qText })
-                  }
-                  onTogglePlay={handleToggleVideoPlay}
-                  onSeek={handleSeekVideo}
-                  onTriggerFreeze={handleTriggerFreeze}
-                  onJumpToCheckpoint={() => {
-                    setIsQuizCollapsedToChat(false);
-                    handleJumpToCheckpoint();
-                  }}
-                  onSwitchVideoLesson={handleSwitchVideoLesson}
-                  onAnswerCheckpoint={handleAnswerCheckpoint}
-                  onSubmitRebuttal={handleSubmitRebuttal}
-                  onResumeVideo={handleResumeVideoAfterClosure}
-                />
+            <div className="appbar-role flex items-center gap-3">
+              {currentMode === 'worksheet' && (
+                <button
+                  type="button"
+                  onClick={() => setIsLessonDrawerOpen(true)}
+                  className="btn btn--sm"
+                >
+                  Đổi bài ({currentLesson.id})
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsPauseOpen(true)}
+                className="btn btn--sm"
+              >
+                Tạm dừng
+              </button>
+            </div>
+          </header>
+
+          {/* MAIN PAGE WORKSPACE */}
+          <main className="page flex-1 w-full max-w-7xl mx-auto py-6 px-4 sm:px-6">
+            <div className="page-head">
+              <div>
+                <div className="crumb">
+                  <span>Lộ trình 4 Trạm</span> / <strong>
+                    {currentMode === 'worksheet'
+                      ? 'Trạm 2: Sổ tay bắt lỗi'
+                      : currentMode === 'predict_poe'
+                      ? 'Trạm 3: Đoán kết quả (POE)'
+                      : 'Trạm 4: Dạy kèm Bo & Thách đấu'}
+                  </strong>
+                </div>
+                <h1>
+                  {currentMode === 'worksheet'
+                    ? currentLesson.topic
+                    : currentMode === 'predict_poe'
+                    ? 'Thử thách Đoán kết quả (Predict - Observe - Explain)'
+                    : 'Thực hành Dạy kèm Bo & Tự ra đề'}
+                </h1>
+                <p className="muted">Toán 12 · Hình học không gian SGK Mới</p>
               </div>
 
-              <div className="lg:col-span-3 h-full min-h-0 border-t lg:border-t-0 lg:border-l border-[#EAE3D5]">
-                <VideoDebateSheet
-                  lesson={currentVideoLesson}
-                  phase={videoPhase}
-                  currentTime={videoCurrentTime}
-                  isBackendLive={isBackendLive}
-                  isLoadingAi={isLoadingAi}
-                  liveBoDialogue={liveBoDialogue}
-                  liveCoLamDialogue={liveCoLamDialogue}
-                  liveHintDialogue={liveHintDialogue}
-                  isQuizCollapsedToChat={isQuizCollapsedToChat}
-                  onExpandQuizBackToVideo={() => setIsQuizCollapsedToChat(false)}
-                  externalQuestionTrigger={externalQuestionTrigger}
-                  onSeekVideo={handleSeekVideo}
-                  onAnswerCheckpoint={handleAnswerCheckpoint}
-                  onSubmitRebuttal={handleSubmitRebuttal}
-                  onResumeVideo={handleResumeVideoAfterClosure}
-                  onDismissFreeze={() => {
-                    setVideoPhase('WATCHING');
-                    setIsVideoPlaying(true);
-                  }}
-                />
-              </div>
-            </div>
-          )}
-
-          {currentMode === 'worksheet' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 h-full divide-y lg:divide-y-0 lg:divide-x divide-[#EAE3D5] overflow-y-auto no-scrollbar">
-              <div className="lg:col-span-7 h-full">
-                <WorkingObjectSheet
-                  lesson={currentLesson}
+              <div className="flex items-center gap-2">
+                <MaicPeerClassroomDock
+                  currentMode={currentMode}
                   currentState={currentState}
-                  selectedStep={selectedStep}
-                  onSelectStep={handleSelectStep}
-                  boSpeechOverride={boSpeechOverride}
-                />
-              </div>
-              <div className="lg:col-span-5 h-full">
-                <InteractionCardSheet
-                  lesson={currentLesson}
-                  currentState={currentState}
-                  selectedStep={selectedStep}
-                  explanationText={explanationText}
-                  rebuttalText={worksheetRebuttalText}
-                  onExplanationChange={handleExplanationChange}
-                  onRebuttalChange={setWorksheetRebuttalText}
-                  onSubmitExplanation={handleSubmitExplanation}
-                  onSubmitRebuttal={handleSubmitWorksheetRebuttal}
-                  onRequestHint={handleRequestHint}
-                  onNextLesson={handleNextLesson}
-                  onRetryLesson={handleRetryLesson}
-                  onAcceptNudgeHint={() => {
-                    setExplanationText(prev => prev || currentLesson.nudgeStarter || '');
-                    setCurrentState('EXPLAIN_PROMPT');
-                  }}
-                  onDismissNudge={handleDismissNudge}
-                  tutorFeedbackOverride={tutorFeedbackOverride}
-                  probeQuestionOverride={probeQuestionOverride}
-                  boSpeechOverride={boSpeechOverride}
-                  isLoadingAi={isLoadingAi}
-                  hintLevel={worksheetHintLevel}
+                  lessonTopic={currentLesson.topic}
+                  errorStepIndex={currentLesson.errorStepIndex}
+                  peerContext={currentVideoLesson.peerContext}
                 />
               </div>
             </div>
-          )}
 
-          {(currentMode === 'predict_poe' || currentMode === 'protege_teaching') && (
-            <div className="h-full overflow-hidden">
-              <AlternativeFlowsSheet
-                mode={currentMode}
-                onSwitchMode={(mode) => setCurrentMode(mode)}
-                onPoeTopicChange={(topic) => setCurrentPoeTopic(topic)}
-              />
+            {/* CARD CONTAINER NỀN TRẮNG CHUẨN EDTECH */}
+            <div className="card overflow-hidden">
+              {currentMode === 'worksheet' && (
+                <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
+                  <div className="lg:col-span-7 p-6 bg-white">
+                    <WorkingObjectSheet
+                      lesson={currentLesson}
+                      currentState={currentState}
+                      selectedStep={selectedStep}
+                      onSelectStep={handleSelectStep}
+                      boSpeechOverride={boSpeechOverride}
+                    />
+                  </div>
+                  <div className="lg:col-span-5 p-6 bg-slate-50/50">
+                    <InteractionCardSheet
+                      lesson={currentLesson}
+                      currentState={currentState}
+                      selectedStep={selectedStep}
+                      explanationText={explanationText}
+                      rebuttalText={worksheetRebuttalText}
+                      onExplanationChange={handleExplanationChange}
+                      onRebuttalChange={setWorksheetRebuttalText}
+                      onSubmitExplanation={handleSubmitExplanation}
+                      onSubmitRebuttal={handleSubmitWorksheetRebuttal}
+                      onRequestHint={handleRequestHint}
+                      onNextLesson={handleNextLesson}
+                      onRetryLesson={handleRetryLesson}
+                      onAcceptNudgeHint={() => {
+                        setExplanationText(prev => prev || currentLesson.nudgeStarter || '');
+                        setCurrentState('EXPLAIN_PROMPT');
+                      }}
+                      onDismissNudge={handleDismissNudge}
+                      tutorFeedbackOverride={tutorFeedbackOverride}
+                      probeQuestionOverride={probeQuestionOverride}
+                      boSpeechOverride={boSpeechOverride}
+                      isLoadingAi={isLoadingAi}
+                      hintLevel={worksheetHintLevel}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {(currentMode === 'predict_poe' || currentMode === 'protege_teaching') && (
+                <div className="p-6 bg-white">
+                  <AlternativeFlowsSheet
+                    mode={currentMode}
+                    onSwitchMode={(mode) => setCurrentMode(mode)}
+                    onPoeTopicChange={(topic) => setCurrentPoeTopic(topic)}
+                  />
+                </div>
+              )}
             </div>
-          )}
+          </main>
         </div>
-      </main>
+      )}
 
-      {/* Modals & Drawers */}
+      {/* Global Modals & Drawers */}
       <LearningFlowGuideModal
         isOpen={isFlowGuideOpen}
         onClose={() => setIsFlowGuideOpen(false)}
@@ -850,6 +1030,6 @@ export default function App() {
         currentLessonId={currentLesson.id}
         onSelectLesson={handleSwitchLesson}
       />
-    </div>
+    </>
   );
 }

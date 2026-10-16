@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import "../mock/app.css";
 @import "tailwindcss";
 
 @theme {
@@ -6,17 +7,17 @@
   --font-cute: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-  --color-paper: #F5EFE6;
-  --color-grid: #C9D1DB;
+  --color-paper: #F8FAFC;
+  --color-grid: #E2E8F0;
   --color-bo: #E8A33D;
-  --color-tutor: #4E9B87;
+  --color-tutor: #0E7490;
   --color-sticky: #F5D65D;
-  --color-moss: #6B9E5C;
+  --color-moss: #15803D;
   --color-washi-blue: #A9C8E0;
   --color-washi-pink: #E8B4BC;
 }
 
-/* 1. Ép toàn bộ giao diện & class font-handwriting cũ sang Plus Jakarta Sans hiện đại, sang trọng */
+/* 1. Ép toàn bộ giao diện & typography sang Plus Jakarta Sans hiện đại */
 body,
 .font-handwriting,
 .font-cute,
@@ -31,8 +32,8 @@ body,
 }
 
 body {
-  background-color: #ECE5D8;
-  color: #2F2B28;
+  background-color: var(--canvas, #f8fafc);
+  color: var(--ink, #111827);
   margin: 0;
   padding: 0;
   min-height: 100vh;
