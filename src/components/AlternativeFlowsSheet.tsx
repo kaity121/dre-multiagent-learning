@@ -63,7 +63,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
   // =========================================================================
   if (mode === 'predict_poe') {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-12 h-full divide-y lg:divide-y-0 lg:divide-x divide-[#EAE3D5]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 h-full gap-4">
         {/* CỘT TRÁI (7/12): BƯỚC 1 (DỰ ĐOÁN) & BƯỚC 2 (QUAN SÁT THỰC NGHIỆM) */}
         <div className="lg:col-span-7 p-3 sm:p-5 space-y-4 overflow-y-auto no-scrollbar">
           <div className="space-y-1">
@@ -208,7 +208,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                         sound.playPencilTap();
                         setPoeExplanation(sample);
                       }}
-                      className="w-full px-3 py-1.5 bg-[#FAF8F5] hover:bg-[#EBF7F3] border border-[#E2D9C8] rounded-lg text-xs text-[#1E242B] text-left cursor-pointer transition-colors"
+                      className="quick-prompt-box w-full bg-[#FAF8F5] hover:bg-[#EBF7F3] border border-[#E2D9C8] rounded-lg text-[#1E242B] text-left cursor-pointer transition-colors"
                     >
                       Chọn nhanh: “{sample}”
                     </button>
@@ -261,7 +261,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
   // =========================================================================
   return (
     <div className="h-full overflow-y-auto no-scrollbar space-y-4">
-      <div className="grid grid-cols-1 lg:grid-cols-12 h-full divide-y lg:divide-y-0 lg:divide-x divide-[#EAE3D5]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 h-full gap-4">
         {/* Cột Trái (7/12): Nhiệm vụ 1 */}
         <div className="lg:col-span-7 p-3 sm:p-5 space-y-4">
           <div className="space-y-1">
@@ -379,7 +379,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
             )}
           </div>
 
-          <div className="pt-3 border-t border-[#EFE8DC]">
+          <div className="pt-3">
             <button
               type="button"
               onClick={() => {

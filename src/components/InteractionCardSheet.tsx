@@ -105,7 +105,7 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = ({
                 <button
                   type="button"
                   onClick={() => onExplanationChange(cleanText(lesson.nudgeStarter))}
-                  className="text-xs font-semibold text-[#1B4338] hover:underline cursor-pointer"
+                  className="quick-prompt-pill bg-white hover:bg-[#EBF7F3] border border-[#D8CEBC] text-[#1B4338] cursor-pointer"
                 >
                    Điền mẫu câu gợi ý
                 </button>
@@ -169,7 +169,7 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = ({
               <button
                 type="button"
                 onClick={() => onRebuttalChange?.(cleanText(lesson.standardExplanation))}
-                className="px-2.5 py-1 rounded-lg bg-[#FAF8F5] hover:bg-[#EBF7F3] border border-[#D8CEBC] text-xs text-[#1E242B] font-medium cursor-pointer text-left"
+                className="quick-prompt-box rounded-lg bg-[#FAF8F5] hover:bg-[#EBF7F3] border border-[#D8CEBC] text-[#1E242B] cursor-pointer text-left"
               >
                 Chọn nhanh quy tắc chuẩn của Linh Chi để giải thích cho Bo
               </button>

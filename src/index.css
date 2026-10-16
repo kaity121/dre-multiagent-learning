@@ -659,3 +659,38 @@ h1 {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 
+/* ==========================================================================
+   XÓA CÁC ĐƯỜNG KẺ MỜ CĂN LỀ & ĐỒNG BỘ CỠ CHỮ CÂU HỎI GỢI Ý NHỎ GỌN (11PX)
+   ========================================================================== */
+
+/* 1. Xóa các đường kẻ mờ phân cách không cần thiết */
+.tabs {
+  border-bottom: none !important;
+}
+
+/* 2. Ép toàn bộ các pill/nút câu hỏi gợi ý nhanh (quick prompts) sang cỡ chữ 11px nhỏ gọn matching giao diện */
+.quick-prompt-pill,
+button.quick-prompt-pill {
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+  font-weight: 600 !important;
+  padding: 3px 10px !important;
+  border-radius: 999px !important;
+  letter-spacing: 0.01em !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+}
+
+.quick-prompt-chip,
+button.quick-prompt-chip,
+.quick-prompt-box,
+button.quick-prompt-box {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  font-weight: 500 !important;
+  padding: 5px 10px !important;
+  box-sizing: border-box !important;
+}
+

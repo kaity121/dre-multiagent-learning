@@ -115,7 +115,7 @@ export const WorkingObjectSheet: React.FC<WorkingObjectSheetProps> = ({
       </div>
 
       {/* Chú thích nhẹ ở chân cột trái */}
-      <div className="pt-3 border-t border-[#EFE8DC] flex items-center justify-between text-xs text-[#8A7D6F]">
+      <div className="pt-3 flex items-center justify-between text-xs text-[#8A7D6F]">
         <span>Chủ đề: {cleanText(lesson.errorType)}</span>
         <span>Đối chiếu với Sổ tay của Linh Chi ở cột bên phải ➔</span>
       </div>

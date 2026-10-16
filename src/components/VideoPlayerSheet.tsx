@@ -550,7 +550,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                   key={idx}
                   type="button"
                   onClick={() => handleSendRaiseHandQuestion(q)}
-                  className="p-3 rounded-xl bg-white hover:bg-cyan-50/80 border border-slate-200 hover:border-cyan-300 text-left text-xs font-medium text-slate-800 cursor-pointer transition-all flex items-start gap-2.5 shadow-2xs group"
+                  className="quick-prompt-box rounded-xl bg-white hover:bg-cyan-50/80 border border-slate-200 hover:border-cyan-300 text-left text-slate-800 cursor-pointer transition-all flex items-start gap-2 shadow-2xs group"
                 >
                   <TagArgumentIcon className="w-3.5 h-3.5 text-[#0e7490] shrink-0 mt-0.5" />
                   <span className="leading-snug">“{q}”</span>

@@ -296,7 +296,7 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
               <p className="text-[11px] text-slate-700 italic font-medium leading-snug">
                 {peerMeta[activePeer].speech}
               </p>
-              <p className="text-[10px] text-slate-500 leading-tight border-t border-slate-100 pt-1">
+              <p className="text-[10px] text-slate-500 leading-tight pt-0.5">
                 ⚡ {peerMeta[activePeer].power}
               </p>
             </div>
@@ -411,7 +411,7 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
           )}
 
           {/* Đáy Drawer: Hỏi nhanh + Nhập câu hỏi */}
-          <div className="p-3 bg-[#FAF8F5] border-t border-[#EFE8DC] space-y-2 shrink-0">
+          <div className="p-3 bg-[#FAF8F5] space-y-2 shrink-0">
             <div className="flex flex-col gap-1">
               {(peerContext?.[activePeer]?.quickPrompts || [
                 'Công thức trọng tâm của bài này là gì?',
@@ -421,7 +421,7 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
                   key={i}
                   type="button"
                   onClick={() => handleSendPeerMessage(activePeer, cleanText(q))}
-                  className="w-full text-left px-2.5 py-1.5 bg-white hover:bg-[#EBF7F3] border border-[#E2D9C8] rounded-lg text-xs text-[#1E242B] font-medium cursor-pointer transition-colors truncate"
+                  className="quick-prompt-box w-full text-left bg-white hover:bg-[#EBF7F3] border border-[#E2D9C8] rounded-lg text-[#1E242B] cursor-pointer transition-colors truncate"
                 >
                   “{cleanText(q)}”
                 </button>

@@ -376,7 +376,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                   <p className="text-[11px] text-slate-700 italic font-medium leading-snug">
                     {hp.speech}
                   </p>
-                  <p className="text-[10px] text-slate-500 leading-tight border-t border-slate-100 pt-1 font-normal">
+                  <p className="text-[10px] text-slate-500 leading-tight pt-0.5 font-normal">
                     ⚡ {hp.power}
                   </p>
                 </>
@@ -634,8 +634,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       )}
 
       {/* 6. BỘ GÕ COMPOSER ĐA NĂNG (CHỌN NGƯỜI NHẬN TÙY BIẾN + BADGE THỜI GIAN + PILL HỎI NHANH) */}
-      <div className="pt-2 border-t border-slate-200 space-y-2 shrink-0">
-        {/* Dải Pill câu hỏi gợi ý nhanh (cuộn ngang mượt mà, không bị cắt chữ) */}
+      <div className="pt-2 space-y-2 shrink-0">
+        {/* Dải Pill câu hỏi gợi ý nhanh (cuộn ngang mượt mà, font nhỏ gọn đồng bộ) */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
           {[
             'Chưa hiểu đoạn này',
@@ -646,7 +646,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               key={idx}
               type="button"
               onClick={() => handleSendUserChatMessage(quickPrompt)}
-              className="px-3 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap shrink-0 cursor-pointer transition-all border border-slate-200/90 bg-slate-50/80 hover:bg-cyan-50 hover:border-cyan-300 text-slate-700 hover:text-[#0e7490] shadow-2xs"
+              className="quick-prompt-pill border border-slate-200/90 bg-slate-50/90 hover:bg-cyan-50 hover:border-cyan-300 text-slate-700 hover:text-[#0e7490] whitespace-nowrap shrink-0 cursor-pointer transition-all shadow-2xs"
             >
               {quickPrompt}
             </button>
