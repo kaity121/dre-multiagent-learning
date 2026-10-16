@@ -86,6 +86,8 @@ export default function App() {
   const [videoCurrentTime, setVideoCurrentTime] = useState<number>(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
   const [currentPoeTopic, setCurrentPoeTopic] = useState<string>('Toán 12 · Biến thể Vectơ trong không gian (Thầy Nguyễn Phan Tiến)');
+  const [isQuizCollapsedToChat, setIsQuizCollapsedToChat] = useState<boolean>(false);
+  const [externalQuestionTrigger, setExternalQuestionTrigger] = useState<{ id: number; text: string } | null>(null);
 
   // Modals & Drawers
   const [isPauseOpen, setIsPauseOpen] = useState(false);
@@ -664,7 +666,7 @@ export default function App() {
 
       {/* Main Learning Workspace: Realistic Open Sketchbook lying on desk (Expanded to cover ~85% of screen width) */}
       <main className="flex-1 min-h-0 w-[96vw] max-w-[1600px] mx-auto px-2 py-2 flex flex-col">
-        {/* THANH ĐIỀU HƯỚNG TRÊN CÙNG: Trái là 4 Tab Trạm học · Phải là 1 Nút Sổ tay 4 bạn (Không bao giờ tràn lề!) */}
+        {/* THANH TIẾN TRÌNH 4 TRẠM */}
         <div className="flex items-center justify-between px-2 mb-1.5 shrink-0 gap-2">
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
             {LEARNING_STATIONS.map((station) => {
@@ -674,6 +676,9 @@ export default function App() {
                   key={station.id}
                   onClick={() => {
                     sound.playPageFlip();
+                    if (currentMode === 'video_clash' && station.id !== 'video_clash') {
+                      setIsVideoPlaying(false);
+                    }
                     setCurrentMode(station.id);
                   }}
                   type="button"
@@ -692,16 +697,18 @@ export default function App() {
             })}
           </div>
 
-          {/* Cụm phải: Nút Sổ tay & Hỏi riêng 4 bạn gọn gàng */}
-          <div className="flex items-center gap-2 shrink-0">
-            <MaicPeerClassroomDock
-              currentMode={currentMode}
-              currentState={currentState}
-              lessonTopic={currentMode === 'video_clash' ? currentVideoLesson.title : currentLesson.topic}
-              errorStepIndex={currentLesson.errorStepIndex}
-              peerContext={currentVideoLesson.peerContext}
-            />
-          </div>
+          {/* Chỉ hiện nút Sổ tay nổi khi ở Trạm 2, 3, 4 (Vì ở Trạm 1 đã có sẵn People Row ngay đầu cột phải!) */}
+          {currentMode !== 'video_clash' && (
+            <div className="flex items-center gap-2 shrink-0">
+              <MaicPeerClassroomDock
+                currentMode={currentMode}
+                currentState={currentState}
+                lessonTopic={currentLesson.topic}
+                errorStepIndex={currentLesson.errorStepIndex}
+                peerContext={currentVideoLesson.peerContext}
+              />
+            </div>
+          )}
         </div>
 
         {/* KHUNG SỔ TAY CHÍNH: 1 Mặt phẳng duy nhất (#FFFDF7), không còn hộp lồng hộp! */}
@@ -717,10 +724,18 @@ export default function App() {
                   isLoadingAi={isLoadingAi}
                   liveBoDialogue={liveBoDialogue}
                   liveCoLamDialogue={liveCoLamDialogue}
+                  isQuizCollapsedToChat={isQuizCollapsedToChat}
+                  onToggleCollapseQuiz={(collapsed) => setIsQuizCollapsedToChat(collapsed)}
+                  onSendContextualQuestion={(qText) =>
+                    setExternalQuestionTrigger({ id: Date.now(), text: qText })
+                  }
                   onTogglePlay={handleToggleVideoPlay}
                   onSeek={handleSeekVideo}
                   onTriggerFreeze={handleTriggerFreeze}
-                  onJumpToCheckpoint={handleJumpToCheckpoint}
+                  onJumpToCheckpoint={() => {
+                    setIsQuizCollapsedToChat(false);
+                    handleJumpToCheckpoint();
+                  }}
                   onSwitchVideoLesson={handleSwitchVideoLesson}
                   onAnswerCheckpoint={handleAnswerCheckpoint}
                   onSubmitRebuttal={handleSubmitRebuttal}
@@ -738,6 +753,9 @@ export default function App() {
                   liveBoDialogue={liveBoDialogue}
                   liveCoLamDialogue={liveCoLamDialogue}
                   liveHintDialogue={liveHintDialogue}
+                  isQuizCollapsedToChat={isQuizCollapsedToChat}
+                  onExpandQuizBackToVideo={() => setIsQuizCollapsedToChat(false)}
+                  externalQuestionTrigger={externalQuestionTrigger}
                   onSeekVideo={handleSeekVideo}
                   onAnswerCheckpoint={handleAnswerCheckpoint}
                   onSubmitRebuttal={handleSubmitRebuttal}
