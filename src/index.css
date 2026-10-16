@@ -294,11 +294,14 @@ body {
 }
 
 .room .whisper-peek {
-  font-size: 12px !important;
+  font-size: 11px !important;
   padding: 6px 10px !important;
-  background: #f1edfc !important;
-  color: #4c2fb0 !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid #a5f3fc !important;
+  color: #0e7490 !important;
   border-radius: 8px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
 }
 
 /* Composer: 13px text, well-padded */

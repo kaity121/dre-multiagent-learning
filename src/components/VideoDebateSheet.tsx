@@ -358,25 +358,25 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           })}
         </div>
 
-        {/* TOOLTIP NỔI KHI HOVER VÀO TỪNG BẠN (GIẢI MÃ NHANH 10S THEO YÊU CẦU UX) */}
+        {/* TOOLTIP NỔI KHI HOVER VÀO TỪNG BẠN (ĐỤC TRẮNG HÀI HÒA THEO YÊU CẦU UX) */}
         {hoveredPeer && (
-          <div className="mx-3 my-1 p-2 rounded-xl bg-slate-900/95 backdrop-blur-md text-white text-xs space-y-1 shadow-xl border border-white/10 animate-in fade-in duration-100">
+          <div className="mx-3 my-1.5 p-2.5 rounded-xl bg-white/95 backdrop-blur-md text-slate-800 text-xs space-y-1 shadow-lg border border-cyan-200/90 animate-in fade-in duration-100">
             {(() => {
               const hp = peopleRoster.find((x) => x.id === hoveredPeer);
               if (!hp) return null;
               return (
                 <>
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="font-bold text-amber-300 flex items-center gap-1.5">
+                    <span className="font-bold text-[#0e7490] flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: hp.color }} />
                       <span>{hp.name} · {hp.tagline}</span>
                     </span>
-                    <span className="text-[10px] text-white/50">Bấm để nhắn riêng</span>
+                    <span className="text-[10px] text-slate-400 font-medium">Bấm để nhắn riêng</span>
                   </div>
-                  <p className="text-[11px] text-cyan-200 italic font-medium leading-snug">
+                  <p className="text-[11px] text-slate-700 italic font-medium leading-snug">
                     {hp.speech}
                   </p>
-                  <p className="text-[10px] text-white/80 leading-tight border-t border-white/10 pt-1">
+                  <p className="text-[10px] text-slate-500 leading-tight border-t border-slate-100 pt-1 font-normal">
                     ⚡ {hp.power}
                   </p>
                 </>

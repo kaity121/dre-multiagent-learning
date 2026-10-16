@@ -1095,77 +1095,38 @@ export default function App() {
             <div className="max-w-7xl mx-auto space-y-1.5">
               {/* DÒNG 1: [1. Video & Bo cãi] → [2. Sổ tay bắt lỗi] → [3. Đoán POE] → [4. Gia sư] | [💬 Hỏi 4 bạn] [Sang Trạm 3 →] */}
               <div className="flex items-center justify-between gap-3 text-xs">
-                {/* Cụm trái: Logo DRE + 4 Trạm liên hoàn */}
-                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                {/* Cụm trái: Logo DRE + 4 Trạm pills ĐỒNG BỘ 100% NHƯ TRẠM 1 (ẢNH 1) */}
+                <div className="flex items-center gap-2.5 min-w-0">
                   <button
                     type="button"
                     onClick={() => setCurrentMode('video_clash')}
-                    className="brand-mark shrink-0 font-bold tracking-tight cursor-pointer w-7 h-7 rounded-lg bg-[#0e7490] text-white flex items-center justify-center text-xs shadow-2xs"
+                    className="brand-mark shrink-0 font-bold tracking-tight cursor-pointer"
                     title="Quay lại Trạm 1: Lớp học Video"
                   >
                     DRE
                   </button>
 
-                  <div className="flex items-center gap-1.5 text-xs font-semibold">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        sound.playPageFlip();
-                        setCurrentMode('video_clash');
-                      }}
-                      className={`px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
-                        currentMode === 'video_clash'
-                          ? 'bg-[#0e7490] text-white border-[#0e7490] shadow-2xs'
-                          : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
-                      }`}
-                    >
-                      1. Video &amp; Bo cãi
-                    </button>
-                    <span className="text-slate-300 text-[10px]">➔</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        sound.playPageFlip();
-                        setCurrentMode('worksheet');
-                      }}
-                      className={`px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
-                        currentMode === 'worksheet'
-                          ? 'bg-amber-600 text-white border-amber-600 shadow-2xs font-bold'
-                          : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
-                      }`}
-                    >
-                      2. Sổ tay bắt lỗi
-                    </button>
-                    <span className="text-slate-300 text-[10px]">➔</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        sound.playPageFlip();
-                        setCurrentMode('predict_poe');
-                      }}
-                      className={`px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
-                        currentMode === 'predict_poe'
-                          ? 'bg-yellow-600 text-white border-yellow-600 shadow-2xs font-bold'
-                          : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
-                      }`}
-                    >
-                      3. Đoán POE
-                    </button>
-                    <span className="text-slate-300 text-[10px]">➔</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        sound.playPageFlip();
-                        setCurrentMode('protege_teaching');
-                      }}
-                      className={`px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
-                        currentMode === 'protege_teaching'
-                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs font-bold'
-                          : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
-                      }`}
-                    >
-                      4. Gia sư
-                    </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {LEARNING_STATIONS.map((station) => (
+                      <button
+                        key={station.id}
+                        type="button"
+                        onClick={() => {
+                          sound.playPageFlip();
+                          if (station.id !== 'video_clash') setIsVideoPlaying(false);
+                          setCurrentMode(station.id);
+                        }}
+                        className={`chip station-pill ${
+                          currentMode === station.id
+                            ? 'chip--primary'
+                            : 'chip--ghost'
+                        }`}
+                        title={station.title}
+                      >
+                        <span className="shrink-0">{station.icon}</span>
+                        <span>{station.stationNumber}</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
