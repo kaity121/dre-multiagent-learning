@@ -188,29 +188,37 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
   const peerMeta = {
     bo: {
       name: 'Bo',
-      shortRole: 'Phản biện',
-      role: 'Phản biện bẫy trực giác',
+      shortRole: 'Gật gù / Mắc bẫy',
+      role: 'Phản biện & Vệ sĩ bẫy ngộ nhận',
+      speech: '“Mình hay nhầm chỗ này lắm, bạn xem hộ mình với!”',
+      power: 'Bo sai trước để bạn mạnh dạn sửa bài và không sợ sai.',
       tabActive: 'bg-[#D97706] text-white border-[#D97706]',
       tabInactive: 'bg-[#FFFBF2] text-[#92400E] border-[#F3DFA8]',
     },
     tri: {
       name: 'Trí',
-      shortRole: 'Đào sâu',
+      shortRole: 'Đào sâu bản chất',
       role: 'Đào sâu bản chất & Điều kiện',
+      speech: '“Tại sao lại có công thức này nhỉ? Cùng mình đào sâu nhé!”',
+      power: 'Xoáy sâu vào điều kiện biên & hiểu sâu nguyên lý gốc rễ.',
       tabActive: 'bg-[#2563EB] text-white border-[#2563EB]',
       tabInactive: 'bg-[#F5F8FF] text-[#1E40AF] border-[#D8E2FF]',
     },
     linhchi: {
       name: 'Linh Chi',
-      shortRole: 'Công thức',
-      role: 'Sổ tay công thức chuẩn',
+      shortRole: 'Ghi sổ tay',
+      role: 'Sổ tay công thức & Cheat Sheet',
+      speech: '“Mình đã tóm tắt công thức trọng tâm rồi, cần tra cứu cứ bảo mình!”',
+      power: 'Lập bảng quy tắc chuẩn mực & cấu trúc lại các bước giải.',
       tabActive: 'bg-[#DB2777] text-white border-[#DB2777]',
       tabInactive: 'bg-[#FFF5F9] text-[#9D174D] border-[#FAD1E4]',
     },
     minhkhang: {
       name: 'Minh Khang',
-      shortRole: 'Trực quan',
-      role: 'Ví dụ thực tế & Trực quan',
+      shortRole: 'Trực quan đời sống',
+      role: 'Ví dụ thực tế & Trực quan sinh động',
+      speech: '“Tưởng tượng như bước đi ngoài đời thực, hình dung sẽ dễ hơn nhiều!”',
+      power: 'Biến các công thức khô khan thành hình ảnh thực tế sống động.',
       tabActive: 'bg-[#0891B2] text-white border-[#0891B2]',
       tabInactive: 'bg-[#F2FCFE] text-[#155E75] border-[#C5EEF6]',
     },
@@ -227,7 +235,7 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
         }}
         className={`flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
           isDrawerOpen
-            ? 'bg-[#1B4338] text-white border-[#1B4338] shadow-xs'
+            ? 'bg-[#0e7490] text-white border-[#0e7490] shadow-xs'
             : 'bg-white hover:bg-[#FAF8F5] text-[#1E242B] border-[#D8CEBC] shadow-2xs'
         }`}
       >
@@ -279,6 +287,20 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
               })}
             </div>
 
+            {/* Khẩu quyết 10s của bạn đang chọn */}
+            <div className="p-2 rounded-xl bg-white border border-slate-200/90 text-xs space-y-0.5 shadow-2xs">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="font-bold text-[#0e7490]">{peerMeta[activePeer].role}</span>
+                <span className="text-[10px] text-slate-400 font-mono">10s Guide</span>
+              </div>
+              <p className="text-[11px] text-slate-700 italic font-medium leading-snug">
+                {peerMeta[activePeer].speech}
+              </p>
+              <p className="text-[10px] text-slate-500 leading-tight border-t border-slate-100 pt-1">
+                ⚡ {peerMeta[activePeer].power}
+              </p>
+            </div>
+
             {/* Thanh gạt: [Trò chuyện] <-> [Sổ tay tóm tắt] */}
             <div className="grid grid-cols-2 gap-1.5 p-1 bg-black/5 rounded-xl">
               <button
@@ -319,7 +341,7 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
                   <div
                     className={`max-w-[86%] p-3 rounded-2xl text-xs leading-relaxed ${
                       msg.sender === 'user'
-                        ? 'bg-[#1B4338] text-white rounded-br-xs font-medium'
+                        ? 'bg-[#0e7490] text-white rounded-br-xs font-medium'
                         : 'bg-[#FAF8F5] border border-[#EFE8DC] text-[#1E242B] rounded-bl-xs'
                     }`}
                   >
@@ -330,7 +352,7 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
 
               {isPeerTyping && (
                 <div className="flex items-center gap-2 text-xs text-[#6E6254] font-medium px-2 py-1">
-                  <span className="w-2 h-2 rounded-full bg-[#1B4338] animate-ping" />
+                  <span className="w-2 h-2 rounded-full bg-[#0e7490] animate-ping" />
                   <span>{peerMeta[activePeer].name} đang trả lời...</span>
                 </div>
               )}
@@ -413,12 +435,12 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
                 onChange={(e) => setPeerChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendPeerMessage(activePeer)}
                 placeholder={`Nhắn riêng cho ${peerMeta[activePeer].name}...`}
-                className="flex-1 bg-white border border-[#D8CEBC] rounded-xl px-3 py-2 text-xs text-[#1E242B] outline-none focus:border-[#1B4338]"
+                className="flex-1 bg-white border border-[#D8CEBC] rounded-xl px-3 py-2 text-xs text-[#1E242B] outline-none focus:border-[#0e7490] focus:ring-1 focus:ring-[#0e7490]"
               />
               <button
                 type="button"
                 onClick={() => handleSendPeerMessage(activePeer)}
-                className="px-3.5 py-2 bg-[#1B4338] hover:bg-[#285E4F] text-white font-semibold text-xs rounded-xl cursor-pointer flex items-center gap-1 shrink-0"
+                className="px-3.5 py-2 bg-[#0e7490] hover:bg-[#0891b2] text-white font-semibold text-xs rounded-xl cursor-pointer flex items-center gap-1 shrink-0 transition-colors shadow-xs"
               >
                 <span>Gửi</span>
                 <SendArrowSvg className="w-3.5 h-3.5" />

@@ -33,6 +33,7 @@ import { LessonSelectorDrawer } from './components/LessonSelectorDrawer';
 import { ScenarioPlayerBar } from './components/ScenarioPlayerBar';
 import { LearningFlowGuideModal } from './components/LearningFlowGuideModal';
 import { MaicPeerClassroomDock } from './components/MaicPeerClassroomDock';
+import { PreClassLobbyModal } from './components/PreClassLobbyModal';
 import { sound } from './utils/soundEffects';
 import { 
   WashiTape, 
@@ -88,6 +89,7 @@ export default function App() {
   const [currentPoeTopic, setCurrentPoeTopic] = useState<string>('Toán 12 · Biến thể Vectơ trong không gian (Thầy Nguyễn Phan Tiến)');
   const [isQuizCollapsedToChat, setIsQuizCollapsedToChat] = useState<boolean>(false);
   const [externalQuestionTrigger, setExternalQuestionTrigger] = useState<{ id: number; text: string } | null>(null);
+  const [showAllTimeline, setShowAllTimeline] = useState<boolean>(false);
 
   // Modals & Drawers
   const [isPauseOpen, setIsPauseOpen] = useState(false);
@@ -95,6 +97,9 @@ export default function App() {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isAiInspectorOpen, setIsAiInspectorOpen] = useState(false);
   const [isFlowGuideOpen, setIsFlowGuideOpen] = useState(false);
+  const [isChaptersDrawerOpen, setIsChaptersDrawerOpen] = useState(false);
+  const [isAttachModalOpen, setIsAttachModalOpen] = useState(false);
+  const [isRaiseHandModalOpen, setIsRaiseHandModalOpen] = useState(false);
 
   // Dynamic dialog overrides for worksheet mode
   const [tutorFeedbackOverride, setTutorFeedbackOverride] = useState<string | null>(null);
@@ -104,7 +109,7 @@ export default function App() {
   // Scenario runner tracking
   const [activeScenario, setActiveScenario] = useState<number | null>(null);
 
-  // QA / Dev bar visibility: hidden by default unless ?debug=1 in URL or toggled by button
+  // QA / Dev bar visibility: hidden by default; toggled via keyboard shortcut (Ctrl+Shift+D, Ctrl+Shift+K, or F2)
   const [showQaBar, setShowQaBar] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
@@ -113,9 +118,64 @@ export default function App() {
     return false;
   });
 
+  // Global Keyboard Shortcut listener to toggle Test Case bar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Toggle QA test case bar on Ctrl+Shift+D, Ctrl+Shift+K, Ctrl+Alt+T, or F2
+      if (
+        (e.ctrlKey && e.shiftKey && (e.key === 'D' || e.key === 'd')) ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'K' || e.key === 'k')) ||
+        (e.ctrlKey && e.altKey && (e.key === 'T' || e.key === 't')) ||
+        e.key === 'F2'
+      ) {
+        e.preventDefault();
+        setShowQaBar((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Auto-play demo walkthrough state (1 chạm chạy liên hoàn 4 trạm)
+  const [isAutoWalking, setIsAutoWalking] = useState(false);
+  const [autoWalkStep, setAutoWalkStep] = useState(1);
+  const [autoWalkMessage, setAutoWalkMessage] = useState<string>('');
+  const autoWalkTimersRef = useRef<any[]>([]);
+
+  // Cleanup auto-walk timers on unmount
+  useEffect(() => {
+    return () => {
+      autoWalkTimersRef.current.forEach(clearTimeout);
+    };
+  }, []);
+
   // LocalStorage persistence for true "Tạm dừng, quay lại sau"
   const DRE_STORAGE_KEY = 'dre_saved_session_v1';
   const [lastSavedTimestamp, setLastSavedTimestamp] = useState<number>(Date.now());
+
+  // Sảnh chờ trước lớp học (Khảo sát đầu vào & Đặt tên học sinh)
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get('skip_lobby') === '1') return true;
+      const savedUser = localStorage.getItem('dre_learner_profile');
+      return !!savedUser;
+    }
+    return false;
+  });
+  const [learnerProfile, setLearnerProfile] = useState<{ name: string; level: string } | null>(() => {
+    if (typeof window !== 'undefined') {
+      const savedUser = localStorage.getItem('dre_learner_profile');
+      if (savedUser) {
+        try {
+          return JSON.parse(savedUser);
+        } catch {
+          return null;
+        }
+      }
+    }
+    return null;
+  });
 
   // Restore saved session from localStorage on initial load
   useEffect(() => {
@@ -233,10 +293,10 @@ export default function App() {
     return () => clearInterval(timer);
   }, [currentMode, currentState]);
 
-  // Video playback ticker effect
+  // Video playback ticker effect (CHỈ chạy timer giả lập nếu bài giảng KHÔNG DÙNG YouTube iframe)
   useEffect(() => {
     let interval: any = null;
-    if (currentMode === 'video_clash' && isVideoPlaying) {
+    if (currentMode === 'video_clash' && isVideoPlaying && !currentVideoLesson.youtubeId) {
       interval = setInterval(() => {
         setVideoCurrentTime((prev) => {
           const next = prev + 1;
@@ -454,10 +514,6 @@ export default function App() {
 
   const handleSeekVideo = (time: number) => {
     setVideoCurrentTime(time);
-    if (time >= currentVideoLesson.checkpointTimestamp && videoPhase === 'WATCHING') {
-      setIsVideoPlaying(false);
-      setVideoPhase('CHECKPOINT_REACHED');
-    }
   };
 
   const handleJumpToCheckpoint = () => {
@@ -560,6 +616,88 @@ export default function App() {
     setLiveHintDialogue(null);
   };
 
+  // TỰ ĐỘNG CHẠY LIÊN HOÀN 4 TRẠM (1 CHẠM DEMO TUẦN TỰ)
+  const stopAutoWalk = () => {
+    autoWalkTimersRef.current.forEach(clearTimeout);
+    autoWalkTimersRef.current = [];
+    setIsAutoWalking(false);
+    setAutoWalkMessage('');
+  };
+
+  const handleToggleAutoWalk = () => {
+    if (isAutoWalking) {
+      stopAutoWalk();
+      return;
+    }
+
+    stopAutoWalk();
+    setIsAutoWalking(true);
+    setAutoWalkStep(1);
+    setAutoWalkMessage('1/6: Trạm 1 - Phát video 00:00 & quan sát 24 thảo luận sinh viên bám sát bảng thầy Tiến');
+
+    // BƯỚC 1: Về Trạm 1 lúc 00:00
+    setCurrentMode('video_clash');
+    setVideoCurrentTime(0);
+    setVideoPhase('WATCHING');
+    setIsVideoPlaying(true);
+    setIsQuizCollapsedToChat(false);
+
+    // BƯỚC 2: Nhảy tới điểm dừng 37:13 và thu câu hỏi xuống Chat
+    const t1 = setTimeout(() => {
+      setAutoWalkStep(2);
+      setAutoWalkMessage('2/6: Trạm 1 - Dừng tại 37:13 khoảnh khắc bẫy độ dài & Thu câu hỏi xuống chat để nghe lại');
+      handleJumpToCheckpoint();
+      setIsQuizCollapsedToChat(true);
+    }, 4500);
+
+    // BƯỚC 3: Mở lại câu hỏi trên Video và chọn Đáp án A (Gom về BC')
+    const t2 = setTimeout(() => {
+      setAutoWalkStep(3);
+      setAutoWalkMessage("3/6: Trạm 1 - Mở lại câu hỏi & chọn Đáp án A (Gom về BC') -> Bo cãi bướng 1+1=2");
+      setIsQuizCollapsedToChat(false);
+      handleAnswerCheckpoint(currentVideoLesson.checkpointQuestion.options[0].label);
+    }, 9000);
+
+    // BƯỚC 3b: Bắn Sticker phản biện Bo -> Cô Lam chốt quy tắc vàng
+    const t3 = setTimeout(() => {
+      setAutoWalkMessage('3b/6: Trạm 1 - Bắn Sticker phản biện hình học -> Cô Lam chốt quy tắc vàng sư phạm');
+      handleSubmitRebuttal(currentVideoLesson.rebuttalStickers[0].text, true);
+    }, 14000);
+
+    // BƯỚC 4: Chuyển sang Trạm 2 (Bắt lỗi Bo viết xuôi ở Bước 2)
+    const t4 = setTimeout(() => {
+      setAutoWalkStep(4);
+      setAutoWalkMessage('4/6: Trạm 2 - Sổ tay bắt lỗi Bo viết xuôi ở Bước 2 dựa trên khẩu quyết "Chung đầu - Lộn ngược"');
+      setIsVideoPlaying(false);
+      setCurrentMode('worksheet');
+      handleRunScenario(1);
+    }, 18500);
+
+    // BƯỚC 5: Chuyển sang Trạm 3 (POE Thử thách dự đoán hướng vectơ)
+    const t5 = setTimeout(() => {
+      setAutoWalkStep(5);
+      setAutoWalkMessage('5/6: Trạm 3 - POE Thử thách dự đoán hướng vectơ ngược chiều IA = -3·IG');
+      setCurrentMode('predict_poe');
+    }, 24500);
+
+    // BƯỚC 6: Chuyển sang Trạm 4 (Dạy kèm Bo & Khảo sát Bloom)
+    const t6 = setTimeout(() => {
+      setAutoWalkStep(6);
+      setAutoWalkMessage('6/6: Trạm 4 - Hiệu ứng người bảo trợ: Dạy kèm Bo & Khảo sát chẩn đoán Bloom');
+      setCurrentMode('protege_teaching');
+    }, 30500);
+
+    // KẾT THÚC DEMO
+    const t7 = setTimeout(() => {
+      setAutoWalkMessage('🎉 Đã hoàn thành toàn bộ kịch bản 4 Trạm liên hoàn!');
+      setTimeout(() => {
+        stopAutoWalk();
+      }, 3000);
+    }, 36500);
+
+    autoWalkTimersRef.current = [t1, t2, t3, t4, t5, t6, t7];
+  };
+
   const LEARNING_STATIONS: {
     id: LearningMode;
     stationNumber: string;
@@ -634,20 +772,68 @@ export default function App() {
 
   return (
     <>
-      {/* QA Scenario Runner Bar: Only rendered when ?debug=1 */}
+      {/* QA Scenario Runner Bar: Only rendered when ?debug=1 or toggled via F2 / Ctrl+Shift+D */}
       {showQaBar && (
         <ScenarioPlayerBar
           isVisible={showQaBar}
           onToggleVisible={() => setShowQaBar(prev => !prev)}
           onRunScenario={handleRunScenario}
           onTriggerNudge={handleTriggerNudge}
+          onTriggerVideoStart={() => {
+            setCurrentMode('video_clash');
+            setVideoCurrentTime(0);
+            setVideoPhase('WATCHING');
+            setIsVideoPlaying(false);
+          }}
           onTriggerVideoScenario={() => {
             setCurrentMode('video_clash');
+            setIsQuizCollapsedToChat(false);
             handleJumpToCheckpoint();
+          }}
+          onTriggerStation={(station) => {
+            if (station !== 'video_clash') setIsVideoPlaying(false);
+            setCurrentMode(station);
           }}
           onReset={handleRetryLesson}
           activeScenario={activeScenario}
           idleTimerSeconds={idleSeconds}
+          isAutoWalking={isAutoWalking}
+          autoWalkStep={autoWalkStep}
+          onToggleAutoWalk={handleToggleAutoWalk}
+          showAllTimeline={showAllTimeline}
+          onToggleShowAllTimeline={() => setShowAllTimeline(prev => !prev)}
+        />
+      )}
+
+      {/* BANNER THUYẾT MINH SƯ PHẠM KHI ĐANG CHẠY AUTO-WALK */}
+      {isAutoWalking && (
+        <div className="w-full bg-slate-900 text-white px-4 py-2 border-b border-cyan-500/40 shadow-lg flex items-center justify-between text-xs sticky top-0 z-40 animate-in slide-in-from-top-1 duration-150">
+          <div className="flex items-center gap-2.5 max-w-5xl">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
+            <span className="px-2 py-0.5 rounded bg-cyan-600/60 border border-cyan-400/40 font-mono text-[11px] font-bold shrink-0">
+              DEMO LIÊN HOÀN ({autoWalkStep}/6)
+            </span>
+            <span className="font-semibold text-slate-200 truncate">{autoWalkMessage}</span>
+          </div>
+          <button
+            type="button"
+            onClick={stopAutoWalk}
+            className="px-2.5 py-0.5 rounded bg-rose-600/80 hover:bg-rose-600 text-white font-bold text-[11px] cursor-pointer shrink-0 transition-colors"
+          >
+            ⏹ Dừng
+          </button>
+        </div>
+      )}
+
+      {/* SẢNH CHỜ TRƯỚC LỚP HỌC (2 BƯỚC: KHẢO SÁT & SẴN SÀNG) */}
+      {!isLoggedIn && (
+        <PreClassLobbyModal
+          onCompleteLobby={(name, lvl) => {
+            const profile = { name, level: lvl };
+            setLearnerProfile(profile);
+            localStorage.setItem('dre_learner_profile', JSON.stringify(profile));
+            setIsLoggedIn(true);
+          }}
         />
       )}
 
@@ -669,7 +855,7 @@ export default function App() {
               </button>
 
               {/* Dải station pills chuyển trạm nhanh */}
-              <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-1.5 shrink-0">
                 {LEARNING_STATIONS.map((station) => (
                   <button
                     key={station.id}
@@ -679,20 +865,23 @@ export default function App() {
                       if (station.id !== 'video_clash') setIsVideoPlaying(false);
                       setCurrentMode(station.id);
                     }}
-                    className={`chip ${
+                    className={`chip station-pill ${
                       currentMode === station.id
                         ? 'chip--primary'
-                        : 'chip--ghost text-slate-300 border-white/20 hover:text-white'
+                        : 'chip--ghost'
                     }`}
+                    title={station.title}
                   >
                     <span className="shrink-0">{station.icon}</span>
-                    <span>{station.stationNumber}: {station.title}</span>
+                    <span>{station.stationNumber}</span>
                   </button>
                 ))}
               </div>
 
-              <span className="rt-partno shrink-0 text-white font-semibold">Part 1</span>
-              <span className="rt-goal text-slate-400 truncate">{currentVideoLesson.topic}</span>
+              <span className="rt-partno shrink-0">Part 1</span>
+              <span className="rt-goal flex-1 min-w-0 text-slate-800 truncate font-semibold" title={currentVideoLesson.topic}>
+                {currentVideoLesson.topic}
+              </span>
             </div>
 
             <div className="flex items-center gap-2.5 shrink-0">
@@ -720,7 +909,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setIsLessonDrawerOpen(true)}
-                className="btn btn--sm btn--on-dark"
+                className="btn btn--sm bg-white hover:bg-slate-50 text-slate-700 border-slate-200 cursor-pointer"
               >
                 Đổi bài
               </button>
@@ -753,6 +942,13 @@ export default function App() {
               onAnswerCheckpoint={handleAnswerCheckpoint}
               onSubmitRebuttal={handleSubmitRebuttal}
               onResumeVideo={handleResumeVideoAfterClosure}
+              isOverlayDrawerOpen={isChaptersDrawerOpen}
+              onToggleOverlayDrawer={() => setIsChaptersDrawerOpen(prev => !prev)}
+              isAttachModalOpen={isAttachModalOpen}
+              onToggleAttachModal={setIsAttachModalOpen}
+              isRaiseHandModalOpen={isRaiseHandModalOpen}
+              onToggleRaiseHandModal={() => setIsRaiseHandModalOpen(prev => !prev)}
+              hideInternalBottomBar={true}
             />
           </section>
 
@@ -778,20 +974,51 @@ export default function App() {
                 setVideoPhase('WATCHING');
                 setIsVideoPlaying(true);
               }}
+              learnerName={learnerProfile?.name}
+              showAllTimeline={showAllTimeline}
             />
           </aside>
 
-          {/* 4. ROOM BAR: THANH ĐIỀU KHIỂN ĐÁY PHÒNG HỌC (REACTIONS + GIƠ TAY + PHÒNG HỌC) */}
+          {/* 4. ROOM BAR: THANH ĐIỀU KHIỂN ĐÁY PHÒNG HỌC (CHUẨN 100% BLU1606 MOCK) */}
           <footer className="room-bar">
-            <div className="act-part truncate">
-              Part 1/4 · Định nghĩa vectơ &amp; Quy tắc hình hộp || Thầy Nguyễn Phan Tiến (SGK Mới)
+            {/* Trái: Menu Phân cảnh & Đổi link */}
+            <div className="flex items-center gap-2 min-w-0">
+              <button
+                type="button"
+                onClick={() => setIsChaptersDrawerOpen(prev => !prev)}
+                className={`btn btn--sm flex items-center gap-1.5 max-w-[280px] truncate ${
+                  isChaptersDrawerOpen ? 'bg-slate-900 text-white font-bold border-slate-900' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                }`}
+                title="Xem Phân cảnh & Bản chép lời bài giảng"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 shrink-0">
+                  <path d="M4 5.5C4 4.67 4.67 4 5.5 4H11V19H5.5C4.67 19 4 19.67 4 20.5V5.5Z" fill="currentColor" fillOpacity="0.2"/>
+                  <path d="M12 5.5C12 4.39543 12.8954 3.5 14 3.5H19.5C20.0523 3.5 20.5 3.94772 20.5 4.5V18.5C20.5 19.0523 20.0523 19.5 19.5 19.5H14C12.8954 19.5 12 20.3954 12 21.5M12 5.5C12 4.39543 11.1046 3.5 10 3.5H4.5C3.94772 3.5 3.5 3.94772 3.5 4.5V18.5C3.5 19.0523 3.94772 19.5 4.5 19.5H10C11.1046 19.5 12 20.3954 12 21.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span className="truncate">1. Định nghĩa vectơ &amp; Giá của vectơ</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsAttachModalOpen(true)}
+                className="btn btn--sm flex items-center gap-1 shrink-0 bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
+                title="Đổi URL YouTube bài giảng khác"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 text-[#F5D65D]">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span className="hidden sm:inline">Đổi link</span>
+              </button>
             </div>
+
+            {/* Giữa: Cụm nút phản xạ + Câu hỏi dừng + Giơ tay */}
             <div className="act-group">
               <button
                 type="button"
                 onClick={() => sound.playPencilTap()}
                 className="act-btn"
-                title="Thả cảm xúc Hay"
+                title="Đã hiểu đoạn này"
               >
                 <svg viewBox="0 0 24 24" fill="none" className="ic">
                   <path d="M7 11V19M7 19H4C3.44772 19 3 18.5523 3 18V12C3 11.4477 3.44772 11 4 11H7M7 19L11.5 19C12.3284 19 13.0691 18.4984 13.3768 17.7292L15.3768 12.7292C15.4578 12.5266 15.5 12.3093 15.5 12.0901V11C15.5 10.4477 15.0523 10 14.5 10H11L12.5 5.5C12.5 4.5 11.5 4 10.5 4L7 11Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -806,7 +1033,7 @@ export default function App() {
                   handleTriggerFreeze();
                 }}
                 className="act-btn"
-                title="Báo đoạn này khó hiểu"
+                title="Chưa rõ đoạn này"
               >
                 <svg viewBox="0 0 24 24" fill="none" className="ic">
                   <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
@@ -818,10 +1045,25 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => {
-                  sound.playStampThud();
-                  handleTriggerFreeze();
+                  setIsQuizCollapsedToChat(false);
+                  handleJumpToCheckpoint();
                 }}
-                className="act-btn act-btn--hand"
+                className="act-btn act-btn--checkpoint font-bold text-white"
+                title="Nhảy tới mốc câu hỏi dừng 37:13"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5">
+                  <path d="M13 2L4.5 13.5H11.5L10.5 22L19.5 10.5H12.5L13 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                </svg>
+                <span>Câu hỏi dừng (37:13)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playStampThud();
+                  setIsRaiseHandModalOpen(prev => !prev);
+                }}
+                className={`act-btn act-btn--hand ${isRaiseHandModalOpen ? 'is-active ring-2 ring-amber-500' : ''}`}
                 title="Giơ tay hỏi thầy và bạn"
               >
                 <svg viewBox="0 0 24 24" fill="none" className="ic">
@@ -829,27 +1071,14 @@ export default function App() {
                 </svg>
                 <span>Giơ tay</span>
               </button>
-
-              <button
-                type="button"
-                onClick={() => setIsLessonDrawerOpen(true)}
-                className="act-btn"
-                title="Danh sách thành viên lớp học"
-              >
-                <svg viewBox="0 0 24 24" fill="none" className="ic">
-                  <path d="M17 21V19C17 16.7909 15.2091 15 13 15H5C2.79086 15 1 16.7909 1 19V21" stroke="currentColor" strokeWidth="1.8"/>
-                  <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.8"/>
-                  <path d="M23 21V19C22.9986 17.1771 21.765 15.5857 20 15.13" stroke="currentColor" strokeWidth="1.8"/>
-                  <path d="M16 3.13C17.7699 3.58316 19.0078 5.17799 19.0078 7.005C19.0078 8.83201 17.7699 10.4268 16 10.88" stroke="currentColor" strokeWidth="1.8"/>
-                </svg>
-                <span className="lbl">Lớp học (4)</span>
-              </button>
             </div>
+
+            {/* Phải: Nút Tạm dừng */}
             <div className="act-end">
               <button
                 type="button"
                 onClick={() => setIsPauseOpen(true)}
-                className="btn btn--sm btn--on-dark"
+                className="btn btn--sm bg-white hover:bg-slate-50 text-slate-700 border-slate-200"
               >
                 Tạm dừng
               </button>
@@ -861,89 +1090,188 @@ export default function App() {
             TRẠM 2, 3, 4: KHÔNG GIAN HỌC TẬP EDTECH HIỆN ĐẠI (VIBE-MATCHED)
             ==================================================================== */
         <div className="min-h-screen bg-[#f8fafc] text-[#111827] flex flex-col font-sans">
-          {/* MODERN EDTECH APPBAR (60px) */}
-          <header className="appbar">
-            <button
-              type="button"
-              onClick={() => setCurrentMode('video_clash')}
-              className="brand cursor-pointer border-0 bg-transparent"
-              title="Quay lại Trạm 1: Lớp học Video"
-            >
-              <div className="brand-mark">DRE</div>
-              <span className="font-bold text-base">DRE Learning</span>
-            </button>
+          {/* THANH COMBO SIÊU GỌN 2 DÒNG (TIẾT KIỆM 180PX - VỪA KHÍT 1 MÀN HÌNH KHÔNG CẦN SCROLL) */}
+          <header className="w-full bg-white border-b border-slate-200 px-4 py-2 sticky top-0 z-40 shadow-2xs select-none">
+            <div className="max-w-7xl mx-auto space-y-1.5">
+              {/* DÒNG 1: [1. Video & Bo cãi] → [2. Sổ tay bắt lỗi] → [3. Đoán POE] → [4. Gia sư] | [💬 Hỏi 4 bạn] [Sang Trạm 3 →] */}
+              <div className="flex items-center justify-between gap-3 text-xs">
+                {/* Cụm trái: Logo DRE + 4 Trạm liên hoàn */}
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentMode('video_clash')}
+                    className="brand-mark shrink-0 font-bold tracking-tight cursor-pointer w-7 h-7 rounded-lg bg-[#0e7490] text-white flex items-center justify-center text-xs shadow-2xs"
+                    title="Quay lại Trạm 1: Lớp học Video"
+                  >
+                    DRE
+                  </button>
 
-            {/* Dải station navigation chips */}
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-              {LEARNING_STATIONS.map((station) => (
-                <button
-                  key={station.id}
-                  type="button"
-                  onClick={() => {
-                    sound.playPageFlip();
-                    setCurrentMode(station.id);
-                  }}
-                  className={`chip ${currentMode === station.id ? 'chip--primary' : ''}`}
-                >
-                  <span className="shrink-0">{station.icon}</span>
-                  <span>{station.stationNumber}: {station.title}</span>
-                </button>
-              ))}
-            </div>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playPageFlip();
+                        setCurrentMode('video_clash');
+                      }}
+                      className={`px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
+                        currentMode === 'video_clash'
+                          ? 'bg-[#0e7490] text-white border-[#0e7490] shadow-2xs'
+                          : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
+                      }`}
+                    >
+                      1. Video &amp; Bo cãi
+                    </button>
+                    <span className="text-slate-300 text-[10px]">➔</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playPageFlip();
+                        setCurrentMode('worksheet');
+                      }}
+                      className={`px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
+                        currentMode === 'worksheet'
+                          ? 'bg-amber-600 text-white border-amber-600 shadow-2xs font-bold'
+                          : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
+                      }`}
+                    >
+                      2. Sổ tay bắt lỗi
+                    </button>
+                    <span className="text-slate-300 text-[10px]">➔</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playPageFlip();
+                        setCurrentMode('predict_poe');
+                      }}
+                      className={`px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
+                        currentMode === 'predict_poe'
+                          ? 'bg-yellow-600 text-white border-yellow-600 shadow-2xs font-bold'
+                          : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
+                      }`}
+                    >
+                      3. Đoán POE
+                    </button>
+                    <span className="text-slate-300 text-[10px]">➔</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playPageFlip();
+                        setCurrentMode('protege_teaching');
+                      }}
+                      className={`px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
+                        currentMode === 'protege_teaching'
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs font-bold'
+                          : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
+                      }`}
+                    >
+                      4. Gia sư
+                    </button>
+                  </div>
+                </div>
 
-            <div className="appbar-role flex items-center gap-3">
-              {currentMode === 'worksheet' && (
-                <button
-                  type="button"
-                  onClick={() => setIsLessonDrawerOpen(true)}
-                  className="btn btn--sm"
-                >
-                  Đổi bài ({currentLesson.id})
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setIsPauseOpen(true)}
-                className="btn btn--sm"
-              >
-                Tạm dừng
-              </button>
+                {/* Cụm phải: Hỏi riêng 4 bạn + Nút sang trạm tiếp theo + Đổi bài + Tạm dừng */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <MaicPeerClassroomDock
+                    currentMode={currentMode}
+                    currentState={currentState}
+                    lessonTopic={currentLesson.topic}
+                    errorStepIndex={currentLesson.errorStepIndex}
+                    peerContext={currentVideoLesson.peerContext}
+                  />
+
+                  {currentMode === 'worksheet' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playPageFlip();
+                        setCurrentMode('predict_poe');
+                      }}
+                      className="px-3 py-1 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                    >
+                      <span>Sang Trạm 3: Đoán POE ➔</span>
+                    </button>
+                  )}
+
+                  {currentMode === 'predict_poe' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playPageFlip();
+                        setCurrentMode('protege_teaching');
+                      }}
+                      className="px-3 py-1 rounded-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                    >
+                      <span>Sang Trạm 4: Dạy kèm Bo ➔</span>
+                    </button>
+                  )}
+
+                  {currentMode === 'protege_teaching' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playPageFlip();
+                        setCurrentMode('video_clash');
+                      }}
+                      className="px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                    >
+                      <span>↺ Hoàn thành · Quay lại Trạm 1</span>
+                    </button>
+                  )}
+
+                  {currentMode === 'worksheet' && (
+                    <button
+                      type="button"
+                      onClick={() => setIsLessonDrawerOpen(true)}
+                      className="btn btn--sm bg-white hover:bg-slate-50 text-slate-700 border-slate-200 cursor-pointer h-7 px-2.5 text-xs rounded-lg"
+                    >
+                      Đổi bài
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setIsPauseOpen(true)}
+                    className="btn btn--sm bg-white hover:bg-slate-50 text-slate-700 border-slate-200 cursor-pointer h-7 px-2.5 text-xs rounded-lg"
+                  >
+                    Tạm dừng
+                  </button>
+                </div>
+              </div>
+
+              {/* DÒNG 2: TIÊU ĐỀ BÀI HỌC GỌN 1 DÒNG DUY NHẤT (KHÔNG LẶP BREADCRUMB, KHÔNG RỚT DÒNG) */}
+              <div className="flex items-center justify-between gap-3 pt-1 border-t border-slate-100 min-w-0">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className="px-2 py-0.5 rounded-md bg-cyan-50 border border-cyan-200 text-[#0e7490] font-bold text-[11px] shrink-0 font-mono">
+                    {currentMode === 'worksheet' ? 'Trạm 2' : currentMode === 'predict_poe' ? 'Trạm 3' : 'Trạm 4'}
+                  </span>
+                  <h1 className="font-bold text-sm text-slate-900 truncate tracking-tight m-0 leading-tight">
+                    {currentMode === 'worksheet'
+                      ? currentLesson.topic
+                      : currentMode === 'predict_poe'
+                      ? 'Thử thách Đoán kết quả (Predict – Observe – Explain) — IA = -3IG'
+                      : 'Thực hành Dạy kèm Bo & Tự ra đề — Quy tắc hình hộp'}
+                  </h1>
+                  <span className="text-[11px] text-slate-500 font-medium hidden md:inline shrink-0">
+                    · Toán 12 SGK Mới
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[11px] text-slate-600 font-medium">
+                    {currentMode === 'worksheet'
+                      ? 'Bắt lỗi Bo'
+                      : currentMode === 'predict_poe'
+                      ? 'Dự đoán POE'
+                      : 'Dạy kèm Bo'}
+                  </span>
+                </div>
+              </div>
             </div>
           </header>
 
-          {/* MAIN PAGE WORKSPACE */}
-          <main className="page flex-1 w-full max-w-7xl mx-auto py-6 px-4 sm:px-6">
-            <div className="page-head">
-              <div>
-                <div className="crumb">
-                  <span>Lộ trình 4 Trạm</span> / <strong>
-                    {currentMode === 'worksheet'
-                      ? 'Trạm 2: Sổ tay bắt lỗi'
-                      : currentMode === 'predict_poe'
-                      ? 'Trạm 3: Đoán kết quả (POE)'
-                      : 'Trạm 4: Dạy kèm Bo & Thách đấu'}
-                  </strong>
-                </div>
-                <h1>
-                  {currentMode === 'worksheet'
-                    ? currentLesson.topic
-                    : currentMode === 'predict_poe'
-                    ? 'Thử thách Đoán kết quả (Predict - Observe - Explain)'
-                    : 'Thực hành Dạy kèm Bo & Tự ra đề'}
-                </h1>
-                <p className="muted">Toán 12 · Hình học không gian SGK Mới</p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <MaicPeerClassroomDock
-                  currentMode={currentMode}
-                  currentState={currentState}
-                  lessonTopic={currentLesson.topic}
-                  errorStepIndex={currentLesson.errorStepIndex}
-                  peerContext={currentVideoLesson.peerContext}
-                />
-              </div>
-            </div>
+          {/* MAIN PAGE WORKSPACE (SÁT MÉP TRÊN, VỪA KHÍT MÀN HÌNH LAPTOP) */}
+          <main className="page flex-1 w-full max-w-7xl mx-auto pt-2.5 pb-6 px-4 sm:px-6 animate-in fade-in duration-150">
 
             {/* CARD CONTAINER NỀN TRẮNG CHUẨN EDTECH */}
             <div className="card overflow-hidden">

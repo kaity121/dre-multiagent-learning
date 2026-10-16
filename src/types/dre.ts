@@ -75,7 +75,7 @@ export interface TranscriptCue {
   id: string;
   start: number;
   end: number;
-  speaker: 'Cô Lam' | 'Bo' | 'Bảng Phấn';
+  speaker?: 'Cô Lam' | 'Thầy Tiến' | 'Bo' | 'Bảng Phấn' | string;
   text: string;
   formula?: string;
   tag?: 'formula' | 'trap' | 'checkpoint' | 'rule';
@@ -129,13 +129,15 @@ export interface PeerContextData {
 export interface VideoLessonItem {
   id: string;
   title: string;
-  subject: string;
+  subject?: string;
+  topic?: string;
   duration: number;
+  durationSeconds?: number;
   checkpointTimestamp: number;
   videoUrl?: string;
   youtubeId?: string;
-  blackboardTitle: string;
-  lectureNotes: string[];
+  blackboardTitle?: string;
+  lectureNotes?: string[];
   // Phân cảnh & Bản chép lời từng giây kiểu YouTube/Coursera
   chapters?: VideoChapter[];
   transcriptCues?: TranscriptCue[];
@@ -153,16 +155,16 @@ export interface VideoLessonItem {
   };
   boArgument: {
     speech: string;
-    shortcutClaim: string;
-    fallacyType: string;
+    shortcutClaim?: string;
+    fallacyType?: string;
   };
   rebuttalStickers: RebuttalSticker[];
   boConcession: {
     speech: string;
-    realizationNote: string;
+    realizationNote?: string;
   };
   teacherClosure: {
-    speech: string;
+    speech?: string;
     goldenRule: string;
   };
   freezeNote: string;

@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=JetBrains+Mono:wght@500;600;700&display=swap');
 @import "../mock/app.css";
 @import "tailwindcss";
 
 @theme {
-  --font-handwriting: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-cute: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-handwriting: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  --font-cute: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --color-paper: #F8FAFC;
   --color-grid: #E2E8F0;
@@ -17,18 +17,26 @@
   --color-washi-pink: #E8B4BC;
 }
 
-/* 1. Ép toàn bộ giao diện & typography sang Plus Jakarta Sans hiện đại */
+/* 1. Ép toàn bộ giao diện & typography sang Be Vietnam Pro - font chuẩn 100% tiếng Việt có dấu */
+*,
 body,
+button,
+input,
+select,
+textarea,
 .font-handwriting,
 .font-cute,
 .font-sans {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-  letter-spacing: -0.01em;
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.font-mono {
-  font-family: 'JetBrains Mono', monospace !important;
+code,
+pre,
+.font-mono,
+.mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace !important;
 }
 
 body {
@@ -37,6 +45,385 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
+}
+
+/* ==========================================================================
+   Full-Bleed Light EdTech Room (Trạm 1: Đồng bộ giao diện sáng hiện đại)
+   ========================================================================== */
+
+.room {
+  background: #f8fafc !important;
+  color: #111827 !important;
+}
+
+/* Room header bar */
+.room-title {
+  height: 56px !important;
+  padding: 0 16px 0 20px !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+
+.room-title .brand-mark {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  background: #0e7490 !important;
+  color: #ffffff !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+/* Compact, elegant station pills in top bar (Fixed font proportion & vertical breathing space) */
+.room-title .chip,
+.chip.station-pill {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 10px 0 8px !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  transition: all 0.15s ease !important;
+}
+
+.room-title .chip svg,
+.chip.station-pill svg {
+  width: 13px !important;
+  height: 13px !important;
+  flex-shrink: 0 !important;
+}
+
+.room-title .chip--primary,
+.chip.station-pill.chip--primary {
+  background: #0e7490 !important;
+  border-color: #0e7490 !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 2px rgba(14, 116, 144, 0.2) !important;
+}
+
+.room-title .chip--primary svg,
+.chip.station-pill.chip--primary svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.room-title .chip--ghost,
+.chip.station-pill.chip--ghost {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
+}
+
+.room-title .chip--ghost:hover,
+.chip.station-pill.chip--ghost:hover {
+  background: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+}
+
+/* Part and Goal typography: crisp, highly legible on light background */
+.room-title .rt-partno {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #0284c7 !important;
+  background: #e0f2fe !important;
+  padding: 3px 8px !important;
+  border-radius: 6px !important;
+  border: 1px solid #bae6fd !important;
+  white-space: nowrap !important;
+}
+
+.room-title .rt-goal {
+  font-size: 13px !important;
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Status pill: crisp light pill with distinct status dot */
+.room-title .rt-status {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  height: 30px !important;
+  padding: 0 12px !important;
+  border-radius: 999px !important;
+  max-width: none !important;
+  white-space: nowrap !important;
+  color: #334155 !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.room-title .rt-status .rt-dot {
+  width: 7px !important;
+  height: 7px !important;
+  background: #94a3b8 !important;
+}
+
+.room-title .rt-status.is-playing .rt-dot {
+  background: #10b981 !important;
+}
+
+.room-title .rt-status.is-paused .rt-dot {
+  background: #f59e0b !important;
+}
+
+.room-title .rt-status.is-replay {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+  border-color: #fde68a !important;
+}
+
+.room-title .btn {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  height: 30px !important;
+  padding: 0 12px !important;
+  border-radius: 6px !important;
+}
+
+.room-title .btn:hover {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
+}
+
+/* Main Video Stage */
+.room-stage {
+  background: #f1f5f9 !important;
+  padding: 12px 24px 16px 24px !important;
+}
+
+/* Right Panel (Chat & People) */
+.room-panel {
+  background: #ffffff !important;
+  border-left: 1px solid #e2e8f0 !important;
+}
+
+/* Right Panel & Chat Typography: clean, well-proportioned, not oversized */
+.room-panel .people-head {
+  font-size: 12px !important;
+  padding: 8px 12px 4px !important;
+}
+
+.room-panel .people-row {
+  padding: 4px 8px 6px !important;
+  gap: 4px !important;
+}
+
+.room-panel .tile {
+  padding: 4px 2px !important;
+}
+
+.room-panel .tile .av {
+  width: 34px !important;
+  height: 34px !important;
+  font-size: 13px !important;
+}
+
+.room-panel .tile-name {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+}
+
+.room-panel .tile-state {
+  font-size: 10px !important;
+  color: #64748b !important;
+}
+
+.room-panel .tabs {
+  height: 38px !important;
+}
+
+.room-panel .tab {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  height: 38px !important;
+  padding: 0 12px !important;
+}
+
+/* Chat messages: 13.5px body, crisp and legible */
+.room .msg {
+  grid-template-columns: 28px minmax(0, 1fr) !important;
+  gap: 8px !important;
+  padding: 6px 12px !important;
+}
+
+.room .msg .av--sm {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 12px !important;
+}
+
+.room .msg-head {
+  font-size: 12px !important;
+  margin-bottom: 2px !important;
+}
+
+.room .msg-who {
+  font-weight: 700 !important;
+}
+
+.room .msg-body {
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  color: #334155 !important;
+}
+
+.room .ts {
+  font-size: 11px !important;
+  height: 20px !important;
+  padding: 0 6px !important;
+  font-family: var(--font-mono) !important;
+}
+
+.room .whisper-peek {
+  font-size: 12px !important;
+  padding: 6px 10px !important;
+  background: #f1edfc !important;
+  color: #4c2fb0 !important;
+  border-radius: 8px !important;
+}
+
+/* Composer: 13px text, well-padded */
+.room .cmp-top, .room .cmp-to, .room .cmp-ts {
+  font-size: 12px !important;
+}
+
+.room .cmp-to, .room .cmp-ts {
+  height: 28px !important;
+}
+
+.room .cmp-input {
+  font-size: 13px !important;
+  min-height: 38px !important;
+  padding: 8px 12px !important;
+}
+
+.room .msg-chips .chip {
+  font-size: 11px !important;
+  min-height: 26px !important;
+  height: 26px !important;
+  padding: 0 8px !important;
+}
+
+/* Bottom Room Bar: Clean, sleek light toolbar */
+.room-bar {
+  height: 58px !important;
+  padding: 0 20px !important;
+  background: #ffffff !important;
+  border-top: 1px solid #e2e8f0 !important;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.03) !important;
+}
+
+.room-bar::after {
+  display: none !important;
+}
+
+.room-bar .btn {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+  font-weight: 600 !important;
+  transition: all 0.15s ease !important;
+}
+
+.room-bar .btn:hover {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
+}
+
+.room-bar .act-group {
+  gap: 8px !important;
+}
+
+.room-bar .act-btn {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  height: 38px !important;
+  padding: 0 14px !important;
+  border-radius: 8px !important;
+  gap: 6px !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+  flex-direction: row !important;
+  min-width: auto !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+.room-bar .act-btn .lbl,
+.room-bar .act-btn span {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+.room-bar .act-btn .ic {
+  width: 16px !important;
+  height: 16px !important;
+  color: #64748b !important;
+}
+
+.room-bar .act-btn:hover {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+.room-bar .act-btn:hover .ic {
+  color: #0f172a !important;
+}
+
+.room-bar .act-btn--checkpoint {
+  background: #0e7490 !important;
+  border-color: #0891b2 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.room-bar .act-btn--checkpoint:hover {
+  background: #0891b2 !important;
+  border-color: #06b6d4 !important;
+  color: #ffffff !important;
+}
+
+.room-bar .act-btn--checkpoint .ic {
+  color: #ffffff !important;
+}
+
+.room-bar .act-btn--hand {
+  background: #f59e0b !important;
+  border: 1px solid #d97706 !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  padding: 0 16px !important;
+}
+
+.room-bar .act-btn--hand .ic {
+  color: #0f172a !important;
+}
+
+.room-bar .act-btn--hand:hover {
+  background: #fbbf24 !important;
 }
 
 /* Superr.ai Warm Kraft / Moleskine Notebook Cover */
@@ -183,4 +570,89 @@ body {
   border: 1px solid rgba(226, 214, 195, 0.95);
 }
 
+/* ==========================================================================
+   HIGH-CONTRAST GUARDS FOR BUTTONS AND INTERACTIVE TEXT (FIX "CHỮ BỊ CHÌM")
+   ========================================================================== */
+
+/* Dark buttons & badges MUST always have crisp, bright white text */
+.room button[class*="text-white"],
+.room button.text-white,
+.room [class*="text-white"],
+button.text-white,
+.text-white {
+  color: #ffffff !important;
+}
+
+/* Checkpoint button in bottom bar: bright white text and icon */
+.room-bar .act-btn--checkpoint,
+.room-bar .act-btn--checkpoint span,
+.room-bar .act-btn--checkpoint svg,
+.room-bar .act-btn--checkpoint path {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Dark freeze intent button */
+.freeze-intent-active,
+button[class*="bg-slate-900"],
+button[class*="bg-[#1E242B]"] {
+  color: #ffffff !important;
+}
+
+/* Primary buttons with dark green background */
+button[class*="bg-[#1B4338]"],
+button[class*="bg-[#0f766e]"],
+button[class*="bg-[#10B981]"] {
+  color: #ffffff !important;
+}
+
+/* ==========================================================================
+   Station 2, 3, 4 Unified Headings and Typography
+   ========================================================================== */
+.page-head h1 {
+  font-size: 1.25rem !important; /* 20px instead of 28px */
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  color: #0f172a !important;
+  letter-spacing: -0.01em !important;
+}
+
+.page-head .crumb {
+  font-size: 11px !important;
+  color: #64748b !important;
+  margin-bottom: 2px !important;
+}
+
+.page-head .muted {
+  font-size: 12px !important;
+  color: #64748b !important;
+  margin-top: 2px !important;
+}
+
+/* ==========================================================================
+   FIX COMPACT HEADER CHO VIDEO DEMO (KHÔNG CẦN SCROLL CHUỘT)
+   ========================================================================== */
+
+/* 1. Giảm padding tổng thể của trang xuống sát mép trên */
+main.page {
+  padding-top: 10px !important;
+  padding-bottom: 16px !important;
+}
+
+/* 2. Đảm bảo Tiêu đề chính (H1) luôn gọn 1 dòng duy nhất, không bao giờ rớt dòng */
+h1 {
+  font-size: 0.95rem !important; /* ~15px */
+  line-height: 1.25 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* 3. Thu gọn chiều cao và khoảng cách của card bài tập */
+.card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
 
