@@ -20,18 +20,18 @@ export function evaluateStepAndExplanation(
     };
   }
 
-  const cleanText = explanation.trim().toLowerCase();
+  const cleanText = explanation.trim().toLowerCase().replace(/[\u2013\u2014\u2212]/g, '-');
 
   // Check for very vague/insufficient explanation
   const vaguePhrases = ['sai', 'sai rồi', 'thấy sai', 'vì thấy nó sai sai', 'sai sai', 'kì', 'kỳ quá', 'không đúng', 'bị sai'];
-  const isVague = cleanText.length < 12 || vaguePhrases.some(p => cleanText === p);
+  const isVague = cleanText.length < 5 || vaguePhrases.some(p => cleanText === p);
 
   if (isVague) {
     return {
       isCorrectStep: true,
       explanationQuality: 'partial',
       feedbackTutor: `Gần đúng rồi đó! Em thử nói rõ hơn xem — ${getProbeQuestion(lesson)}`,
-      reactionBo: 'Ủa, chỗ đó tớ có làm gì sai thật hả cậu?'
+      reactionBo: getBoChallenge(lesson)
     };
   }
 
@@ -41,10 +41,24 @@ export function evaluateStepAndExplanation(
     .trim();
 
   // Check for presence of key conceptual words
-  const matchCount = lesson.keywords.filter(kw => textWithoutStepReferences.includes(kw.toLowerCase())).length;
+  const matchCount = lesson.keywords.filter(kw => {
+    const normKw = kw.toLowerCase().replace(/[\u2013\u2014\u2212]/g, '-');
+    return textWithoutStepReferences.includes(normKw);
+  }).length;
+
+  const isThorough =
+    matchCount > 0 ||
+    textWithoutStepReferences.includes('lộn ngược') ||
+    textWithoutStepReferences.includes('ac - ab') ||
+    textWithoutStepReferences.includes('c - a - b') ||
+    textWithoutStepReferences.includes('sau trừ trước') ||
+    textWithoutStepReferences.includes('đổi dấu') ||
+    textWithoutStepReferences.includes('x = 3') ||
+    textWithoutStepReferences.includes('quy tắc hiệu') ||
+    textWithoutStepReferences.includes('quy tắc trừ');
 
   // Genuine pedagogical assessment: Must have at least 1 conceptual keyword or mathematical rule match
-  if (matchCount > 0) {
+  if (isThorough) {
     return {
       isCorrectStep: true,
       explanationQuality: 'thorough',
@@ -79,6 +93,8 @@ function getProbeQuestion(lesson: MisconceptionItem): string {
       return '20% tăng thêm này nên tính trên giá ban đầu hay giá đã giảm?';
     case 'MISC_008':
       return 'khi chia cả hai vế cho số âm thì dấu so sánh phải đổi thế nào?';
+    case 'MISC_VECTO_12':
+      return 'theo khẩu quyết của Thầy Tiến ở phút [57:02], khi chèn điểm chung đầu A thì thứ tự hai điểm cuối lộn ngược thế nào?';
     default:
       return 'quy tắc toán học áp dụng ở bước này là gì?';
   }
@@ -102,6 +118,8 @@ export function getBoChallenge(lesson: MisconceptionItem): string {
       return 'Ủa giảm 20% rồi lại tăng 20% thì huề vốn 200.000đ chứ sao nữa cậu!';
     case 'MISC_008':
       return 'Ủa đề bài là dấu lớn hơn > cơ mà, sao nghiệm của cậu lại quay ngoắt thành dấu nhỏ hơn <? Tự nhiên đổi chiều dấu là sao?';
+    case 'MISC_VECTO_12':
+      return "Ủa cậu ơi, từ B' đến C thì chèn điểm A vào viết thành B'C = AB' − AC theo đúng thứ tự chữ B' đứng trước, C đứng sau chứ sao lại phải lộn ngược?";
     default:
       return 'Ủa tớ thấy làm thế này nhanh hơn nhiều mà? Cậu chỉ ra xem tớ sai chỗ nào?';
   }
@@ -125,6 +143,8 @@ export function getBoConcession(lesson: MisconceptionItem): string {
       return 'Ơ đúng thật! 20% tăng là tính trên 160k đã giảm chứ không phải giá gốc 200k ban đầu, vậy là 192k!';
     case 'MISC_008':
       return 'À tớ nhớ rồi! Khi chia cho số âm −2 thì chiều bất đẳng thức bị đảo ngược, nên > phải đổi thành < !';
+    case 'MISC_VECTO_12':
+      return "Ơ đúng rồi! Khẩu quyết của thầy Tiến ở phút [57:02] là \"Chung đầu - Lộn ngược\": B'C = AC − AB' = c − (a + b) = c − a − b! Tớ viết xuôi theo quán tính nên bị ngược dấu!";
     default:
       return 'Ơ đúng ha! Cậu giải thích rất chuẩn xác, tớ tâm phục khẩu phục rồi!';
   }
@@ -134,11 +154,25 @@ export function evaluateRebuttalOffline(
   lesson: MisconceptionItem,
   rebuttal: string
 ): { isSharp: boolean; boReaction: string; tutorFeedback: string } {
-  const clean = rebuttal.trim().toLowerCase();
+  const clean = rebuttal.trim().toLowerCase().replace(/[\u2013\u2014\u2212]/g, '-');
   
-  // Real semantic match: Check against keywords and conceptual tokens
-  const matchCount = lesson.keywords.filter(kw => clean.includes(kw.toLowerCase())).length;
-  const isSharp = matchCount > 0 || clean.includes('quy tắc') || clean.includes('bản chất') || clean.includes('vì') && clean.length > 15;
+  // Real semantic match: Check against keywords and conceptual tokens with dash normalization
+  const matchCount = lesson.keywords.filter(kw => {
+    const normKw = kw.toLowerCase().replace(/[\u2013\u2014\u2212]/g, '-');
+    return clean.includes(normKw);
+  }).length;
+
+  const isSharp =
+    matchCount > 0 ||
+    clean.includes('lộn ngược') ||
+    clean.includes('ac - ab') ||
+    clean.includes('c - a - b') ||
+    clean.includes('sau trừ trước') ||
+    clean.includes('quy tắc hiệu') ||
+    clean.includes('quy tắc trừ') ||
+    clean.includes('quy tắc') ||
+    clean.includes('bản chất') ||
+    (clean.includes('vì') && clean.length > 15);
 
   if (isSharp) {
     return {

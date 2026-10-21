@@ -214,7 +214,7 @@ Thay vì dùng giao diện web phần mềm thông thường, màn hình học v
 | :---: | :--- | :---: | :---: | :--- |
 | **F-01** | **Top Index Tabs (4 Trạm học tập)** | Khuê Minh | Đã hoàn thành (100%) | Alignment (5/5) |
 | **F-02** | **MAIC Living Peer Dock (4 Bạn học)** | Khuê Minh | Đã hoàn thành (Mock Chat + Voice) | Tone & Supportiveness |
-| **F-03** | **Pinned Summary & Cheer của TA An** | Khuê Minh + Hiếu | Frontend đã có, Backend đang chạy GPT-6 | Clarity & Alignment |
+| **F-03** | **Pinned Summary & Cheer của TA An** | Khuê Minh + Hiếu | Frontend đã có, Backend đang chạy GPT-6 Sol | Clarity & Alignment |
 | **F-04** | **Bản đồ nhiệt Ngộ nhận (Heatmap)** | Khuê Minh + An | Đã hoàn thành (Mock dữ liệu 500 HS) | Fallacy Perplexity |
 | **F-05** | **45s Inactivity Tutor Nudge** | Khuê Minh | Đã hoàn thành (Timer tự kích hoạt) | Hesitation Index (HI) |
 | **F-06** | **Nút "Khoan đã cô ơi!" (Student Freeze)** | Khuê Minh | Đã hoàn thành (Popup chọn lý do) | Agency & Autonomy |

@@ -55,7 +55,7 @@
 :root {
   /* Visual system ported from the Codi reference prototype */
   --font: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
-  --font-display: "Lexend", "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-display: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace;
 
   --canvas: #f8fafc;
@@ -803,63 +803,63 @@ body.in-room .room-bar { padding-left: 232px; }
 /* ==========================================================================
    Larger reading sizes — app text one step up, classroom chat two steps up.
    ========================================================================== */
-body { font-size: 17px; }
-.small, .muted.small, .field-help, .field-error, .crumb, .class-meta, .stage-detail, .stage-status { font-size: 15px; }
-.btn { font-size: 15px; }
-.btn--sm { font-size: 14px; }
-.chip { font-size: 15px; min-height: 36px; }
-.tag { font-size: 13px; height: 24px; }
-.side-link { font-size: 16px; }
-.metric-label, .metric-hint, .stat-label { font-size: 14px; }
-.ctable { font-size: 15px; }
-.ctable th { font-size: 13px; }
-.irow-kind { font-size: 13px; }
-.irow-who { font-size: 14px; }
+body { font-size: 14px; }
+.small, .muted.small, .field-help, .field-error, .crumb, .class-meta, .stage-detail, .stage-status { font-size: 12px; }
+.btn { font-size: 13px; }
+.btn--sm { font-size: 12px; }
+.chip { font-size: 13px; min-height: 32px; }
+.tag { font-size: 11px; height: 22px; }
+.side-link { font-size: 13px; }
+.metric-label, .metric-hint, .stat-label { font-size: 12px; }
+.ctable { font-size: 13px; }
+.ctable th { font-size: 12px; }
+.irow-kind { font-size: 12px; }
+.irow-who { font-size: 12px; }
 
 /* Classroom */
-.room { --chat-w: 460px; }
-.rt-partno { font-size: 17px; }
-.rt-goal, .rt-status { font-size: 15px; }
-.panel-head { font-size: 16px; height: 48px; }
-.people-head { font-size: 14px; }
-.tile-name { font-size: 14px; }
-.tile-state { font-size: 12px; }
-.tab { font-size: 16px; height: 44px; }
-.room .msg { grid-template-columns: 32px minmax(0, 1fr); gap: 10px; padding: 8px 14px; }
-.room .msg .av--sm { width: 32px; height: 32px; font-size: 14px; }
-.room .msg-head { font-size: 15px; }
-.room .msg-tag { font-size: 12px; height: 20px; }
-.room .msg-body { font-size: 17px; line-height: 1.6; }
-.room .msg--passive .msg-body { font-size: 16px; }
-.room .ts { font-size: 13px; height: 24px; }
-.room .link-btn, .room .thread-sum { font-size: 14px; }
-.room .thread-list .msg-body { font-size: 16px; }
-.room .sys, .room .divider, .room .typing, .room .msg-hint, .room .msg-step, .room .msg-src, .room .msg-note, .room .msg-ph { font-size: 14px; }
-.room .msg-chips .chip { font-size: 16px; min-height: 38px; padding: 6px 14px; }
-.room .poll-q { font-size: 17px; }
-.room .poll-opt { font-size: 16px; padding: 10px 12px; }
-.room .pres-top { font-size: 15px; }
-.room .pres-who, .room .poll-peers { font-size: 14px; }
-.room .poll-explain, .room .side-args { font-size: 15px; }
+.room { --chat-w: 420px; }
+.rt-partno { font-size: 14px; }
+.rt-goal, .rt-status { font-size: 13px; }
+.panel-head { font-size: 13px; height: 42px; }
+.people-head { font-size: 12px; }
+.tile-name { font-size: 12px; }
+.tile-state { font-size: 11px; }
+.tab { font-size: 13px; height: 38px; }
+.room .msg { grid-template-columns: 28px minmax(0, 1fr); gap: 8px; padding: 6px 10px; }
+.room .msg .av--sm { width: 26px; height: 26px; font-size: 11px; }
+.room .msg-head { font-size: 12px; }
+.room .msg-tag { font-size: 11px; height: 18px; }
+.room .msg-body { font-size: 13px; line-height: 1.5; font-family: 'Be Vietnam Pro', system-ui, sans-serif !important; }
+.room .msg--passive .msg-body { font-size: 12px; }
+.room .ts { font-size: 11px; height: 20px; }
+.room .link-btn, .room .thread-sum { font-size: 12px; }
+.room .thread-list .msg-body { font-size: 13px; }
+.room .sys, .room .divider, .room .typing, .room .msg-hint, .room .msg-step, .room .msg-src, .room .msg-note, .room .msg-ph { font-size: 12px; }
+.room .msg-chips .chip { font-size: 13px; min-height: 32px; padding: 4px 10px; }
+.room .poll-q { font-size: 13px; }
+.room .poll-opt { font-size: 13px; padding: 8px 10px; }
+.room .pres-top { font-size: 13px; }
+.room .pres-who, .room .poll-peers { font-size: 12px; }
+.room .poll-explain, .room .side-args { font-size: 12px; }
 .cmp-top, .cmp-to, .cmp-ts, .cmp-target { font-size: 14px; }
 .cmp-to, .cmp-ts { height: 32px; }
-.cmp-input { font-size: 17px; min-height: 46px; padding: 11px 14px; }
-.tline { font-size: 16px; }
-.whisper-peek { font-size: 14px; }
-.newpill { font-size: 14px; height: 36px; }
-.act-part { font-size: 16px; }
-.act-btn { font-size: 15px; }
-.vc .tl-time { font-size: 14px; }
-.vc .tl-seg-label { font-size: 12px; }
-.vc-src, .vc-speed { font-size: 13px; }
+.cmp-input { font-size: 13px; min-height: 40px; padding: 8px 12px; }
+.tline { font-size: 13px; }
+.whisper-peek { font-size: 12px; }
+.newpill { font-size: 12px; height: 32px; }
+.act-part { font-size: 14px; }
+.act-btn { font-size: 13px; }
+.vc .tl-time { font-size: 12px; }
+.vc .tl-seg-label { font-size: 11px; }
+.vc-src, .vc-speed { font-size: 12px; }
 /* Question card on the video */
 .vo-inner { width: min(640px, 100%); }
-.vo-card .msg-body, .vo-card .poll-q { font-size: 19px; }
-.vo-card .msg-head { font-size: 16px; }
-.vo-card .msg-chips .chip { font-size: 17px; min-height: 42px; }
-.vo-card .poll-opt { font-size: 17px; }
-.vo-bar, .vo-pill { font-size: 14px; }
-.vo-input .input { font-size: 17px; height: 44px; }
+.vo-card .msg-body, .vo-card .poll-q { font-size: 14px; }
+.vo-card .msg-head { font-size: 13px; }
+.vo-card .msg-chips .chip { font-size: 13px; min-height: 32px; }
+.vo-card .poll-opt { font-size: 13px; }
+.vo-bar, .vo-pill { font-size: 12px; }
+.vo-input .input { font-size: 13px; height: 38px; }
 
 /* Build progress card: the list reset (.stages { padding: 0 }) was overriding the card padding,
    so stage icons and status labels touched the card edges. */
@@ -1101,10 +1101,10 @@ body { font-size: 17px; }
 
 /* the bubble */
 .chat .msg:not(.msg--task):not(.msg--whisper):not(.msg--mine-task) > .msg-main > .msg-body {
-  width: fit-content; max-width: 100%; padding: 8px 12px; border-radius: var(--bubble-r);
-  background: var(--bubble); color: var(--bubble-ink); font-size: 17px; line-height: 1.45; }
-/* first bubble of a group: small tail corner on the sender side */
-.chat .msg:not([data-who="me"]):not(.is-cont):not(.msg--task):not(.msg--whisper):not(.msg--mine-task) > .msg-main > .msg-body { border-top-left-radius: var(--bubble-tail); }
+  width: 100%; max-width: 100%; padding: 0; border-radius: 0;
+  background: transparent; color: #374151; font-size: 13px; line-height: 1.5; font-family: 'Be Vietnam Pro', system-ui, sans-serif; }
+/* first bubble of a group */
+.chat .msg:not([data-who="me"]):not(.is-cont):not(.msg--task):not(.msg--whisper):not(.msg--mine-task) > .msg-main > .msg-body { border-top-left-radius: 0; }
 
 /* own messages in the main chat: right side, solid brand bubble, no avatar, no name */
 .chat > .msg[data-who="me"]:not(.msg--task):not(.msg--whisper):not(.msg--mine-task) { grid-template-columns: minmax(0, 1fr); padding-left: 56px; }

@@ -38,7 +38,7 @@ Server chạy ở `http://localhost:3001` (đổi qua biến `PORT` trong `.env`
 | `/api/session/:id/answer` | POST | `{ cauTraLoi }` | Bước 2-5: Assessor chấm → chọn bẫy → Bo thách thức |
 | `/api/session/:id/rebuttal` | POST | `{ phanBien }` | Bước 6-8: Assessor chấm phản biện → concede/hint/chốt |
 | `/api/ta/pinned/:id` | GET | — | TA An: Ghim tóm tắt & lời nhắc nhở lớp học |
-| `/api/peer/:peerId/chat` | POST | `{ message, topic }` | Chat trực tiếp 1-1 với Trí, Linh Chi, Minh Khang, Bo qua GPT-6 |
+| `/api/peer/:peerId/chat` | POST | `{ message, topic }` | Chat trực tiếp 1-1 với Trí, Linh Chi, Minh Khang, Bo qua GPT-6 Sol |
 
 Gọi `/rebuttal` lặp lại cho tới khi response trả `"done": true`.
 

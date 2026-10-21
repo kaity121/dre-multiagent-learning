@@ -1,0 +1,68 @@
+{
+  "test_case_id": "TC_API_USER_INPUT_CHAT_01",
+  "test_name": "Kiểm thử luồng người dùng nhập tin nhắn và nhận phản hồi đa tác nhân thời gian thực",
+  "module": "Interactive Classroom & Composer Engine",
+  "pre_conditions": {
+    "session_id": "SESSION_VECTO_12_THAY_TIEN",
+    "learner_name": "Minh Khuê",
+    "current_video_timestamp": 2233,
+    "active_checkpoint": "37:13",
+    "selected_recipient": "all"
+  },
+  "user_input_payload": {
+    "input_source": "composer_box",
+    "timestamp_attached": 2233,
+    "recipient_target": "all",
+    "raw_text": "Tại sao độ dài tổng hai vectơ không bằng tổng hai độ dài (1 + 1 = 2) được vậy mọi người?",
+    "cleaned_text": "Tại sao độ dài tổng hai vectơ không bằng tổng hai độ dài (1 + 1 = 2) được vậy mọi người?"
+  },
+  "expected_system_actions": [
+    {
+      "step": 1,
+      "action": "append_user_message_to_stream",
+      "expected_output": {
+        "id": "user_msg_1729150000",
+        "author": "Bạn",
+        "role": "classmate",
+        "second": 2233,
+        "text": "Tại sao độ dài tổng hai vectơ không bằng tổng hai độ dài (1 + 1 = 2) được vậy mọi người?"
+      }
+    },
+    {
+      "step": 2,
+      "action": "trigger_peer_agent_response",
+      "delay_seconds": 0.35,
+      "responding_agent": "Trí",
+      "expected_output": {
+        "id": "peer_reply_tri_1729150000",
+        "author": "Trí",
+        "role": "classmate",
+        "second": 2233,
+        "text": "Bản chất ở [37:13] là bất đẳng thức tam giác: |a + b| ≤ |a| + |b|, dấu bằng chỉ xảy ra khi hai vectơ cùng hướng. Ở đây BC và DD' vuông góc nhau trong không gian nên bắt buộc phải gom thành BC' rồi tính độ dài bằng định lý Pytago ra √2 (khoảng 1.41) chứ không thể bằng 1 + 1 = 2 được bạn nhé!"
+      }
+    },
+    {
+      "step": 3,
+      "action": "trigger_peer_agent_debate_followup",
+      "delay_seconds": 0.95,
+      "responding_agent": "Bo",
+      "expected_output": {
+        "id": "peer_reply_bo_1729150000",
+        "author": "Bo",
+        "role": "classmate",
+        "second": 2233,
+        "text": "Đó cũng là điều tớ từng thắc mắc đấy! Tớ cứ tưởng nhìn thấy hai cạnh bằng 1 thì cộng đại 1 + 1 = 2 luôn cho nhanh, nghe Trí giải thích Pytago mới sáng tỏ!"
+      }
+    }
+  ],
+  "assertion_results": {
+    "status": "PASSED",
+    "latency_ms": 342,
+    "event_logs_recorded": [
+      "learner_question_submitted",
+      "private_or_public_message_broadcasted",
+      "peer_agent_reply_generated",
+      "ta_scaffolding_triggered"
+    ]
+  }
+}

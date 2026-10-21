@@ -1,11 +1,13 @@
 import 'dotenv/config';
 
+const defaultModel = process.env.OPENAI_MODEL || 'gpt-6-sol';
+
 export const config = {
   openaiApiKey: process.env.OPENAI_API_KEY,
   models: {
-    bo: process.env.BO_MODEL || 'gpt-6-sol',
-    assessor: process.env.ASSESSOR_MODEL || 'gpt-6-sol',
-    coLam: process.env.COLAM_MODEL || 'gpt-6.1-sol',
+    bo: process.env.BO_MODEL || defaultModel,
+    assessor: process.env.ASSESSOR_MODEL || defaultModel,
+    coLam: process.env.COLAM_MODEL || process.env.OPENAI_MODEL || 'gpt-6.1-sol',
   },
   port: Number(process.env.PORT) || 3001,
 };

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { 
   TutorLamAvatar, 
-  BoAvatar, 
+  BoCircleAvatar, 
   TriDeepThinkerAvatar, 
   LinhChiNoteTakerAvatar, 
   MinhKhangInquisitiveAvatar,
@@ -12,12 +12,20 @@ import { sound } from '../utils/soundEffects';
 
 interface PreClassLobbyModalProps {
   onCompleteLobby: (learnerName: string, level: string) => void;
+  onClose?: () => void;
+  initialName?: string;
+  initialLevel?: string;
 }
 
-export const PreClassLobbyModal: React.FC<PreClassLobbyModalProps> = ({ onCompleteLobby }) => {
+export const PreClassLobbyModal: React.FC<PreClassLobbyModalProps> = ({ 
+  onCompleteLobby,
+  onClose,
+  initialName = '',
+  initialLevel = 'learned_needs_consolidation'
+}) => {
   const [step, setStep] = useState<1 | 2>(1);
-  const [selectedLevel, setSelectedLevel] = useState<string>('learned_needs_consolidation');
-  const [learnerName, setLearnerName] = useState<string>('');
+  const [selectedLevel, setSelectedLevel] = useState<string>(initialLevel);
+  const [learnerName, setLearnerName] = useState<string>(initialName);
 
   const handleNextFromStep1 = () => {
     sound.playPageFlip();
@@ -35,17 +43,29 @@ export const PreClassLobbyModal: React.FC<PreClassLobbyModalProps> = ({ onComple
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-md animate-in fade-in duration-200 select-none">
       <div className="w-full max-w-4xl bg-[#FFFDF7] border border-[#C8B69E] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         
-        {/* HEADER ĐƠN GIẢN */}
-        <div className="px-6 py-4 bg-[#0e7490] text-white flex items-center justify-between shrink-0">
+        {/* HEADER ĐƠN GIẢN (TÔNG XANH LÁ RỪNG & BE ẤM) */}
+        <div className="px-6 py-4 bg-[#1B4338] text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-cyan-300 animate-pulse" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-300 animate-pulse" />
             <span className="font-bold text-sm tracking-wide">
               DRE Learning · Lớp học Tương tác Đa tác nhân (Toán 12)
             </span>
           </div>
-          <span className="text-xs font-mono bg-white/15 px-2.5 py-1 rounded-md text-cyan-100">
-            Bước {step}/2: {step === 1 ? 'Khảo sát đầu vào' : 'Sảnh chờ lớp học'}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono bg-white/15 px-2.5 py-1 rounded-md text-emerald-100">
+              Bước {step}/2: {step === 1 ? 'Khảo sát đầu vào' : 'Sảnh chờ lớp học'}
+            </span>
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center text-xs font-bold cursor-pointer transition-colors"
+                title="Đóng sảnh chờ"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
 
         {/* NỘI DUNG TỪNG BƯỚC */}
@@ -56,11 +76,11 @@ export const PreClassLobbyModal: React.FC<PreClassLobbyModalProps> = ({ onComple
               
               {/* Lời chào của Trợ giảng An */}
               <div className="flex items-start gap-3.5 p-4 rounded-xl bg-white border border-[#E2D9C8] shadow-2xs">
-                <div className="w-12 h-12 rounded-xl bg-cyan-50 border border-cyan-200 flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
                   <TutorLamAvatar size="sm" className="scale-75" />
                 </div>
                 <div>
-                  <div className="font-bold text-xs text-[#0e7490]">Trợ giảng An · Trợ giảng AI</div>
+                  <div className="font-bold text-xs text-[#1B4338]">Trợ giảng An · Trợ giảng AI</div>
                   <h2 className="font-extrabold text-base sm:text-lg text-[#1E242B] mt-0.5">
                     Bạn đã học bài Vectơ trong không gian chưa?
                   </h2>
@@ -100,18 +120,18 @@ export const PreClassLobbyModal: React.FC<PreClassLobbyModalProps> = ({ onComple
                       }}
                       className={`w-full text-left p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-4 ${
                         isSelected
-                          ? 'bg-cyan-50/70 border-[#0e7490] border-2 shadow-2xs'
+                          ? 'bg-emerald-50/80 border-[#1B4338] border-2 shadow-2xs'
                           : 'bg-white hover:bg-[#FAF8F5] border-[#E2D9C8]'
                       }`}
                     >
                       <div className="space-y-0.5">
-                        <div className={`font-bold text-sm ${isSelected ? 'text-[#0e7490]' : 'text-[#1E242B]'}`}>
+                        <div className={`font-bold text-sm ${isSelected ? 'text-[#1B4338]' : 'text-[#1E242B]'}`}>
                           {item.title}
                         </div>
                         <div className="text-xs text-[#6E6254]">{item.desc}</div>
                       </div>
                       <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${
-                        isSelected ? 'bg-[#0e7490] border-[#0e7490] text-white' : 'border-[#D8CEBC]'
+                        isSelected ? 'bg-[#1B4338] border-[#1B4338] text-white' : 'border-[#D8CEBC]'
                       }`}>
                         {isSelected && <CheckCircleIcon className="w-3.5 h-3.5 text-white" />}
                       </div>
@@ -136,7 +156,7 @@ export const PreClassLobbyModal: React.FC<PreClassLobbyModalProps> = ({ onComple
               <button
                 type="button"
                 onClick={handleNextFromStep1}
-                className="px-6 py-2.5 bg-[#0e7490] hover:bg-[#0891b2] text-white font-bold text-xs sm:text-sm rounded-xl cursor-pointer shadow-sm transition-colors"
+                className="px-6 py-2.5 bg-[#1B4338] hover:bg-[#143830] text-white font-bold text-xs sm:text-sm rounded-xl cursor-pointer shadow-sm transition-colors"
               >
                 Tiếp tục ➔
               </button>
@@ -150,7 +170,7 @@ export const PreClassLobbyModal: React.FC<PreClassLobbyModalProps> = ({ onComple
               {/* Cột trái: Preview phòng học & Danh sách bạn AI đang chờ */}
               <div className="md:col-span-6 bg-[#181C20] text-white p-5 rounded-2xl border border-white/10 space-y-4 shadow-xl">
                 <div className="w-full h-40 rounded-xl bg-[#21282D] flex items-center justify-center border border-white/10 relative overflow-hidden">
-                  <div className="w-16 h-16 rounded-full bg-[#0e7490] text-white font-extrabold text-2xl flex items-center justify-center ring-4 ring-cyan-400/30">
+                  <div className="w-16 h-16 rounded-full bg-[#1B4338] text-white font-extrabold text-2xl flex items-center justify-center ring-4 ring-emerald-400/30">
                     {learnerName ? learnerName.charAt(0).toUpperCase() : 'B'}
                   </div>
                   <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/60 text-[10px] font-mono text-white/80">
@@ -160,7 +180,7 @@ export const PreClassLobbyModal: React.FC<PreClassLobbyModalProps> = ({ onComple
 
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-1.5">
-                    <BoAvatar size="sm" className="w-6 h-6 rounded-full ring-2 ring-[#181C20]" />
+                    <BoCircleAvatar className="w-6 h-6 rounded-full ring-2 ring-[#181C20]" />
                     <TriDeepThinkerAvatar className="w-6 h-6 rounded-full bg-white ring-2 ring-[#181C20]" />
                     <LinhChiNoteTakerAvatar className="w-6 h-6 rounded-full bg-white ring-2 ring-[#181C20]" />
                     <MinhKhangInquisitiveAvatar className="w-6 h-6 rounded-full bg-white ring-2 ring-[#181C20]" />
@@ -178,7 +198,7 @@ export const PreClassLobbyModal: React.FC<PreClassLobbyModalProps> = ({ onComple
               {/* Cột phải: Thông tin bài học & Ô nhập tên */}
               <div className="md:col-span-6 space-y-4">
                 <div className="space-y-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#0e7490] bg-cyan-50 px-2.5 py-0.5 rounded-md border border-cyan-200">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#1B4338] bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
                     Bạn được mời vào lớp
                   </span>
                   <h1 className="text-xl sm:text-2xl font-extrabold text-[#1E242B] tracking-tight">
@@ -194,11 +214,11 @@ export const PreClassLobbyModal: React.FC<PreClassLobbyModalProps> = ({ onComple
                   <span className="text-[11px] font-bold text-[#8A7D6F] block">Sau buổi học, bạn sẽ nắm vững:</span>
                   <div className="space-y-1.5 text-xs text-[#1E242B]">
                     <div className="flex items-start gap-2">
-                      <span className="px-1.5 py-0.2 rounded bg-cyan-50 text-[#0e7490] font-mono text-[10px] font-bold">P1</span>
+                      <span className="px-1.5 py-0.2 rounded bg-emerald-50 text-[#1B4338] font-mono text-[10px] font-bold">P1</span>
                       <span>Nhận diện vectơ, giá và điều kiện cùng phương, cùng hướng.</span>
                     </div>
                     <div className="flex items-start gap-2">
-                      <span className="px-1.5 py-0.2 rounded bg-cyan-50 text-[#0e7490] font-mono text-[10px] font-bold">P2</span>
+                      <span className="px-1.5 py-0.2 rounded bg-emerald-50 text-[#1B4338] font-mono text-[10px] font-bold">P2</span>
                       <span>Áp dụng quy tắc 3 điểm, quy tắc hình bình hành và hình hộp.</span>
                     </div>
                     <div className="flex items-start gap-2">
@@ -224,7 +244,7 @@ export const PreClassLobbyModal: React.FC<PreClassLobbyModalProps> = ({ onComple
                       value={learnerName}
                       onChange={(e) => setLearnerName(e.target.value)}
                       placeholder="Ví dụ: Minh Khuê"
-                      className="w-full px-3.5 py-2.5 bg-white border border-[#D8CEBC] rounded-xl text-xs text-[#1E242B] outline-none focus:border-[#0e7490] shadow-2xs"
+                      className="w-full px-3.5 py-2.5 bg-white border border-[#D8CEBC] rounded-xl text-xs text-[#1E242B] outline-none focus:border-[#1B4338] shadow-2xs"
                     />
                   </div>
 
@@ -234,7 +254,7 @@ export const PreClassLobbyModal: React.FC<PreClassLobbyModalProps> = ({ onComple
                       disabled={!learnerName.trim()}
                       className={`flex-1 py-3 px-6 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-all ${
                         learnerName.trim()
-                          ? 'bg-[#0e7490] hover:bg-[#0891b2] cursor-pointer shadow-md'
+                          ? 'bg-[#1B4338] hover:bg-[#143830] cursor-pointer shadow-md'
                           : 'bg-[#C8B69E] cursor-not-allowed opacity-75'
                       }`}
                     >

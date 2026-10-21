@@ -9,6 +9,7 @@ interface ScenarioPlayerBarProps {
   onTriggerNudge: () => void;
   onTriggerVideoStart?: () => void;
   onTriggerVideoScenario?: () => void;
+  onTriggerVideoEnd?: () => void;
   onTriggerStation?: (station: LearningMode) => void;
   onReset: () => void;
   activeScenario: number | null;
@@ -27,6 +28,7 @@ export const ScenarioPlayerBar: React.FC<ScenarioPlayerBarProps> = ({
   onTriggerNudge,
   onTriggerVideoStart,
   onTriggerVideoScenario,
+  onTriggerVideoEnd,
   onTriggerStation,
   onReset,
   activeScenario,
@@ -105,6 +107,18 @@ export const ScenarioPlayerBar: React.FC<ScenarioPlayerBarProps> = ({
             >
               <ClapperboardIcon className="w-3.5 h-3.5" />
               <span>2. Dừng (37:13)</span>
+            </button>
+          )}
+
+          {/* Trạm 1: Hết video (2:38:23) để test cảnh chào tạm biệt & chuyển Trạm 2 */}
+          {onTriggerVideoEnd && (
+            <button
+              onClick={onTriggerVideoEnd}
+              type="button"
+              className="px-2.5 py-1 rounded-md border text-xs font-semibold cursor-pointer bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300 shadow-2xs flex items-center gap-1 transition-colors"
+              title="Nhảy tới mốc 2:38:23 để quan sát cảnh chào tạm biệt Bo/Linh Chi và tự động nhảy qua Trạm 2"
+            >
+              <span>🎬 Hết video (2:38:23)</span>
             </button>
           )}
 

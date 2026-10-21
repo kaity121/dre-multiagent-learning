@@ -612,6 +612,53 @@ export const SoundSpeakerIcon: React.FC<{ isMuted?: boolean; className?: string 
   </svg>
 );
 
+// Cô Lam Circle Avatar (Đồng bộ kích thước với Bo, Trí, Linh Chi, Minh Khang)
+export const TutorLamCircleAvatar: React.FC<{ className?: string }> = ({ className = 'w-7 h-7' }) => (
+  <div className={`rounded-full bg-[#E0F3ED] border-1.5 border-[#4E9B87] flex items-center justify-center shrink-0 overflow-hidden shadow-2xs ${className}`}>
+    <svg viewBox="0 0 100 100" className="w-full h-full">
+      <circle cx="50" cy="50" r="48" fill="#E0F3ED" />
+      <path d="M22 52 C20 28, 38 16, 50 16 C66 16, 80 28, 78 52 C74 44, 68 36, 56 36 C42 36, 32 44, 22 52 Z" fill="#2B3632" />
+      <circle cx="50" cy="14" r="8" fill="#2B3632" />
+      <path d="M62 26 C68 22, 70 28, 62 28 Z" fill="#4E9B87" />
+      <path d="M28 46 C28 72, 72 72, 72 46 C72 42, 28 42, 28 46 Z" fill="#FFF0E3" />
+      <circle cx="39" cy="50" r="7.5" stroke="#4E9B87" strokeWidth="2.2" fill="white" fillOpacity="0.4" />
+      <circle cx="61" cy="50" r="7.5" stroke="#4E9B87" strokeWidth="2.2" fill="white" fillOpacity="0.4" />
+      <path d="M46.5 50 L53.5 50" stroke="#4E9B87" strokeWidth="2" />
+      <path d="M35 50 Q39 46 43 50" stroke="#2B3632" strokeWidth="2.6" strokeLinecap="round" fill="none" />
+      <path d="M57 50 Q61 46 65 50" stroke="#2B3632" strokeWidth="2.6" strokeLinecap="round" fill="none" />
+      <ellipse cx="33" cy="58" rx="4.5" ry="3" fill="#F49E9E" opacity="0.45" />
+      <ellipse cx="67" cy="58" rx="4.5" ry="3" fill="#F49E9E" opacity="0.45" />
+      <path d="M44 61 Q50 67 56 61" stroke="#2B3632" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+      <path d="M32 76 C38 72, 62 72, 68 76 L72 88 L28 88 Z" fill="#4E9B87" />
+      <path d="M46 75 L50 82 L54 75" fill="#FFFFFF" />
+    </svg>
+  </div>
+);
+
+// MAIC Peer 0: Bo (Tròn cân đối, đồng bộ hoàn hảo với Trí, Linh Chi, Minh Khang)
+export const BoCircleAvatar: React.FC<{ className?: string }> = ({ className = 'w-7 h-7' }) => (
+  <div className={`rounded-full bg-[#FFF4DE] border-1.5 border-[#E8A33D] flex items-center justify-center shrink-0 overflow-hidden shadow-2xs ${className}`}>
+    <svg viewBox="0 0 40 40" className="w-full h-full">
+      <circle cx="20" cy="20" r="19" fill="#FFF4DE" />
+      {/* Amber hoodie */}
+      <path d="M9 36 C10 27, 30 27, 31 36 Z" fill="#E8963D" />
+      <path d="M17 31 L20 35 L23 31" fill="#D47B22" />
+      {/* Head */}
+      <circle cx="20" cy="19" r="8.5" fill="#FFE5CC" />
+      {/* Hair */}
+      <path d="M10 17 C9 10, 31 10, 30 17 C28 13, 25 12, 20 13 C16 12, 12 13, 10 17 Z" fill="#423429" />
+      {/* Cheeks */}
+      <circle cx="14.5" cy="21.5" r="1.5" fill="#F59E7A" opacity="0.6" />
+      <circle cx="25.5" cy="21.5" r="1.5" fill="#F59E7A" opacity="0.6" />
+      {/* Eyes */}
+      <circle cx="16" cy="18.5" r="1.2" fill="#2B211A" />
+      <circle cx="24" cy="18.5" r="1.2" fill="#2B211A" />
+      {/* Friendly smile */}
+      <path d="M17.5 22.5 Q20 24.5 22.5 22.5" stroke="#2B211A" strokeWidth="1" strokeLinecap="round" fill="none" />
+    </svg>
+  </div>
+);
+
 // MAIC Peer 1: Trí (Deep Thinker - Suy ngẫm sâu)
 export const TriDeepThinkerAvatar: React.FC<{ className?: string }> = ({ className = 'w-7 h-7' }) => (
   <div className={`rounded-full bg-[#EBF0FF] border-1.5 border-[#4B6CB7] flex items-center justify-center shrink-0 overflow-hidden shadow-2xs ${className}`}>
@@ -710,6 +757,76 @@ export const BookmarkRibbonIcon: React.FC<{ className?: string }> = ({ className
     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
   </svg>
 );
+
+// Custom Hand-Drawn Sticker SVG Icons (Zero Keyboard Emojis)
+export const LightbulbSticker: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-7 7c0 2.5 1.5 4.5 3 6h8c1.5-1.5 3-3.5 3-6a7 7 0 0 0-7-7z" fill="#FEF08A" fillOpacity="0.5" />
+  </svg>
+);
+
+export const EyeSticker: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" />
+    <circle cx="12" cy="12" r="3" fill="currentColor" fillOpacity="0.2" />
+  </svg>
+);
+
+export const LockSticker: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="5" y="11" width="14" height="10" rx="2" fill="#E2E8F0" fillOpacity="0.5" />
+    <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+  </svg>
+);
+
+export const ChartSticker: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M18 20V10M12 20V4M6 20v-6" />
+  </svg>
+);
+
+export const CrossSticker: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
+export const ArrowRightSticker: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <line x1="5" y1="12" x2="19" y2="12" />
+    <polyline points="12 5 19 12 12 19" />
+  </svg>
+);
+
+export const ArrowLeftSticker: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <line x1="19" y1="12" x2="5" y2="12" />
+    <polyline points="12 19 5 12 12 5" />
+  </svg>
+);
+
+export const PointingHandSticker: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M8 13v-8a2 2 0 0 1 4 0v6M12 10V6a2 2 0 0 1 4 0v6M16 12V8a2 2 0 0 1 4 0v7a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6v-3a2 2 0 0 1 4 0v3" fill="#FED7AA" fillOpacity="0.4" />
+  </svg>
+);
+
+export const GraduationCapSticker: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M22 10v6M2 10l10-5 10 5-10 5z" fill="#0E7490" fillOpacity="0.2" />
+    <path d="M6 12v5c3 3 9 3 12 0v-5" />
+  </svg>
+);
+
+export const PeersSticker: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" fill="#E0F2FE" fillOpacity="0.5" />
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
+
 
 
 

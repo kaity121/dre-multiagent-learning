@@ -134,6 +134,7 @@ export interface VideoLessonItem {
   duration: number;
   durationSeconds?: number;
   checkpointTimestamp: number;
+  lectureEndSecond?: number; // Mốc giây kết thúc bài học để chuyển trạm (cấu hình trong JSON/data)
   videoUrl?: string;
   youtubeId?: string;
   blackboardTitle?: string;

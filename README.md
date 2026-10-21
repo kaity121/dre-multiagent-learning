@@ -64,9 +64,9 @@ Mở file `backend/.env` và điền key OpenAI:
 ```env
 PORT=3001
 OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-BO_MODEL=gpt-4o-mini
-ASSESSOR_MODEL=gpt-4o-mini
-COLAM_MODEL=gpt-4o-mini
+BO_MODEL=gpt-6-sol
+ASSESSOR_MODEL=gpt-6-sol
+COLAM_MODEL=gpt-6.1-sol
 ```
 
 Khởi động server Backend:

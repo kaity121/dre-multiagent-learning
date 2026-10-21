@@ -101,9 +101,7 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
       bo: [
         {
           sender: 'peer',
-          text:
-            cleanText(peerContext?.bo.hotTake) ||
-            `Ở bài "${cleanText(lessonTopic)}", tớ thấy cứ tách thẳng dấu độ dài ra cộng 1 + 1 = 2 cho lẹ! Cậu chỉ ra chỗ tớ sai đi?`,
+          text: 'Ở phút [37:05], đề bắt tính |BC + DD\'| với cạnh hình lập phương bằng 1. Tớ tách luôn dấu trị tuyệt đối ra thành |BC| + |DD\'| = 1 + 1 = 2! Sao thầy Tiến lại bảo tớ sai?!',
         },
       ],
       tri: [
@@ -111,13 +109,13 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
           sender: 'peer',
           text:
             cleanText(peerContext?.tri.edgeCaseNote) ||
-            `Chào bạn! Cùng mình kiểm tra điều kiện cùng phương, cùng hướng và bất đẳng thức tam giác của bài "${cleanText(lessonTopic)}" nhé!`,
+            'Ở phút [37:13], thầy Tiến gạch chéo phương án 1 + 1 = 2 vì hai vectơ không cùng hướng. Phải quy đổi về chung một đường chéo BC\' bằng căn 2. Cậu có thắc mắc gì về quy tắc này không?',
         },
       ],
       linhchi: [
         {
           sender: 'peer',
-          text: `Mình đã ghi sẵn bộ công thức trọng tâm của bài "${cleanText(lessonTopic)}" bên tab [Sổ tay công thức] rồi. Bạn cần tra cứu quy tắc nào cứ hỏi mình nhé!`,
+          text: 'Mình đã tóm tắt 3 quy tắc vàng: Quy tắc 3 điểm, Quy tắc hình bình hành và Quy tắc hình hộp. Bạn đang cần tra cứu công thức nào trong bài này?',
         },
       ],
       minhkhang: [
@@ -125,7 +123,7 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
           sender: 'peer',
           text:
             cleanText(peerContext?.minhkhang.analogyContent) ||
-            `Cần ví dụ thực tế (như đường đi hay bắn cung) cho bài "${cleanText(lessonTopic)}" thì cứ hỏi mình nhé!`,
+            'Tưởng tượng bạn đi bộ 1m sang đông (vectơ BC), rồi leo thang thẳng đứng lên trời 1m (vectơ CC\'). Khoảng cách chim bay nối từ chân tới đỉnh là BC\' = √(1² + 1²) = √2m đó!',
         },
       ],
     });
@@ -188,39 +186,39 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
   const peerMeta = {
     bo: {
       name: 'Bo',
-      shortRole: 'Gật gù / Mắc bẫy',
+      shortRole: 'Phản biện',
       role: 'Phản biện & Vệ sĩ bẫy ngộ nhận',
       speech: '“Mình hay nhầm chỗ này lắm, bạn xem hộ mình với!”',
       power: 'Bo sai trước để bạn mạnh dạn sửa bài và không sợ sai.',
       tabActive: 'bg-[#D97706] text-white border-[#D97706]',
-      tabInactive: 'bg-[#FFFBF2] text-[#92400E] border-[#F3DFA8]',
+      tabInactive: 'bg-white text-[#D97706] border-amber-200',
     },
     tri: {
       name: 'Trí',
-      shortRole: 'Đào sâu bản chất',
+      shortRole: 'Đào sâu',
       role: 'Đào sâu bản chất & Điều kiện',
       speech: '“Tại sao lại có công thức này nhỉ? Cùng mình đào sâu nhé!”',
       power: 'Xoáy sâu vào điều kiện biên & hiểu sâu nguyên lý gốc rễ.',
       tabActive: 'bg-[#2563EB] text-white border-[#2563EB]',
-      tabInactive: 'bg-[#F5F8FF] text-[#1E40AF] border-[#D8E2FF]',
+      tabInactive: 'bg-white text-[#2563EB] border-blue-200',
     },
     linhchi: {
       name: 'Linh Chi',
-      shortRole: 'Ghi sổ tay',
+      shortRole: 'Công thức',
       role: 'Sổ tay công thức & Cheat Sheet',
       speech: '“Mình đã tóm tắt công thức trọng tâm rồi, cần tra cứu cứ bảo mình!”',
       power: 'Lập bảng quy tắc chuẩn mực & cấu trúc lại các bước giải.',
       tabActive: 'bg-[#DB2777] text-white border-[#DB2777]',
-      tabInactive: 'bg-[#FFF5F9] text-[#9D174D] border-[#FAD1E4]',
+      tabInactive: 'bg-white text-[#DB2777] border-pink-200',
     },
     minhkhang: {
       name: 'Minh Khang',
-      shortRole: 'Trực quan đời sống',
+      shortRole: 'Trực quan',
       role: 'Ví dụ thực tế & Trực quan sinh động',
       speech: '“Tưởng tượng như bước đi ngoài đời thực, hình dung sẽ dễ hơn nhiều!”',
       power: 'Biến các công thức khô khan thành hình ảnh thực tế sống động.',
-      tabActive: 'bg-[#0891B2] text-white border-[#0891B2]',
-      tabInactive: 'bg-[#F2FCFE] text-[#155E75] border-[#C5EEF6]',
+      tabActive: 'bg-[#0D9488] text-white border-[#0D9488]',
+      tabInactive: 'bg-white text-[#0D9488] border-teal-200',
     },
   };
 
@@ -247,207 +245,221 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
         <span>Sổ tay & Hỏi riêng 4 bạn</span>
       </button>
 
-      {/* NGĂN KÉO CHAT RIÊNG & SỔ TAY (Tích hợp bộ chọn 4 bạn ngay bên trong Drawer) */}
+      {/* MODAL HỎI RIÊNG 4 BẠN & SỔ TAY (KHỚP 100% ẢNH INSPIRATION 2) */}
       {isDrawerOpen && (
-        <div className="fixed top-14 bottom-3 right-3 z-50 w-[370px] sm:w-[400px] bg-white border border-[#1E242B]/20 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right-4 duration-150">
-          
-          {/* Header: Chọn nhanh 1 trong 4 bạn ngay trên đầu Drawer */}
-          <div className="p-3 bg-[#FAF8F5] border-b border-[#EFE8DC] space-y-2.5 shrink-0">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#1E242B]">
-                Chọn bạn đồng hành để hỏi riêng hoặc xem Sổ tay:
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsDrawerOpen(false)}
-                className="w-6 h-6 rounded-full bg-black/5 hover:bg-black/10 text-[#1E242B] font-bold text-xs cursor-pointer flex items-center justify-center"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* 4 Nút chọn bạn gọn đẹp bên trong Drawer */}
-            <div className="grid grid-cols-4 gap-1.5">
-              {(['bo', 'tri', 'linhchi', 'minhkhang'] as const).map((id) => {
-                const isSelected = activePeer === id;
-                const meta = peerMeta[id];
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => handleSelectPeer(id)}
-                    className={`py-1.5 px-1 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center gap-0.5 ${
-                      isSelected ? `${meta.tabActive} font-bold shadow-2xs` : `${meta.tabInactive} hover:opacity-90 font-medium`
-                    }`}
-                  >
-                    <span className="text-xs leading-none">{meta.name}</span>
-                    <span className="text-[10px] opacity-85 leading-none">{meta.shortRole}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Khẩu quyết 10s của bạn đang chọn */}
-            <div className="p-2 rounded-xl bg-white border border-slate-200/90 text-xs space-y-0.5 shadow-2xs">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="font-bold text-[#0e7490]">{peerMeta[activePeer].role}</span>
-                <span className="text-[10px] text-slate-400 font-mono">10s Guide</span>
-              </div>
-              <p className="text-[11px] text-slate-700 italic font-medium leading-snug">
-                {peerMeta[activePeer].speech}
-              </p>
-              <p className="text-[10px] text-slate-500 leading-tight pt-0.5">
-                ⚡ {peerMeta[activePeer].power}
-              </p>
-            </div>
-
-            {/* Thanh gạt: [Trò chuyện] <-> [Sổ tay tóm tắt] */}
-            <div className="grid grid-cols-2 gap-1.5 p-1 bg-black/5 rounded-xl">
-              <button
-                type="button"
-                onClick={() => setActiveSubTab('chat')}
-                className={`py-1 rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
-                  activeSubTab === 'chat' ? 'bg-white text-[#1E242B] shadow-2xs' : 'text-[#6E6254]'
-                }`}
-              >
-                <ChatBubbleSvg className="w-3.5 h-3.5" />
-                <span>Trò chuyện ({chatHistories[activePeer]?.length || 0})</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveSubTab('note')}
-                className={`py-1 rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
-                  activeSubTab === 'note' ? 'bg-white text-[#1E242B] shadow-2xs' : 'text-[#6E6254]'
-                }`}
-              >
-                <NotebookCardSvg className="w-3.5 h-3.5" />
-                <span>Sổ tay của {peerMeta[activePeer].name}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Nội dung Chat hoặc Sổ tay */}
-          {activeSubTab === 'chat' ? (
-            <div className="flex-1 overflow-y-auto no-scrollbar p-3.5 bg-white space-y-2.5">
-              {(chatHistories[activePeer] || []).map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
-                >
-                  <span className="text-[10px] font-semibold text-[#8A7D6F] mb-0.5 px-1">
-                    {msg.sender === 'user' ? 'Bạn' : peerMeta[activePeer].name}
-                  </span>
-                  <div
-                    className={`max-w-[86%] p-3 rounded-2xl text-xs leading-relaxed ${
-                      msg.sender === 'user'
-                        ? 'bg-[#0e7490] text-white rounded-br-xs font-medium'
-                        : 'bg-[#FAF8F5] border border-[#EFE8DC] text-[#1E242B] rounded-bl-xs'
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-
-              {isPeerTyping && (
-                <div className="flex items-center gap-2 text-xs text-[#6E6254] font-medium px-2 py-1">
-                  <span className="w-2 h-2 rounded-full bg-[#0e7490] animate-ping" />
-                  <span>{peerMeta[activePeer].name} đang trả lời...</span>
-                </div>
-              )}
-              <div ref={messagesEndRef} className="h-1" />
-            </div>
-          ) : (
-            <div className="flex-1 overflow-y-auto no-scrollbar p-4 bg-white space-y-3">
-              {activePeer === 'linhchi' && peerContext?.linhchi && (
-                <div className="p-3.5 rounded-xl bg-[#FFF5F9] border border-[#FAD1E4] space-y-2">
-                  <div className="font-bold text-sm text-[#9D174D]">
-                    {cleanText(peerContext.linhchi.cheatSheetTitle)}
-                  </div>
-                  <ul className="space-y-2 text-xs text-[#1E242B] leading-relaxed">
-                    {peerContext.linhchi.cheatSheetBullets.map((b, i) => (
-                      <li key={i} className="p-2 rounded-lg bg-white border border-[#FCE7F3]">
-                        {cleanText(b)}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {activePeer === 'minhkhang' && peerContext?.minhkhang && (
-                <div className="p-3.5 rounded-xl bg-[#F2FCFE] border border-[#C5EEF6] space-y-2">
-                  <div className="font-bold text-sm text-[#155E75]">
-                    {cleanText(peerContext.minhkhang.analogyTitle)}
-                  </div>
-                  <p className="text-xs text-[#1E242B] leading-relaxed whitespace-pre-line">
-                    {cleanText(peerContext.minhkhang.analogyContent)}
-                  </p>
-                </div>
-              )}
-
-              {activePeer === 'tri' && peerContext?.tri && (
-                <div className="p-3.5 rounded-xl bg-[#F5F8FF] border border-[#D8E2FF] space-y-2">
-                  <div className="font-bold text-sm text-[#1E40AF]">
-                    Góc phân tích điều kiện biên của Trí
-                  </div>
-                  <p className="text-xs text-[#1E242B] leading-relaxed">
-                    {cleanText(peerContext.tri.edgeCaseNote)}
-                  </p>
-                </div>
-              )}
-
-              {activePeer === 'bo' && peerContext?.bo && (
-                <div className="p-3.5 rounded-xl bg-[#FFFBF2] border border-[#F3DFA8] space-y-2">
-                  <div className="font-bold text-sm text-[#92400E]">
-                    Lập luận đi tắt của Bo
-                  </div>
-                  <p className="text-xs text-[#1E242B] leading-relaxed">
-                    {cleanText(peerContext.bo.hotTake)}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Đáy Drawer: Hỏi nhanh + Nhập câu hỏi */}
-          <div className="p-3 bg-[#FAF8F5] space-y-2 shrink-0">
-            <div className="flex flex-col gap-1">
-              {(peerContext?.[activePeer]?.quickPrompts || [
-                'Công thức trọng tâm của bài này là gì?',
-                'Chỗ nào trong bài này dễ bị sập bẫy nhất?',
-              ]).map((q, i) => (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-[460px] bg-[#FAF7F2] rounded-3xl border border-stone-200/90 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-150">
+            
+            {/* Header: Chọn bạn đồng hành để hỏi riêng hoặc xem Sổ tay */}
+            <div className="p-4 pb-3 space-y-3 shrink-0">
+              <div className="flex items-center justify-between">
+                <span className="text-[13px] font-bold text-stone-900">
+                  Chọn bạn đồng hành để hỏi riêng hoặc xem Sổ tay:
+                </span>
                 <button
-                  key={i}
                   type="button"
-                  onClick={() => handleSendPeerMessage(activePeer, cleanText(q))}
-                  className="quick-prompt-box w-full text-left bg-white hover:bg-[#EBF7F3] border border-[#E2D9C8] rounded-lg text-[#1E242B] cursor-pointer transition-colors truncate"
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="w-7 h-7 rounded-full bg-stone-200/70 hover:bg-stone-300 text-stone-700 font-bold text-xs cursor-pointer flex items-center justify-center transition-colors"
                 >
-                  “{cleanText(q)}”
+                  ✕
                 </button>
-              ))}
+              </div>
+
+              {/* 4 Nút chọn bạn đồng hành (4 Cột chuẩn Inspo 2) */}
+              <div className="grid grid-cols-4 gap-2">
+                {(['bo', 'tri', 'linhchi', 'minhkhang'] as const).map((id) => {
+                  const isSelected = activePeer === id;
+                  const meta = peerMeta[id];
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => handleSelectPeer(id)}
+                      className={`py-2 px-1 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 shadow-2xs ${
+                        isSelected
+                          ? `${meta.tabActive} font-bold shadow-xs scale-102`
+                          : `${meta.tabInactive} hover:opacity-90 font-medium`
+                      }`}
+                    >
+                      <span className="text-xs font-bold leading-tight">{meta.name}</span>
+                      <span className="text-[10px] opacity-90 leading-tight">{meta.shortRole}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Thanh gạt 2 Tab: [💬 Trò chuyện (1)] <-> [📄 Sổ tay của Bo] */}
+              <div className="grid grid-cols-2 gap-1.5 p-1 bg-stone-200/50 rounded-2xl text-xs">
+                <button
+                  type="button"
+                  onClick={() => setActiveSubTab('chat')}
+                  className={`py-1.5 rounded-xl font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                    activeSubTab === 'chat'
+                      ? 'bg-white text-stone-900 shadow-2xs'
+                      : 'text-stone-600 hover:text-stone-900 font-medium'
+                  }`}
+                >
+                  <ChatBubbleSvg className="w-3.5 h-3.5" />
+                  <span>Trò chuyện ({chatHistories[activePeer]?.length || 0})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveSubTab('note')}
+                  className={`py-1.5 rounded-xl font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                    activeSubTab === 'note'
+                      ? 'bg-white text-stone-900 shadow-2xs'
+                      : 'text-stone-600 hover:text-stone-900 font-medium'
+                  }`}
+                >
+                  <NotebookCardSvg className="w-3.5 h-3.5" />
+                  <span>Sổ tay của {peerMeta[activePeer].name}</span>
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <input
-                type="text"
-                value={peerChatInput}
-                onChange={(e) => setPeerChatInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendPeerMessage(activePeer)}
-                placeholder={`Nhắn riêng cho ${peerMeta[activePeer].name}...`}
-                className="flex-1 bg-white border border-[#D8CEBC] rounded-xl px-3 py-2 text-xs text-[#1E242B] outline-none focus:border-[#0e7490] focus:ring-1 focus:ring-[#0e7490]"
-              />
-              <button
-                type="button"
-                onClick={() => handleSendPeerMessage(activePeer)}
-                className="px-3.5 py-2 bg-[#0e7490] hover:bg-[#0891b2] text-white font-semibold text-xs rounded-xl cursor-pointer flex items-center gap-1 shrink-0 transition-colors shadow-xs"
-              >
-                <span>Gửi</span>
-                <SendArrowSvg className="w-3.5 h-3.5" />
-              </button>
+            {/* Nội dung Chat hoặc Sổ tay */}
+            {activeSubTab === 'chat' ? (
+              <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-2 space-y-3 max-h-[340px]">
+                {(chatHistories[activePeer] || []).map((msg, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
+                  >
+                    <span className="text-[11px] font-bold text-stone-500 mb-1 px-1">
+                      {msg.sender === 'user' ? 'Bạn' : peerMeta[activePeer].name}
+                    </span>
+                    <div
+                      className={`max-w-[92%] p-3.5 rounded-2xl text-xs leading-relaxed font-normal shadow-2xs ${
+                        msg.sender === 'user'
+                          ? 'bg-[#1B4338] text-white rounded-br-xs font-medium'
+                          : 'bg-white border border-stone-200 text-stone-800 rounded-bl-xs'
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+
+                {isPeerTyping && (
+                  <div className="flex items-center gap-2 text-xs text-stone-500 font-medium px-2 py-1">
+                    <span className="w-2 h-2 rounded-full bg-[#1B4338] animate-ping" />
+                    <span>{peerMeta[activePeer].name} đang trả lời...</span>
+                  </div>
+                )}
+                <div ref={messagesEndRef} className="h-1" />
+              </div>
+            ) : (
+              <div className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3 max-h-[340px]">
+                {activePeer === 'bo' && (
+                  <div className="p-4 rounded-2xl bg-[#FFFBF2] border border-[#F3DFA8] space-y-2">
+                    <div className="font-bold text-xs text-[#92400E]">
+                      Sổ tay rút kinh nghiệm của Bo
+                    </div>
+                    <ul className="space-y-2 text-xs text-stone-800 leading-relaxed font-normal">
+                      <li className="p-2.5 rounded-xl bg-white border border-amber-200">
+                        <b>Bẫy 1:</b> Tuyệt đối không được tách |a + b| = |a| + |b| khi hai vectơ không cùng hướng!
+                      </li>
+                      <li className="p-2.5 rounded-xl bg-white border border-amber-200">
+                        <b>Bẫy 2:</b> Muốn cộng hai vectơ chéo nhau trong hình lập phương (như BC + DD'), phải thay DD' = CC' để nối đuôi thành BC'.
+                      </li>
+                    </ul>
+                  </div>
+                )}
+
+                {activePeer === 'linhchi' && (
+                  <div className="p-4 rounded-2xl bg-[#FFF5F9] border border-[#FAD1E4] space-y-2">
+                    <div className="font-bold text-xs text-[#9D174D]">
+                      Sổ tay công thức vàng của Linh Chi
+                    </div>
+                    <ul className="space-y-2 text-xs text-stone-800 leading-relaxed">
+                      <li className="p-2.5 rounded-xl bg-white border border-[#FCE7F3]">
+                        <b>1. Quy tắc 3 điểm:</b> OA + AB = OB (nối tiếp điểm cuối với điểm đầu).
+                      </li>
+                      <li className="p-2.5 rounded-xl bg-white border border-[#FCE7F3]">
+                        <b>2. Quy tắc hình bình hành:</b> AB + AD = AC (chung gốc A).
+                      </li>
+                      <li className="p-2.5 rounded-xl bg-white border border-[#FCE7F3]">
+                        <b>3. Quy tắc hình hộp:</b> AB + AD + AA' = AC' (đường chéo hình hộp).
+                      </li>
+                    </ul>
+                  </div>
+                )}
+
+                {activePeer === 'minhkhang' && (
+                  <div className="p-4 rounded-2xl bg-[#F0FDFA] border border-[#99F6E4] space-y-2">
+                    <div className="font-bold text-xs text-[#115E59]">
+                      Góc trực quan đời sống của Minh Khang
+                    </div>
+                    <p className="text-xs text-stone-800 leading-relaxed whitespace-pre-line p-2.5 rounded-xl bg-white border border-teal-200">
+                      Tưởng tượng bạn đi bộ ngang 1m từ B sang C, rồi trèo thang thẳng đứng 1m từ C lên C'. Đường chim bay nối thẳng từ điểm xuất phát B đến điểm kết thúc C' chính là cạnh huyền tam giác vuông: √(1² + 1²) = √2m!
+                    </p>
+                  </div>
+                )}
+
+                {activePeer === 'tri' && (
+                  <div className="p-4 rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE] space-y-2">
+                    <div className="font-bold text-xs text-[#1E40AF]">
+                      Góc đào sâu điều kiện của Trí
+                    </div>
+                    <p className="text-xs text-stone-800 leading-relaxed p-2.5 rounded-xl bg-white border border-blue-200">
+                      Cần nhớ: Hai vectơ chỉ được xét cùng hướng hoặc ngược hướng khi giá của chúng song song hoặc trùng nhau (cùng phương). Bất đẳng thức tam giác: |a + b| ≤ |a| + |b|, dấu bằng chỉ xảy ra khi a và b cùng hướng!
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Đáy Modal: Gợi ý hỏi nhanh + Ô nhập & Nút Gửi (Chuẩn 100% Inspo 2) */}
+            <div className="p-4 pt-2 space-y-2.5 shrink-0 bg-[#FAF7F2] border-t border-stone-200/80">
+              {/* Nút phản hồi nhanh dạng thẻ chữ nhật trắng bo góc */}
+              <div className="flex flex-col gap-1.5">
+                {(activePeer === 'bo' ? [
+                  '“Độ dài tổng 2 vectơ có bằng tổng 2 độ dài đâu Bo!”',
+                  '“Phải thay DD\' bằng CC\' để nối đuôi thành BC\' chứ!”'
+                ] : activePeer === 'tri' ? [
+                  '“Tại sao giá của BC và DD\' lại không cùng phương?”',
+                  '“Khi nào thì độ dài tổng mới bằng tổng hai độ dài?”'
+                ] : activePeer === 'linhchi' ? [
+                  '“Cho mình xem lại Quy tắc hình hộp với!”',
+                  '“Khi nào dùng Quy tắc trừ \'Chung đầu - Lộn ngược\'?”'
+                ] : [
+                  '“Ví dụ hình ảnh dễ hiểu thật, giải thích thêm cho mình với!”',
+                  '“Nếu đi theo 3 cạnh hộp thì ra đường chéo √3 đúng không?”'
+                ]).map((q, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => handleSendPeerMessage(activePeer, cleanText(q).replace(/[“”]/g, ''))}
+                    className="w-full text-left bg-white hover:bg-stone-50 border border-stone-200 hover:border-[#1B4338] rounded-2xl p-3 text-xs text-stone-800 font-medium cursor-pointer transition-all shadow-2xs leading-snug"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+
+              {/* Ô gõ tin nhắn + Nút Gửi xanh đậm */}
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="text"
+                  value={peerChatInput}
+                  onChange={(e) => setPeerChatInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSendPeerMessage(activePeer)}
+                  placeholder={`Nhắn riêng cho ${peerMeta[activePeer].name}...`}
+                  className="flex-1 bg-white border border-stone-200 rounded-2xl px-4 py-2.5 text-xs text-stone-900 placeholder:text-stone-400 outline-none focus:border-[#1B4338] focus:ring-1 focus:ring-[#1B4338] shadow-2xs"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleSendPeerMessage(activePeer)}
+                  className="px-5 py-2.5 bg-[#1B4338] hover:bg-[#285E4F] text-white font-bold text-xs rounded-2xl cursor-pointer flex items-center gap-1.5 shrink-0 transition-colors shadow-xs"
+                >
+                  <span>Gửi</span>
+                  <SendArrowSvg className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
+
           </div>
-
         </div>
       )}
     </>

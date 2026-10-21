@@ -8,9 +8,10 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
   subject: 'Hình học 12',
   youtubeId: 'phvpqxLNTUQ',
   videoUrl: 'https://www.youtube.com/watch?v=phvpqxLNTUQ',
-  duration: 9480, // 2 giờ 38 phút
-  durationSeconds: 9480,
+  duration: 9503, // 2 giờ 38 phút 23 giây (2:38:23)
+  durationSeconds: 9503,
   checkpointTimestamp: 2233, // 37:13 (Đúng lúc thầy Tiến dừng giải Ví dụ 3 câu a trên bảng)
+  lectureEndSecond: 9503, // 2:38:23 (Mốc giây kết thúc toàn bộ video bài giảng Thầy Tiến để hiện tạm biệt và chuyển Trạm 2)
   blackboardTitle: "Ví dụ 3 (36:44): Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính |BC + DD'|",
   lectureNotes: [
     '[00:00] Phần 1: Định nghĩa Vectơ trong không gian là một đoạn thẳng có hướng.',
@@ -52,7 +53,7 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
       id: 'chap_5',
       title: '5. Quy Tắc Hình Hộp & Điểm Dừng Bẫy Độ Dài [37:13]',
       startSecond: 1813, // 30:13
-      formulaPreview: 'Quiz tại 37:13',
+      formulaPreview: 'Điểm dừng 37:13',
       hasCheckpoint: true,
     },
     {
@@ -139,10 +140,10 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
       end: 3133,
       tag: 'checkpoint',
       speaker: 'Thầy Tiến',
-      text: "Ví dụ 3 (36:44): Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính độ dài |BC + DD'|. Chú ý: Tuyệt đối không được tách thành |BC| + |DD'| = 1 + 1 = 2!",
+      text: "Ví dụ 3 (37:13): Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính độ dài |BC + DD'|. Chú ý: Tuyệt đối không được tách thành |BC| + |DD'| = 1 + 1 = 2!",
       formula: "|BC + DD'| = |BC + CC'| = |BC'| = √2",
       linhChiNote: "Bắt buộc phải gom tổng 2 vectơ về 1 vectơ duy nhất trước khi lấy độ dài: Thay DD' = CC' để được BC + CC' = BC', suy ra |BC'| = √(1² + 1²) = √2.",
-      minhKhangAnalogy: "Đi ngang 1m (BC) rồi đi thẳng đứng lên 1m (CC') tạo thành tam giác vuông cân cạnh 1, nên đường chéo BC' phải là √2 ≈ 1.41m chứ không phải 2m!",
+      minhKhangAnalogy: "Đi ngang 1 đơn vị (BC) rồi đi thẳng đứng lên 1 đơn vị (CC') tạo thành tam giác vuông cân cạnh 1, nên đường chéo BC' phải là √2 ≈ 1,41 chứ không phải bằng 1 + 1 = 2!",
     },
     {
       id: 'cue_7',
@@ -152,12 +153,13 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
       text: 'Hiệu của hai vectơ: Quy tắc trừ hai vectơ chung gốc O ("Chung đầu - Lộn ngược"): Vectơ OA trừ vectơ OB bằng vectơ BA (lấy điểm sau viết trước, điểm trước viết sau).',
       formula: 'OA - OB = BA (Chung gốc O -> Lộn ngược B lên trước A)',
       linhChiNote: "Mẹo chống nhầm ở Trạm 2: Muốn chèn điểm A vào vectơ B'C theo quy tắc hiệu, phải viết B'C = AC - AB' (đảo C lên trước B').",
-      minhKhangAnalogy: 'Cứ nhớ khẩu quyết của thầy Tiến ở phút 57:02: "Chung đầu - Lộn ngược", thấy dấu trừ chung gốc O là đảo đuôi lên đầu ngay!',
+      minhKhangAnalogy: 'Cứ nhớ khẩu quyết của thầy Tiến ở mốc 52:14: "Chung đầu - Lộn ngược", thấy dấu trừ chung gốc O là đảo đuôi lên đầu ngay!',
     },
   ],
 
   // =========================================================================
-  // 24 CUỘC THẢO LUẬN DÀY ĐẶC TRONG NỬA ĐẦU VIDEO (00:00 -> 58:00)
+  // =========================================================================
+  // LUỒNG THẢO LUẬN DÀY ĐẶC (ĐẶC BIỆT RÔM RẢ TRONG 5 PHÚT ĐẦU: 00:00 -> 05:30)
   // =========================================================================
   timelineComments: [
     {
@@ -166,178 +168,322 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
       author: 'Trợ giảng An',
       role: 'ta',
       isPinned: true,
-      text: 'Ghim bài 1.1: 1) Muốn xét cùng hướng phải cùng phương trước. 2) Cộng nối tiếp: Cuối anh này là đầu anh kia. 3) Cấm tách |a + b| = |a| + |b|!',
-    },
-    // --- CHẶNG 1 (00:00 - 05:30): Định nghĩa Vectơ & Giá ---
-    {
-      id: 'c_01',
-      second: 45, // 0:45
-      author: 'Minh Khang',
-      role: 'classmate',
-      text: 'Mở đầu nhẹ nhàng nè: Vectơ trong không gian thực chất vẫn giống lớp 10, chỉ là giờ mình xét trong hình chóp, hình hộp 3D thôi!',
-    },
-    {
-      id: 'c_02',
-      second: 144, // 2:24
-      author: 'Linh Chi',
-      role: 'classmate',
-      text: 'Ghi chú phút [02:24]: Đoạn thẳng thì AB = BA, nhưng vectơ có hướng nên vectơ AB ≠ vectơ BA nha cả lớp!',
-    },
-    {
-      id: 'c_03',
-      second: 240, // 4:00
-      author: 'Bo Ngây Ngô',
-      role: 'classmate',
-      text: 'Ủa "giá của vectơ" nghe lạ vậy? Là cái kệ để đỡ mũi tên hả mọi người?',
-    },
-    {
-      id: 'c_04',
-      second: 265, // 4:25
-      author: 'Trí',
-      role: 'classmate',
-      text: '@Bo Là đường thẳng kéo dài vô tận đi qua điểm đầu A và điểm cuối B đó Bo ơi! Thầy Tiến vừa vẽ nét đứt qua A và B trên bảng kìa.',
+      text: 'Ghim trọng tâm Bài 1.1: (1) Xét cùng phương trước khi xét cùng hướng; (2) Quy tắc nối tiếp OA + AB = OB; (3) Không tách |a + b| = |a| + |b| tại mốc [37:13].',
     },
 
-    // --- CHẶNG 2 (05:31 - 11:30): Vectơ-không & Cùng phương, Cùng hướng ---
+    // =======================================================================
+    // PHÚT 00:00 -> 01:15: MỞ ĐẦU & KẾT NỐI KIẾN THỨC LỚP 10 LÊN KHÔNG GIAN 3D
+    // =======================================================================
     {
-      id: 'c_05',
+      id: 'c_00_1',
+      second: 8, // 0:08
+      author: 'Trợ giảng An',
+      role: 'ta',
+      text: 'Chào cả lớp! Hôm nay chúng ta bắt đầu Chương 2 Hình học 12 (SGK mới): Vectơ trong không gian cùng thầy Nguyễn Phan Tiến. Các bạn mở sổ tay chuẩn bị nhé!',
+    },
+    {
+      id: 'c_00_2',
+      second: 22, // 0:22
+      author: 'Bo',
+      role: 'classmate',
+      text: 'Nghe tới "Hình không gian" kết hợp với "Vectơ" là thấy hơi hồi hộp rồi đó. Không biết có khác nhiều so với hồi lớp 10 không mọi người?',
+    },
+    {
+      id: 'c_00_3',
+      second: 38, // 0:38
+      author: 'Minh Khang',
+      role: 'classmate',
+      text: '@Bo Yên tâm đi! Hồi lớp 10 mình vẽ vectơ trên một mặt giấy phẳng 2D, còn lên lớp 12 là nhấc mũi tên đó ra không gian 3 chiều như căn phòng học của mình thôi.',
+    },
+    {
+      id: 'c_00_4',
+      second: 55, // 0:55
+      author: 'Trí',
+      role: 'classmate',
+      text: 'Đúng rồi. Thầy Tiến vừa nhắc ở [0:50] kìa: Gần như toàn bộ định nghĩa, phép cộng, phép trừ vectơ ở lớp 10 đều được giữ nguyên bản chất khi đưa lên không gian 3D.',
+    },
+
+    // =======================================================================
+    // PHÚT 01:15 -> 02:50: ĐỊNH NGHĨA VECTƠ, ĐIỂM ĐẦU - ĐIỂM CUỐI & ĐỘ DÀI
+    // =======================================================================
+    {
+      id: 'c_01_1',
+      second: 78, // 1:18
+      author: 'Linh Chi',
+      role: 'classmate',
+      text: 'Mục 1 [1:18] — Định nghĩa: Vectơ trong không gian là một đoạn thẳng có hướng. Ký hiệu vectơ AB thì A là điểm đầu (gốc), B là điểm cuối (ngọn).',
+    },
+    {
+      id: 'c_01_2',
+      second: 102, // 1:42
+      author: 'Bo',
+      role: 'classmate',
+      text: 'Khoan đã, nếu hai điểm A và B cố định trong không gian thì đoạn thẳng AB với BA là một, vậy vectơ AB với vectơ BA cũng bằng nhau luôn chứ nhỉ?',
+    },
+    {
+      id: 'c_01_3',
+      second: 120, // 2:00
+      author: 'Trí',
+      role: 'classmate',
+      text: '@Bo Khác hoàn toàn nhé! Đoạn thẳng thì không phân biệt chiều nên AB = BA. Nhưng vectơ có mũi tên chỉ hướng: AB là đi từ A đến B, còn BA là đi ngược từ B về A.',
+    },
+    {
+      id: 'c_01_4',
+      second: 138, // 2:18
+      author: 'Minh Khang',
+      role: 'classmate',
+      text: '@Bo Cứ liên tưởng vé máy bay từ Đà Nẵng (A) ra Hà Nội (B) khác hẳn chiều bay từ Hà Nội (B) về Đà Nẵng (A) là không bao giờ nhầm gốc với ngọn!',
+    },
+    {
+      id: 'c_01_5',
+      second: 158, // 2:38
+      author: 'Linh Chi',
+      role: 'classmate',
+      text: 'Ghi chú thêm ở [2:38]: Độ dài của vectơ AB (ký hiệu |AB|) là khoảng cách giữa điểm đầu A và điểm cuối B. Nên về độ dài thì |AB| = |BA| = đoạn thẳng AB.',
+    },
+    {
+      id: 'c_01_6',
+      second: 175, // 2:55
+      author: 'Bo',
+      role: 'classmate',
+      text: 'À hiểu rồi! Tức là vectơ AB ≠ vectơ BA (vì ngược chiều mũi tên), nhưng khi đóng dấu giá trị tuyệt đối tính độ dài thì |AB| = |BA|. Ghi vào sổ ngay!',
+    },
+
+    // =======================================================================
+    // PHÚT 02:55 -> 04:15: KHÁI NIỆM "GIÁ CỦA VECTƠ"
+    // =======================================================================
+    {
+      id: 'c_03_1',
+      second: 195, // 3:15
+      author: 'Bo',
+      role: 'classmate',
+      text: 'Ở [3:15] thầy Tiến vừa viết thuật ngữ "Giá của vectơ". Sao lại gọi là cái giá vậy mọi người? Nghe hơi trừu tượng.',
+    },
+    {
+      id: 'c_03_2',
+      second: 212, // 3:32
+      author: 'Linh Chi',
+      role: 'classmate',
+      text: '@Bo Định nghĩa chuẩn thầy đang ghi trên bảng ở [3:32] nè: Đường thẳng đi qua điểm đầu A và điểm cuối B của vectơ AB được gọi là "giá" của vectơ đó.',
+    },
+    {
+      id: 'c_03_3',
+      second: 230, // 3:50
+      author: 'Minh Khang',
+      role: 'classmate',
+      text: 'Nhìn đường nét đứt thầy Tiến vừa kéo dài hai đầu qua A và B kìa Bo! Nếu vectơ AB là đoàn tàu hỏa thì đường thẳng chứa nó chính là "đường ray" (giá) đỡ đoàn tàu đó.',
+    },
+    {
+      id: 'c_03_4',
+      second: 248, // 4:08
+      author: 'Trí',
+      role: 'classmate',
+      text: 'Và nhờ có cái "đường ray" (giá) này thì sang mục tiếp theo mình mới định nghĩa được thế nào là hai vectơ cùng phương trong không gian 3 chiều.',
+    },
+
+    // =======================================================================
+    // PHÚT 04:15 -> 05:30: HAI VECTƠ CÙNG PHƯƠNG & BẪY ĐƯỜNG THẲNG CHÉO NHAU
+    // =======================================================================
+    {
+      id: 'c_04_1',
+      second: 265, // 4:25
+      author: 'Linh Chi',
+      role: 'classmate',
+      text: 'Mục [4:25] — Hai vectơ cùng phương: Là hai vectơ có giá song song hoặc trùng nhau. Mọi người nhớ đủ cả 2 trường hợp: SONG SONG hoặc TRÙNG NHAU nhé!',
+    },
+    {
+      id: 'c_04_2',
+      second: 282, // 4:42
+      author: 'Bo',
+      role: 'classmate',
+      text: 'Nếu trong không gian có 2 vectơ nằm trên 2 đường thẳng chéo nhau (không cắt cũng không song song) thì mình gọi là hai vectơ ngược hướng được không?',
+    },
+    {
+      id: 'c_04_3',
+      second: 298, // 4:58
+      author: 'Trí',
+      role: 'classmate',
+      text: '@Bo Tuyệt đối không nhé! Hai đường thẳng chéo nhau thì giá của chúng không song song cũng không trùng nhau, nên hai vectơ đó KHÔNG cùng phương.',
+    },
+    {
+      id: 'c_04_4',
+      second: 312, // 5:12
+      author: 'Trợ giảng An',
+      role: 'ta',
+      text: 'Câu hỏi của Bo ở [4:42] rất hay! Cả lớp lưu ý quy tắc tiên quyết: Hai vectơ PHẢI CÙNG PHƯƠNG trước, sau đó ta mới xét tiếp chúng cùng hướng hay ngược hướng.',
+    },
+    {
+      id: 'c_04_5',
+      second: 328, // 5:28
+      author: 'Minh Khang',
+      role: 'classmate',
+      text: 'Giống như 2 chiếc xe phải chạy trên cùng một con đường hoặc 2 làn đường song song (cùng phương), lúc đó mới so sánh được là chạy cùng chiều hay ngược chiều!',
+    },
+
+    // =======================================================================
+    // PHÚT 05:31 -> 11:30: VECTƠ-KHÔNG (0) & CÙNG HƯỚNG, NGƯỢC HƯỚNG
+    // =======================================================================
+    {
+      id: 'c_05_1',
       second: 380, // 6:20
       author: 'Trí',
       role: 'classmate',
-      text: 'Phút [06:20]: Điểm cực kỳ đặc biệt của vectơ-không (AA = BB = 0) là điểm đầu trùng điểm cuối nên nó cùng phương, cùng hướng với MỌI vectơ!',
+      text: 'Phút [06:20]: Điểm đặc biệt của vectơ-không (AA = BB = 0) là điểm đầu trùng điểm cuối nên độ dài bằng 0 và quy ước nó cùng phương, cùng hướng với MỌI vectơ.',
     },
     {
-      id: 'c_06',
-      second: 520, // 8:40
-      author: 'Bo Ngây Ngô',
-      role: 'classmate',
-      text: 'Nếu 2 đường thẳng chéo nhau trong không gian thì 2 vectơ nằm trên đó có gọi là ngược hướng được không ta?',
-    },
-    {
-      id: 'c_07',
+      id: 'c_05_2',
       second: 550, // 9:10
       author: 'Linh Chi',
       role: 'classmate',
-      text: '@Bo Không được nha! Phút [09:10] thầy nhấn mạnh: Phải CÙNG PHƯƠNG (giá song song hoặc trùng nhau) trước rồi mới được xét cùng hướng hay ngược hướng!',
+      text: 'Tóm tắt bảng phân loại ở [09:10]: Hai vectơ cùng phương chỉ có 2 khả năng xảy ra: hoặc CÙNG HƯỚNG (mũi tên chỉ cùng chiều), hoặc NGƯỢC HƯỚNG.',
     },
 
-    // --- CHẶNG 3 (11:30 - 22:30): Hai Vectơ Bằng Nhau & Ví dụ Hình Lăng Trụ ---
+    // =======================================================================
+    // PHÚT 11:30 -> 22:30: HAI VECTƠ BẰNG NHAU & VÍ DỤ LĂNG TRỤ, HÌNH HỘP
+    // =======================================================================
     {
       id: 'c_08',
       second: 740, // 12:20
       author: 'Linh Chi',
       role: 'classmate',
-      text: 'Định nghĩa hai vectơ bằng nhau [12:20]: Phải thỏa mãn đủ 2 điều kiện là (1) Cùng hướng và (2) Cùng độ dài (|a| = |b|).',
+      text: 'Định nghĩa hai vectơ bằng nhau [12:20]: Vectơ a = vectơ b khi và chỉ khi thỏa mãn đồng thời 2 điều kiện: (1) Cùng hướng và (2) Cùng độ dài (|a| = |b|).',
     },
     {
       id: 'c_09',
       second: 930, // 15:30
-      author: 'Bo Ngây Ngô',
+      author: 'Bo',
       role: 'classmate',
-      text: "Ở Ví dụ 1 hình lăng trụ tam giác ABC.A'B'C' [15:30], cạnh AB với B'C' đều nằm ở đáy nên vectơ AB = vectơ B'C' đúng không?",
+      text: "Ở Ví dụ 1 hình lăng trụ tam giác ABC.A'B'C' [15:30], cạnh AB với B'C' đều nằm ở mặt đáy cả, vậy vectơ AB = vectơ B'C' đúng không?",
     },
     {
       id: 'c_10',
       second: 960, // 16:00
       author: 'Minh Khang',
       role: 'classmate',
-      text: "@Bo Sai rồi! Đáy là tam giác nên AB và B'C' đâu có song song với nhau! AB chỉ bằng A'B' thôi, còn các cạnh bên thì AA' = BB' = CC'.",
+      text: "@Bo Nhìn kỹ hình lăng trụ tam giác nha! AB và B'C' không hề song song (không cùng phương). Vectơ AB chỉ bằng vectơ A'B' thôi, còn cạnh bên thì AA' = BB' = CC'.",
     },
     {
       id: 'c_11',
       second: 1180, // 19:40
       author: 'Trí',
       role: 'classmate',
-      text: 'Mẹo đếm ở Ví dụ 2 [19:40]: Trong hình hộp chữ nhật, cứ 1 cạnh sẽ có đúng 3 cạnh khác song song và bằng nó!',
+      text: 'Kinh nghiệm làm trắc nghiệm Ví dụ 2 [19:40]: Trong hình hộp ABCD.A\'B\'C\'D\', cứ 1 vectơ cạnh (như AB) sẽ có đúng 3 vectơ cạnh khác bằng nó (DC, A\'B\', D\'C\').',
     },
 
-    // --- CHẶNG 4 (22:30 - 30:13): Quy tắc 3 Điểm & Quy tắc Hình Bình Hành ---
+    // =======================================================================
+    // PHÚT 22:30 -> 30:13: QUY TẮC 3 ĐIỂM & QUY TẮC HÌNH BÌNH HÀNH
+    // =======================================================================
     {
       id: 'c_12',
       second: 1380, // 23:00
       author: 'Linh Chi',
       role: 'classmate',
-      text: 'Vào phần quan trọng nhất rồi [23:00]: Quy tắc 3 điểm (nối tiếp) OA + AB = OB. Điểm cuối của vectơ trước phải trùng với điểm đầu của vectơ sau!',
+      text: 'Sang phần Phép cộng vectơ [23:00]: Quy tắc 3 điểm (nối tiếp) OA + AB = OB. Điểm cuối của vectơ thứ nhất phải trùng với điểm đầu của vectơ thứ hai.',
     },
     {
       id: 'c_13',
       second: 1498, // 24:58
       author: 'Minh Khang',
       role: 'classmate',
-      text: 'Phút [24:58]: Ví dụ thầy Tiến dễ nhớ thật: Đi từ Nhà (O) -> Nhà người yêu (A) -> Trường (B) thì chốt lại là đi từ Nhà tới Trường: OA + AB = OB!',
+      text: 'Ví dụ thực tế ở [24:58] rất dễ nhớ: Đi từ Nhà (O) ghé qua điểm A rồi tới Trường (B), thì độ dịch chuyển tổng cộng chính là đi từ Nhà tới Trường: OA + AB = OB.',
     },
     {
       id: 'c_14',
       second: 1680, // 28:00
       author: 'Trí',
       role: 'classmate',
-      text: 'Lưu ý phân biệt ở [28:00]: Nếu nối đuôi (OA + AB) thì dùng quy tắc 3 điểm. Còn nếu CHUNG GỐC A (AB + AD) trong hình bình hành ABCD thì tổng phải là đường chéo AC!',
+      text: 'Phân biệt rõ ở [28:00]: Nối đuôi (OA + AB) thì dùng quy tắc 3 điểm. Còn CHUNG GỐC A (AB + AD) trong hình bình hành ABCD thì tổng là vectơ đường chéo AC.',
     },
 
-    // --- CHẶNG 5 (30:13 - 40:00): Quy Tắc Hình Hộp & Điểm Dừng Bẫy Độ Dài 37:13 ---
+    // =======================================================================
+    // PHÚT 30:13 -> 40:00: QUY TẮC HÌNH HỘP & ĐIỂM DỪNG BẪY ĐỘ DÀI [37:13]
+    // =======================================================================
     {
       id: 'c_15',
       second: 1850, // 30:50
       author: 'Linh Chi',
       role: 'classmate',
-      text: "Công thức mới của lớp 12 ở [30:50] — Quy tắc hình hộp: Chung đỉnh A, lấy 2 vectơ cạnh đáy + 1 vectơ cạnh bên sẽ ra đường chéo chính: AB + AD + AA' = AC'!",
+      text: "Công thức trọng tâm lớp 12 ở [30:50] — Quy tắc hình hộp: Tổng 3 vectơ chung gốc A (2 cạnh đáy + 1 cạnh bên) bằng vectơ đường chéo chính: AB + AD + AA' = AC'.",
     },
     {
       id: 'c_16',
       second: 1980, // 33:00
       author: 'Minh Khang',
       role: 'classmate',
-      text: "Nhìn hình hộp ở [33:00] giống hệt căn phòng học: Đi dọc tường (AB) + đi ngang sàn (AD) + leo thẳng lên trần (AA') là chạm góc đối diện trên trần nhà (AC')!",
+      text: "Hình dung trong phòng học ở [33:00]: Đi dọc tường (AB) + đi ngang sàn (AD) + lên thẳng trần nhà (AA') sẽ chạm đúng góc đối diện trên trần (AC').",
     },
     {
       id: 'c_17',
       second: 2205, // 36:45 (Ngay trước điểm dừng 37:13)
-      author: 'Bo Ngây Ngô',
+      author: 'Bo',
       role: 'classmate',
-      text: "Ủa câu Ví dụ 3 ở [36:45] tính |BC + DD'| của hình lập phương cạnh 1 thì cứ tách ra |BC| + |DD'| = 1 + 1 = 2 luôn cho khỏe chứ ghép vectơ chi cho mệt ta?",
+      text: "Ở Ví dụ 3 [36:45], hình lập phương cạnh bằng 1, đề bắt tính |BC + DD'|. Mình tách thẳng thành |BC| + |DD'| = 1 + 1 = 2 luôn cho nhanh được không?",
     },
     {
       id: 'c_18',
       second: 2225, // 37:05 (Sát nút điểm dừng 37:13)
       author: 'Trí',
       role: 'classmate',
-      text: '@Bo Coi chừng sập bẫy ở [37:13] kìa Bo! Hai vectơ vuông góc nhau mà cậu dám cộng độ dài 1 + 1 = 2 hả? Nhìn thầy Tiến gạch chéo trên bảng kìa!',
+      text: '@Bo Cẩn thận mắc bẫy ở [37:13]! Hai vectơ vuông góc nhau không thể cộng đại số độ dài 1 + 1 = 2 được. Thầy Tiến đang dừng lại giải thích trên bảng kìa!',
     },
     {
       id: 'c_19',
       second: 2340, // 39:00 (Câu b Ví dụ 3 ngay sau điểm dừng)
       author: 'Linh Chi',
       role: 'classmate',
-      text: "Sang câu b ở [39:00]: Tính |AB + AD + AA'| thì áp dụng thẳng quy tắc hình hộp bằng |AC'| = căn(1² + 1² + 1²) = căn 3 luôn!",
+      text: "Sang câu b ở [39:00]: Tính |AB + AD + AA'| thì áp dụng trực tiếp quy tắc hình hộp bằng |AC'| = căn(1² + 1² + 1²) = căn 3.",
     },
 
-    // --- CHẶNG 6 (45:00 - 58:00): Hiệu Hai Vectơ (Chuẩn bị lý thuyết cho Trạm 2) ---
+    // =======================================================================
+    // PHÚT 45:00 -> 58:00: QUY TẮC HIỆU HAI VECTƠ (NỐI SANG TRẠM 2)
+    // =======================================================================
     {
       id: 'c_20',
       second: 3150, // 52:30
       author: 'Linh Chi',
       role: 'classmate',
-      text: 'Phút [52:30]: Bắt đầu sang phần HIỆU CỦA HAI VECTƠ. Mọi người chú ý kỹ phần này để lát qua Trạm 2 bắt lỗi trong vở của Bo nha!',
+      text: 'Phút [52:30]: Chuyển sang phần HIỆU CỦA HAI VECTƠ. Phần này rất hay nhầm thứ tự điểm, mọi người lưu ý để áp dụng ở Trạm 2 nhé.',
     },
     {
       id: 'c_21',
       second: 3422, // 57:02
       author: 'Minh Khang',
       role: 'classmate',
-      text: 'Khẩu quyết đỉnh cao của thầy Tiến ở [57:02]: "CHUNG ĐẦU - LỘN NGƯỢC"! OA - OB = BA (chung gốc O thì lộn ngược điểm B lên viết trước điểm A)!',
+      text: 'Quy tắc trừ chung gốc O của thầy Tiến ở [57:02]: "Chung đầu - Lộn ngược" — OA - OB = BA (chung gốc O thì đảo điểm B lên viết trước điểm A).',
     },
     {
       id: 'c_22',
       second: 3480, // 58:00
-      author: 'Bo Ngây Ngô',
+      author: 'Bo',
       role: 'classmate',
-      text: 'Huhu cái vụ "Chung đầu - Lộn ngược" OA - OB = BA ở [58:00] dễ lú thật sự, mình toàn quen tay viết xuôi thành AB thôi!',
+      text: 'Quy tắc trừ OA - OB = BA ở [58:00] dễ nhầm thứ tự thật, mình rất hay quen tay viết xuôi thành AB khi phân tích vectơ.',
+    },
+    {
+      id: 'c_end_1',
+      second: 9480, // 2:38:00
+      author: 'Linh Chi',
+      role: 'classmate',
+      text: 'Thầy Tiến chuẩn bị kết thúc bài giảng rồi cả lớp ơi! Các bạn mở sổ tay chuẩn bị qua Trạm 2 luyện tập nhé.',
+    },
+    {
+      id: 'c_end_2',
+      second: 9500, // 2:38:20
+      author: 'Minh Khang',
+      role: 'classmate',
+      text: 'Xem xong 2 tiếng rưỡi bài giảng này thấy hình không gian dễ hiểu hơn hẳn!',
+    },
+    {
+      id: 'c_end_3',
+      second: 9503, // 2:38:23
+      author: 'Trợ giảng An',
+      role: 'ta',
+      text: 'Chúc mừng cả lớp đã hoàn thành toàn bộ bài giảng Video Trạm 1! Mời các bạn chuyển sang Trạm 2 (Sổ tay bắt lỗi) để kiểm tra độ nhạy bén nào.',
     },
   ],
 
   // Câu hỏi dừng đột ngột tại mốc 37:13 (Ví dụ 3 câu a)
   checkpointQuestion: {
-    prompt: "Tại [37:13] (Ví dụ 3): Cho hình lập phương ABCD.A'B'C'D' có cạnh bằng 1. Độ dài của tổng hai vectơ |BC + DD'| bằng bao nhiêu và biến đổi thế nào?",
+    prompt: "Tại [36:44], cho hình lập phương ABCD.A'B'C'D' có cạnh bằng 1. Độ dài của tổng hai vectơ |BC + DD'| bằng bao nhiêu và tính thế nào?",
     options: [
       {
         id: 'opt_a',
@@ -347,13 +493,13 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
       },
       {
         id: 'opt_b',
-        label: "Tách trực tiếp dấu độ dài: |BC + DD'| = |BC| + |DD'| = 1 + 1 = 2",
+        label: "Tách trực tiếp thành tổng hai độ dài: |BC| + |DD'| = 1 + 1 = 2",
         isStandardBest: false,
         feedback: 'Sập bẫy giống Bo rồi! Tuyệt đối không được tách độ dài của tổng thành tổng hai độ dài.',
       },
       {
         id: 'opt_c',
-        label: "Áp dụng đường chéo chính hình lập phương: |BC + DD'| = √3",
+        label: "Dùng công thức đường chéo hình lập phương: Bằng √3",
         isStandardBest: false,
         feedback: "Chưa đúng! Khi nào cộng đủ 3 kích thước |AB + AD + AA'| mới ra đường chéo chính √3.",
       },
@@ -477,7 +623,7 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
         title: 'Phần 3: Điểm dừng suy ngẫm & Đối chất cùng Bo',
         startSecond: 50,
         hasCheckpoint: true,
-        formulaPreview: 'Quiz tại 00:50'
+        formulaPreview: 'Điểm dừng 00:50'
       },
       {
         id: 'chap_4',
@@ -720,7 +866,7 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
     ],
     chapters: [
       { id: 'c3_1', title: 'Phần 1: Nhận diện hệ số âm trước ẩn x', startSecond: 0, formulaPreview: '−2x > 6' },
-      { id: 'c3_2', title: 'Phần 2: Điểm dừng Quiz — Chia hai vế cho −2', startSecond: 45, hasCheckpoint: true, formulaPreview: 'Quiz tại 00:45' },
+      { id: 'c3_2', title: 'Phần 2: Điểm dừng suy ngẫm — Chia hai vế cho −2', startSecond: 45, hasCheckpoint: true, formulaPreview: 'Điểm dừng 00:45' },
       { id: 'c3_3', title: 'Phần 3: Quy tắc đổi chiều bất đẳng thức', startSecond: 60, formulaPreview: 'x < −3' }
     ],
     transcriptCues: [

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=JetBrains+Mono:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600;1,700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "../mock/app.css";
 @import "tailwindcss";
 
@@ -17,19 +17,73 @@
   --color-washi-pink: #E8B4BC;
 }
 
-/* 1. Ép toàn bộ giao diện & typography sang Be Vietnam Pro - font chuẩn 100% tiếng Việt có dấu */
-*,
-body,
-button,
-input,
-select,
-textarea,
-.font-handwriting,
-.font-cute,
-.font-sans {
+:root {
+  --font: 'Be Vietnam Pro', system-ui, sans-serif !important;
+  --font-display: 'Be Vietnam Pro', system-ui, sans-serif !important;
+  --font-sans: 'Be Vietnam Pro', system-ui, sans-serif !important;
+}
+
+/* 1. Ép toàn bộ giao diện & typography sang Be Vietnam Pro - font chuẩn 100% tiếng Việt có dấu (Ngoại trừ KaTeX & Code) */
+*, *::before, *::after,
+body, button, input, select, textarea,
+h1, h2, h3, h4, h5, h6, p, span, div, a, label,
+.font-handwriting, .font-cute, .font-sans {
   font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+code, pre, .font-mono, .mono {
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+.katex, .katex * {
+  font-family: KaTeX_Main, KaTeX_Math, 'Times New Roman', serif !important;
+}
+
+/* Đảm bảo toàn bộ chữ trong câu hỏi, tin nhắn chat và bình luận đồng nhất 100% Be Vietnam Pro */
+.msg-body,
+.room .msg-body {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif !important;
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+  letter-spacing: normal !important;
+  color: #374151;
+}
+
+.msg-who,
+.room .msg-who {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+/* Đảm bảo baseline công thức inline không bị nhảy lệch khỏi dòng văn bản và không đè chữ */
+.katex-html {
+  white-space: nowrap;
+}
+
+.math-inline {
+  display: inline;
+  vertical-align: baseline;
+}
+
+.math-inline .katex {
+  font-size: 1.02em !important;
+  line-height: 1.2 !important;
+}
+
+.vec-token {
+  display: inline-flex;
+  align-items: baseline;
+  vertical-align: baseline;
+  white-space: nowrap;
+  margin: 0 0.12em;
+}
+
+.vec-token .katex {
+  font-size: 1em !important;
+  line-height: 1 !important;
 }
 
 code,
@@ -206,7 +260,17 @@ body {
 /* Main Video Stage */
 .room-stage {
   background: #f1f5f9 !important;
-  padding: 12px 24px 16px 24px !important;
+  padding: 12px 20px 16px 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 0 !important;
+}
+
+.room-stage > * {
+  max-width: 100% !important;
+  max-height: 100% !important;
 }
 
 /* Right Panel (Chat & People) */
@@ -637,10 +701,16 @@ button[class*="bg-[#10B981]"] {
    FIX COMPACT HEADER CHO VIDEO DEMO (KHÔNG CẦN SCROLL CHUỘT)
    ========================================================================== */
 
-/* 1. Giảm padding tổng thể của trang xuống sát mép trên */
-main.page {
+/* 1. Mở rộng trang toàn màn hình cho Trạm 2, 3, 4 (Không bị bó 1200px ở giữa) */
+main.page,
+.page {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
   padding-top: 10px !important;
-  padding-bottom: 16px !important;
+  padding-bottom: 24px !important;
 }
 
 /* 2. Đảm bảo Tiêu đề chính (H1) luôn gọn 1 dòng duy nhất, không bao giờ rớt dòng */
@@ -695,29 +765,63 @@ button.quick-prompt-box {
 }
 
 /* ==========================================================================
-   3. CHUẨN HÓA HIỂN THỊ KÝ HIỆU VECTƠ (TOÁN 12 - MŨI TÊN TRÊN ĐẦU \vec)
+   3. HỆ THỐNG MÀU SẮC & KÝ HIỆU TOÁN HỌC CHUẨN MỰC (MATHEMATICAL SEMIOTICS)
+   - Xanh lam (#0284c7 / #2563eb): Vectơ tham chiếu / cơ sở
+   - Đỏ thắm (#dc2626 / #e11d48): Đối tượng đang phân tích / Vectơ cần tìm
+   - Xanh lá (#16a34a / #1b4338): Bước đã xác minh đúng / Chốt chân lý
    ========================================================================== */
-.vec {
-  display: inline-block;
-  position: relative;
-  font-weight: 600;
-  font-family: 'JetBrains Mono', 'Be Vietnam Pro', monospace;
-  margin-left: 0.15em;
-  margin-right: 0.15em;
-  line-height: 1;
+
+/* 1. Vectơ cơ sở / tham chiếu */
+.vec-ref {
+  color: #0284c7 !important;
 }
 
-.vec::after {
-  content: "→";
-  position: absolute;
-  top: -0.65em;
-  left: 0;
-  width: 100%;
-  text-align: center;
-  font-size: 0.78em;
-  line-height: 1;
-  pointer-events: none;
-  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
-  opacity: 0.85;
+/* 2. Đối tượng cần tìm / đang phân tích (Chỉ dùng riêng cho toán học, không lạm dụng trong UI) */
+.vec-target {
+  color: #dc2626 !important;
+  font-weight: 700;
+}
+
+/* 3. Đẳng thức / kết quả đã xác minh đúng */
+.vec-correct {
+  color: #16a34a !important;
+}
+
+/* === HIỆU ỨNG NHẢY THẺ CÂU HỎI NGẮT CHUẨN BLU1606 === */
+@keyframes bluCheckpointBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes bluCheckpointCardPop {
+  0% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.blu-checkpoint-scrim {
+  animation: bluCheckpointBackdrop 0.25s ease-out forwards;
+}
+
+.blu-checkpoint-card {
+  animation: bluCheckpointCardPop 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.32), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+}
+
+.blu-option-btn {
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.2s ease,
+              background-color 0.2s ease;
+}
+
+.blu-option-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(14, 116, 144, 0.12);
 }
 
