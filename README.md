@@ -106,3 +106,5 @@ npm run dev
   - Nút **`▶ Chạy tự động liên tục` (1 chạm):** Tự động phát tuần tự qua cả 6 chặng sư phạm.
   - Các nút nhảy nhanh: `1. Video (00:00)`, `2. Dừng (37:13)`, `3. Trạm 2`, `4. Trạm 3`, `5. Trạm 4`.
   - Nút **`💬 Hiện toàn bộ (22 tin)`**: Xem trước toàn bộ thảo luận sinh viên bám sát bảng thầy Tiến.
+
+<!-- test: ref to issue #1 -->
