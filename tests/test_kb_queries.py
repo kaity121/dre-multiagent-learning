@@ -12,7 +12,7 @@ if hasattr(sys.stdout, 'reconfigure'):
 kb_path = find_default_kb()
 kb = json.loads(kb_path.read_text(encoding='utf-8'))
 
-# Bộ 10 query thử nghiệm thực tế với kết quả kỳ vọng
+# Bộ query thử nghiệm thực tế với kết quả kỳ vọng (gồm 10 query gốc + 8 câu diễn đạt tự nhiên & guardrail test)
 test_cases = [
     {
         "query": "cộng độ dài vectơ",
@@ -25,9 +25,9 @@ test_cases = [
         "topic_focus": "Ví dụ 3 SGK KNTT hình lập phương"
     },
     {
-        "query": "góc 120 độ",
-        "expected_ids": ["MISC_VEC_017", "MISC_VEC_019"],
-        "topic_focus": "Góc giữa hai vectơ / tích vô hướng góc tù"
+        "query": "góc giữa hai vectơ 120 độ",
+        "expected_ids": ["MISC_VEC_017"],
+        "topic_focus": "Góc giữa hai vectơ đảo chiều (ra MISC_VEC_017 chứ không phải 019)"
     },
     {
         "query": "quy tắc hình hộp",
@@ -63,14 +63,54 @@ test_cases = [
         "query": "bình phương tổng hai vectơ",
         "expected_ids": ["MISC_VEC_020"],
         "topic_focus": "Hằng đẳng thức vectơ cần số hạng chéo 2u.v"
+    },
+    {
+        "query": "em chưa hiểu chỗ này",
+        "expected_ids": ["NONE"],
+        "topic_focus": "Guardrail: Câu hỏi chung của học sinh không bị gán nhầm ngộ nhận phép trừ (MISC_VEC_007)"
+    },
+    {
+        "query": "hai vectơ có cùng độ dài thì bằng nhau không",
+        "expected_ids": ["MISC_VEC_001"],
+        "topic_focus": "Độ dài bằng nhau chưa đủ để kết luận hai vectơ bằng nhau"
+    },
+    {
+        "query": "hai vectơ cùng phương có chắc cùng hướng không",
+        "expected_ids": ["MISC_VEC_003"],
+        "topic_focus": "Cùng phương có thể cùng hướng hoặc ngược hướng"
+    },
+    {
+        "query": "quy tắc ba điểm nối đuôi",
+        "expected_ids": ["MISC_VEC_004"],
+        "topic_focus": "Quy tắc tam giác cộng nối đuôi và thứ tự điểm"
+    },
+    {
+        "query": "độ dài của hiệu có bằng hiệu độ dài hai vectơ không",
+        "expected_ids": ["MISC_VEC_009"],
+        "topic_focus": "Bẫy độ dài hiệu bằng hiệu độ dài"
+    },
+    {
+        "query": "vectơ đối có độ dài âm không",
+        "expected_ids": ["MISC_VEC_010"],
+        "topic_focus": "Vectơ đối có cùng độ dài không âm, chỉ ngược hướng"
+    },
+    {
+        "query": "tỉ số vectơ trọng tâm tứ diện",
+        "expected_ids": ["MISC_VEC_016"],
+        "topic_focus": "Hệ thức vectơ trọng tâm tứ diện và dấu tỉ số"
+    },
+    {
+        "query": "tại sao tích vô hướng có thể mang dấu âm",
+        "expected_ids": ["MISC_VEC_019"],
+        "topic_focus": "Tích vô hướng góc tù mang giá trị âm"
     }
 ]
 
 print("=========================================================================================")
-print("📊 BẢNG KẾT QUẢ ĐÁNH GIÁ BỘ 10 QUERY TRUY VẤN RAG KNOWLEDGE BASE")
+print(f"📊 BẢNG KẾT QUẢ ĐÁNH GIÁ BỘ {len(test_cases)} QUERY TRUY VẤN RAG KNOWLEDGE BASE")
 print("=========================================================================================\n")
-print(f"{'#':<3} | {'Query thử nghiệm':<30} | {'Kỳ vọng':<15} | {'Actual Top-1':<15} | {'Score':<5} | {'Trạng thái'}")
-print("-" * 92)
+print(f"{'#':<3} | {'Query thử nghiệm':<52} | {'Kỳ vọng':<15} | {'Actual Top-1':<15} | {'Score':<5} | {'Trạng thái'}")
+print("-" * 105)
 
 all_passed = True
 results_summary = []
@@ -86,7 +126,7 @@ for idx, tc in enumerate(test_cases, 1):
     else:
         actual_id = "NONE"
         score = 0
-        title = "None"
+        title = "None (No false positive)"
         source_refs = []
 
     passed = actual_id in tc["expected_ids"]
@@ -94,7 +134,7 @@ for idx, tc in enumerate(test_cases, 1):
         all_passed = False
 
     status = "PASS ✅" if passed else "FAIL ❌"
-    print(f"{idx:<3} | {tc['query']:<30} | {'/'.join(tc['expected_ids']):<15} | {actual_id:<15} | {score:<5} | {status}")
+    print(f"{idx:<3} | {tc['query']:<52} | {'/'.join(tc['expected_ids']):<15} | {actual_id:<15} | {score:<5} | {status}")
 
     results_summary.append({
         "index": idx,
@@ -104,11 +144,12 @@ for idx, tc in enumerate(test_cases, 1):
         "title": title,
         "score": score,
         "passed": passed,
+        "topic_focus": tc["topic_focus"],
         "source_refs": source_refs
     })
 
-print("-" * 92)
-print(f"Tổng kết: {'TẤT CẢ 10/10 QUERIES ĐẠT CHUẨN PASS!' if all_passed else 'Có query chưa đạt!'}\n")
+print("-" * 105)
+print(f"Tổng kết: {'TẤT CẢ ' + str(len(test_cases)) + '/' + str(len(test_cases)) + ' QUERIES ĐẠT CHUẨN PASS!' if all_passed else 'Có query chưa đạt!'}\n")
 
 # Lưu bản ghi minh chứng vào thư mục tests/
 evidence_path = pathlib.Path(__file__).resolve().parent / 'rag_benchmark_evidence.json'

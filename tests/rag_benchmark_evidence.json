@@ -1,6 +1,6 @@
 {
   "algorithm_version": "DRE RAG Hybrid Token-Alias Matcher v1.2",
-  "total_queries": 10,
+  "total_queries": 18,
   "all_passed": true,
   "results": [
     {
@@ -13,6 +13,7 @@
       "title": "Cộng độ dài thay cho độ dài tổng",
       "score": 16,
       "passed": true,
+      "topic_focus": "Bẫy cộng độ dài thay cho độ dài tổng",
       "source_refs": [
         {
           "source_id": "SGK_KNTT12_T1_B6",
@@ -34,8 +35,9 @@
       ],
       "actual": "MISC_VEC_005",
       "title": "Cộng độ dài thay cho độ dài tổng",
-      "score": 14,
+      "score": 26,
       "passed": true,
+      "topic_focus": "Ví dụ 3 SGK KNTT hình lập phương",
       "source_refs": [
         {
           "source_id": "SGK_KNTT12_T1_B6",
@@ -51,22 +53,24 @@
     },
     {
       "index": 3,
-      "query": "góc 120 độ",
+      "query": "góc giữa hai vectơ 120 độ",
       "expected": [
-        "MISC_VEC_017",
-        "MISC_VEC_019"
+        "MISC_VEC_017"
       ],
-      "actual": "MISC_VEC_019",
-      "title": "Tích vô hướng luôn không âm hoặc là vectơ",
-      "score": 15,
+      "actual": "MISC_VEC_017",
+      "title": "Đảo một vectơ không đổi góc",
+      "score": 17,
       "passed": true,
+      "topic_focus": "Góc giữa hai vectơ đảo chiều (ra MISC_VEC_017 chứ không phải 019)",
       "source_refs": [
         {
           "source_id": "SGK_KNTT12_T1_B6",
           "printed_pages": [
+            55,
             56
           ],
           "pdf_pages_1based": [
+            57,
             58
           ],
           "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
@@ -83,6 +87,7 @@
       "title": "Cộng ba cạnh mà thiếu điều kiện hình hộp",
       "score": 16,
       "passed": true,
+      "topic_focus": "Cộng ba cạnh xuất phát cùng đỉnh",
       "source_refs": [
         {
           "source_id": "SGK_KNTT12_T1_B6",
@@ -104,8 +109,9 @@
       ],
       "actual": "MISC_VEC_015",
       "title": "Trọng tâm tam giác thiếu hệ số 3",
-      "score": 3,
+      "score": 16,
       "passed": true,
+      "topic_focus": "Đẳng thức vectơ trọng tâm tam giác",
       "source_refs": [
         {
           "source_id": "SGK_KNTT12_T1_B6",
@@ -127,8 +133,9 @@
       ],
       "actual": "MISC_VEC_018",
       "title": "Gán góc cố định cho vectơ không",
-      "score": 28,
+      "score": 27,
       "passed": true,
+      "topic_focus": "Quy ước góc với vectơ không",
       "source_refs": [
         {
           "source_id": "SGK_KNTT12_T1_B6",
@@ -157,6 +164,7 @@
       "title": "Hiệu chung gốc bị đảo chiều",
       "score": 28,
       "passed": true,
+      "topic_focus": "Quy tắc trừ chung gốc bị lộn ngược thứ tự",
       "source_refs": [
         {
           "source_id": "SGK_KNTT12_T1_B6",
@@ -178,8 +186,9 @@
       ],
       "actual": "MISC_VEC_011",
       "title": "Hệ số âm vẫn giữ hướng",
-      "score": 5,
+      "score": 17,
       "passed": true,
+      "topic_focus": "Hệ số âm k < 0 đảo ngược hướng vectơ",
       "source_refs": [
         {
           "source_id": "SGK_KNTT12_T1_B6",
@@ -201,8 +210,9 @@
       ],
       "actual": "MISC_VEC_019",
       "title": "Tích vô hướng luôn không âm hoặc là vectơ",
-      "score": 28,
+      "score": 16,
       "passed": true,
+      "topic_focus": "Tích vô hướng là số vô hướng, có thể âm",
       "source_refs": [
         {
           "source_id": "SGK_KNTT12_T1_B6",
@@ -226,6 +236,7 @@
       "title": "Bình phương tổng bỏ số hạng chéo",
       "score": 15,
       "passed": true,
+      "topic_focus": "Hằng đẳng thức vectơ cần số hạng chéo 2u.v",
       "source_refs": [
         {
           "source_id": "SGK_KNTT12_T1_B6",
@@ -236,6 +247,197 @@
           "pdf_pages_1based": [
             58,
             59
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    },
+    {
+      "index": 11,
+      "query": "em chưa hiểu chỗ này",
+      "expected": [
+        "NONE"
+      ],
+      "actual": "NONE",
+      "title": "None (No false positive)",
+      "score": 0,
+      "passed": true,
+      "topic_focus": "Guardrail: Câu hỏi chung của học sinh không bị gán nhầm ngộ nhận phép trừ (MISC_VEC_007)",
+      "source_refs": []
+    },
+    {
+      "index": 12,
+      "query": "hai vectơ có cùng độ dài thì bằng nhau không",
+      "expected": [
+        "MISC_VEC_001"
+      ],
+      "actual": "MISC_VEC_001",
+      "title": "Độ dài không xác định vectơ",
+      "score": 8,
+      "passed": true,
+      "topic_focus": "Độ dài bằng nhau chưa đủ để kết luận hai vectơ bằng nhau",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            46,
+            47
+          ],
+          "pdf_pages_1based": [
+            48,
+            49
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    },
+    {
+      "index": 13,
+      "query": "hai vectơ cùng phương có chắc cùng hướng không",
+      "expected": [
+        "MISC_VEC_003"
+      ],
+      "actual": "MISC_VEC_003",
+      "title": "Cùng phương không đồng nghĩa cùng hướng",
+      "score": 31,
+      "passed": true,
+      "topic_focus": "Cùng phương có thể cùng hướng hoặc ngược hướng",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            47
+          ],
+          "pdf_pages_1based": [
+            49
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    },
+    {
+      "index": 14,
+      "query": "quy tắc ba điểm nối đuôi",
+      "expected": [
+        "MISC_VEC_004"
+      ],
+      "actual": "MISC_VEC_004",
+      "title": "Quy tắc ba điểm bị đảo kết quả",
+      "score": 28,
+      "passed": true,
+      "topic_focus": "Quy tắc tam giác cộng nối đuôi và thứ tự điểm",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            49
+          ],
+          "pdf_pages_1based": [
+            51
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    },
+    {
+      "index": 15,
+      "query": "độ dài của hiệu có bằng hiệu độ dài hai vectơ không",
+      "expected": [
+        "MISC_VEC_009"
+      ],
+      "actual": "MISC_VEC_009",
+      "title": "Độ dài hiệu bằng hiệu độ dài",
+      "score": 22,
+      "passed": true,
+      "topic_focus": "Bẫy độ dài hiệu bằng hiệu độ dài",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            51,
+            56,
+            57
+          ],
+          "pdf_pages_1based": [
+            53,
+            58,
+            59
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    },
+    {
+      "index": 16,
+      "query": "vectơ đối có độ dài âm không",
+      "expected": [
+        "MISC_VEC_010"
+      ],
+      "actual": "MISC_VEC_010",
+      "title": "Vectơ đối có độ dài âm",
+      "score": 30,
+      "passed": true,
+      "topic_focus": "Vectơ đối có cùng độ dài không âm, chỉ ngược hướng",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            46,
+            51
+          ],
+          "pdf_pages_1based": [
+            48,
+            53
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    },
+    {
+      "index": 17,
+      "query": "tỉ số vectơ trọng tâm tứ diện",
+      "expected": [
+        "MISC_VEC_016"
+      ],
+      "actual": "MISC_VEC_016",
+      "title": "Tỉ số độ dài áp thẳng sang vectơ trọng tâm",
+      "score": 43,
+      "passed": true,
+      "topic_focus": "Hệ thức vectơ trọng tâm tứ diện và dấu tỉ số",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            53,
+            54
+          ],
+          "pdf_pages_1based": [
+            55,
+            56
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    },
+    {
+      "index": 18,
+      "query": "tại sao tích vô hướng có thể mang dấu âm",
+      "expected": [
+        "MISC_VEC_019"
+      ],
+      "actual": "MISC_VEC_019",
+      "title": "Tích vô hướng luôn không âm hoặc là vectơ",
+      "score": 16,
+      "passed": true,
+      "topic_focus": "Tích vô hướng góc tù mang giá trị âm",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            56
+          ],
+          "pdf_pages_1based": [
+            58
           ],
           "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
         }
