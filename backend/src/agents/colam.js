@@ -1,34 +1,67 @@
 import { chatJSON } from '../openaiClient.js';
 import { config } from '../config.js';
+import { executeTool } from '../tools/index.js';
 
 const COLAM_SYSTEM_PROMPT = `
-Bạn là "Cô Lam" — giáo viên AI, giọng điệu điềm tĩnh, ấm áp, chuẩn mực sư phạm,
-KHÔNG dùng ngôn ngữ trẻ trâu như Bo. Không bao giờ chê bai học viên hay Bo.
-Luôn dùng câu hỏi gợi mở trước khi đưa thẳng đáp án. Tối đa 2-3 câu mỗi lượt nói.
-
-Bạn được gọi trong 3 tình huống, phân biệt bằng field "loai_goi" trong input:
-
-1. "khoi_dong":
-   Input thêm: {"bai_toan": "..."}
-   Mở checkpoint bằng 1 câu hỏi ngắn dẫn vào bài, giọng nhẹ nhàng khích lệ,
-   mời cả học viên tìm cách giải.
-
-2. "can_thiep" (khi phản biện học viên bị đánh giá "chua_ro"):
-   Input thêm: {"muc_goi_y": 1 | 2, "goi_y": "<nội dung gợi ý cấp tương ứng>"}
-   Dùng đúng câu gợi ý được đưa, có thể diễn đạt lại tự nhiên hơn nhưng giữ nguyên ý.
-   Nếu "goi_y" là null (không có gợi ý cấp 2 cho lỗi này), tự đặt một câu hỏi ngắn
-   hướng học viên nhìn lại đúng vị trí lỗi, KHÔNG đưa thẳng đáp án.
-   KHÔNG đưa đáp án trực tiếp ở mức gợi ý.
-
-3. "chot_kien_thuc" (sau khi Bo nhận thua HOẶC sau khi đã dùng hết gợi ý):
-   Input thêm: {"giai_thich_chuan": "..."}
-   Tóm gọn quy tắc chuẩn bằng 1-2 câu, giọng chốt lại nhẹ nhàng, có thể khen cả
-   Bo lẫn học viên đã tranh luận tốt. Kết bằng câu chuyển tiếp cho phép học/video tiếp tục.
+Bạn là "Cô Lam" — giáo viên AI chủ trì sư phạm (Pedagogical Director) trong lớp học OpenMAIC / DRE.
+Giọng điệu: Điềm tĩnh, ấm áp, chuẩn mực sư phạm, đầy tính khích lệ, dùng phương pháp gợi mở Socratic.
+Không bao giờ chê bai học sinh hay bạn học Bo.
+Nhiệm vụ chính:
+1. Thẩm định câu hỏi và hướng dẫn học sinh theo đúng Thang đo Bloom (từ Nhận biết lên Phân tích, Đánh giá).
+2. Nhắc nhở tiêu chí hoàn thành bài toán (Resolution Criteria) mà không giải hộ.
+3. Khen ngợi tinh thần phản biện logic của Trí và sự dũng cảm nêu thắc mắc của Bo.
 
 Luôn trả về đúng JSON theo schema:
-{"dialogue": "<câu Cô Lam nói>", "loai_goi": "<loai_goi đã dùng>"}
-Không thêm text nào ngoài JSON.
+{
+  "dialogue": "<lời Cô Lam hướng dẫn và chốt tiêu chuẩn>",
+  "pedagogicalFocus": "<tiêu điểm sư phạm chính>",
+  "bloomLevel": "Remember | Understand | Apply | Analyze | Evaluate | Create"
+}
 `.trim();
+
+/**
+ * Cô Lam tư vấn sư phạm trực tiếp cho học sinh (có sử dụng tool thẩm định Bloom)
+ */
+export async function coLamConsult({ cauHoiHocVien, baiToan, chuDe }) {
+  // Cô Lam kích hoạt tool thẩm định mức nhận thức Bloom của câu hỏi/nhiệm vụ
+  const bloomResult = executeTool('tool_evaluate_bloom_level', {
+    question: cauHoiHocVien || baiToan || 'Vectơ trong không gian',
+    expected_points: ['Dựng vectơ tổng', 'Áp dụng định lý Pythagore', 'Giải thích vì sao không cộng độ dài trực tiếp'],
+  });
+
+  const aiReply = await chatJSON({
+    model: config.models.coLam,
+    systemPrompt: COLAM_SYSTEM_PROMPT,
+    userPayload: {
+      cau_hoi_hoc_vien: cauHoiHocVien,
+      bai_toan: baiToan,
+      chu_de: chuDe,
+      bloom_assessment: bloomResult.output,
+    },
+  });
+
+  return {
+    ...aiReply,
+    toolCall: {
+      toolName: bloomResult.toolName,
+      status: 'completed',
+      category: 'bloom',
+      label: 'Cô Lam đang thẩm định chuẩn Bloom...',
+      badgeText: `Chuẩn Bloom: ${bloomResult.output.level} (Mức ${bloomResult.output.score}/6)`,
+      output: bloomResult.output,
+    },
+    toolCalls: [
+      {
+        toolName: bloomResult.toolName,
+        status: 'completed',
+        category: 'bloom',
+        label: 'Cô Lam đang thẩm định chuẩn Bloom...',
+        badgeText: `Chuẩn Bloom: ${bloomResult.output.level} (Mức ${bloomResult.output.score}/6)`,
+        output: bloomResult.output,
+      },
+    ],
+  };
+}
 
 export async function coLamKhoiDong({ baiToan }) {
   return chatJSON({
@@ -62,3 +95,10 @@ export async function coLamChotKienThuc({ baiToan, giaiThichChuan }) {
     },
   });
 }
+
+export default {
+  coLamConsult,
+  coLamKhoiDong,
+  coLamCanThiep,
+  coLamChotKienThuc,
+};

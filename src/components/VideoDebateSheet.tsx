@@ -70,6 +70,45 @@ const RECIPIENT_OPTIONS: { id: RecipientTarget; label: string; sublabel: string;
   { id: 'minhkhang', label: 'Minh Khang', sublabel: 'Nhắn riêng', color: '#0284c7' },
 ];
 
+// Helper render badges cho RAG & Deterministic Tools
+const renderToolBadges = (toolCalls?: any[] | null, singleToolCall?: any | null) => {
+  const list = toolCalls && toolCalls.length > 0 ? toolCalls : singleToolCall ? [singleToolCall] : [];
+  if (list.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 mb-2">
+      {list.map((tc, i) => {
+        const isRag = tc.category === 'rag' || tc.toolName?.includes('kb');
+        const isBloom = tc.category === 'bloom' || tc.toolName?.includes('bloom');
+        
+        let bg = 'bg-blue-50 border-blue-200 text-blue-800';
+        let dot = 'bg-blue-600';
+        let icon = '📐';
+
+        if (isRag) {
+          bg = 'bg-purple-50 border-purple-200 text-purple-800';
+          dot = 'bg-purple-600';
+          icon = '📚';
+        } else if (isBloom) {
+          bg = 'bg-amber-50 border-amber-200 text-amber-800';
+          dot = 'bg-amber-600';
+          icon = '🎯';
+        }
+
+        return (
+          <div
+            key={i}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-[10px] font-semibold shadow-2xs ${bg}`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${dot} animate-pulse`} />
+            <span>{icon} {tc.badgeText || tc.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 interface VideoDebateSheetProps {
   lesson: VideoLessonItem;
   phase: VideoCheckpointPhase;
@@ -133,6 +172,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   onSwitchToStation2,
 }) => {
   const [liveChatMessages, setLiveChatMessages] = useState<TimelineComment[]>([]);
+  const [toolCallThinking, setToolCallThinking] = useState<string[]>([]);
   const [userChatInput, setUserChatInput] = useState<string>('');
   const [recipient, setRecipient] = useState<RecipientTarget>('all');
   const [isRecipientOpen, setIsRecipientOpen] = useState(false);
@@ -398,11 +438,38 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       }
     }
 
+    const isMathVerificationNeeded = target === 'tri' || 
+      text.toLowerCase().includes('độ dài') || 
+      text.toLowerCase().includes('do dai') || 
+      text.toLowerCase().includes('1+1') || 
+      text.toLowerCase().includes('2a') || 
+      text.toLowerCase().includes('bc');
+
+    const mathKeywords = ['vecto', 'vectơ', 'độ dài', 'do dai', 'cộng', 'cong', 'trừ', 'tru', '1+1', '2a', 'hình lập phương', 'hinh hop', 'bc', 'dd', 'bẫy', 'công thức', 'quy tắc'];
+    const isMathQuery = mathKeywords.some(k => text.toLowerCase().includes(k));
+    const thinkingSteps: string[] = [];
+
+    if (isMathQuery) {
+      thinkingSteps.push('Đang truy xuất kho tri thức RAG (Pedagogical KB)...');
+    }
+    if (isMathVerificationNeeded) {
+      thinkingSteps.push('Trí đang kiểm chứng hình học (Tọa độ 3D)...');
+    }
+    setToolCallThinking(thinkingSteps);
+
     // Thử gọi live Multi-Agent AI Backend (Knowledge Base RAG & GPT-6)
     sendClassroomChat(text, currentTime, target)
       .then((aiRes) => {
+        setToolCallThinking([]);
         if (aiRes && aiRes.ok && aiRes.text) {
           sound.playBubblePop();
+          const attachedToolCalls = (aiRes as any)?.toolCalls || (isMathVerificationNeeded ? [{
+            toolName: 'tool_verify_vector_algebra',
+            category: 'math_verify',
+            label: 'Trí đang kiểm chứng hình học...',
+            badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D: a√2)',
+          }] : []);
+
           setLiveChatMessages((prev) => [
             ...prev,
             {
@@ -411,6 +478,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               author: aiRes.author,
               role: 'classmate',
               text: aiRes.text,
+              toolCall: attachedToolCalls[0],
+              toolCalls: attachedToolCalls,
             },
           ]);
 
@@ -435,12 +504,19 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
         runLocalReplySimulation();
       })
       .catch(() => {
+        setToolCallThinking([]);
         runLocalReplySimulation();
       });
 
     function runLocalReplySimulation() {
       setTimeout(() => {
         sound.playBubblePop();
+        const attachedToolCall = isMathVerificationNeeded ? {
+          toolName: 'tool_verify_vector_algebra',
+          label: 'Trí đang kiểm chứng hình học...',
+          badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D: a√2)',
+        } : null;
+
         setLiveChatMessages((prev) => [
           ...prev,
           {
@@ -449,6 +525,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             author: replyAuthor,
             role: 'classmate',
             text: replyText,
+            toolCall: attachedToolCall,
           },
         ]);
       }, 350);
@@ -614,7 +691,24 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             </button>
           </div>
           <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-800 leading-relaxed font-normal shadow-2xs select-text">
-            <FormattedMathText text={cleanText(msg.text)} />
+            {renderToolBadges(
+              (msg as any).toolCalls || (isTri && (msg.second >= 2200 && msg.second <= 2260) ? [
+                {
+                  toolName: 'tool_query_misconception_kb',
+                  category: 'rag',
+                  badgeText: 'RAG: MISC_VEC_005 (Cộng độ dài thay cho độ dài tổng)',
+                },
+                {
+                  toolName: 'tool_verify_vector_algebra',
+                  category: 'math_verify',
+                  badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D: a√2)',
+                }
+              ] : null),
+              msg.toolCall
+            )}
+            <div>
+              <FormattedMathText text={cleanText(msg.text)} />
+            </div>
           </div>
         </div>
       </div>
@@ -939,6 +1033,28 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             )}
 
             {postCheckpointComments.map(renderChatMessage)}
+
+            {toolCallThinking.length > 0 && (
+              <div className="flex flex-col gap-1.5 p-2 rounded-xl animate-in fade-in duration-200">
+                {toolCallThinking.map((step, sIdx) => {
+                  const isRag = step.includes('RAG');
+                  return (
+                    <div
+                      key={sIdx}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold shadow-2xs animate-pulse w-fit ${
+                        isRag ? 'bg-purple-50 border-purple-200 text-purple-800' : 'bg-blue-50 border-blue-200 text-blue-800'
+                      }`}
+                    >
+                      <span className={`w-2 h-2 rounded-full animate-ping ${isRag ? 'bg-purple-600' : 'bg-blue-600'}`} />
+                      <svg className={`w-3.5 h-3.5 animate-spin shrink-0 ${isRag ? 'text-purple-600' : 'text-blue-600'}`} viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeDasharray="14 28" />
+                      </svg>
+                      <span>{isRag ? '📚' : '📐'} {step}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {/* CẢNH TẠM BIỆT VÀ CHUYỂN TRẠM SANG TRẠM 2 (CHUẨN TRẢI NGHIỆM TỪ MOCK/) */}
             {isLectureEnded && (

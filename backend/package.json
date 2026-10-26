@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
+    "test": "node --test test/**/*.test.js",
     "test:cli": "node test-cli.js"
   },
   "dependencies": {

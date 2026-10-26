@@ -111,6 +111,18 @@ export async function submitBackendRebuttal(sessionId: string, phanBien: string)
   }
 }
 
+export interface DeterministicToolCallInfo {
+  toolName: string;
+  status: 'running' | 'completed';
+  label: string;
+  badgeText: string;
+  category?: 'rag' | 'math_verify' | 'bloom' | 'timeline';
+  input?: Record<string, any>;
+  output?: Record<string, any>;
+  isValid?: boolean;
+  timestampMs?: number;
+}
+
 export interface ClassroomChatResponse {
   ok: boolean;
   author: string;
@@ -118,6 +130,8 @@ export interface ClassroomChatResponse {
   followUpBoText?: string | null;
   peerId: string;
   kbMatchedId?: string | null;
+  toolCall?: DeterministicToolCallInfo | null;
+  toolCalls?: DeterministicToolCallInfo[] | null;
   timeStr: string;
 }
 
@@ -152,11 +166,14 @@ export async function sendClassroomChat(
 export interface PeerChatResponse {
   ok: boolean;
   peerId: string;
+  toolCalls?: DeterministicToolCallInfo[] | null;
   result: {
     dialogue: string;
     focusConcept?: string;
     cheatSheetSteps?: string[];
     realLifeAnalogy?: string;
+    toolCall?: DeterministicToolCallInfo | null;
+    toolCalls?: DeterministicToolCallInfo[] | null;
   };
 }
 
