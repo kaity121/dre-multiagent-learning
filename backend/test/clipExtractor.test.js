@@ -67,10 +67,11 @@ test('live run on the demo clip produces a CognitiveEventStream with named stage
   assert.ok(stream.segments.length >= 2, 'the board change while writing the trap yields a second keyframe');
   assert.equal(boardsRead, stream.segments.length);
   assert.equal(stream.segments[0].spatialGeometry.shapeType, 'cube');
-  assert.deepEqual(
-    events.filter((e) => e.status === 'done').map((e) => e.stage),
-    STAGES.map((s) => s.id),
-  );
+  // Speech and board branches run concurrently, so only fuse has a fixed position (last).
+  const done = events.filter((e) => e.status === 'done').map((e) => e.stage);
+  assert.deepEqual([...done].sort(), STAGES.map((s) => s.id).sort());
+  assert.equal(done.at(-1), 'fuse');
+  assert.ok(done.indexOf('keyframes') < done.indexOf('board_ocr'));
 });
 
 test('failures fall back to the authored fixture and report the failing stage', { skip: skipNoClip }, async () => {
@@ -85,7 +86,12 @@ test('failures fall back to the authored fixture and report the failing stage', 
   assert.equal(stream.processedBy.mode, 'authored');
   assert.match(stream.processedBy.fallbackReason, /split_audio: OPENAI_API_KEY is not set/);
   assert.ok(stream.segments.length > 0);
-  assert.deepEqual(events.at(-1), { stage: 'split_audio', status: 'error', detail: 'OPENAI_API_KEY is not set' });
+  assert.deepEqual(events.find((e) => e.status === 'error'), {
+    stage: 'split_audio',
+    status: 'error',
+    detail: 'OPENAI_API_KEY is not set',
+  });
+  assert.ok(!events.some((e) => e.stage === 'fuse'), 'nothing is fused after a failure');
   assert.equal(fs.readdirSync(CLIPS_DIR).filter((f) => f.startsWith('.work-')).length, 0, 'temp files cleaned up');
 });
 

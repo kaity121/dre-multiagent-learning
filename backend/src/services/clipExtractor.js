@@ -148,8 +148,11 @@ trapRiskLevel = "high" khi trên bảng có lời giải sai bị gạch hoặc 
 
 /** Blackboard reading of one keyframe, shaped as the board fields of CognitiveTimelineSegment. */
 export async function readBoardWithVision(jpeg) {
+  const model = config.models.vision;
   const response = await openai().chat.completions.create({
-    model: config.models.vision,
+    model,
+    // gpt-6 reasoning adds ~8s per frame without improving the board reading on the demo clip
+    ...(model.startsWith('gpt-6') ? { reasoning_effort: config.visionReasoningEffort } : {}),
     response_format: { type: 'json_object' },
     messages: [
       { role: 'system', content: BOARD_PROMPT },
@@ -242,27 +245,33 @@ export async function extractClip(clipPath, options = {}) {
 
   const started = Date.now();
   const workDir = fs.mkdtempSync(path.join(CLIPS_DIR, '.work-'));
-  let stage = STAGES[0].id;
+  let failedStage = null;
+  // Report each stage when it really starts and ends; stages may overlap and finish out of order.
   const run = async (id, fn) => {
-    stage = id;
     onStage({ stage: id, status: 'running' });
-    const result = await fn();
-    onStage({ stage: id, status: 'done' });
-    return result;
+    try {
+      const result = await fn();
+      onStage({ stage: id, status: 'done' });
+      return result;
+    } catch (err) {
+      failedStage ??= id;
+      throw err;
+    }
   };
 
   try {
-    // Audio and keyframes do not depend on each other; start both, report in pipeline order.
-    const transcriptPromise = extractAudio(clipPath, path.join(workDir, 'audio.mp3')).then(transcribe);
-    const regionsPromise = boardThumbnails(clipPath);
-    transcriptPromise.catch(() => {});
-    regionsPromise.catch(() => {});
-
-    const transcript = await run('split_audio', () => transcriptPromise);
-    const keyframeSeconds = await run('keyframes', async () => pickKeyframeSeconds(await regionsPromise));
-    const boards = await run('board_ocr', () =>
-      Promise.all(keyframeSeconds.map(async (s) => readBoard(await grabFrameJpeg(clipPath, s)))),
+    // Speech and board reading do not depend on each other, so both branches run concurrently.
+    const transcriptPromise = run('split_audio', () =>
+      extractAudio(clipPath, path.join(workDir, 'audio.mp3')).then(transcribe),
     );
+    const boardsPromise = run('keyframes', async () => pickKeyframeSeconds(await boardThumbnails(clipPath))).then(
+      (seconds) =>
+        run('board_ocr', async () => ({
+          seconds,
+          boards: await Promise.all(seconds.map(async (s) => readBoard(await grabFrameJpeg(clipPath, s)))),
+        })),
+    );
+    const [transcript, { seconds: keyframeSeconds, boards }] = await Promise.all([transcriptPromise, boardsPromise]);
     const stream = await run('fuse', async () => {
       const durationSeconds = Math.round(Number(await probeDuration(clipPath)));
       const fileName = path.basename(clipPath, path.extname(clipPath));
@@ -292,6 +301,7 @@ export async function extractClip(clipPath, options = {}) {
     fs.writeFileSync(cacheFile, `${JSON.stringify(stream, null, 2)}\n`);
     return stream;
   } catch (err) {
+    const stage = failedStage ?? 'fuse';
     onStage({ stage, status: 'error', detail: err.message });
     return fallbackStream(`${stage}: ${err.message}`);
   } finally {
