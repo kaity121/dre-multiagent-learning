@@ -5,7 +5,7 @@
  * về các ngộ nhận, bẫy của Bo, căn cứ bác bẫy của Trí và gợi ý sư phạm của Linh Chi / Cô Lam.
  */
 
-import { search, getById } from '../services/knowledgeBase.js';
+import { search, getById, kb } from '../services/knowledgeBase.js';
 
 /**
  * Chuyển đổi dữ liệu ngộ nhận nội bộ thành cấu trúc PedagogicalRAGItem (chuẩn pipeline.ts)
@@ -54,21 +54,39 @@ export function queryMisconceptionKB({ latex, tags = [], query, misconceptionId,
     }
   }
 
-  // 2. Tìm kiếm theo query hoặc tags hoặc latex
-  let searchQuery = query || '';
-  if (!searchQuery && tags.length > 0) {
-    searchQuery = tags.join(' ');
+  // 2. Tra cứu trực tiếp theo danh sách tags chuyên biệt trong KB
+  if (tags && tags.length > 0) {
+    const matchedItems = (kb.misconceptions || []).filter(m =>
+      (m.tags || []).some(t => tags.includes(t))
+    );
+    if (matchedItems.length > 0) {
+      const ragItems = matchedItems.slice(0, limit).map(item => {
+        const linkedKnowledge = (kb.knowledge || []).filter(k =>
+          (item.knowledge_ids || []).includes(k.id)
+        );
+        return mapToPedagogicalRAGItem(item, linkedKnowledge);
+      });
+      return {
+        isValid: true,
+        output: ragItems,
+        count: ragItems.length,
+        reason: `Tìm thấy ${ragItems.length} mục tri thức phù hợp với tags [${tags.join(', ')}]`,
+      };
+    }
   }
+
+  // 3. Tìm kiếm theo query hoặc latex
+  let searchQuery = query || '';
   if (!searchQuery && latex) {
     if (latex.includes('BC') && latex.includes('DD')) {
-      searchQuery = 'cong do dai vecto vi du 3';
+      searchQuery = 'cộng độ dài vectơ ví dụ 3';
     } else {
       searchQuery = latex.replace(/[\\]/g, ' ');
     }
   }
 
   if (!searchQuery) {
-    searchQuery = 'cong do dai';
+    searchQuery = 'cộng độ dài vectơ';
   }
 
   const results = search(searchQuery, limit);

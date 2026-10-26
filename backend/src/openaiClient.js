@@ -65,13 +65,14 @@ export async function chatWithTools({
   ];
 
   const executedToolCalls = [];
+  let currentToolChoice = tool_choice;
 
   for (let step = 0; step < maxSteps; step++) {
     const requestBody = {
       model,
       messages,
       tools: tools.length > 0 ? tools : undefined,
-      tool_choice: tools.length > 0 ? tool_choice : undefined,
+      tool_choice: tools.length > 0 ? currentToolChoice : undefined,
     };
 
     if (model.startsWith('gpt-6-sol')) {
@@ -115,7 +116,8 @@ export async function chatWithTools({
           content: JSON.stringify(deterministicResult.output),
         });
       }
-      // Tiếp tục vòng lặp để model nhận diện kết quả tool và phản hồi
+      // Sau khi tool đã chạy xong, chuyển tool_choice thành 'none' để model tổng hợp phát ngôn cuối
+      currentToolChoice = 'none';
       continue;
     }
 

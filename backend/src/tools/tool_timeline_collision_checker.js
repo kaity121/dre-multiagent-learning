@@ -12,24 +12,43 @@
  * Hàm thực thi Tool: tool_timeline_collision_checker
  *
  * @param {Object} input
- * @param {Array<Object>} input.events - Danh sách sự kiện { id, at_s, actor_id, type, duration_s }
+ * @param {Array<Object>} [input.events] - Danh sách sự kiện { id, at_s, actor_id, type, duration_s }
+ * @param {Array<number>} [input.timelineSeconds] - Danh sách mốc thời gian (giây)
  * @param {number} [input.minGapS=20] - Khoảng cách tối thiểu giữa 2 sự kiện (giây)
+ * @param {number} [input.minGapSeconds] - Alias cho minGapS
  * @param {number} [input.warmupPeriodS=15] - Thời gian đầu video không nên can thiệp
+ * @param {number} [input.warmupSeconds] - Alias cho warmupPeriodS
  * @param {number} [input.maxCheckpoints=1] - Số lượng checkpoint tối đa
  * @returns {Object} { isValid, collisions, warnings, suggestions, reason }
  */
 export function checkTimelineCollision({
   events = [],
+  timelineSeconds,
   minGapS = 20,
+  minGapSeconds,
   warmupPeriodS = 15,
+  warmupSeconds,
   maxCheckpoints = 1,
 }) {
-  if (!Array.isArray(events)) {
-    throw new Error('Tham số events phải là một mảng các sự kiện.');
+  const effectiveMinGap = minGapSeconds !== undefined ? minGapSeconds : minGapS;
+  const effectiveWarmup = warmupSeconds !== undefined ? warmupSeconds : warmupPeriodS;
+
+  let eventList = events;
+  if (Array.isArray(timelineSeconds)) {
+    eventList = timelineSeconds.map((sec, idx) => ({
+      id: `ev_${idx + 1}`,
+      at_s: sec,
+      actor_id: 'auto',
+      type: 'comment',
+    }));
+  }
+
+  if (!Array.isArray(eventList)) {
+    throw new Error('Tham số events hoặc timelineSeconds phải là một mảng.');
   }
 
   // Sắp xếp các sự kiện theo thứ tự thời gian tăng dần
-  const sorted = [...events].sort((a, b) => a.at_s - b.at_s);
+  const sorted = [...eventList].sort((a, b) => a.at_s - b.at_s);
 
   const collisions = [];
   const warnings = [];
@@ -41,13 +60,13 @@ export function checkTimelineCollision({
     const current = sorted[i];
 
     // Kiểm tra thời gian khởi động (warmup period)
-    if (current.at_s < warmupPeriodS) {
+    if (current.at_s < effectiveWarmup) {
       warnings.push({
         eventId: current.id || `event_${i}`,
         at_s: current.at_s,
-        message: `Sự kiện tại giây ${current.at_s} quá gần phần mở đầu của thầy (< ${warmupPeriodS}s).`,
+        message: `Sự kiện tại giây ${current.at_s} quá gần phần mở đầu của thầy (< ${effectiveWarmup}s).`,
       });
-      suggestions.push(`Dời sự kiện "${current.id || i}" lùi về sau giây thứ ${warmupPeriodS}.`);
+      suggestions.push(`Dời sự kiện "${current.id || i}" lùi về sau giây thứ ${effectiveWarmup}.`);
     }
 
     // Đếm số lượng checkpoint
@@ -60,18 +79,19 @@ export function checkTimelineCollision({
       const prev = sorted[i - 1];
       const gap = current.at_s - prev.at_s;
 
-      if (gap < minGapS) {
+      if (gap < effectiveMinGap) {
         collisions.push({
           eventId1: prev.id || `event_${i - 1}`,
           eventId2: current.id || `event_${i}`,
           at_s1: prev.at_s,
           at_s2: current.at_s,
           gapS: gap,
-          requiredGapS: minGapS,
-          reason: `Khoảng cách giữa 2 sự kiện (${gap}s) nhỏ hơn ngưỡng cho phép (${minGapS}s).`,
+          gap: gap,
+          requiredGapS: effectiveMinGap,
+          reason: `Khoảng cách giữa 2 sự kiện (${gap}s) nhỏ hơn ngưỡng cho phép (${effectiveMinGap}s).`,
         });
         suggestions.push(
-          `Tách sự kiện "${current.id || i}" (tại ${current.at_s}s) cách sự kiện trước ít nhất ${minGapS}s (đề xuất: ${prev.at_s + minGapS}s).`
+          `Tách sự kiện "${current.id || i}" (tại ${current.at_s}s) cách sự kiện trước ít nhất ${effectiveMinGap}s (đề xuất: ${prev.at_s + effectiveMinGap}s).`
         );
       }
     }
@@ -90,7 +110,7 @@ export function checkTimelineCollision({
 
   const isValid = collisions.length === 0 && warnings.length === 0;
   const reason = isValid
-    ? `Dòng thời gian hợp lệ: ${sorted.length} sự kiện cách nhau tối thiểu ${minGapS}s, nhịp sư phạm tốt.`
+    ? `Dòng thời gian hợp lệ: ${sorted.length} sự kiện cách nhau tối thiểu ${effectiveMinGap}s, nhịp sư phạm tốt.`
     : `Phát hiện ${collisions.length} điểm va chạm nhịp và ${warnings.length} cảnh báo sư phạm.`;
 
   return {

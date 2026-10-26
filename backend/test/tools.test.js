@@ -3,7 +3,7 @@
  *
  * Unit tests cho bộ Deterministic Tools của Multi-Agent Scriptwriter Roundtable.
  * Kiểm tra các yêu cầu:
- * 1. tool_verify_vector_algebra: Case Ví dụ 3 (claim "2a" -> isValid: false, claim "a\\sqrt{2}" -> isValid: true)
+ * 1. tool_verify_vector_algebra: Case Ví dụ 3 (claim "2a" -> isValid: false, claim "a\\sqrt{2}" -> isValid: true, a√2, căn 2, BC', unparseable)
  * 2. tool_query_misconception_kb: Tra cứu KB theo latex hoặc tags trả về PedagogicalRAGItem
  * 3. tool_timeline_collision_checker: Phát hiện vi phạm minGapS (< 20s) và warmup period
  * 4. tool_evaluate_bloom_level: Thẩm định thang đo Bloom chính xác
@@ -52,6 +52,56 @@ describe('Deterministic Tools - Unit Tests', () => {
       assert.strictEqual(result.isValid, true);
       assert.strictEqual(result.correct, 'a\\sqrt{2}');
       assert.ok(result.reason.includes('chính xác'));
+    });
+
+    it('Hỗ trợ ký hiệu căn đa dạng: a√2, √2a, căn 2, a căn 2 đều nhận diện đúng isValid: true', () => {
+      for (const variant of ['a√2', '√2a', 'căn 2', 'a căn 2', 'sqrt(2)']) {
+        const result = verifyVectorAlgebra({
+          shape: 'cube',
+          side: 'a',
+          expr: "|BC + DD'|",
+          claim: variant,
+        });
+
+        assert.strictEqual(result.isValid, true, `Biến thể "${variant}" phải được nhận diện là đúng`);
+        assert.ok(Math.abs(result.claimValue - Math.SQRT2) < 0.001);
+      }
+    });
+
+    it('Hỗ trợ claim là tên vectơ tương đương: BC\' trả về isValid: true', () => {
+      const result = verifyVectorAlgebra({
+        shape: 'cube',
+        side: 'a',
+        expr: "|BC + DD'|",
+        claim: "BC'",
+      });
+
+      assert.strictEqual(result.isValid, true, 'Claim "BC\'" phải được công nhận là đáp án đúng');
+      assert.ok(result.reason.includes("BC'"), 'Reason phải nêu rõ vectơ tương đương');
+    });
+
+    it('Claim là tên vectơ sai: AB trả về isValid: false', () => {
+      const result = verifyVectorAlgebra({
+        shape: 'cube',
+        side: 'a',
+        expr: "|BC + DD'|",
+        claim: 'AB',
+      });
+
+      assert.strictEqual(result.isValid, false, 'Claim "AB" phải bị đánh giá là false');
+    });
+
+    it('Claim không parse được hoặc phát biểu tổng quát trả về isValid: null (unparseable_claim) chứ không gán sai', () => {
+      const result = verifyVectorAlgebra({
+        shape: 'cube',
+        side: 'a',
+        expr: "|BC + DD'|",
+        claim: '|a + b| = |a| + |b|',
+      });
+
+      assert.strictEqual(result.isValid, null, 'Phát biểu tổng quát phải trả về isValid: null');
+      assert.strictEqual(result.claimValue, null);
+      assert.ok(result.reason.includes('unparseable_claim'), 'Phải gắn cờ unparseable_claim trong reason');
     });
 
     it('Xác thực quy tắc hình hộp: AB + AD + AA\' = AC\' có độ dài a\\sqrt{3}', () => {

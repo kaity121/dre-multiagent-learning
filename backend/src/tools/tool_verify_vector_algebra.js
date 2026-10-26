@@ -32,8 +32,8 @@ const CUBE_VERTICES = {
  * Phân tích tên vectơ (ví dụ: "BC", "DD'", "A'C", "B1C1") thành [điểm đầu, điểm cuối]
  */
 function parseVectorName(raw) {
-  const clean = raw.trim().replace(/^\\vec\{|\}$/g, '').replace(/[\\ ]/g, '');
-  // Kiểm tra điểm có dấu '
+  const clean = String(raw ?? '').trim().replace(/^\\?vec\{?|\}?$/g, '').replace(/[\\ ]/g, '');
+  // Kiểm tra điểm có dấu ' hoặc 1
   const match = clean.match(/^([A-D][1']?)([A-D][1']?)$/);
   if (match) {
     return [match[1], match[2]];
@@ -116,25 +116,32 @@ function evaluateVectorExpression(expr, vertices = CUBE_VERTICES) {
  */
 function parseClaimValue(claim) {
   if (typeof claim === 'number') return claim;
-  const str = String(claim).trim().toLowerCase()
+  let str = String(claim ?? '').trim().toLowerCase()
     .replace(/\s+/g, '')
-    .replace(/\\sqrt/g, 'sqrt')
-    .replace(/\\cdot|\*/g, '');
+    .replace(/\\cdot|\*/g, '')
+    .replace(/căn/g, 'sqrt')
+    .replace(/√/g, 'sqrt')
+    .replace(/\\sqrt/g, 'sqrt');
 
-  if (str === '2a' || str === '2') return 2;
-  if (str === 'a' || str === '1') return 1;
-  if (str === '0' || str === '0a') return 0;
-  if (str === 'asqrt{2}' || str === 'asqrt(2)' || str === 'sqrt{2}a' || str === 'sqrt(2)' || str === 'sqrt{2}') {
-    return Math.SQRT2;
-  }
-  if (str === 'asqrt{3}' || str === 'asqrt(3)' || str === 'sqrt{3}a' || str === 'sqrt(3)' || str === 'sqrt{3}') {
-    return Math.sqrt(3);
-  }
-  if (str === '3a' || str === '3') return 3;
+  str = str.replace(/sqrt\{(\d+(?:\.\d+)?)\}/g, 'sqrt($1)');
 
-  // Thử parse số thực nếu học sinh đưa số thập phân
+  // Các mẫu căn: asqrt(2), sqrt(2)a, asqrt2, sqrt2a, 2sqrt(2), sqrt2, etc.
+  const sqrtMatch = str.match(/^([0-9]*\.?[0-9]*)?a?sqrt\(?(\d+(?:\.\d+)?)\)?a?$/);
+  if (sqrtMatch) {
+    const coeff = sqrtMatch[1] ? parseFloat(sqrtMatch[1]) : 1;
+    const base = parseFloat(sqrtMatch[2]);
+    return coeff * Math.sqrt(base);
+  }
+
+  // Mẫu a hoặc số: 2a, a, 3a, 1.5a
+  const aMatch = str.match(/^([0-9]*\.?[0-9]*)?a$/);
+  if (aMatch) {
+    return aMatch[1] ? parseFloat(aMatch[1]) : 1;
+  }
+
+  // Thử parse số thực nếu học sinh đưa số thập phân hoặc số nguyên đơn thuần
   const num = parseFloat(str);
-  if (!isNaN(num)) return num;
+  if (!isNaN(num) && !str.includes('sqrt')) return num;
 
   return null;
 }
@@ -160,7 +167,7 @@ function formatLatexResult(lengthSquared, isMagnitude) {
  * @param {string} [input.shape="cube"] - Loại hình học (cube, cuboid)
  * @param {string|number} [input.side="a"] - Cạnh hình lập phương
  * @param {string} input.expr - Biểu thức vectơ (vd: "|BC + DD'|")
- * @param {string} input.claim - Phát biểu cần kiểm chứng (vd: "2a")
+ * @param {string} input.claim - Phát biểu cần kiểm chứng (vd: "2a", "a\\sqrt{2}", "BC'")
  * @returns {Object} { isValid, correct, calculatedValue, claimValue, reason, steps }
  */
 export function verifyVectorAlgebra({ shape = 'cube', side = 'a', expr, claim }) {
@@ -170,30 +177,69 @@ export function verifyVectorAlgebra({ shape = 'cube', side = 'a', expr, claim })
 
   const evalResult = evaluateVectorExpression(expr);
   const claimNum = parseClaimValue(claim);
+  const vectorPoints = parseVectorName(String(claim));
   const correctLatex = formatLatexResult(evalResult.lengthSquared, evalResult.isMagnitude);
-
   const epsilon = 0.001;
-  const isValid = claimNum !== null && Math.abs(evalResult.length - claimNum) < epsilon;
 
+  let isValid = null;
   let reason = '';
   const steps = [];
 
-  // Tạo lời giải thích chi tiết và gợi ý nhận diện ngộ nhận
-  if (!isValid) {
-    if (claim === '2a' && expr.includes('BC') && expr.includes("DD'")) {
-      reason = "BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài 1a + 1a = 2a";
-      steps.push("1. Vectơ DD' bằng vectơ CC' (hai cạnh bên cùng hướng trong hình lập phương).");
-      steps.push("2. Thay thế: \\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}.");
-      steps.push("3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = \\sqrt{a^2 + a^2} = a\\sqrt{2}.");
-      steps.push("4. Sai lầm mắc phải: cộng trực tiếp độ dài hai vectơ vuông góc |\\vec{u} + \\vec{v}| = |\\vec{u}| + |\\vec{v}| là sai.");
-    } else {
-      reason = `Độ dài đúng của biểu thức ${expr} là ${correctLatex || evalResult.length.toFixed(2)}, trong khi phát biểu cho rằng là ${claim}.`;
-      steps.push(`Tính toán tọa độ: vectơ tổng = [${evalResult.vector.join(', ')}].`);
-      steps.push(`Độ dài chính xác = ${evalResult.length.toFixed(4)}.`);
+  // 1. Nếu claim là tên một vectơ (ví dụ: "BC'", "\vec{BC'}", "AD'")
+  if (vectorPoints) {
+    try {
+      const vCoords = getVectorCoords(vectorPoints[0], vectorPoints[1]);
+      const vLenSquared = vCoords[0] ** 2 + vCoords[1] ** 2 + vCoords[2] ** 2;
+      const vLen = Math.sqrt(vLenSquared);
+
+      const coordsMatch = vCoords[0] === evalResult.vector[0] &&
+                          vCoords[1] === evalResult.vector[1] &&
+                          vCoords[2] === evalResult.vector[2];
+      const lenMatch = Math.abs(vLen - evalResult.length) < epsilon;
+
+      if (coordsMatch || lenMatch) {
+        isValid = true;
+        reason = `Phát biểu hoàn toàn chính xác. Biểu thức ${expr} có vectơ tổng tương đương vectơ ${claim}, với độ dài ${correctLatex}.`;
+        steps.push(`Vectơ tương đương: \\vec{${vectorPoints[0]}${vectorPoints[1]}} có tọa độ [${vCoords.join(', ')}].`);
+        steps.push(`Độ dài tương ứng: |\\vec{${vectorPoints[0]}${vectorPoints[1]}}| = ${correctLatex}.`);
+      } else {
+        isValid = false;
+        reason = `Vectơ ${claim} có tọa độ [${vCoords.join(', ')}] (độ dài ${vLen.toFixed(2)}), không khớp với vectơ tổng của ${expr} (độ dài ${correctLatex}).`;
+        steps.push(`Tính toán tọa độ biểu thức: [${evalResult.vector.join(', ')}].`);
+        steps.push(`Tọa độ vectơ được nêu: [${vCoords.join(', ')}].`);
+      }
+    } catch {
+      isValid = null;
+      reason = `unparseable_claim: Ký hiệu vectơ '${claim}' không thuộc cấu trúc hình lập phương đang xét.`;
+      steps.push(`Không thể xác định tọa độ các điểm trong tên vectơ '${claim}'.`);
     }
-  } else {
-    reason = `Phát biểu hoàn toàn chính xác. Giá trị ${claim} khớp với kết quả hình học ${correctLatex}.`;
-    steps.push(`Độ dài biểu thức ${expr} bằng ${correctLatex}.`);
+  }
+  // 2. Nếu claim phân tích được thành giá trị số hoặc căn số
+  else if (claimNum !== null) {
+    if (Math.abs(evalResult.length - claimNum) < epsilon) {
+      isValid = true;
+      reason = `Phát biểu hoàn toàn chính xác. Giá trị ${claim} khớp với kết quả hình học ${correctLatex}.`;
+      steps.push(`Độ dài biểu thức ${expr} bằng ${correctLatex}.`);
+    } else {
+      isValid = false;
+      if (claim === '2a' && expr.includes('BC') && expr.includes("DD'")) {
+        reason = "BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài 1a + 1a = 2a";
+        steps.push("1. Vectơ DD' bằng vectơ CC' (hai cạnh bên cùng hướng trong hình lập phương).");
+        steps.push("2. Thay thế: \\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}.");
+        steps.push("3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = \\sqrt{a^2 + a^2} = a\\sqrt{2}.");
+        steps.push("4. Sai lầm mắc phải: cộng trực tiếp độ dài hai vectơ vuông góc |\\vec{u} + \\vec{v}| = |\\vec{u}| + |\\vec{v}| là sai.");
+      } else {
+        reason = `Độ dài đúng của biểu thức ${expr} là ${correctLatex || evalResult.length.toFixed(2)}, trong khi phát biểu cho rằng là ${claim}.`;
+        steps.push(`Tính toán tọa độ: vectơ tổng = [${evalResult.vector.join(', ')}].`);
+        steps.push(`Độ dài chính xác = ${evalResult.length.toFixed(4)}.`);
+      }
+    }
+  }
+  // 3. Nếu claim là phát biểu tổng quát hoặc không thể parse thành số/vectơ cụ thể
+  else {
+    isValid = null;
+    reason = `unparseable_claim: Không thể phân tích giá trị số hoặc ký hiệu từ phát biểu '${claim}' để kiểm chứng tự động.`;
+    steps.push(`Phát biểu mang tính định tính hoặc công thức tổng quát, không thể kiểm chứng trực tiếp bằng tọa độ số.`);
   }
 
   return {

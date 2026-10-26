@@ -217,6 +217,9 @@ app.post('/api/chat/classroom', async (req, res) => {
       return res.status(400).json({ error: 'Thiếu message' });
     }
 
+    // 0. Khởi tạo & chuẩn hóa chuỗi ngay từ đầu (TRÁNH TDZ CRASH)
+    const lower = String(message).toLowerCase().trim();
+
     const { search, getById } = await import('./src/services/knowledgeBase.js');
     const { chatJSON } = await import('./src/openaiClient.js');
 
@@ -226,13 +229,13 @@ app.post('/api/chat/classroom', async (req, res) => {
       const searchHits = search(message, 1);
       if (searchHits && searchHits.length > 0 && searchHits[0].score >= 2) {
         kbMatch = searchHits[0];
-      } else if (currentTime >= 2100 && currentTime <= 2400 && (lower.includes('2a') || lower.includes('bc') || lower.includes('dd') || lower.includes('1+1') || lower.includes('bẫy') || lower.includes('độ dài'))) {
+      } else if (currentTime >= 2100 && currentTime <= 2400 && 
+                (lower.includes('2a') || lower.includes('bc') || lower.includes('dd') || lower.includes('1+1') || lower.includes('bẫy') || lower.includes('độ dài') || lower.includes('do dai'))) {
         kbMatch = getById('MISC_VEC_005');
       }
     }
 
     // 2. Xác định vai trả lời (Routing)
-    const lower = message.toLowerCase();
     let targetPeer = recipient;
     if (targetPeer === 'all') {
       if (lower.includes('@bo') || lower.includes(' bo ') || lower.endsWith(' bo') || lower.startsWith('bo ')) {
@@ -246,6 +249,92 @@ app.post('/api/chat/classroom', async (req, res) => {
       } else {
         targetPeer = 'tri'; // Default deep thinker
       }
+    }
+
+    // 3. Thực thi Deterministic Tools TRƯỚC KHI gọi model để model có số liệu thực tế
+    const { executeTool } = await import('./src/tools/index.js');
+    const toolCalls = [];
+
+    // 3.1 Tool RAG Knowledge Base Retrieval
+    if (kbMatch) {
+      const ragTool = executeTool('tool_query_misconception_kb', {
+        misconceptionId: kbMatch.misconception.id,
+      });
+      toolCalls.push({
+        toolName: 'tool_query_misconception_kb',
+        status: 'completed',
+        label: 'Đang truy xuất kho tri thức RAG...',
+        badgeText: `RAG: ${kbMatch.misconception.id} (${kbMatch.misconception.title})`,
+        category: 'rag',
+        input: ragTool.input,
+        output: ragTool.output,
+        isValid: ragTool.isValid,
+        timestampMs: ragTool.timestampMs,
+      });
+    }
+
+    // 3.2 Tool kiểm chứng đại số hình học (CHỈ CHẠY KHI câu hỏi hoặc checkpoint thực sự liên quan đến phép toán hình lập phương / độ dài)
+    let vectorAlgebraTool = null;
+    const hasAlgebraClaim = lower.includes('bc') || lower.includes('dd') || lower.includes('2a') ||
+      lower.includes('a√2') || lower.includes('√2') || lower.includes('căn 2') || lower.includes('1+1') ||
+      (kbMatch?.misconception?.id === 'MISC_VEC_005' && (lower.includes('độ dài') || lower.includes('do dai')));
+
+    if (hasAlgebraClaim) {
+      let detectedClaim = '2a';
+      if (lower.includes('a√2') || lower.includes('√2') || lower.includes('căn 2')) {
+        detectedClaim = 'a√2';
+      } else if (lower.includes("bc'")) {
+        detectedClaim = "BC'";
+      } else if (lower.includes('2a')) {
+        detectedClaim = '2a';
+      } else if (lower.includes('1+1')) {
+        detectedClaim = '2';
+      }
+
+      vectorAlgebraTool = executeTool('tool_verify_vector_algebra', {
+        shape: 'cube',
+        side: 'a',
+        expr: "|BC + DD'|",
+        claim: detectedClaim,
+      });
+
+      const badgeText = vectorAlgebraTool.isValid === true
+        ? `Đã kiểm chứng hình học: Khớp chuẩn (${vectorAlgebraTool.output.correct || 'a√2'})`
+        : vectorAlgebraTool.isValid === false
+          ? `Đã kiểm chứng hình học: Sai lệch (${vectorAlgebraTool.input.claim} ≠ ${vectorAlgebraTool.output.correct || 'a√2'})`
+          : `Đã kiểm chứng hình học: ${vectorAlgebraTool.output.correct || 'a√2'}`;
+
+      toolCalls.push({
+        toolName: vectorAlgebraTool.toolName,
+        status: 'completed',
+        label: 'Trí đang kiểm chứng hình học...',
+        badgeText,
+        category: 'math_verify',
+        input: vectorAlgebraTool.input,
+        output: vectorAlgebraTool.output,
+        isValid: vectorAlgebraTool.isValid,
+        timestampMs: vectorAlgebraTool.timestampMs,
+      });
+    }
+
+    // 3.3 Tool thẩm định Bloom (Cô Lam)
+    let bloomTool = null;
+    if (targetPeer === 'colam') {
+      bloomTool = executeTool('tool_evaluate_bloom_level', {
+        question: message,
+        expected_points: kbMatch?.misconception?.resolution_criteria || [],
+      });
+      toolCalls.push({
+        toolName: 'tool_evaluate_bloom_level',
+        status: 'completed',
+        label: 'Cô Lam đang thẩm định chuẩn Bloom...',
+        badgeText: `Chuẩn Bloom: ${bloomTool.output.level} (${bloomTool.output.score}/6)`,
+        category: 'bloom',
+        input: bloomTool.input,
+        output: bloomTool.output,
+        isValid: bloomTool.isValid,
+        timestampMs: bloomTool.timestampMs,
+      });
     }
 
     const m = Math.floor(currentTime / 60);
@@ -264,10 +353,18 @@ Tri thức nền tảng (KB RAG):
   + Mức 1: ${kbMatch.misconception.scaffolding[0]?.question || ''}
   + Mức 2: ${kbMatch.misconception.scaffolding[1]?.question || ''}
 ` : ''}
+${vectorAlgebraTool ? `
+Dữ liệu kiểm chứng từ Deterministic Tool (Toạ độ 3D):
+- Biểu thức: ${vectorAlgebraTool.input.expr}
+- Phát biểu kiểm tra: ${vectorAlgebraTool.input.claim}
+- Kết quả kiểm chứng (isValid): ${vectorAlgebraTool.isValid}
+- Giá trị đúng chuẩn: ${vectorAlgebraTool.output.correct}
+- Căn cứ hình học: ${vectorAlgebraTool.output.reason}
+` : ''}
 
 Quy tắc ứng xử:
-1. Giữ đúng persona của ${targetPeer} (Bo: lém lỉnh; Trí: trầm tĩnh, đào sâu bản chất; Linh Chi: cẩn thận, tóm tắt công thức; Minh Khang: ví dụ trực quan đời thực; Cô Lam: ấm áp, dẫn dắt).
-2. Khi học sinh hỏi về bẫy tổng 1+1=2 hoặc cộng độ dài: Trí giải thích bản chất bất đẳng thức tam giác và Pytago ra √2, không bằng 2.
+1. Giữ đúng persona của ${targetPeer} (Bo: lém lỉnh; Trí: trầm tĩnh, đào sâu bản chất; Linh Chi: cẩn thận, tóm tắt công thức; Minh Khang: ví dụ trực quan đời thực; Cô Lam: ấm áp, dẫn dắt Socratic "nudges, not answers").
+2. Khi học sinh hỏi về bẫy tổng 1+1=2 hoặc cộng độ dài: Trí giải thích bản chất bất đẳng thức tam giác và Pytago ra a√2, không bằng 2a.
 3. Không xả ngay đáp án chi tiết nếu học sinh đang hỏi gợi ý; gợi ý từng nấc nhẹ nhàng (1-2 câu).
 4. Luôn trả về JSON:
 {
@@ -276,75 +373,20 @@ Quy tắc ứng xử:
   "followUpBoText": "Nếu câu hỏi liên quan đến bẫy của Bo mà Trí trả lời, Bo nói thêm 1 câu đồng tình/sáng tỏ (hoặc rỗng nếu không cần)"
 }`;
 
+    const modelToUse = targetPeer === 'colam' 
+      ? config.models.coLam 
+      : targetPeer === 'tri' 
+        ? (config.models.tri || config.models.bo)
+        : config.models.bo;
+
     const reply = await chatJSON({
-      model: targetPeer === 'colam' ? config.models.coLam : config.models.bo,
+      model: modelToUse,
       systemPrompt,
       userPayload: {
         student_question: message,
         currentTime: timeStr,
       },
     });
-
-    const { executeTool } = await import('./src/tools/index.js');
-    const toolCalls = [];
-
-    // 1. Tool RAG Knowledge Base Retrieval
-    if (kbMatch) {
-      const ragTool = executeTool('tool_query_misconception_kb', {
-        misconceptionId: kbMatch.misconception.id,
-      });
-      toolCalls.push({
-        toolName: 'tool_query_misconception_kb',
-        status: 'completed',
-        label: 'Đang truy xuất kho tri thức RAG...',
-        badgeText: `RAG: ${kbMatch.misconception.id} (${kbMatch.misconception.title})`,
-        category: 'rag',
-        input: ragTool.input,
-        output: ragTool.output,
-        isValid: ragTool.isValid,
-        timestampMs: ragTool.timestampMs,
-      });
-    }
-
-    // 2. Tool kiểm chứng đại số hình học (Trí hoặc câu hỏi tính toán)
-    if (targetPeer === 'tri' || lower.includes('bc') || lower.includes('dd') || lower.includes('1+1') || lower.includes('2a') || lower.includes('độ dài') || lower.includes('do dai')) {
-      const rawTool = executeTool('tool_verify_vector_algebra', {
-        shape: 'cube',
-        side: 'a',
-        expr: '|BC + DD\'|',
-        claim: '2a',
-      });
-      toolCalls.push({
-        toolName: rawTool.toolName,
-        status: 'completed',
-        label: 'Trí đang kiểm chứng hình học...',
-        badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D: a√2)',
-        category: 'math_verify',
-        input: rawTool.input,
-        output: rawTool.output,
-        isValid: rawTool.isValid,
-        timestampMs: rawTool.timestampMs,
-      });
-    }
-
-    // 3. Tool thẩm định Bloom (Cô Lam)
-    if (targetPeer === 'colam') {
-      const bloomTool = executeTool('tool_evaluate_bloom_level', {
-        question: message,
-        expected_points: kbMatch?.misconception?.resolution_criteria || [],
-      });
-      toolCalls.push({
-        toolName: 'tool_evaluate_bloom_level',
-        status: 'completed',
-        label: 'Cô Lam đang thẩm định chuẩn Bloom...',
-        badgeText: `Chuẩn Bloom: ${bloomTool.output.level} (${bloomTool.output.score}/6)`,
-        category: 'bloom',
-        input: bloomTool.input,
-        output: bloomTool.output,
-        isValid: bloomTool.isValid,
-        timestampMs: bloomTool.timestampMs,
-      });
-    }
 
     res.json({
       ok: true,

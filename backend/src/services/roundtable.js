@@ -4,6 +4,34 @@ import { executeTool } from '../tools/index.js';
 import { config } from '../config.js';
 
 /**
+ * Xác định công cụ kiểm chứng tương ứng với từng dạng ngộ nhận
+ */
+function getMisconceptionVerifiableConfig(misconception) {
+  // 1. Phép toán trong hình lập phương / cộng độ dài
+  if (misconception.id === 'MISC_VEC_005' || (misconception.tags || []).includes('cube')) {
+    return {
+      toolType: 'vector_algebra',
+      toolName: 'tool_verify_vector_algebra',
+      params: { shape: 'cube', side: 'a', expr: "|BC + DD'|", defaultClaim: '2a' },
+    };
+  }
+  // 2. Quy tắc hình hộp
+  if (misconception.id === 'MISC_VEC_006' || (misconception.tags || []).includes('box_rule')) {
+    return {
+      toolType: 'vector_algebra',
+      toolName: 'tool_verify_vector_algebra',
+      params: { shape: 'cube', side: 'a', expr: "|AB + AD + AA'|", defaultClaim: 'a\\sqrt{3}' },
+    };
+  }
+  // 3. Mặc định cho các chủ đề khác (góc, tích vô hướng, vectơ không, trọng tâm...)
+  return {
+    toolType: 'kb_rag',
+    toolName: 'tool_query_misconception_kb',
+    params: { misconceptionId: misconception.id, defaultClaim: misconception.incorrect_claim },
+  };
+}
+
+/**
  * Buồng họp A2A Scriptwriting Roundtable có hỗ trợ Deterministic Tools & Function Calling.
  *
  * Quy tắc phân chia dữ liệu nghiêm ngặt theo vai trò (Context Isolation Guardrails):
@@ -22,6 +50,7 @@ export async function runRoundtable(misconceptionId = 'MISC_VEC_005', { useLLM =
   }
 
   const { misconception, knowledge, exercises } = context;
+  const toolConfig = getMisconceptionVerifiableConfig(misconception);
 
   // 1. Phân lập dữ liệu đầu vào cho từng Agent theo đúng ma trận trách nhiệm
   const boPayload = {
@@ -72,7 +101,7 @@ export async function runRoundtable(misconceptionId = 'MISC_VEC_005', { useLLM =
       timestamp: new Date().toISOString(),
     };
     reasoningEvents.push(event);
-    if (toolCall) {
+    if (toolCall && eventType === 'tool_call') {
       recordedToolCalls.push(toolCall);
     }
   }
@@ -90,7 +119,7 @@ Nhiệm vụ: Dựa vào incorrect_claim ("${misconception.incorrect_claim}") v�
 Trích xuất claim bẫy ngắn gọn.
 Trả về JSON chuẩn:
 {
-  "claim": "<phát biểu bẫy cốt lõi ngắn gọn, ví dụ: 2a>",
+  "claim": "<phát biểu bẫy cốt lõi ngắn gọn>",
   "dialogue": "<câu Bo thách đố cả lớp>",
   "fallacyType": "${misconception.topic}"
 }`,
@@ -100,45 +129,68 @@ Trả về JSON chuẩn:
       recordEvent('debate_turn', 'bo', 'Bo (Hệ 1 - Trực giác)', boTurn.dialogue);
 
       // --- Lượt 2: Trí kích hoạt Tool xác thực toán học & bác bẫy của Bo ---
-      const triPrompt = `Bạn là "Trí" — bạn học Deep Thinker đào sâu bản chất trong buồng họp Roundtable.
-Bo vừa phát biểu: "${boTurn.dialogue}" với claim là "${boTurn.claim || '2a'}".
+      let triPrompt = '';
+      let forcedToolChoice = null;
+
+      if (toolConfig.toolType === 'vector_algebra') {
+        const expr = toolConfig.params.expr;
+        const claim = boTurn.claim || toolConfig.params.defaultClaim;
+        triPrompt = `Bạn là "Trí" — bạn học Deep Thinker đào sâu bản chất trong buồng họp Roundtable.
+Bo vừa phát biểu: "${boTurn.dialogue}" với claim là "${claim}".
 BẠN BẮT BUỘC PHẢI DÙNG TOOL "tool_verify_vector_algebra" để kiểm chứng claim này trước khi phát biểu!
-- expr: "|BC + DD'|"
-- claim: "${boTurn.claim || '2a'}"
+- expr: "${expr}"
+- claim: "${claim}"
 
 Sau khi nhận kết quả từ tool:
-- Nếu tool báo isValid = false: Hãy dựa vào lý do và kết quả đúng (correct) từ tool để BÁC BỎ dứt khoát bẫy của Bo. Chỉ rõ Bo sai ở đâu và gợi ý cho học sinh tự sửa.
+- Dựa vào kết quả đúng (correct) và căn cứ hình học từ tool để BÁC BỎ dứt khoát bẫy của Bo. Chỉ rõ Bo sai ở đâu và gợi ý cho học sinh tự sửa.
 Trả về JSON chuẩn:
 {
   "counter_claim": "<kết luận toán học chuẩn từ tool, ví dụ: a\\sqrt{2}>",
   "dialogue": "<câu Trí trích dẫn kết quả tool để bác bẫy Bo và đặt câu hỏi gợi mở>",
   "geometric_basis": "<căn cứ hình học từ tool reason>"
 }`;
+        forcedToolChoice = { type: 'function', function: { name: 'tool_verify_vector_algebra' } };
+      } else {
+        triPrompt = `Bạn là "Trí" — bạn học Deep Thinker đào sâu bản chất trong buồng họp Roundtable.
+Bo vừa phát biểu: "${boTurn.dialogue}".
+BẠN BẮT BUỘC PHẢI DÙNG TOOL "tool_query_misconception_kb" với misconceptionId: "${misconception.id}" để kiểm chứng chân lý bài toán.
+Sau khi nhận kết quả từ tool:
+- Bác bỏ bẫy sai của Bo dựa trên tri thức chuẩn xác và phản ví dụ.
+Trả về JSON chuẩn:
+{
+  "counter_claim": "<kết luận toán học chuẩn từ tri thức SGK>",
+  "dialogue": "<câu Trí phản biện Bo và gợi ý hướng đi đúng>",
+  "geometric_basis": "<căn cứ kiến thức toán>"
+}`;
+        forcedToolChoice = { type: 'function', function: { name: 'tool_query_misconception_kb' } };
+      }
 
       const triResponse = await chatWithTools({
-        model: config.models.bo, // hoặc config.models.tri
+        model: config.models.tri || config.models.bo,
         systemPrompt: triPrompt,
+        tool_choice: forcedToolChoice,
         userPayload: {
           ...triPayload,
           bo_claim: boTurn.dialogue,
-          claim_value: boTurn.claim || '2a',
+          claim_value: boTurn.claim || toolConfig.params?.defaultClaim || '',
         },
       });
 
       triTurn = triResponse.result;
 
-      // Ghi nhận tool calls của Trí
+      // Ghi nhận tool calls và tool results của Trí theo đúng thứ tự nhân quả
       for (const tc of triResponse.toolCalls) {
-        recordEvent('tool_call', 'tri', 'Trí (Hệ 2 - Logic)', `Kích hoạt tool ${tc.toolName} để kiểm chứng claim "${tc.input.claim}"`, tc);
+        recordEvent('tool_call', 'tri', 'Trí (Hệ 2 - Logic)', `Kích hoạt tool ${tc.toolName}`, tc);
+        recordEvent('tool_result', 'tri', 'Trí (Hệ 2 - Logic)', `Kết quả kiểm chứng từ ${tc.toolName}: ${JSON.stringify(tc.output)}`, tc);
       }
 
       recordEvent('cross_check_verdict', 'tri', 'Trí (Hệ 2 - Logic)', triTurn.dialogue);
 
       // --- Lượt 3: Linh Chi cung cấp gợi ý ghi nhớ từ Scaffolding ---
       linhChiTurn = await chatJSON({
-        model: config.models.bo,
+        model: config.models.linhChi || config.models.bo,
         systemPrompt: `Bạn là "Linh Chi" — Note Taker phụ trách sổ tay quy tắc.
-Nhiệm vụ: Dựa vào scaffolding gợi ý cấp 1 ("${misconception.scaffolding[0]?.question}") hoặc cấp 2 ("${misconception.scaffolding[1]?.question}"), nhắc nhở ngắn gọn mẹo ghi nhớ cho học sinh.
+Nhiệm vụ: Dựa vào scaffolding gợi ý cấp 1 ("${misconception.scaffolding[0]?.question || ''}") hoặc cấp 2 ("${misconception.scaffolding[1]?.question || ''}"), nhắc nhở ngắn gọn mẹo ghi nhớ cho học sinh.
 Trả về JSON chuẩn:
 {
   "dialogue": "<câu Linh Chi gợi ý>",
@@ -158,6 +210,7 @@ Trả về JSON chuẩn:
         expected_points: misconception.resolution_criteria,
       });
       recordEvent('tool_call', 'colam', 'Cô Lam (Director)', `Thẩm định Bloom cho bài tập: đạt mức ${bloomToolCall.output.level}`, bloomToolCall);
+      recordEvent('tool_result', 'colam', 'Cô Lam (Director)', `Mức Bloom ${bloomToolCall.output.level} (Điểm: ${bloomToolCall.output.score}/6)`, bloomToolCall);
 
       const timelineToolCall = executeTool('tool_timeline_collision_checker', {
         events: [
@@ -168,12 +221,15 @@ Trả về JSON chuẩn:
         minGapS: 20,
       });
       recordEvent('tool_call', 'colam', 'Cô Lam (Director)', `Kiểm tra nhịp thời gian bài giảng: ${timelineToolCall.output.reason}`, timelineToolCall);
+      recordEvent('tool_result', 'colam', 'Cô Lam (Director)', `Kết quả kiểm tra timeline: ${timelineToolCall.isValid ? 'Hợp lệ' : 'Cần điều chỉnh'}`, timelineToolCall);
 
       coLamTurn = await chatJSON({
         model: config.models.coLam,
         systemPrompt: `Bạn là "Cô Lam" — giáo viên chủ trì sư phạm trong Roundtable.
-Nhiệm vụ: Chốt lại hướng đi đúng và nhắc nhở học sinh tiêu chí hoàn thành bài.
-Dữ liệu thẩm định: Bài tập đạt mức Bloom "${bloomToolCall.output.level}". Nhịp timeline: ${timelineToolCall.output.reason}.
+Nhiệm vụ: Chốt lại hướng đi đúng theo phương pháp Socratic ("nudges, not answers").
+Lưu ý quan trọng:
+1. Đồng bộ ký hiệu tham số theo Trí (${triTurn.counter_claim || 'a\\sqrt{2}'}), không tự đổi sang số khác.
+2. Nêu tiêu chí hoàn thành bài tập, không giải trọn vẹn đáp án ngay mà để học sinh tự làm.
 Trả về JSON chuẩn:
 {
   "dialogue": "<câu Cô Lam điều phối và chốt tiêu chí sư phạm>",
@@ -181,6 +237,7 @@ Trả về JSON chuẩn:
 }`,
         userPayload: {
           ...coLamPayload,
+          tri_verification: triTurn,
           bloom_evaluation: bloomToolCall.output,
           debate_context: [boTurn.dialogue, triTurn.dialogue, linhChiTurn.dialogue],
         },
@@ -191,76 +248,91 @@ Trả về JSON chuẩn:
     } catch (err) {
       console.warn('[Roundtable] LLM gọi không thành công hoặc lỗi, chuyển sang fallback có thực thi tool nội bộ:', err.message);
 
-      // Fallback: Tự động chạy tool thuần túy để đảm bảo dữ liệu luôn đầy đủ
-      const boClaim = '2a';
-      const vectorToolCall = executeTool('tool_verify_vector_algebra', {
-        shape: 'cube',
-        side: 'a',
-        expr: "|BC + DD'|",
+      // Fallback: Chạy theo đúng thứ tự nhân quả
+      const boClaim = toolConfig.params?.defaultClaim || misconception.incorrect_claim;
+      boTurn = {
         claim: boClaim,
-      });
+        dialogue: misconception.id === 'MISC_VEC_005'
+          ? `Theo tớ thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!`
+          : `Theo tớ thì: ${misconception.incorrect_claim}!`,
+      };
+      recordEvent('debate_turn', 'bo', 'Bo (Hệ 1 - Trực giác)', boTurn.dialogue);
+
+      // Thực thi tool phù hợp
+      let vectorToolCall;
+      if (toolConfig.toolType === 'vector_algebra') {
+        vectorToolCall = executeTool('tool_verify_vector_algebra', {
+          shape: toolConfig.params.shape || 'cube',
+          side: toolConfig.params.side || 'a',
+          expr: toolConfig.params.expr,
+          claim: boClaim,
+        });
+      } else {
+        vectorToolCall = executeTool('tool_query_misconception_kb', {
+          misconceptionId: misconception.id,
+        });
+      }
+
+      recordEvent('tool_call', 'tri', 'Trí (Hệ 2 - Logic)', `Kiểm chứng toán học ${toolConfig.toolName}`, vectorToolCall);
+      recordEvent('tool_result', 'tri', 'Trí (Hệ 2 - Logic)', `Kết quả kiểm chứng: ${vectorToolCall.isValid ? 'Hợp lệ' : 'Bác bỏ'}`, vectorToolCall);
+
+      triTurn = {
+        counter_claim: vectorToolCall.output?.correct || misconception.correction,
+        dialogue: `Bo nhầm to rồi! Tớ vừa kiểm tra hệ thức: ${vectorToolCall.output?.reason || misconception.correction}. Đáp án đúng phải là ${vectorToolCall.output?.correct || misconception.correction}!`,
+        geometric_basis: vectorToolCall.output?.reason || misconception.correction,
+      };
+      recordEvent('cross_check_verdict', 'tri', 'Trí (Hệ 2 - Logic)', triTurn.dialogue);
+
+      linhChiTurn = {
+        dialogue: `Linh Chi note lại nhé: ${misconception.scaffolding[0]?.question || 'Nhớ áp dụng quy tắc hình học để đưa về một vectơ tổng trước khi tính độ dài!'}`,
+      };
+      recordEvent('debate_turn', 'linhchi', 'Linh Chi (Note Taker)', linhChiTurn.dialogue);
 
       const bloomToolCall = executeTool('tool_evaluate_bloom_level', {
         question: exercises[0]?.problem || misconception.scaffolding[0]?.question,
         expected_points: misconception.resolution_criteria,
       });
-
-      recordEvent('tool_call', 'tri', 'Trí (Hệ 2 - Logic)', 'Kiểm chứng đại số vectơ Ví dụ 3', vectorToolCall);
       recordEvent('tool_call', 'colam', 'Cô Lam (Director)', 'Thẩm định Bloom cho checkpoint', bloomToolCall);
-
-      boTurn = {
-        claim: boClaim,
-        dialogue: `Theo tớ thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!`,
-      };
-
-      triTurn = {
-        counter_claim: vectorToolCall.output.correct || 'a\\sqrt{2}',
-        dialogue: `Bo nhầm to rồi! Tớ vừa kiểm tra hệ thức: ${vectorToolCall.output.reason}. Đáp án đúng phải là ${vectorToolCall.output.correct}!`,
-        geometric_basis: vectorToolCall.output.reason,
-      };
-
-      linhChiTurn = {
-        dialogue: `Linh Chi note lại nhé: ${misconception.scaffolding[0]?.question || 'Muốn cộng hai vectơ, ta phải đưa về chung gốc hoặc áp dụng quy tắc hình bình hành / tam giác!'}`,
-      };
+      recordEvent('tool_result', 'colam', 'Cô Lam (Director)', `Mức Bloom ${bloomToolCall.output.level}`, bloomToolCall);
 
       coLamTurn = {
-        dialogue: `Trí chỉ ra rất chuẩn xác. Các em hãy chú ý: ${misconception.resolution_criteria.join(', ')}.`,
+        dialogue: `Trí chỉ ra rất chuẩn xác với kết quả ${triTurn.counter_claim}. Các em hãy chú ý: ${misconception.resolution_criteria.join(', ')}.`,
       };
-
-      recordEvent('debate_turn', 'bo', 'Bo (Hệ 1 - Trực giác)', boTurn.dialogue);
-      recordEvent('cross_check_verdict', 'tri', 'Trí (Hệ 2 - Logic)', triTurn.dialogue);
-      recordEvent('debate_turn', 'linhchi', 'Linh Chi (Note Taker)', linhChiTurn.dialogue);
       recordEvent('checkpoint_created', 'colam', 'Cô Lam (Director)', coLamTurn.dialogue);
     }
   } else {
     // Chế độ không dùng LLM (useLLM = false): Chạy hoàn toàn Deterministic Tools
-    const boClaim = '2a';
-    const vectorToolCall = executeTool('tool_verify_vector_algebra', {
-      shape: 'cube',
-      side: 'a',
-      expr: "|BC + DD'|",
-      claim: boClaim,
-    });
-
-    const bloomToolCall = executeTool('tool_evaluate_bloom_level', {
-      question: exercises[0]?.problem || misconception.scaffolding[0]?.question,
-      expected_points: misconception.resolution_criteria,
-    });
-
-    recordEvent('debate_turn', 'bo', 'Bo (Hệ 1 - Trực giác)', `Theo tớ thì cạnh bằng a nên |BC + DD'| = a + a = 2a!`);
-    recordEvent('tool_call', 'tri', 'Trí (Hệ 2 - Logic)', 'Kiểm chứng đại số vectơ Ví dụ 3', vectorToolCall);
-
+    const boClaim = toolConfig.params?.defaultClaim || misconception.incorrect_claim;
     boTurn = {
       claim: boClaim,
-      dialogue: `Theo tớ thì cạnh bằng a nên |BC + DD'| = a + a = 2a!`,
+      dialogue: misconception.id === 'MISC_VEC_005'
+        ? `Theo tớ thì cạnh bằng a nên |BC + DD'| = a + a = 2a!`
+        : `Theo tớ thì: ${misconception.incorrect_claim}!`,
     };
+    recordEvent('debate_turn', 'bo', 'Bo (Hệ 1 - Trực giác)', boTurn.dialogue);
+
+    let vectorToolCall;
+    if (toolConfig.toolType === 'vector_algebra') {
+      vectorToolCall = executeTool('tool_verify_vector_algebra', {
+        shape: toolConfig.params.shape || 'cube',
+        side: toolConfig.params.side || 'a',
+        expr: toolConfig.params.expr,
+        claim: boClaim,
+      });
+    } else {
+      vectorToolCall = executeTool('tool_query_misconception_kb', {
+        misconceptionId: misconception.id,
+      });
+    }
+
+    recordEvent('tool_call', 'tri', 'Trí (Hệ 2 - Logic)', `Kiểm chứng đại số vectơ ${toolConfig.toolName}`, vectorToolCall);
+    recordEvent('tool_result', 'tri', 'Trí (Hệ 2 - Logic)', `Kết quả: ${vectorToolCall.output?.correct || 'Hoàn tất'}`, vectorToolCall);
 
     triTurn = {
-      counter_claim: vectorToolCall.output.correct || 'a\\sqrt{2}',
-      dialogue: `Bo nhầm to rồi! Tớ vừa kiểm tra: ${vectorToolCall.output.reason}. Đáp án chuẩn phải là ${vectorToolCall.output.correct}!`,
-      geometric_basis: vectorToolCall.output.reason,
+      counter_claim: vectorToolCall.output?.correct || misconception.correction,
+      dialogue: `Bo nhầm to rồi! Tớ vừa kiểm tra: ${vectorToolCall.output?.reason || misconception.correction}. Đáp án chuẩn phải là ${vectorToolCall.output?.correct || misconception.correction}!`,
+      geometric_basis: vectorToolCall.output?.reason || misconception.correction,
     };
-
     recordEvent('cross_check_verdict', 'tri', 'Trí (Hệ 2 - Logic)', triTurn.dialogue);
 
     linhChiTurn = {
@@ -268,10 +340,15 @@ Trả về JSON chuẩn:
     };
     recordEvent('debate_turn', 'linhchi', 'Linh Chi (Note Taker)', linhChiTurn.dialogue);
 
+    const bloomToolCall = executeTool('tool_evaluate_bloom_level', {
+      question: exercises[0]?.problem || misconception.scaffolding[0]?.question,
+      expected_points: misconception.resolution_criteria,
+    });
     recordEvent('tool_call', 'colam', 'Cô Lam (Director)', 'Thẩm định Bloom cho checkpoint', bloomToolCall);
+    recordEvent('tool_result', 'colam', 'Cô Lam (Director)', `Mức Bloom ${bloomToolCall.output.level}`, bloomToolCall);
 
     coLamTurn = {
-      dialogue: `Trí chỉ ra rất chuẩn xác. Các em hãy chú ý: ${misconception.resolution_criteria.join(', ')}.`,
+      dialogue: `Trí chỉ ra rất chuẩn xác với kết quả ${triTurn.counter_claim}. Các em hãy chú ý: ${misconception.resolution_criteria.join(', ')}.`,
     };
     recordEvent('checkpoint_created', 'colam', 'Cô Lam (Director)', coLamTurn.dialogue);
   }
@@ -296,7 +373,7 @@ Trả về JSON chuẩn:
       {
         actor: 'bo',
         role: 'Sparring Partner',
-        claim: boTurn.claim || '2a',
+        claim: boTurn.claim || toolConfig.params?.defaultClaim || '2a',
         dialogue: boTurn.dialogue,
         intentional_error: true,
       },
