@@ -5,11 +5,13 @@ import { listMisconceptionIds } from './src/contentLibrary.js';
 import { startSession, submitAnswer, submitRebuttal } from './src/orchestrator.js';
 import { chatJSON } from './src/openaiClient.js';
 import { lessonsRouter } from './src/routes/lessons.js';
+import { extractRouter } from './src/routes/extract.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/api/lessons', lessonsRouter);
+app.use('/api/extract', extractRouter);
 
 // GET /api/health-llm — test kết nối trực tiếp tới OpenAI
 app.get('/api/health-llm', async (req, res) => {
