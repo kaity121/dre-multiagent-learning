@@ -8,6 +8,7 @@ import {
   MinhKhangInquisitiveAvatar
 } from './HandmadeArtwork';
 import { sound } from '../utils/soundEffects';
+import { sendPeerChat } from '../services/dreBackendApi';
 
 const ChatBubbleSvg = ({ className = 'w-3.5 h-3.5' }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" className={className}>
@@ -152,35 +153,55 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
     setIsPeerTyping(true);
     scrollToLatestMessage();
 
-    setTimeout(() => {
-      sound.playBubblePop();
-      setIsPeerTyping(false);
+    // Thử gọi live AI Agent Backend (OpenMAIC GPT-6)
+    sendPeerChat(peerId, textToSend, 'Toán 12 — Vectơ trong không gian', 'Bài giảng Thầy Nguyễn Phan Tiến')
+      .then((aiRes) => {
+        setIsPeerTyping(false);
+        if (aiRes && aiRes.ok && aiRes.result?.dialogue) {
+          sound.playBubblePop();
+          setChatHistories((prev) => ({
+            ...prev,
+            [peerId]: [...prev[peerId], { sender: 'peer', text: aiRes.result.dialogue }],
+          }));
+          scrollToLatestMessage();
+          return;
+        }
+        fallbackLocalReply();
+      })
+      .catch(() => {
+        setIsPeerTyping(false);
+        fallbackLocalReply();
+      });
 
-      let reply = '';
-      if (peerId === 'bo') {
-        reply =
-          cleanText(peerContext?.bo.defaultReply) ||
-          'Ơ... phải gom BC + CC\' thành đường chéo mặt bên BC\' rồi mới tính Pytago ra căn 2 hả?! Hèn gì tớ tách 1 + 1 = 2 bị sai!';
-      } else if (peerId === 'tri') {
-        reply =
-          cleanText(peerContext?.tri.defaultReply) ||
-          'Chính xác! Hai vectơ muốn xét cùng hướng hay ngược hướng thì giá của chúng phải song song hoặc trùng nhau (cùng phương) trước đã.';
-      } else if (peerId === 'linhchi') {
-        reply =
-          cleanText(peerContext?.linhchi.defaultReply) ||
-          'Quy tắc chuẩn: 1) Nối tiếp: OA + AB = OB. 2) Hình bình hành: AB + AD = AC. 3) Hình hộp: AB + AD + AA\' = AC\'.';
-      } else {
-        reply =
-          cleanText(peerContext?.minhkhang.defaultReply) ||
-          'Tưởng tượng bạn đi ngang 1m từ B sang C, rồi đi thẳng đứng lên 1m từ C lên C\'. Khoảng cách chim bay BC\' là cạnh huyền căn(1² + 1²) = căn 2m!';
-      }
+    function fallbackLocalReply() {
+      setTimeout(() => {
+        sound.playBubblePop();
+        let reply = '';
+        if (peerId === 'bo') {
+          reply =
+            cleanText(peerContext?.bo.defaultReply) ||
+            'Ơ... phải gom BC + CC\' thành đường chéo mặt bên BC\' rồi mới tính Pytago ra căn 2 hả?! Hèn gì tớ tách 1 + 1 = 2 bị sai!';
+        } else if (peerId === 'tri') {
+          reply =
+            cleanText(peerContext?.tri.defaultReply) ||
+            'Chính xác! Hai vectơ muốn xét cùng hướng hay ngược hướng thì giá của chúng phải song song hoặc trùng nhau (cùng phương) trước đã.';
+        } else if (peerId === 'linhchi') {
+          reply =
+            cleanText(peerContext?.linhchi.defaultReply) ||
+            'Quy tắc chuẩn: 1) Nối tiếp: OA + AB = OB. 2) Hình bình hành: AB + AD = AC. 3) Hình hộp: AB + AD + AA\' = AC\'.';
+        } else {
+          reply =
+            cleanText(peerContext?.minhkhang.defaultReply) ||
+            'Tưởng tượng bạn đi ngang 1m từ B sang C, rồi đi thẳng đứng lên 1m từ C lên C\'. Khoảng cách chim bay BC\' là cạnh huyền căn(1² + 1²) = căn 2m!';
+        }
 
-      setChatHistories((prev) => ({
-        ...prev,
-        [peerId]: [...prev[peerId], { sender: 'peer', text: reply }],
-      }));
-      scrollToLatestMessage();
-    }, 350);
+        setChatHistories((prev) => ({
+          ...prev,
+          [peerId]: [...prev[peerId], { sender: 'peer', text: reply }],
+        }));
+        scrollToLatestMessage();
+      }, 350);
+    }
   };
 
   const peerMeta = {

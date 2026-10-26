@@ -1,0 +1,245 @@
+{
+  "algorithm_version": "DRE RAG Hybrid Token-Alias Matcher v1.2",
+  "total_queries": 10,
+  "all_passed": true,
+  "results": [
+    {
+      "index": 1,
+      "query": "cộng độ dài vectơ",
+      "expected": [
+        "MISC_VEC_005"
+      ],
+      "actual": "MISC_VEC_005",
+      "title": "Cộng độ dài thay cho độ dài tổng",
+      "score": 16,
+      "passed": true,
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            49
+          ],
+          "pdf_pages_1based": [
+            51
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "query": "ví dụ 3 hình lập phương",
+      "expected": [
+        "MISC_VEC_005"
+      ],
+      "actual": "MISC_VEC_005",
+      "title": "Cộng độ dài thay cho độ dài tổng",
+      "score": 14,
+      "passed": true,
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            49
+          ],
+          "pdf_pages_1based": [
+            51
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "query": "góc 120 độ",
+      "expected": [
+        "MISC_VEC_017",
+        "MISC_VEC_019"
+      ],
+      "actual": "MISC_VEC_019",
+      "title": "Tích vô hướng luôn không âm hoặc là vectơ",
+      "score": 15,
+      "passed": true,
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            56
+          ],
+          "pdf_pages_1based": [
+            58
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "query": "quy tắc hình hộp",
+      "expected": [
+        "MISC_VEC_006"
+      ],
+      "actual": "MISC_VEC_006",
+      "title": "Cộng ba cạnh mà thiếu điều kiện hình hộp",
+      "score": 16,
+      "passed": true,
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            50
+          ],
+          "pdf_pages_1based": [
+            52
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "query": "trọng tâm tam giác",
+      "expected": [
+        "MISC_VEC_015"
+      ],
+      "actual": "MISC_VEC_015",
+      "title": "Trọng tâm tam giác thiếu hệ số 3",
+      "score": 3,
+      "passed": true,
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            54
+          ],
+          "pdf_pages_1based": [
+            56
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "query": "vectơ không có góc bao nhiêu",
+      "expected": [
+        "MISC_VEC_018"
+      ],
+      "actual": "MISC_VEC_018",
+      "title": "Gán góc cố định cho vectơ không",
+      "score": 28,
+      "passed": true,
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            48,
+            55,
+            56
+          ],
+          "pdf_pages_1based": [
+            50,
+            57,
+            58
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "query": "hiệu hai vectơ chung gốc",
+      "expected": [
+        "MISC_VEC_007",
+        "MISC_VEC_008"
+      ],
+      "actual": "MISC_VEC_007",
+      "title": "Hiệu chung gốc bị đảo chiều",
+      "score": 28,
+      "passed": true,
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            51
+          ],
+          "pdf_pages_1based": [
+            53
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "query": "hệ số âm nhân vectơ",
+      "expected": [
+        "MISC_VEC_011"
+      ],
+      "actual": "MISC_VEC_011",
+      "title": "Hệ số âm vẫn giữ hướng",
+      "score": 5,
+      "passed": true,
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            53
+          ],
+          "pdf_pages_1based": [
+            55
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "query": "tích vô hướng của hai vectơ",
+      "expected": [
+        "MISC_VEC_019"
+      ],
+      "actual": "MISC_VEC_019",
+      "title": "Tích vô hướng luôn không âm hoặc là vectơ",
+      "score": 28,
+      "passed": true,
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            56
+          ],
+          "pdf_pages_1based": [
+            58
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "query": "bình phương tổng hai vectơ",
+      "expected": [
+        "MISC_VEC_020"
+      ],
+      "actual": "MISC_VEC_020",
+      "title": "Bình phương tổng bỏ số hạng chéo",
+      "score": 15,
+      "passed": true,
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            56,
+            57
+          ],
+          "pdf_pages_1based": [
+            58,
+            59
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ]
+    }
+  ]
+}
