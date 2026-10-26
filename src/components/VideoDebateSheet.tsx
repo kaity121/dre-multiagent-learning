@@ -13,6 +13,7 @@ import {
 import { FormattedMathText } from './MathVector';
 import { ChatSavedQuizBlock } from './ChatSavedQuizBlock';
 import { sound } from '../utils/soundEffects';
+import { sendClassroomChat } from '../services/dreBackendApi';
 
 // ============================================================================
 // CUSTOM SVG ICONS CHO CỘT LỚP HỌC TƯƠNG TÁC (ZERO EMOJI)
@@ -397,35 +398,77 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       }
     }
 
-    setTimeout(() => {
-      sound.playBubblePop();
-      setLiveChatMessages((prev) => [
-        ...prev,
-        {
-          id: `reply_${Date.now()}`,
-          second: currentTime,
-          author: replyAuthor,
-          role: 'classmate',
-          text: replyText,
-        },
-      ]);
-    }, 350);
+    // Thử gọi live Multi-Agent AI Backend (Knowledge Base RAG & GPT-6)
+    sendClassroomChat(text, currentTime, target)
+      .then((aiRes) => {
+        if (aiRes && aiRes.ok && aiRes.text) {
+          sound.playBubblePop();
+          setLiveChatMessages((prev) => [
+            ...prev,
+            {
+              id: `reply_${Date.now()}`,
+              second: currentTime,
+              author: aiRes.author,
+              role: 'classmate',
+              text: aiRes.text,
+            },
+          ]);
 
-    // Nếu người học hỏi về bẫy tổng 2 vectơ (Ví dụ 3), Bo tiếp lời sau câu trả lời của Trí để tạo không khí tranh luận lớp học
-    if (isSumTrap) {
+          if (aiRes.followUpBoText) {
+            setTimeout(() => {
+              sound.playBubblePop();
+              setLiveChatMessages((prev) => [
+                ...prev,
+                {
+                  id: `reply_bo_${Date.now()}`,
+                  second: currentTime,
+                  author: 'Bo',
+                  role: 'classmate',
+                  text: aiRes.followUpBoText!,
+                },
+              ]);
+            }, 800);
+          }
+          return;
+        }
+        // Fallback sang phản hồi định tuyến nội bộ nếu backend không phản hồi
+        runLocalReplySimulation();
+      })
+      .catch(() => {
+        runLocalReplySimulation();
+      });
+
+    function runLocalReplySimulation() {
       setTimeout(() => {
         sound.playBubblePop();
         setLiveChatMessages((prev) => [
           ...prev,
           {
-            id: `reply_bo_${Date.now()}`,
+            id: `reply_${Date.now()}`,
             second: currentTime,
-            author: 'Bo',
+            author: replyAuthor,
             role: 'classmate',
-            text: "Đó cũng là điều tớ từng thắc mắc đấy! Tớ cứ tưởng nhìn thấy hai cạnh bằng 1 thì cộng đại 1 + 1 = 2 luôn cho nhanh, nghe Trí giải thích Pytago mới sáng tỏ!",
+            text: replyText,
           },
         ]);
-      }, 950);
+      }, 350);
+
+      // Nếu người học hỏi về bẫy tổng 2 vectơ (Ví dụ 3), Bo tiếp lời sau câu trả lời của Trí để tạo không khí tranh luận lớp học
+      if (isSumTrap) {
+        setTimeout(() => {
+          sound.playBubblePop();
+          setLiveChatMessages((prev) => [
+            ...prev,
+            {
+              id: `reply_bo_${Date.now()}`,
+              second: currentTime,
+              author: 'Bo',
+              role: 'classmate',
+              text: "Đó cũng là điều tớ từng thắc mắc đấy! Tớ cứ tưởng nhìn thấy hai cạnh bằng 1 thì cộng đại 1 + 1 = 2 luôn cho nhanh, nghe Trí giải thích Pytago mới sáng tỏ!",
+            },
+          ]);
+        }, 950);
+      }
     }
   };
 
