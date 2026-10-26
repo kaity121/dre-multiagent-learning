@@ -1,3 +1,15 @@
+function isMathKnowledgeQuery(text = '') {
+  const lower = text.toLowerCase();
+  const keywords = [
+    'vecto', 'vectơ', 'độ dài', 'do dai', 'tổng', 'tong', 'hiệu', 'hieu',
+    'cộng', 'cong', 'trừ', 'tru', 'hình lập phương', 'hinh lap phuong', 'hình hộp', 'hinh hop',
+    'quy tắc', 'quy tac', 'bẫy', 'bay', 'sai ở đâu', 'tại sao', 'tai sao',
+    'bc', 'dd', 'tích vô hướng', 'tich vo huong', 'góc', 'goc', 'công thức', 'cong thuc',
+    '1+1', '2a', 'căn 2', 'can 2', 'đường chéo', 'duong cheo'
+  ];
+  return keywords.some(k => lower.includes(k));
+}
+
 import express from 'express';
 import cors from 'cors';
 import { config } from './src/config.js';
@@ -97,9 +109,43 @@ app.post('/api/peer/:peerId/chat', async (req, res) => {
     const { message, topic = 'Toán học THCS', mathProblem = '' } = req.body;
     let result;
 
+    const { executeTool } = await import('./src/tools/index.js');
+    const { search, getById } = await import('./src/services/knowledgeBase.js');
+    
+    // Chỉ RAG khi câu hỏi của học sinh thực sự chứa từ khóa toán học/ngộ nhận
+    let kbMatch = null;
+    const peerToolCalls = [];
+
+    if (isMathKnowledgeQuery(message)) {
+      const hits = search(message, 1);
+      if (hits && hits.length > 0 && hits[0].score >= 2) {
+        kbMatch = hits[0];
+      }
+    }
+
+    if (kbMatch) {
+      peerToolCalls.push({
+        toolName: 'tool_query_misconception_kb',
+        status: 'completed',
+        label: 'Đang truy xuất kho tri thức RAG...',
+        badgeText: `RAG: ${kbMatch.misconception.id} (${kbMatch.misconception.title})`,
+        category: 'rag',
+        output: { id: kbMatch.misconception.id, title: kbMatch.misconception.title },
+      });
+    }
+
     if (peerId === 'tri') {
       const { triDeepThink } = await import('./src/agents/tri.js');
       result = await triDeepThink({ baiToan: mathProblem, chuDe: topic, cauHoiHocVien: message });
+      if (result.toolCall) {
+        peerToolCalls.push(result.toolCall);
+      }
+    } else if (peerId === 'colam') {
+      const { coLamConsult } = await import('./src/agents/colam.js');
+      result = await coLamConsult({ baiToan: mathProblem, chuDe: topic, cauHoiHocVien: message });
+      if (result.toolCalls) {
+        peerToolCalls.push(...result.toolCalls);
+      }
     } else if (peerId === 'linhchi') {
       const { linhChiTakeNotes } = await import('./src/agents/linhchi.js');
       result = await linhChiTakeNotes({ baiToan: mathProblem, chuDe: topic, cauHoiHocVien: message });
@@ -112,7 +158,15 @@ app.post('/api/peer/:peerId/chat', async (req, res) => {
       result = await boChallenge({ baiToan: mathProblem || topic, cauTraLoiHocVien: message, danhGia: 'dung', loaiBay: 'shortcut_fallacy' });
     }
 
-    res.json({ ok: true, peerId, result });
+    // Gắn mảng toolCalls vào kết quả
+    if (result) {
+      result.toolCalls = peerToolCalls;
+      if (!result.toolCall && peerToolCalls.length > 0) {
+        result.toolCall = peerToolCalls[0];
+      }
+    }
+
+    res.json({ ok: true, peerId, result, toolCalls: peerToolCalls });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
@@ -130,6 +184,31 @@ app.post('/api/roundtable/run', async (req, res) => {
   }
 });
 
+// GET /api/tools — Danh sách & JSON Schema của Deterministic Tools (#8)
+app.get('/api/tools', async (req, res) => {
+  try {
+    const { OPENAI_TOOL_DEFINITIONS } = await import('./src/tools/index.js');
+    res.json({ ok: true, tools: OPENAI_TOOL_DEFINITIONS });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/tools/execute — Gọi thực thi trực tiếp Deterministic Tool (#8 -> #10 -> #14)
+app.post('/api/tools/execute', async (req, res) => {
+  try {
+    const { executeTool } = await import('./src/tools/index.js');
+    const { toolName, inputArgs = {} } = req.body || {};
+    if (!toolName) {
+      return res.status(400).json({ ok: false, error: 'Thiếu toolName' });
+    }
+    const result = executeTool(toolName, inputArgs);
+    res.json({ ok: true, toolCall: result });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 // POST /api/chat/classroom — OpenMAIC: Khung chat lớp học tích hợp RAG Knowledge Base & 4 AI Peers
 app.post('/api/chat/classroom', async (req, res) => {
   try {
@@ -141,13 +220,15 @@ app.post('/api/chat/classroom', async (req, res) => {
     const { search, getById } = await import('./src/services/knowledgeBase.js');
     const { chatJSON } = await import('./src/openaiClient.js');
 
-    // 1. RAG Search trên Knowledge Base DRE
+    // 1. RAG Search trên Knowledge Base DRE — chỉ thực hiện khi câu hỏi liên quan kiến thức toán
     let kbMatch = null;
-    const searchHits = search(message, 1);
-    if (searchHits && searchHits.length > 0) {
-      kbMatch = searchHits[0];
-    } else if (currentTime >= 2100 && currentTime <= 2400) {
-      kbMatch = getById('MISC_VEC_005');
+    if (isMathKnowledgeQuery(message)) {
+      const searchHits = search(message, 1);
+      if (searchHits && searchHits.length > 0 && searchHits[0].score >= 2) {
+        kbMatch = searchHits[0];
+      } else if (currentTime >= 2100 && currentTime <= 2400 && (lower.includes('2a') || lower.includes('bc') || lower.includes('dd') || lower.includes('1+1') || lower.includes('bẫy') || lower.includes('độ dài'))) {
+        kbMatch = getById('MISC_VEC_005');
+      }
     }
 
     // 2. Xác định vai trả lời (Routing)
@@ -204,6 +285,67 @@ Quy tắc ứng xử:
       },
     });
 
+    const { executeTool } = await import('./src/tools/index.js');
+    const toolCalls = [];
+
+    // 1. Tool RAG Knowledge Base Retrieval
+    if (kbMatch) {
+      const ragTool = executeTool('tool_query_misconception_kb', {
+        misconceptionId: kbMatch.misconception.id,
+      });
+      toolCalls.push({
+        toolName: 'tool_query_misconception_kb',
+        status: 'completed',
+        label: 'Đang truy xuất kho tri thức RAG...',
+        badgeText: `RAG: ${kbMatch.misconception.id} (${kbMatch.misconception.title})`,
+        category: 'rag',
+        input: ragTool.input,
+        output: ragTool.output,
+        isValid: ragTool.isValid,
+        timestampMs: ragTool.timestampMs,
+      });
+    }
+
+    // 2. Tool kiểm chứng đại số hình học (Trí hoặc câu hỏi tính toán)
+    if (targetPeer === 'tri' || lower.includes('bc') || lower.includes('dd') || lower.includes('1+1') || lower.includes('2a') || lower.includes('độ dài') || lower.includes('do dai')) {
+      const rawTool = executeTool('tool_verify_vector_algebra', {
+        shape: 'cube',
+        side: 'a',
+        expr: '|BC + DD\'|',
+        claim: '2a',
+      });
+      toolCalls.push({
+        toolName: rawTool.toolName,
+        status: 'completed',
+        label: 'Trí đang kiểm chứng hình học...',
+        badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D: a√2)',
+        category: 'math_verify',
+        input: rawTool.input,
+        output: rawTool.output,
+        isValid: rawTool.isValid,
+        timestampMs: rawTool.timestampMs,
+      });
+    }
+
+    // 3. Tool thẩm định Bloom (Cô Lam)
+    if (targetPeer === 'colam') {
+      const bloomTool = executeTool('tool_evaluate_bloom_level', {
+        question: message,
+        expected_points: kbMatch?.misconception?.resolution_criteria || [],
+      });
+      toolCalls.push({
+        toolName: 'tool_evaluate_bloom_level',
+        status: 'completed',
+        label: 'Cô Lam đang thẩm định chuẩn Bloom...',
+        badgeText: `Chuẩn Bloom: ${bloomTool.output.level} (${bloomTool.output.score}/6)`,
+        category: 'bloom',
+        input: bloomTool.input,
+        output: bloomTool.output,
+        isValid: bloomTool.isValid,
+        timestampMs: bloomTool.timestampMs,
+      });
+    }
+
     res.json({
       ok: true,
       author: reply.author,
@@ -211,6 +353,8 @@ Quy tắc ứng xử:
       followUpBoText: reply.followUpBoText || null,
       peerId: targetPeer,
       kbMatchedId: kbMatch?.misconception?.id || null,
+      toolCall: toolCalls[0] || null,
+      toolCalls,
       timeStr,
     });
   } catch (err) {

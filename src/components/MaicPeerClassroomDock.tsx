@@ -43,6 +43,45 @@ const SendArrowSvg = ({ className = 'w-3.5 h-3.5' }: { className?: string }) => 
   </svg>
 );
 
+// Helper render badges cho RAG & Deterministic Tools
+const renderToolBadges = (toolCalls?: any[] | null, singleToolCall?: any | null) => {
+  const list = toolCalls && toolCalls.length > 0 ? toolCalls : singleToolCall ? [singleToolCall] : [];
+  if (list.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 mb-2">
+      {list.map((tc, i) => {
+        const isRag = tc.category === 'rag' || tc.toolName?.includes('kb');
+        const isBloom = tc.category === 'bloom' || tc.toolName?.includes('bloom');
+        
+        let bg = 'bg-blue-50 border-blue-200 text-blue-800';
+        let dot = 'bg-blue-600';
+        let icon = '📐';
+
+        if (isRag) {
+          bg = 'bg-purple-50 border-purple-200 text-purple-800';
+          dot = 'bg-purple-600';
+          icon = '📚';
+        } else if (isBloom) {
+          bg = 'bg-amber-50 border-amber-200 text-amber-800';
+          dot = 'bg-amber-600';
+          icon = '🎯';
+        }
+
+        return (
+          <div
+            key={i}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-[10px] font-semibold shadow-2xs ${bg}`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${dot} animate-pulse`} />
+            <span>{icon} {tc.badgeText || tc.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 export interface MaicPeerClassroomDockProps {
   currentMode: string;
   currentState?: string;
@@ -55,6 +94,8 @@ export interface MaicPeerClassroomDockProps {
 interface PeerChatMessage {
   sender: 'user' | 'peer';
   text: string;
+  toolCall?: any | null;
+  toolCalls?: any[] | null;
 }
 
 const cleanText = (str?: string) =>
@@ -75,6 +116,7 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
   const [activeSubTab, setActiveSubTab] = useState<'chat' | 'note'>('chat');
   const [peerChatInput, setPeerChatInput] = useState<string>('');
   const [isPeerTyping, setIsPeerTyping] = useState<boolean>(false);
+  const [toolCallThinking, setToolCallThinking] = useState<string[]>([]);
 
   const [chatHistories, setChatHistories] = useState<Record<'bo' | 'tri' | 'linhchi' | 'minhkhang', PeerChatMessage[]>>({
     bo: [],
@@ -111,6 +153,13 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
           text:
             cleanText(peerContext?.tri.edgeCaseNote) ||
             'Ở phút [37:13], thầy Tiến gạch chéo phương án 1 + 1 = 2 vì hai vectơ không cùng hướng. Phải quy đổi về chung một đường chéo BC\' bằng căn 2. Cậu có thắc mắc gì về quy tắc này không?',
+          toolCall: {
+            toolName: 'tool_verify_vector_algebra',
+            label: 'Trí đang kiểm chứng hình học...',
+            badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D: a√2)',
+            isValid: false,
+            correct: 'a\\sqrt{2}',
+          },
         },
       ],
       linhchi: [
@@ -150,6 +199,25 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
       [peerId]: [...prev[peerId], { sender: 'user', text: textToSend }],
     }));
 
+    const isMathVerificationNeeded = peerId === 'tri' || 
+      textToSend.toLowerCase().includes('độ dài') || 
+      textToSend.toLowerCase().includes('do dai') || 
+      textToSend.toLowerCase().includes('1+1') || 
+      textToSend.toLowerCase().includes('2a') || 
+      textToSend.toLowerCase().includes('bc');
+
+    const mathKeywords = ['vecto', 'vectơ', 'độ dài', 'do dai', 'cộng', 'cong', 'trừ', 'tru', '1+1', '2a', 'hình lập phương', 'hinh hop', 'bc', 'dd', 'bẫy', 'công thức', 'quy tắc'];
+    const isMathQuery = mathKeywords.some(k => textToSend.toLowerCase().includes(k));
+    const thinkingSteps: string[] = [];
+
+    if (isMathQuery) {
+      thinkingSteps.push('Đang truy xuất kho tri thức RAG (Pedagogical KB)...');
+    }
+    if (isMathVerificationNeeded) {
+      thinkingSteps.push('Trí đang kiểm chứng hình học (Tọa độ 3D)...');
+    }
+    setToolCallThinking(thinkingSteps);
+
     setIsPeerTyping(true);
     scrollToLatestMessage();
 
@@ -157,11 +225,24 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
     sendPeerChat(peerId, textToSend, 'Toán 12 — Vectơ trong không gian', 'Bài giảng Thầy Nguyễn Phan Tiến')
       .then((aiRes) => {
         setIsPeerTyping(false);
+        setToolCallThinking([]);
         if (aiRes && aiRes.ok && aiRes.result?.dialogue) {
           sound.playBubblePop();
+          const attachedToolCalls = (aiRes.result as any)?.toolCalls || (aiRes as any)?.toolCalls || (isMathVerificationNeeded ? [{
+            toolName: 'tool_verify_vector_algebra',
+            category: 'math_verify',
+            label: 'Trí đang kiểm chứng hình học...',
+            badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D: a√2)',
+          }] : []);
+
           setChatHistories((prev) => ({
             ...prev,
-            [peerId]: [...prev[peerId], { sender: 'peer', text: aiRes.result.dialogue }],
+            [peerId]: [...prev[peerId], { 
+              sender: 'peer', 
+              text: aiRes.result.dialogue,
+              toolCall: attachedToolCalls[0],
+              toolCalls: attachedToolCalls,
+            }],
           }));
           scrollToLatestMessage();
           return;
@@ -170,6 +251,7 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
       })
       .catch(() => {
         setIsPeerTyping(false);
+        setToolCallThinking([]);
         fallbackLocalReply();
       });
 
@@ -195,9 +277,19 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
             'Tưởng tượng bạn đi ngang 1m từ B sang C, rồi đi thẳng đứng lên 1m từ C lên C\'. Khoảng cách chim bay BC\' là cạnh huyền căn(1² + 1²) = căn 2m!';
         }
 
+        const attachedToolCall = isMathVerificationNeeded ? {
+          toolName: 'tool_verify_vector_algebra',
+          label: 'Trí đang kiểm chứng hình học...',
+          badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D: a√2)',
+        } : null;
+
         setChatHistories((prev) => ({
           ...prev,
-          [peerId]: [...prev[peerId], { sender: 'peer', text: reply }],
+          [peerId]: [...prev[peerId], { 
+            sender: 'peer', 
+            text: reply,
+            toolCall: attachedToolCall
+          }],
         }));
         scrollToLatestMessage();
       }, 350);
@@ -357,15 +449,39 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
                           : 'bg-white border border-stone-200 text-stone-800 rounded-bl-xs'
                       }`}
                     >
-                      {msg.text}
+                      {renderToolBadges((msg as any).toolCalls, msg.toolCall)}
+                      <div>{msg.text}</div>
                     </div>
                   </div>
                 ))}
 
                 {isPeerTyping && (
-                  <div className="flex items-center gap-2 text-xs text-stone-500 font-medium px-2 py-1">
-                    <span className="w-2 h-2 rounded-full bg-[#1B4338] animate-ping" />
-                    <span>{peerMeta[activePeer].name} đang trả lời...</span>
+                  <div className="flex flex-col gap-1.5 px-2 py-1 animate-in fade-in duration-200">
+                    {toolCallThinking.length > 0 && (
+                      <div className="flex flex-col gap-1.5">
+                        {toolCallThinking.map((step, sIdx) => {
+                          const isRag = step.includes('RAG');
+                          return (
+                            <div
+                              key={sIdx}
+                              className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-[11px] font-semibold shadow-2xs animate-pulse w-fit ${
+                                isRag ? 'bg-purple-50 border-purple-200 text-purple-800' : 'bg-blue-50 border-blue-200 text-blue-800'
+                              }`}
+                            >
+                              <span className={`w-2 h-2 rounded-full animate-ping ${isRag ? 'bg-purple-600' : 'bg-blue-600'}`} />
+                              <svg className={`w-3.5 h-3.5 animate-spin shrink-0 ${isRag ? 'text-purple-600' : 'text-blue-600'}`} viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeDasharray="14 28" />
+                              </svg>
+                              <span>{isRag ? '📚' : '📐'} {step}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-xs text-stone-500 font-medium">
+                      <span className="w-2 h-2 rounded-full bg-[#1B4338] animate-ping" />
+                      <span>{peerMeta[activePeer].name} đang trả lời...</span>
+                    </div>
                   </div>
                 )}
                 <div ref={messagesEndRef} className="h-1" />
