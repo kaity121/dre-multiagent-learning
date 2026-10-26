@@ -4,10 +4,12 @@ import { config } from './src/config.js';
 import { listMisconceptionIds } from './src/contentLibrary.js';
 import { startSession, submitAnswer, submitRebuttal } from './src/orchestrator.js';
 import { chatJSON } from './src/openaiClient.js';
+import { lessonsRouter } from './src/routes/lessons.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use('/api/lessons', lessonsRouter);
 
 // GET /api/health-llm — test kết nối trực tiếp tới OpenAI
 app.get('/api/health-llm', async (req, res) => {
