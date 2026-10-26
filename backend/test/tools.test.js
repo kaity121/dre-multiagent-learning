@@ -3,17 +3,31 @@
  *
  * Unit tests cho bộ Deterministic Tools của Multi-Agent Scriptwriter Roundtable.
  * Kiểm tra các yêu cầu:
- * 1. tool_verify_vector_algebra: Case Ví dụ 3 (claim "2a" -> isValid: false, claim "a\\sqrt{2}" -> isValid: true, a√2, căn 2, BC', unparseable)
- * 2. tool_query_misconception_kb: Tra cứu KB theo latex hoặc tags trả về PedagogicalRAGItem
- * 3. tool_timeline_collision_checker: Phát hiện vi phạm minGapS (< 20s) và warmup period
- * 4. tool_evaluate_bloom_level: Thẩm định thang đo Bloom chính xác
- * 5. executeTool trả về cấu trúc DeterministicToolCall đúng chuẩn contract src/types/pipeline.ts
+ * 1. tool_verify_vector_algebra:
+ *    - Case cạnh a (claim "2a" -> false, "a\\sqrt{2}" -> true, a√2, căn 2, BC', unparseable)
+ *    - Case cạnh side = 2 (claim "2\\sqrt{2}", "2√2" -> true; claim "4" -> false)
+ *    - Case không có claim (chỉ tính độ dài |BC + DD'| = a√2, isValid: null, không phán sai)
+ *    - Parser tự động trích xuất expr và claim từ câu hỏi học sinh
+ * 2. tool_calculate_dot_product:
+ *    - Tính tích vô hướng u.v = |u||v|cos(theta)
+ *    - Góc tù 120° cho tích vô hướng âm (MISC_VEC_019)
+ *    - Đảo chiều u và -v đổi góc bù 180° - theta (MISC_VEC_017)
+ *    - Vectơ không không xác định góc (MISC_VEC_018)
+ * 3. tool_query_misconception_kb: Tra cứu KB theo latex hoặc tags trả về PedagogicalRAGItem
+ * 4. tool_timeline_collision_checker: Phát hiện vi phạm minGapS (< 20s) và warmup period
+ * 5. tool_evaluate_bloom_level: Thẩm định thang đo Bloom chính xác
+ * 6. executeTool trả về cấu trúc DeterministicToolCall đúng chuẩn contract
  */
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { verifyVectorAlgebra } from '../src/tools/tool_verify_vector_algebra.js';
+import { 
+  verifyVectorAlgebra, 
+  extractVectorExpr, 
+  extractClaimFromText 
+} from '../src/tools/tool_verify_vector_algebra.js';
+import { calculateDotProduct } from '../src/tools/tool_calculate_dot_product.js';
 import { queryMisconceptionKB } from '../src/tools/tool_query_misconception_kb.js';
 import { checkTimelineCollision } from '../src/tools/tool_timeline_collision_checker.js';
 import { evaluateBloomLevel } from '../src/tools/tool_evaluate_bloom_level.js';
@@ -52,6 +66,57 @@ describe('Deterministic Tools - Unit Tests', () => {
       assert.strictEqual(result.isValid, true);
       assert.strictEqual(result.correct, 'a\\sqrt{2}');
       assert.ok(result.reason.includes('chính xác'));
+    });
+
+    it('Hỗ trợ tham số side = 2 (Bài tập EX_VEC_005 trong KB): claim "2\\sqrt{2}" và "2√2" phải isValid: true', () => {
+      for (const variant of ['2\\sqrt{2}', '2√2', '2 căn 2', '2.828']) {
+        const result = verifyVectorAlgebra({
+          shape: 'cube',
+          side: '2',
+          expr: "|BC + DD'|",
+          claim: variant,
+        });
+
+        assert.strictEqual(result.isValid, true, `Cạnh 2 với claim "${variant}" phải được công nhận là true`);
+        assert.strictEqual(result.correct, '2\\sqrt{2}');
+      }
+
+      // Claim sai với side = 2: 2 + 2 = 4
+      const wrongResult = verifyVectorAlgebra({
+        shape: 'cube',
+        side: '2',
+        expr: "|BC + DD'|",
+        claim: '4',
+      });
+      assert.strictEqual(wrongResult.isValid, false);
+      assert.strictEqual(wrongResult.correct, '2\\sqrt{2}');
+    });
+
+    it('Hỗ trợ chế độ chỉ tính giá trị khi học sinh không khẳng định claim: isValid: null, không phán sai', () => {
+      const result = verifyVectorAlgebra({
+        shape: 'cube',
+        side: 'a',
+        expr: "|BC + DD'|",
+        claim: null,
+      });
+
+      assert.strictEqual(result.isValid, null, 'Không có claim thì isValid phải là null');
+      assert.strictEqual(result.correct, 'a\\sqrt{2}');
+      assert.ok(result.reason.includes('giá trị độ dài chính xác'));
+    });
+
+    it('Trích xuất tự động expr và claim từ câu hỏi tự do của học sinh', () => {
+      const q1 = "BC + DD' dài bao nhiêu ạ?";
+      assert.strictEqual(extractVectorExpr(q1), "|BC + DD'|");
+      assert.strictEqual(extractClaimFromText(q1), null);
+
+      const q2 = "BC + DD' bằng 2a đúng không?";
+      assert.strictEqual(extractVectorExpr(q2), "|BC + DD'|");
+      assert.strictEqual(extractClaimFromText(q2), "2a");
+
+      const q3 = "Cho hình lập phương, AB + AD + AA' ra a√3 hả bạn?";
+      assert.strictEqual(extractVectorExpr(q3), "|AB + AD + AA'|");
+      assert.strictEqual(extractClaimFromText(q3), "a√3");
     });
 
     it('Hỗ trợ ký hiệu căn đa dạng: a√2, √2a, căn 2, a căn 2 đều nhận diện đúng isValid: true', () => {
@@ -118,7 +183,51 @@ describe('Deterministic Tools - Unit Tests', () => {
   });
 
   // ==========================================================================
-  // 2. tool_query_misconception_kb
+  // 2. tool_calculate_dot_product
+  // ==========================================================================
+  describe('tool_calculate_dot_product', () => {
+    it('Tính đúng tích vô hướng góc tù 120° ra giá trị âm (MISC_VEC_019)', () => {
+      const result = calculateDotProduct({
+        uMag: 2,
+        vMag: 3,
+        angleDeg: 120,
+        claimValue: 'không âm',
+      });
+
+      assert.strictEqual(result.isValid, false, 'Claim tích vô hướng luôn không âm phải bị phán false');
+      assert.strictEqual(result.dotProduct, -3);
+      assert.ok(result.reason.includes('< 0') || result.reason.includes('âm'));
+    });
+
+    it('Xác nhận tính đúng tích vô hướng góc 60°: u=2, v=4 -> u.v = 2*4*cos(60°) = 4', () => {
+      const result = calculateDotProduct({
+        uMag: 2,
+        vMag: 4,
+        angleDeg: 60,
+        claimValue: '4',
+      });
+
+      assert.strictEqual(result.isValid, true);
+      assert.strictEqual(result.dotProduct, 4);
+    });
+
+    it('Phát hiện bẫy vectơ không có góc 0° (MISC_VEC_018): góc không xác định', () => {
+      const result = calculateDotProduct({
+        uMag: 0,
+        vMag: 3,
+        angleDeg: 0,
+        claimValue: '0',
+        claimType: 'angle',
+      });
+
+      assert.strictEqual(result.isZeroVector, true);
+      assert.strictEqual(result.isValid, false);
+      assert.ok(result.reason.includes('không xác định góc'));
+    });
+  });
+
+  // ==========================================================================
+  // 3. tool_query_misconception_kb
   // ==========================================================================
   describe('tool_query_misconception_kb', () => {
     it('Tra cứu ngộ nhận theo misconceptionId: MISC_VEC_005 trả về PedagogicalRAGItem chuẩn', () => {
@@ -147,14 +256,14 @@ describe('Deterministic Tools - Unit Tests', () => {
   });
 
   // ==========================================================================
-  // 3. tool_timeline_collision_checker
+  // 4. tool_timeline_collision_checker
   // ==========================================================================
   describe('tool_timeline_collision_checker', () => {
     it('Phát hiện va chạm thời gian nếu khoảng cách giữa 2 sự kiện < 20s', () => {
       const result = checkTimelineCollision({
         events: [
           { id: 'ev_1', at_s: 30, actor_id: 'bo', type: 'comment' },
-          { id: 'ev_2', at_s: 42, actor_id: 'tri', type: 'comment' }, // Gap = 12s (< 20s)
+          { id: 'ev_2', at_s: 42, actor_id: 'tri', type: 'comment' },
         ],
         minGapS: 20,
       });
@@ -195,7 +304,7 @@ describe('Deterministic Tools - Unit Tests', () => {
   });
 
   // ==========================================================================
-  // 4. tool_evaluate_bloom_level
+  // 5. tool_evaluate_bloom_level
   // ==========================================================================
   describe('tool_evaluate_bloom_level', () => {
     it('Đánh giá câu hỏi phân tích sai lầm bẫy ngộ nhận ở mức Analyze', () => {
@@ -221,7 +330,7 @@ describe('Deterministic Tools - Unit Tests', () => {
   });
 
   // ==========================================================================
-  // 5. executeTool & DeterministicToolCall Contract Compliance
+  // 6. executeTool & DeterministicToolCall Contract Compliance
   // ==========================================================================
   describe('executeTool & DeterministicToolCall Contract', () => {
     it('executeTool bọc kết quả thành DeterministicToolCall đầy đủ các trường chuẩn', () => {
@@ -239,10 +348,11 @@ describe('Deterministic Tools - Unit Tests', () => {
       assert.ok(toolCall.output && toolCall.output.correct === 'a\\sqrt{2}');
     });
 
-    it('Tất cả 4 tools đều có schema JSON Schema trong OPENAI_TOOL_DEFINITIONS', () => {
-      assert.strictEqual(OPENAI_TOOL_DEFINITIONS.length, 4);
+    it('Tất cả 5 tools đều có schema JSON Schema trong OPENAI_TOOL_DEFINITIONS', () => {
+      assert.strictEqual(OPENAI_TOOL_DEFINITIONS.length, 5);
       const names = OPENAI_TOOL_DEFINITIONS.map(t => t.function.name);
       assert.ok(names.includes('tool_verify_vector_algebra'));
+      assert.ok(names.includes('tool_calculate_dot_product'));
       assert.ok(names.includes('tool_query_misconception_kb'));
       assert.ok(names.includes('tool_timeline_collision_checker'));
       assert.ok(names.includes('tool_evaluate_bloom_level'));

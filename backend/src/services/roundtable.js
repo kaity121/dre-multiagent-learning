@@ -23,7 +23,25 @@ function getMisconceptionVerifiableConfig(misconception) {
       params: { shape: 'cube', side: 'a', expr: "|AB + AD + AA'|", defaultClaim: 'a\\sqrt{3}' },
     };
   }
-  // 3. Mặc định cho các chủ đề khác (góc, tích vô hướng, vectơ không, trọng tâm...)
+  // 3. Tích vô hướng & góc giữa hai vectơ (MISC_VEC_017, MISC_VEC_018, MISC_VEC_019, MISC_VEC_020)
+  if (['MISC_VEC_017', 'MISC_VEC_018', 'MISC_VEC_019', 'MISC_VEC_020'].includes(misconception.id) ||
+      (misconception.tags || []).some(t => ['dot_product', 'vector_angle', 'zero_angle'].includes(t))) {
+    let u = 2, v = 3, theta = 120, claim = 'không âm';
+    if (misconception.id === 'MISC_VEC_017') {
+      theta = 120;
+      claim = '60';
+    } else if (misconception.id === 'MISC_VEC_018') {
+      u = 0; v = 2; theta = 0; claim = '0';
+    } else if (misconception.id === 'MISC_VEC_019') {
+      u = 2; v = 3; theta = 120; claim = 'không âm';
+    }
+    return {
+      toolType: 'dot_product',
+      toolName: 'tool_calculate_dot_product',
+      params: { uMag: u, vMag: v, angleDeg: theta, claimValue: claim, claimType: misconception.id === 'MISC_VEC_017' ? 'angle' : 'dot_product' },
+    };
+  }
+  // 4. Mặc định cho các chủ đề khác (vectơ không, trọng tâm...)
   return {
     toolType: 'kb_rag',
     toolName: 'tool_query_misconception_kb',

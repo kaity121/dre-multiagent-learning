@@ -5,35 +5,37 @@
  * trong không gian (Hình lập phương, hình hộp chữ nhật).
  *
  * Sử dụng phương pháp Toạ độ số 3D (Coordinate Geometry):
- * - Đặt hình lập phương cạnh a (chuẩn hóa a = 1) vào hệ tọa độ Oxyz.
+ * - Hỗ trợ cả cạnh tham số 'a' lẫn cạnh số cụ thể (side = 2, side = 1, etc.).
  * - Tính toán giá trị vectơ chính xác và độ dài thực tế.
- * - So sánh với phát biểu/claim của học sinh (như Bo gài bẫy).
+ * - So sánh với phát biểu/claim của học sinh (nếu có claim).
+ * - Hỗ trợ chế độ chỉ tính giá trị (claim = undefined / null) mà không phán đúng sai.
  */
 
-// Định nghĩa toạ độ chuẩn của hình lập phương ABCD.A'B'C'D' cạnh a = 1
-// Trục Ox theo AB, Oy theo AD, Oz theo AA' (A là gốc O)
-const CUBE_VERTICES = {
-  A:  [0, 0, 0],
-  B:  [1, 0, 0],
-  C:  [1, 1, 0],
-  D:  [0, 1, 0],
-  "A'": [0, 0, 1],
-  "B'": [1, 0, 1],
-  "C'": [1, 1, 1],
-  "D'": [0, 1, 1],
-  // Hỗ trợ ký hiệu không dấu phẩy trên: A1, B1, C1, D1
-  A1: [0, 0, 1],
-  B1: [1, 0, 1],
-  C1: [1, 1, 1],
-  D1: [0, 1, 1],
-};
+// Hàm sinh toạ độ đỉnh theo cạnh s
+function buildCubeVertices(s = 1) {
+  return {
+    A:  [0, 0, 0],
+    B:  [s, 0, 0],
+    C:  [s, s, 0],
+    D:  [0, s, 0],
+    "A'": [0, 0, s],
+    "B'": [s, 0, s],
+    "C'": [s, s, s],
+    "D'": [0, s, s],
+    A1: [0, 0, s],
+    B1: [s, 0, s],
+    C1: [s, s, s],
+    D1: [0, s, s],
+  };
+}
+
+const CUBE_VERTICES = buildCubeVertices(1);
 
 /**
  * Phân tích tên vectơ (ví dụ: "BC", "DD'", "A'C", "B1C1") thành [điểm đầu, điểm cuối]
  */
-function parseVectorName(raw) {
+export function parseVectorName(raw) {
   const clean = String(raw ?? '').trim().replace(/^\\?vec\{?|\}?$/g, '').replace(/[\\ ]/g, '');
-  // Kiểm tra điểm có dấu ' hoặc 1
   const match = clean.match(/^([A-D][1']?)([A-D][1']?)$/);
   if (match) {
     return [match[1], match[2]];
@@ -57,12 +59,10 @@ function getVectorCoords(startPoint, endPoint, vertices = CUBE_VERTICES) {
  * Tính tổng/hiệu biểu thức vectơ
  * Hỗ trợ các dạng: "BC + DD'", "AB + AD + AA'", "BC - DD'", "|BC + DD'|"
  */
-function evaluateVectorExpression(expr, vertices = CUBE_VERTICES) {
+export function evaluateVectorExpression(expr, vertices = CUBE_VERTICES) {
   const isMagnitude = expr.includes('|') || expr.toLowerCase().includes('abs');
   const sanitized = expr.replace(/[|()]/g, '').trim();
 
-  // Tách các token dựa vào dấu + hoặc -
-  // Dùng regex phân tách có giữ lại toán tử
   const regex = /([+-]?\s*[A-D][1']?[A-D][1']?)/g;
   const matches = sanitized.match(regex);
 
@@ -112,11 +112,12 @@ function evaluateVectorExpression(expr, vertices = CUBE_VERTICES) {
 }
 
 /**
- * Phân tích giá trị claim của học sinh thành giá trị số tương ứng (với a = 1)
+ * Phân tích giá trị claim của học sinh thành giá trị số tương ứng theo cạnh sideNum
  */
-function parseClaimValue(claim) {
+export function parseClaimValue(claim, sideNum = 1) {
+  if (claim === undefined || claim === null || claim === '') return null;
   if (typeof claim === 'number') return claim;
-  let str = String(claim ?? '').trim().toLowerCase()
+  let str = String(claim).trim().toLowerCase()
     .replace(/\s+/g, '')
     .replace(/\\cdot|\*/g, '')
     .replace(/căn/g, 'sqrt')
@@ -125,18 +126,22 @@ function parseClaimValue(claim) {
 
   str = str.replace(/sqrt\{(\d+(?:\.\d+)?)\}/g, 'sqrt($1)');
 
-  // Các mẫu căn: asqrt(2), sqrt(2)a, asqrt2, sqrt2a, 2sqrt(2), sqrt2, etc.
+  // Các mẫu căn: asqrt(2), sqrt(2)a, asqrt2, sqrt2a, 2sqrt(2), 2sqrt2, sqrt2, etc.
   const sqrtMatch = str.match(/^([0-9]*\.?[0-9]*)?a?sqrt\(?(\d+(?:\.\d+)?)\)?a?$/);
   if (sqrtMatch) {
-    const coeff = sqrtMatch[1] ? parseFloat(sqrtMatch[1]) : 1;
+    const rawCoeff = sqrtMatch[1] ? parseFloat(sqrtMatch[1]) : 1;
     const base = parseFloat(sqrtMatch[2]);
+    const hasA = str.includes('a');
+    // Nếu có chữ a thì nhân sideNum; nếu không có a và sideNum !== 1, rawCoeff đã là hệ số số học
+    const coeff = hasA ? rawCoeff * sideNum : rawCoeff;
     return coeff * Math.sqrt(base);
   }
 
   // Mẫu a hoặc số: 2a, a, 3a, 1.5a
   const aMatch = str.match(/^([0-9]*\.?[0-9]*)?a$/);
   if (aMatch) {
-    return aMatch[1] ? parseFloat(aMatch[1]) : 1;
+    const coeff = aMatch[1] ? parseFloat(aMatch[1]) : 1;
+    return coeff * sideNum;
   }
 
   // Thử parse số thực nếu học sinh đưa số thập phân hoặc số nguyên đơn thuần
@@ -147,17 +152,69 @@ function parseClaimValue(claim) {
 }
 
 /**
- * Chuyển đổi giá trị số sang biểu thức LaTeX đẹp
+ * Chuyển đổi giá trị số sang biểu thức LaTeX đẹp có tính đến tham số side
  */
-function formatLatexResult(lengthSquared, isMagnitude) {
+function formatLatexResult(lengthSquared, isMagnitude, side = 'a') {
   if (!isMagnitude) return null;
-  const roundedSq = Math.round(lengthSquared * 1000) / 1000;
-  if (roundedSq === 1) return 'a';
-  if (roundedSq === 2) return 'a\\sqrt{2}';
-  if (roundedSq === 3) return 'a\\sqrt{3}';
-  if (roundedSq === 4) return '2a';
-  if (roundedSq === 0) return '0';
-  return `a\\sqrt{${roundedSq}}`;
+  const isNumericSide = typeof side === 'number' || (!isNaN(parseFloat(side)) && !String(side).includes('a'));
+  const s = isNumericSide ? parseFloat(side) : 1;
+
+  // Tỉ lệ chuẩn hóa so với s^2
+  const ratio = Math.round((lengthSquared / (s * s)) * 1000) / 1000;
+
+  if (isNumericSide) {
+    if (ratio === 1) return `${s}`;
+    if (ratio === 2) return s === 1 ? '\\sqrt{2}' : `${s}\\sqrt{2}`;
+    if (ratio === 3) return s === 1 ? '\\sqrt{3}' : `${s}\\sqrt{3}`;
+    if (ratio === 4) return `${2 * s}`;
+    if (ratio === 0) return '0';
+    return `${s}\\sqrt{${ratio}}`;
+  } else {
+    if (ratio === 1) return 'a';
+    if (ratio === 2) return 'a\\sqrt{2}';
+    if (ratio === 3) return 'a\\sqrt{3}';
+    if (ratio === 4) return '2a';
+    if (ratio === 0) return '0';
+    return `a\\sqrt{${ratio}}`;
+  }
+}
+
+/**
+ * Trích xuất biểu thức vectơ từ văn bản câu hỏi tự do (VD: "BC + DD' dài bao nhiêu ạ?")
+ */
+export function extractVectorExpr(text) {
+  if (!text) return null;
+  // Tìm mẫu vectơ cộng/trừ: BC + DD', AB + AD + AA', BC - DD'
+  // Regex bao phủ toàn bộ chuỗi nối tiếp các vectơ qua dấu + hoặc -
+  const match = text.match(/((?:\|?\s*)?[A-D][1'′]?[A-D][1'′]?(?:\s*[+\-]\s*[A-D][1'′]?[A-D][1'′]?)+(?:\s*\|)?)/i);
+  if (match) {
+    const cleanExpr = match[1].trim().toUpperCase().replace(/1/g, "'");
+    return cleanExpr.includes('|') ? cleanExpr : `|${cleanExpr}|`;
+  }
+  return null;
+}
+
+/**
+ * Trích xuất phát biểu claim (đáp án) nếu người dùng có nêu ra trong câu
+ */
+export function extractClaimFromText(text) {
+  if (!text) return null;
+  const lower = text.toLowerCase();
+  
+  // Khớp các đáp số: 2a, a√2, 2√2, căn 2, 2\sqrt{2}, BC', v.v.
+  const mSquare = lower.match(/(?:bằng|=|\blà\b)?\s*([0-9]*\.?[0-9]*\s*(?:a\s*)?(?:√|căn|\\sqrt)\s*\{?\d+\}?a?)/i);
+  if (mSquare) return mSquare[1].replace(/\s+/g, '');
+
+  const mVec = lower.match(/(?:bằng|=|\blà\b)\s*([A-D][1']?[A-D][1']?)/i);
+  if (mVec) return mVec[1].toUpperCase();
+
+  const mA = lower.match(/(?:bằng|=|\blà\b)?\s*(\d+(?:\.\d+)?a)\b/i);
+  if (mA) return mA[1].toLowerCase();
+
+  const mPureNum = lower.match(/(?:bằng|=|\blà\b)\s*(\d+(?:\.\d+)?)\b/);
+  if (mPureNum) return mPureNum[1];
+
+  return null;
 }
 
 /**
@@ -167,34 +224,56 @@ function formatLatexResult(lengthSquared, isMagnitude) {
  * @param {string} [input.shape="cube"] - Loại hình học (cube, cuboid)
  * @param {string|number} [input.side="a"] - Cạnh hình lập phương
  * @param {string} input.expr - Biểu thức vectơ (vd: "|BC + DD'|")
- * @param {string} input.claim - Phát biểu cần kiểm chứng (vd: "2a", "a\\sqrt{2}", "BC'")
+ * @param {string} [input.claim] - Phát biểu cần kiểm chứng (nếu không có claim, chỉ tính toán không phán sai)
  * @returns {Object} { isValid, correct, calculatedValue, claimValue, reason, steps }
  */
 export function verifyVectorAlgebra({ shape = 'cube', side = 'a', expr, claim }) {
-  if (!expr || claim === undefined) {
-    throw new Error('Cần cung cấp đầy đủ expr và claim để kiểm tra.');
+  if (!expr) {
+    throw new Error('Cần cung cấp expr (biểu thức vectơ) để tính toán.');
   }
 
-  const evalResult = evaluateVectorExpression(expr);
-  const claimNum = parseClaimValue(claim);
+  const isNumericSide = typeof side === 'number' || (!isNaN(parseFloat(side)) && !String(side).includes('a'));
+  const sideNum = isNumericSide ? parseFloat(side) : 1;
+  const vertices = buildCubeVertices(sideNum);
+
+  const evalResult = evaluateVectorExpression(expr, vertices);
+  const correctLatex = formatLatexResult(evalResult.lengthSquared, evalResult.isMagnitude, side);
+  const calculatedVal = Math.round(evalResult.length * 1000) / 1000;
+
+  // TRƯỜNG HỢP 1: Không có claim (Học sinh chỉ hỏi giá trị, không khẳng định đáp án)
+  if (claim === undefined || claim === null || String(claim).trim() === '') {
+    return {
+      isValid: null,
+      correct: correctLatex,
+      calculatedValue: calculatedVal,
+      claimValue: null,
+      reason: `Biểu thức ${expr} có giá trị độ dài chính xác là ${correctLatex}.`,
+      steps: [
+        `Dựng vectơ tổng của biểu thức ${expr} trong hình lập phương cạnh ${side}.`,
+        `Độ dài chính xác thu được: |${expr.replace(/[|]/g, '')}| = ${correctLatex}.`,
+      ],
+    };
+  }
+
+  // TRƯỜNG HỢP 2: Có claim cần kiểm chứng
+  const claimNum = parseClaimValue(claim, sideNum);
   const vectorPoints = parseVectorName(String(claim));
-  const correctLatex = formatLatexResult(evalResult.lengthSquared, evalResult.isMagnitude);
-  const epsilon = 0.001;
+  const epsilon = 0.005;
 
   let isValid = null;
   let reason = '';
   const steps = [];
 
-  // 1. Nếu claim là tên một vectơ (ví dụ: "BC'", "\vec{BC'}", "AD'")
+  // 2.1 Claim là tên một vectơ tương đương (ví dụ: "BC'", "AD'")
   if (vectorPoints) {
     try {
-      const vCoords = getVectorCoords(vectorPoints[0], vectorPoints[1]);
+      const vCoords = getVectorCoords(vectorPoints[0], vectorPoints[1], vertices);
       const vLenSquared = vCoords[0] ** 2 + vCoords[1] ** 2 + vCoords[2] ** 2;
       const vLen = Math.sqrt(vLenSquared);
 
-      const coordsMatch = vCoords[0] === evalResult.vector[0] &&
-                          vCoords[1] === evalResult.vector[1] &&
-                          vCoords[2] === evalResult.vector[2];
+      const coordsMatch = Math.abs(vCoords[0] - evalResult.vector[0]) < epsilon &&
+                          Math.abs(vCoords[1] - evalResult.vector[1]) < epsilon &&
+                          Math.abs(vCoords[2] - evalResult.vector[2]) < epsilon;
       const lenMatch = Math.abs(vLen - evalResult.length) < epsilon;
 
       if (coordsMatch || lenMatch) {
@@ -214,7 +293,7 @@ export function verifyVectorAlgebra({ shape = 'cube', side = 'a', expr, claim })
       steps.push(`Không thể xác định tọa độ các điểm trong tên vectơ '${claim}'.`);
     }
   }
-  // 2. Nếu claim phân tích được thành giá trị số hoặc căn số
+  // 2.2 Claim phân tích được thành giá trị số hoặc căn số (hỗ trợ cả 2√2 lẫn a√2)
   else if (claimNum !== null) {
     if (Math.abs(evalResult.length - claimNum) < epsilon) {
       isValid = true;
@@ -222,20 +301,22 @@ export function verifyVectorAlgebra({ shape = 'cube', side = 'a', expr, claim })
       steps.push(`Độ dài biểu thức ${expr} bằng ${correctLatex}.`);
     } else {
       isValid = false;
-      if (claim === '2a' && expr.includes('BC') && expr.includes("DD'")) {
-        reason = "BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài 1a + 1a = 2a";
+      const cleanExprStr = expr.replace(/[|()]/g, '');
+      if ((claim === '2a' || claimNum === 2 * sideNum) && cleanExprStr.includes('BC') && cleanExprStr.includes("DD'")) {
+        const doubleSideStr = isNumericSide ? `${2 * sideNum}` : '2a';
+        reason = `BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là ${correctLatex}, không thể cộng trực tiếp độ dài ${side} + ${side} = ${doubleSideStr}.`;
         steps.push("1. Vectơ DD' bằng vectơ CC' (hai cạnh bên cùng hướng trong hình lập phương).");
         steps.push("2. Thay thế: \\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}.");
-        steps.push("3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = \\sqrt{a^2 + a^2} = a\\sqrt{2}.");
+        steps.push(`3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = ${correctLatex}.`);
         steps.push("4. Sai lầm mắc phải: cộng trực tiếp độ dài hai vectơ vuông góc |\\vec{u} + \\vec{v}| = |\\vec{u}| + |\\vec{v}| là sai.");
       } else {
-        reason = `Độ dài đúng của biểu thức ${expr} là ${correctLatex || evalResult.length.toFixed(2)}, trong khi phát biểu cho rằng là ${claim}.`;
+        reason = `Độ dài đúng của biểu thức ${expr} là ${correctLatex}, trong khi phát biểu cho rằng là ${claim}.`;
         steps.push(`Tính toán tọa độ: vectơ tổng = [${evalResult.vector.join(', ')}].`);
         steps.push(`Độ dài chính xác = ${evalResult.length.toFixed(4)}.`);
       }
     }
   }
-  // 3. Nếu claim là phát biểu tổng quát hoặc không thể parse thành số/vectơ cụ thể
+  // 2.3 Claim là định tính hoặc không parse được
   else {
     isValid = null;
     reason = `unparseable_claim: Không thể phân tích giá trị số hoặc ký hiệu từ phát biểu '${claim}' để kiểm chứng tự động.`;
@@ -245,7 +326,7 @@ export function verifyVectorAlgebra({ shape = 'cube', side = 'a', expr, claim })
   return {
     isValid,
     correct: correctLatex,
-    calculatedValue: Math.round(evalResult.length * 1000) / 1000,
+    calculatedValue: calculatedVal,
     claimValue: claimNum,
     reason,
     steps,
