@@ -15,6 +15,8 @@ const authored: CognitiveEventStream = JSON.parse(
   fs.readFileSync(path.join(root, 'mock/mock_cognitive_stream_vecto12.json'), 'utf8'),
 );
 const lesson = VECTO_12_THAY_TIEN_LESSON;
+const cues = lesson.transcriptCues ?? [];
+const chapters = lesson.chapters ?? [];
 
 // An authored segment this close to a cue start already describes that moment.
 const SAME_MOMENT_S = 5;
@@ -29,14 +31,14 @@ const formatTime = (s: number) => {
 const segments: CognitiveTimelineSegment[] = [...authored.segments];
 const covered = (second: number) => segments.some((s) => Math.abs(s.second - second) <= SAME_MOMENT_S);
 
-for (const cue of lesson.transcriptCues) {
+for (const cue of cues) {
   if (covered(cue.start)) continue;
   segments.push({
     id: `idx_${cue.id}`,
     second: cue.start,
     timeFormatted: formatTime(cue.start),
     audioTranscript: cue.text,
-    speaker: cue.speaker,
+    speaker: cue.speaker ?? authored.teacherName,
     blackboardText: cue.formula ?? '',
     blackboardLatex: [],
     trapRiskLevel: cue.tag === 'checkpoint' ? 'high' : 'none',
@@ -44,8 +46,8 @@ for (const cue of lesson.transcriptCues) {
   });
 }
 
-const lastTranscriptSecond = Math.max(...lesson.transcriptCues.map((c) => c.end));
-for (const chapter of lesson.chapters) {
+const lastTranscriptSecond = Math.max(-1, ...cues.map((c) => c.end));
+for (const chapter of chapters) {
   if (chapter.startSecond <= lastTranscriptSecond || covered(chapter.startSecond)) continue;
   segments.push({
     id: `idx_${chapter.id}`,
@@ -67,7 +69,7 @@ const index: CognitiveEventStream = {
   videoTitle: lesson.title,
   teacherName: authored.teacherName,
   subject: authored.subject,
-  durationSeconds: lesson.durationSeconds,
+  durationSeconds: lesson.durationSeconds ?? lesson.duration,
   processedBy: { mode: 'pre_indexed' },
   segments,
 };
