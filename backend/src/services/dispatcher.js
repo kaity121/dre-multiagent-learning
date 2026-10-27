@@ -104,7 +104,48 @@ export function classifyHeuristic(message, recipient = 'all') {
     };
   }
 
-  // 2. Direct @mention overrides
+  // 2. Nhận diện ngộ nhận về định nghĩa vectơ, hướng vectơ và so sánh đoạn thẳng với vectơ (AB vs BA)
+  const vectorEqualityPatterns = [
+    /\b(ab ba|ba ab)\b/,
+    /\b(vecto ab|vecto ba|vector ab|vector ba)\b/,
+    /\b(ab\s*=\s*ba|ba\s*=\s*ab|ab bang ba|ba bang ab)\b/,
+    /\b(doan thang ab|doan thang ba)\b/,
+    /\b(quang duong cung chung do|quang duong nhu nhau|quang duong bang nhau)\b/,
+    /\b(giong het nhau thoi ma|bang nhau y nhu vay|bang nhau y het|nhu nhau ca thoi|nhu nhau thoi ma)\b/,
+    /\b(vecto bang nhau|vector bang nhau|vecto giong nhau)\b/,
+  ];
+  const isVectorEqualityTopic =
+    vectorEqualityPatterns.some((pattern) => pattern.test(norm)) &&
+    (/\b(ab|ba|doan thang|vecto|vector|quang duong|huong|chieu|bang nhau|giong het)\b/.test(norm));
+  if (isVectorEqualityTopic) {
+    const isTargetingBo = recipient === 'bo' || rawLower.includes('@bo') || /\bbo\s+oi\b/.test(norm);
+    return {
+      detectedIntent: 'ask_deep_concept',
+      dispatchedAgent: isTargetingBo ? 'bo' : 'tri',
+      confidence: 0.98,
+      reasoning: 'Học sinh nhầm lẫn giữa đoạn thẳng vô hướng (AB = BA) và vectơ có hướng (vectơ AB = - vectơ BA); chuyển Trí phân tích bản chất và Minh Khang/Cô Lam khích lệ, lấy ví dụ thực tế.',
+      fastPath: true,
+      isVectorEqualityTopic: true,
+    };
+  }
+
+  // 3. Nhận diện học sinh xem thường kiến thức, bảo dễ/chán, giống hệt lớp 10 -> Kích thích tư duy bằng nghịch lý 3D
+  const trivializationPatterns = [
+    /\b(quan trong gi dau|co gi dau ma|don gian qua|de qua|de ec|de ot)\b/,
+    /\b(giong het thoi|giong het lop 10|giong lop 10|co khac gi dau|tuong the nao)\b/,
+  ];
+  if (trivializationPatterns.some((pattern) => pattern.test(norm))) {
+    return {
+      detectedIntent: 'ask_deep_concept',
+      dispatchedAgent: 'tri',
+      confidence: 0.96,
+      reasoning: 'Học sinh cho rằng kiến thức vectơ 3D quá đơn giản hoặc giống hệt lớp 10; Trí đưa ra câu hỏi kích thích tư duy về hai đường thẳng chéo nhau và góc giữa hai vectơ.',
+      fastPath: true,
+      isTrivializingTopic: true,
+    };
+  }
+
+  // 4. Direct @mention overrides
   if (recipient === 'bo' || rawLower.includes('@bo') || /\b(chao bo|hoi bo|bo oi)\b/.test(rawLower)) {
     return {
       detectedIntent: 'challenge_shortcut_fallacy',
@@ -505,7 +546,44 @@ export async function dispatchMessage({
   let followUpResponse = null;
 
   // 3. Thực thi Agent theo Ý định với Try-Catch an toàn
-  if (verdict.detectedIntent === 'encourage_study_focus') {
+  if (verdict.isVectorEqualityTopic) {
+    if (targetAgent === 'bo') {
+      primaryResponse = {
+        author: AGENT_DISPLAY_NAMES.bo,
+        avatarId: 'bo',
+        text: "Ủa... lúc đầu tớ cũng nghĩ hệt như cậu đó! Thấy A với B cố định thì đoạn thẳng AB với BA bằng nhau, nên tưởng vectơ AB với BA cũng bằng nhau luôn cho tiện. Ai dè bị Trí với Thầy Tiến 'bắt bài' liền: Vectơ là đoạn thẳng CÓ HƯỚNG! Cậu nghe Trí giải thích bản chất này:",
+      };
+      followUpResponse = {
+        author: AGENT_DISPLAY_NAMES.tri,
+        avatarId: 'tri',
+        text: 'Đoạn thẳng không phân biệt thứ tự nên độ dài |AB| = |BA|. Nhưng VECTƠ có điểm đầu và điểm cuối: vectơ AB đi từ A đến B, còn vectơ BA đi từ B về A. Hai vectơ này ngược hướng nhau (vectơ AB = - vectơ BA) nên không thể bằng nhau được bạn nhé!',
+      };
+    } else {
+      primaryResponse = {
+        author: AGENT_DISPLAY_NAMES.tri,
+        avatarId: 'tri',
+        text: 'Khoan đã bạn ơi, nhầm to rồi nhé! Đoạn thẳng AB và BA là một vì đoạn thẳng không phân biệt thứ tự (quãng đường |AB| = |BA|). Nhưng VECTƠ là đoạn thẳng CÓ HƯỚNG! Vectơ AB có gốc là A, ngọn là B; còn vectơ BA có gốc là B, ngọn là A. Hai vectơ này NGƯỢC HƯỚNG nhau (vectơ AB = - vectơ BA), nên vectơ AB ≠ vectơ BA bạn nhé!',
+        focusConcept: 'Định nghĩa vectơ: Phân biệt đoạn thẳng vô hướng và vectơ có hướng',
+      };
+      followUpResponse = {
+        author: AGENT_DISPLAY_NAMES.minhkhang,
+        avatarId: 'minhkhang',
+        text: 'Chuẩn đó Trí! Cứ liên tưởng vé máy bay từ Đà Nẵng (A) ra Hà Nội (B) thì đưa bạn ra Thủ đô, còn bay từ Hà Nội (B) về Đà Nẵng (A) là về ngắm biển. Quãng đường bằng nhau nhưng bay ngược hướng là tới hai nơi hoàn toàn khác nhau liền!',
+      };
+    }
+  } else if (verdict.isTrivializingTopic) {
+    primaryResponse = {
+      author: AGENT_DISPLAY_NAMES.tri,
+      avatarId: 'tri',
+      text: 'Bạn thấy giống lớp 10 nên nghĩ nó đơn giản đúng không? Vậy tớ đố bạn câu này để xem không gian 3D khác biệt thế nào nhé: Trong 2D hai đường thẳng không cắt nhau thì song song. Nhưng trong không gian 3D căn phòng bạn ngồi, hai đường thẳng CHÉO NHAU (không song song, không cắt nhau) thì góc giữa hai vectơ của chúng được tính thế nào? Và liệu hai vectơ có thể VUÔNG GÓC dù không bao giờ chạm nhau không?',
+      focusConcept: 'Đặc trưng không gian 3D: Hai đường thẳng chéo nhau và góc giữa hai vectơ',
+    };
+    followUpResponse = {
+      author: AGENT_DISPLAY_NAMES.colam,
+      avatarId: 'colam',
+      text: 'Cô rất thích sự tự tin của em! Nhưng không gian 3 chiều mở ra một thế giới hình học hoàn toàn mới và rất nhiều điều kỳ thú. Cùng kiên nhẫn theo dõi tiếp bài giảng của Thầy Tiến để khám phá nhé!',
+    };
+  } else if (verdict.detectedIntent === 'encourage_study_focus') {
     let primaryText = '';
     let authorName = AGENT_DISPLAY_NAMES.minhkhang;
     let avatar = 'minhkhang';
@@ -622,11 +700,15 @@ export async function dispatchMessage({
     const isAskingBoConfusion = norm.includes('thac mac') || norm.includes('giai thich cho') || norm.includes('cau nao') || norm.includes('hoi gi');
     const isUnsubstantiated = verdict.unsubstantiatedRebuttal || (/\b(sai roi|bo sai|ban sai|nham roi)\b/.test(norm) && !hasSubstantiatedMathReason(norm));
 
-    let boText = 'Cứ lấy số cộng vào cho lẹ, hơi đâu vẽ hình chi cho rắc rối đúng không cậu? Nhưng coi chừng Thầy Tiến gài bẫy đó nha!';
+    let boText = currentTime >= 1800
+      ? 'Cứ lấy số cộng vào cho lẹ, hơi đâu vẽ hình chi cho rắc rối đúng không cậu? Nhưng coi chừng Thầy Tiến gài bẫy đó nha!'
+      : 'Tớ thấy phần vectơ không gian này có nhiều chỗ hay bị lừa lắm nha! Cậu nhớ chú ý chiều mũi tên với các quy tắc Thầy Tiến vừa dạy nghen!';
     let mode = 'shortcut_fallacy';
 
     if (isAskingBoConfusion) {
-      boText = 'A, cậu hỏi đúng lúc ghê! Tớ đang lấn cấn ở Ví dụ 3 nè: Cạnh hình lập phương bằng 1, thì |BC| = 1, |DD\'| = 1, sao mình không cộng thẳng 1 + 1 = 2 luôn cho nhanh, mà Thầy Tiến lại phải dời vectơ rồi tính đường chéo làm gì cho cực vậy cậu?';
+      boText = currentTime >= 1800
+        ? 'A, cậu hỏi đúng lúc ghê! Tớ đang lấn cấn ở Ví dụ 3 nè: Cạnh hình lập phương bằng 1, thì |BC| = 1, |DD\'| = 1, sao mình không cộng thẳng 1 + 1 = 2 luôn cho nhanh, mà Thầy Tiến lại phải dời vectơ rồi tính đường chéo làm gì cho cực vậy cậu?'
+        : 'A, cậu hỏi đúng lúc ghê! Tớ đang lấn cấn chỗ này nè: Đoạn thẳng AB với BA bằng nhau, vậy vectơ AB với vectơ BA có bằng nhau luôn không nhỉ? Cậu giải thích giùm tớ với!';
       mode = 'misconception_inquiry';
     } else if (isUnsubstantiated) {
       boText = 'Ủa, tớ sai chỗ nào cơ chứ? Cậu chỉ bảo "sai rồi" mà không chỉ ra lý do tại sao sai thì tớ chưa phục đâu nha! Cậu chứng minh thử xem tại sao |BC + DD\'| không bằng 1 + 1 = 2 xem nào?';
@@ -705,10 +787,24 @@ export async function dispatchMessage({
     // Default to Trí (Deep Thinker)
     const norm = normalizeText(message);
     const isAskingWhoIsRight = /\b(dung hay sai|ai dung|ai sai|bo dung khong|bo co dung khong)\b/.test(norm);
-    let triText = isAskingWhoIsRight
+    const isVectorEqualityClaim = /\b(ab ba|ba ab|vecto ab|vector ab|ab = ba|ab bang ba|doan thang|quang duong|bang nhau y nhu|giong het nhau)\b/.test(norm);
+
+    let triText = isVectorEqualityClaim
+      ? 'Khoan đã bạn ơi, nhầm to rồi nhé! Đoạn thẳng AB và BA là một vì đoạn thẳng không phân biệt thứ tự (quãng đường |AB| = |BA|). Nhưng VECTƠ là đoạn thẳng CÓ HƯỚNG! Vectơ AB có gốc là A, ngọn là B; còn vectơ BA có gốc là B, ngọn là A. Hai vectơ này NGƯỢC HƯỚNG nhau (vectơ AB = - vectơ BA), nên vectơ AB ≠ vectơ BA bạn nhé!'
+      : isAskingWhoIsRight
       ? 'Bo sai rồi bạn nhé! Bo đã mắc ngộ nhận cộng trực tiếp độ dài: |BC + DD\'| = 1 + 1 = 2. Thực tế, theo bất đẳng thức tam giác, |a + b| <= |a| + |b|, dấu bằng chỉ xảy ra khi hai vectơ cùng hướng. Ở đây BC và DD\' vuông góc nhau nên phải dời vectơ và tính đường chéo ra √2 mới đúng!'
       : 'Theo tớ, bản chất của phép toán này nằm ở hướng của vectơ. Vectơ vừa có độ lớn vừa có hướng, nên |a + b| <= |a| + |b|, dấu bằng chỉ xảy ra khi a và b cùng hướng.';
-    let concept = 'Bất đẳng thức tam giác trong vectơ';
+    let concept = isVectorEqualityClaim
+      ? 'Định nghĩa vectơ: Phân biệt đoạn thẳng vô hướng và vectơ có hướng'
+      : 'Bất đẳng thức tam giác trong vectơ';
+
+    if (isVectorEqualityClaim && !followUpResponse) {
+      followUpResponse = {
+        author: AGENT_DISPLAY_NAMES.minhkhang,
+        avatarId: 'minhkhang',
+        text: 'Chuẩn đó Trí! Cứ liên tưởng vé máy bay từ Đà Nẵng (A) ra Hà Nội (B) thì đưa bạn ra Thủ đô, còn bay từ Hà Nội (B) về Đà Nẵng (A) là về ngắm biển. Quãng đường bằng nhau nhưng bay ngược hướng là tới hai nơi hoàn toàn khác nhau liền!',
+      };
+    }
 
     if (useLLM) {
       try {

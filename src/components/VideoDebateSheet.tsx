@@ -397,6 +397,39 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       lower.includes('bc + dd') ||
       (lower.includes('tại sao') && (lower.includes('tổng') || lower.includes('độ dài') || lower.includes('vectơ') || lower.includes('vector') || lower.includes('1') || lower.includes('2')));
 
+    const isVectorEquality =
+      lower.includes('ab ba') ||
+      lower.includes('ba ab') ||
+      lower.includes('vecto ab') ||
+      lower.includes('vector ab') ||
+      lower.includes('vectơ ab') ||
+      lower.includes('ab = ba') ||
+      lower.includes('ab bằng ba') ||
+      lower.includes('ab bang ba') ||
+      lower.includes('đoạn thẳng ab') ||
+      lower.includes('doan thang ab') ||
+      lower.includes('quãng đường cũng chừng đó') ||
+      lower.includes('quang duong') ||
+      lower.includes('giống hệt nhau') ||
+      lower.includes('giong het nhau') ||
+      lower.includes('bằng nhau y như vậy') ||
+      lower.includes('bang nhau y nhu vay') ||
+      (lower.includes('ab') && lower.includes('ba') && (lower.includes('giống') || lower.includes('giong') || lower.includes('bằng') || lower.includes('bang') || lower.includes('một') || lower.includes('mot')));
+
+    const isTrivializingOrBored =
+      lower.includes('quan trọng gì đâu') ||
+      lower.includes('quan trong gi dau') ||
+      lower.includes('có gì đâu mà') ||
+      lower.includes('co gi dau ma') ||
+      lower.includes('đơn giản quá') ||
+      lower.includes('don gian qua') ||
+      lower.includes('dễ quá') ||
+      lower.includes('de qua') ||
+      lower.includes('giống hệt thôi') ||
+      lower.includes('giong het thoi') ||
+      lower.includes('giống hệt lớp 10') ||
+      lower.includes('giong het lop 10');
+
     if (isDistracted) {
       if (target === 'bo' || lower.includes('bo') || lower.includes('@bo')) {
         replyAuthor = 'Bo';
@@ -407,6 +440,20 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
         replyText =
           'Khoan đi chơi bạn ơi! Tưởng tượng vectơ như lực đẩy động cơ máy bay vậy, nắm được hướng và độ lớn là giải quyết bài toán mượt mà ngay. Cố gắng theo dõi nốt ví dụ của Thầy Tiến rồi tụi mình xả hơi sau cũng chưa muộn mà!';
       }
+    } else if (isVectorEquality) {
+      if (target === 'bo' || lower.includes('@bo')) {
+        replyAuthor = 'Bo';
+        replyText =
+          "Ủa... lúc đầu tớ cũng nghĩ hệt như cậu đó! Thấy A với B cố định thì đoạn thẳng AB với BA bằng nhau, nên tưởng vectơ AB với BA cũng bằng nhau luôn cho tiện. Ai dè bị Trí với Thầy Tiến 'bắt bài' liền: Vectơ là đoạn thẳng CÓ HƯỚNG! Cậu nghe Trí giải thích bản chất này:";
+      } else {
+        replyAuthor = 'Trí';
+        replyText =
+          'Khoan đã bạn ơi, nhầm to rồi nhé! Đoạn thẳng AB và BA là một vì đoạn thẳng không phân biệt thứ tự (quãng đường |AB| = |BA|). Nhưng VECTƠ là đoạn thẳng CÓ HƯỚNG! Vectơ AB có gốc là A, ngọn là B; còn vectơ BA có gốc là B, ngọn là A. Hai vectơ này NGƯỢC HƯỚNG nhau (vectơ AB = - vectơ BA), nên vectơ AB ≠ vectơ BA bạn nhé!';
+      }
+    } else if (isTrivializingOrBored) {
+      replyAuthor = 'Trí';
+      replyText =
+        'Bạn thấy giống lớp 10 nên nghĩ nó đơn giản đúng không? Vậy tớ đố bạn câu này để xem không gian 3D khác biệt thế nào nhé: Trong 2D hai đường thẳng không cắt nhau thì song song. Nhưng trong không gian 3D căn phòng bạn ngồi, hai đường thẳng CHÉO NHAU (không song song, không cắt nhau) thì góc giữa hai vectơ của chúng được tính thế nào? Và liệu hai vectơ có thể VUÔNG GÓC dù không bao giờ chạm nhau không?';
     } else if (isSumTrap) {
       replyAuthor = 'Trí';
       replyText =
@@ -414,8 +461,9 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     } else if (target === 'bo' || lower.includes('bo') || lower.includes('@bo')) {
       replyAuthor = 'Bo';
       replyText =
-        cleanText(lesson.peerContext?.bo.defaultReply) ||
-        "Mình cứ tưởng |BC + DD'| tách thành 1 + 1 = 2 được, hóa ra phải thế DD' = CC' để nối tiếp thành đường chéo BC' bằng căn 2!";
+        currentTime >= 1800
+          ? (cleanText(lesson.peerContext?.bo.defaultReply) || "Mình cứ tưởng |BC + DD'| tách thành 1 + 1 = 2 được, hóa ra phải thế DD' = CC' để nối tiếp thành đường chéo BC' bằng căn 2!")
+          : 'Tớ thấy phần vectơ không gian này có nhiều chỗ hay bị lừa lắm nha! Cậu nhớ chú ý chiều mũi tên với các quy tắc Thầy Tiến vừa dạy nghen!';
     } else if (lower.includes('hiệu') || lower.includes('phép trừ') || lower.includes('trừ') || lower.includes('oa - ob')) {
       replyAuthor = 'Linh Chi';
       replyText =
@@ -590,6 +638,39 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             },
           ]);
         }, 950);
+      } else if (isVectorEquality) {
+        setTimeout(() => {
+          sound.playBubblePop();
+          const followAuthor = target === 'bo' || lower.includes('@bo') ? 'Trí' : 'Minh Khang';
+          const followText =
+            target === 'bo' || lower.includes('@bo')
+              ? 'Đoạn thẳng không phân biệt thứ tự nên độ dài |AB| = |BA|. Nhưng VECTƠ có điểm đầu và điểm cuối: vectơ AB đi từ A đến B, còn vectơ BA đi từ B về A. Hai vectơ này ngược hướng nhau (vectơ AB = - vectơ BA) nên không thể bằng nhau được bạn nhé!'
+              : 'Chuẩn đó Trí! Cứ liên tưởng vé máy bay từ Đà Nẵng (A) ra Hà Nội (B) thì đưa bạn ra Thủ đô, còn bay từ Hà Nội (B) về Đà Nẵng (A) là về ngắm biển. Quãng đường bằng nhau nhưng bay ngược hướng là tới hai nơi hoàn toàn khác nhau liền!';
+          setLiveChatMessages((prev) => [
+            ...prev,
+            {
+              id: `reply_follow_${Date.now()}`,
+              second: currentTime,
+              author: followAuthor,
+              role: 'classmate',
+              text: followText,
+            },
+          ]);
+        }, 850);
+      } else if (isTrivializingOrBored) {
+        setTimeout(() => {
+          sound.playBubblePop();
+          setLiveChatMessages((prev) => [
+            ...prev,
+            {
+              id: `reply_colam_${Date.now()}`,
+              second: currentTime,
+              author: 'Cô Lam',
+              role: 'teacher',
+              text: 'Cô rất thích sự tự tin của em! Nhưng không gian 3 chiều mở ra một thế giới hình học hoàn toàn mới và rất nhiều điều kỳ thú. Cùng kiên nhẫn theo dõi tiếp bài giảng của Thầy Tiến để khám phá nhé!',
+            },
+          ]);
+        }, 900);
       } else if (isSumTrap) {
         setTimeout(() => {
           sound.playBubblePop();

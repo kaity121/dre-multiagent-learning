@@ -23,18 +23,9 @@ export async function triDeepThink({ baiToan, chuDe, cauHoiHocVien, loiBoGiai })
   const combinedText = `${cauHoiHocVien || ''} ${baiToan || ''} ${loiBoGiai || ''}`.toLowerCase();
   
   let toolCall = null;
-  // Tự động kích hoạt deterministic tool nếu liên quan đến cộng độ dài vectơ / hình lập phương
   if (
-    combinedText.includes('bc') ||
-    combinedText.includes("dd'") ||
-    combinedText.includes('độ dài') ||
-    combinedText.includes('do dai') ||
-    combinedText.includes('1+1') ||
-    combinedText.includes('2a') ||
-    combinedText.includes('bẫy') ||
-    combinedText.includes('bay') ||
-    combinedText.includes('cộng') ||
-    combinedText.includes('cong')
+    (combinedText.includes('bc') || combinedText.includes("dd'") || combinedText.includes('1+1') || combinedText.includes('hinh lap phuong')) &&
+    (combinedText.includes('độ dài') || combinedText.includes('do dai') || combinedText.includes('2a') || combinedText.includes('bẫy') || combinedText.includes('cộng'))
   ) {
     const rawTool = executeTool('tool_verify_vector_algebra', {
       shape: 'cube',
