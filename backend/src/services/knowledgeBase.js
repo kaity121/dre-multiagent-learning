@@ -43,14 +43,20 @@ const STOPWORDS = new Set([
 ]);
 
 const ALIASES = {
-  'cong do dai vecto': ['length_addition'],
-  'cong do dai': ['length_addition'],
+  'cong do dai vecto': ['length_addition', 'norm_sum'],
+  'cong do dai': ['length_addition', 'norm_sum'],
+  'do dai tong': ['length_addition', 'norm_sum'],
+  'tong do dai': ['length_addition', 'norm_sum'],
+  '1+1': ['length_addition', 'norm_sum'],
+  '1 + 1': ['length_addition', 'norm_sum'],
+  '1+1=2': ['length_addition', 'norm_sum'],
+  'tach do dai': ['length_addition', 'norm_sum'],
+  'cong dai so': ['length_addition', 'norm_sum'],
   'vi du 3': ['example_3', 'cube'],
   'hinh hop': ['box_rule'],
   'trong tam': ['triangle_centroid', 'tetrahedron_centroid'],
   'vecto khong co goc': ['zero_vector', 'angle_convention'],
   'goc voi vecto khong': ['zero_vector', 'angle_convention'],
-  'vecto khong': ['zero_vector'],
   'tich vo huong am': ['negative_dot'],
   'tich vo huong goc tu': ['negative_dot'],
   'tich vo huong goc 120': ['negative_dot'],
@@ -88,6 +94,12 @@ function getAliasTags(query) {
     if (qNorm.includes(key)) {
       tList.forEach(t => tags.add(t));
     }
+  }
+
+  // Khớp zero_vector an toàn: không nhận diện khi sau đó là từ phủ định vị ngữ (không bằng, không phải...)
+  if (/\bvect[oơ]\s+khong\b(?!\s+(?:bang|phai|the|duoc|ra|dung|sai|tach))\b/i.test(qNorm) ||
+      /\bvect[oơ]\s+0\b/i.test(qNorm)) {
+    tags.add('zero_vector');
   }
 
   // Diacritic-aware boundary checks:

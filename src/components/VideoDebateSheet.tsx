@@ -339,9 +339,35 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
         ? ' (tới Minh Khang)'
         : '';
 
+    // Xác định mốc thời gian thảo luận thực tế (effectiveSecond) tránh hiển thị 0:00
+    let effectiveSecond = currentTime > 0 ? currentTime : 0;
+    if (effectiveSecond <= 0) {
+      const timeMatch = text.match(/\[?(\d{1,2}):(\d{2})\]?/);
+      if (timeMatch) {
+        effectiveSecond = parseInt(timeMatch[1], 10) * 60 + parseInt(timeMatch[2], 10);
+      } else if (
+        text.toLowerCase().includes('1+1') ||
+        text.toLowerCase().includes('1 + 1') ||
+        text.toLowerCase().includes('2a') ||
+        text.toLowerCase().includes('bc') ||
+        text.toLowerCase().includes('dd') ||
+        text.toLowerCase().includes('ví dụ 3') ||
+        text.toLowerCase().includes('vi du 3') ||
+        text.toLowerCase().includes('lập phương') ||
+        text.toLowerCase().includes('độ dài')
+      ) {
+        effectiveSecond = lesson.checkpointTimestamp || 2233;
+      } else if (visibleTimelineComments.length > 0) {
+        const lastC = visibleTimelineComments[visibleTimelineComments.length - 1];
+        effectiveSecond = lastC?.second || lesson.checkpointTimestamp || 2233;
+      } else {
+        effectiveSecond = lesson.checkpointTimestamp || 2233;
+      }
+    }
+
     const newMsg: TimelineComment = {
       id: `user_${Date.now()}`,
-      second: currentTime,
+      second: effectiveSecond,
       author: `${learnerName || 'Bạn'}${recipientLabel}`,
       role: 'classmate',
       text,
@@ -458,7 +484,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     setToolCallThinking(thinkingSteps);
 
     // Thử gọi live Multi-Agent AI Backend (Knowledge Base RAG & GPT-6)
-    sendClassroomChat(text, currentTime, target)
+    sendClassroomChat(text, effectiveSecond, target)
       .then((aiRes) => {
         setToolCallThinking([]);
         if (aiRes && aiRes.ok && aiRes.text) {
@@ -470,11 +496,12 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D: a√2)',
           }] : []);
 
+          const replySecond = (aiRes as any)?.second || effectiveSecond;
           setLiveChatMessages((prev) => [
             ...prev,
             {
               id: `reply_${Date.now()}`,
-              second: currentTime,
+              second: replySecond,
               author: aiRes.author,
               role: 'classmate',
               text: aiRes.text,
@@ -490,7 +517,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                 ...prev,
                 {
                   id: `reply_bo_${Date.now()}`,
-                  second: currentTime,
+                  second: replySecond,
                   author: 'Bo',
                   role: 'classmate',
                   text: aiRes.followUpBoText!,
@@ -521,7 +548,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           ...prev,
           {
             id: `reply_${Date.now()}`,
-            second: currentTime,
+            second: effectiveSecond,
             author: replyAuthor,
             role: 'classmate',
             text: replyText,
@@ -538,7 +565,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             ...prev,
             {
               id: `reply_bo_${Date.now()}`,
-              second: currentTime,
+              second: effectiveSecond,
               author: 'Bo',
               role: 'classmate',
               text: "Đó cũng là điều tớ từng thắc mắc đấy! Tớ cứ tưởng nhìn thấy hai cạnh bằng 1 thì cộng đại 1 + 1 = 2 luôn cho nhanh, nghe Trí giải thích Pytago mới sáng tỏ!",

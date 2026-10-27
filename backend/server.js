@@ -319,6 +319,29 @@ app.post('/api/chat/classroom', async (req, res) => {
     // 0. Khởi tạo & chuẩn hóa chuỗi ngay từ đầu (TRÁNH TDZ CRASH)
     const lower = String(message).toLowerCase().trim();
 
+    // Xác định mốc thời gian bài giảng chuẩn xác (tránh hiển thị 0:00 khi client chưa kịp play video)
+    let effectiveTime = Number(currentTime);
+    if (isNaN(effectiveTime) || effectiveTime <= 0) {
+      const timeMatch = String(message).match(/\[?(\d{1,2}):(\d{2})\]?/);
+      if (timeMatch) {
+        effectiveTime = parseInt(timeMatch[1], 10) * 60 + parseInt(timeMatch[2], 10);
+      } else if (
+        lower.includes('1+1') ||
+        lower.includes('1 + 1') ||
+        lower.includes('2a') ||
+        lower.includes('bc') ||
+        lower.includes('dd') ||
+        lower.includes('ví dụ 3') ||
+        lower.includes('vi du 3') ||
+        lower.includes('lập phương') ||
+        lower.includes('lap phuong')
+      ) {
+        effectiveTime = 2233; // Mốc Ví dụ 3 (37:13)
+      } else {
+        effectiveTime = 2233;
+      }
+    }
+
     const { search, getById } = await import('./src/services/knowledgeBase.js');
     const { chatJSON } = await import('./src/openaiClient.js');
 
@@ -328,7 +351,7 @@ app.post('/api/chat/classroom', async (req, res) => {
       const searchHits = search(message, 1);
       if (searchHits && searchHits.length > 0 && searchHits[0].score >= 2) {
         kbMatch = searchHits[0];
-      } else if (currentTime >= 2100 && currentTime <= 2400 && 
+      } else if (effectiveTime >= 2100 && effectiveTime <= 2400 && 
                 (lower.includes('2a') || lower.includes('bc') || lower.includes('dd') || lower.includes('1+1') || lower.includes('bẫy') || lower.includes('độ dài') || lower.includes('do dai'))) {
         kbMatch = getById('MISC_VEC_005');
       }
@@ -378,7 +401,7 @@ app.post('/api/chat/classroom', async (req, res) => {
     
     // Tự động phân tích biểu thức vectơ từ câu hỏi học sinh (hoặc fallback về |BC + DD'| nếu đang ở checkpoint 37:13)
     let parsedExpr = extractVectorExpr(message);
-    if (!parsedExpr && currentTime >= 2100 && currentTime <= 2400 && (lower.includes('bc') || lower.includes('dd') || lower.includes('độ dài') || lower.includes('do dai'))) {
+    if (!parsedExpr && effectiveTime >= 2100 && effectiveTime <= 2400 && (lower.includes('bc') || lower.includes('dd') || lower.includes('độ dài') || lower.includes('do dai'))) {
       parsedExpr = "|BC + DD'|";
     }
 
@@ -443,8 +466,8 @@ app.post('/api/chat/classroom', async (req, res) => {
       });
     }
 
-    const m = Math.floor(currentTime / 60);
-    const s = Math.floor(currentTime % 60);
+    const m = Math.floor(effectiveTime / 60);
+    const s = Math.floor(effectiveTime % 60);
     const timeStr = `${m}:${s.toString().padStart(2, '0')}`;
 
     const systemPrompt = `Bạn là bạn học "${targetPeer.toUpperCase()}" trong lớp học thông minh DRE Toán 12 (Bài giảng Thầy Nguyễn Phan Tiến).
@@ -508,6 +531,7 @@ Quy tắc ứng xử:
       toolCall: toolCalls[0] || null,
       toolCalls,
       timeStr,
+      second: effectiveTime,
     });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
