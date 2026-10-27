@@ -190,7 +190,9 @@ export function executeTool(toolName, inputArgs = {}) {
   const timestampMs = Date.now();
   try {
     const rawOutput = toolFn(inputArgs);
-    const isValid = Boolean(rawOutput && rawOutput.isValid !== false);
+    // null means the tool could not judge (no claim, unparseable claim); keep it distinct
+    // from true so the UI does not show "Khớp chuẩn" for a question the learner only asked.
+    const isValid = rawOutput?.isValid === undefined ? Boolean(rawOutput) : rawOutput.isValid;
 
     return {
       toolName,

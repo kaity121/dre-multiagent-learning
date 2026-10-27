@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { verifyVectorAlgebra, extractVectorExpr, extractClaimFromText } from '../src/tools/tool_verify_vector_algebra.js';
 import { calculateDotProduct } from '../src/tools/tool_calculate_dot_product.js';
 import { checkTimelineCollision } from '../src/tools/tool_timeline_collision_checker.js';
+import { executeTool } from '../src/tools/index.js';
 
 // The roundtable imports the OpenAI client, which needs a key to construct.
 process.env.OPENAI_API_KEY ||= 'test-key';
@@ -16,6 +17,13 @@ describe('claim extraction from learner questions', () => {
     assert.equal(extractClaimFromText(q), null);
     const r = verifyVectorAlgebra({ expr: extractVectorExpr(q), claim: extractClaimFromText(q) });
     assert.equal(r.isValid, null);
+  });
+
+  it('keeps "could not judge" as null through executeTool, so no "Khớp chuẩn" badge', () => {
+    const call = executeTool('tool_verify_vector_algebra', { expr: "|BC + DD'|", claim: null });
+    assert.equal(call.isValid, null);
+    assert.equal(executeTool('tool_verify_vector_algebra', { expr: "|BC + DD'|", claim: '2a' }).isValid, false);
+    assert.equal(executeTool('tool_verify_vector_algebra', { expr: "|BC + DD'|", claim: 'a√2' }).isValid, true);
   });
 
   it('still reads an uppercase vector name as a claim', () => {
