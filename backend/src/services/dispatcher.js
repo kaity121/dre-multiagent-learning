@@ -129,6 +129,30 @@ export function classifyHeuristic(message, recipient = 'all') {
     };
   }
 
+  // 2b. Nhận diện thắc mắc về Vectơ-không (Zero Vector): Hành trình khép kín, Quãng đường (s > 0) vs Vectơ Độ dời (vectơ AA = 0)
+  const zeroVectorDisplacementPatterns = [
+    /\b(tu c ve a|tu a ve a|ve cho cu|ve lai diem dau|ve nha)\b/,
+    /\b(toi truong roi ve nha|di toi truong|di hoc roi ve)\b/,
+    /\b(van la 1 doan|van la mot doan|mot doan dai|1 doan dai)\b/,
+    /\b(chu dau phai la 0|sao lai la 0|sao lai bang 0|sao bang 0 duoc|dau phai bang 0|dau phai la 0)\b/,
+    /\b(quang duong.*(bang 0|la 0)|do doi.*(quang duong))\b/,
+    /\b(di mot vong|vong khep kin|tong vecto.*(bang 0|la 0)|vecto 0|vecto khong)\b/,
+  ];
+  const isZeroVectorTopic =
+    zeroVectorDisplacementPatterns.some((pattern) => pattern.test(norm)) ||
+    ((norm.includes('quang duong') || norm.includes('doan dai') || norm.includes('di ve') || norm.includes('di hoc')) &&
+     (norm.includes('bang 0') || norm.includes('la 0') || norm.includes('phai la 0') || norm.includes('chu dau phai')));
+  if (isZeroVectorTopic) {
+    return {
+      detectedIntent: 'ask_deep_concept',
+      dispatchedAgent: 'tri',
+      confidence: 0.98,
+      reasoning: 'Học sinh thắc mắc tại sao hành trình khép kín lại có vectơ tổng bằng 0 dù quãng đường di chuyển khác 0; chuyển Trí phân tích rạch ròi giữa Quãng đường (đại số vô hướng) và Độ dời (vectơ).',
+      fastPath: true,
+      isZeroVectorTopic: true,
+    };
+  }
+
   // 3. Nhận diện học sinh xem thường kiến thức, bảo dễ/chán, giống hệt lớp 10 -> Kích thích tư duy bằng nghịch lý 3D
   const trivializationPatterns = [
     /\b(quan trong gi dau|co gi dau ma|don gian qua|de qua|de ec|de ot)\b/,
@@ -546,7 +570,19 @@ export async function dispatchMessage({
   let followUpResponse = null;
 
   // 3. Thực thi Agent theo Ý định với Try-Catch an toàn
-  if (verdict.isVectorEqualityTopic) {
+  if (verdict.isZeroVectorTopic) {
+    primaryResponse = {
+      author: AGENT_DISPLAY_NAMES.tri,
+      avatarId: 'tri',
+      text: 'Câu hỏi của bạn cực kỳ sắc sảo và chạm đúng bản chất vật lý! Bạn cần phân biệt rạch ròi giữa QUÃNG ĐƯỜNG và ĐỘ DỜI (vectơ):\n1. Về QUÃNG ĐƯỜNG (vô hướng): Khi bạn đi từ Nhà (A) đến Trường (B) rồi từ Trường về Nhà (A), đồng hồ xe vẫn đo được độ dài đã đi (quãng đường s = |AB| + |BA| > 0).\n2. Nhưng về ĐỘ DỜI (vectơ): Vectơ chỉ quan tâm đến vị trí điểm đầu và điểm cuối! Điểm xuất phát là Nhà (A), điểm kết thúc cũng là Nhà (A). Vectơ tổng là vectơ AB + vectơ BA = vectơ AA = vectơ 0! Vectơ-không ở đây cho thấy sau cả hành trình khép kín, vị trí tổng thể của bạn không hề bị dịch chuyển so với ban đầu!',
+      focusConcept: 'Bản chất vectơ-không: Phân biệt Quãng đường và Vectơ Độ dời',
+    };
+    followUpResponse = {
+      author: AGENT_DISPLAY_NAMES.minhkhang,
+      avatarId: 'minhkhang',
+      text: 'Chuẩn luôn Trí ơi! Giống như bạn chạy bộ trên máy tập gym 5km: mồ hôi nhễ nhại, tiêu hao 300 calo (quãng đường 5km), nhưng bước xuống máy thì vị trí bạn vẫn đứng yên trong phòng tập (vectơ độ dời = 0)! Vectơ chỉ nhìn điểm đầu và điểm cuối thôi bạn ơi!',
+    };
+  } else if (verdict.isVectorEqualityTopic) {
     if (targetAgent === 'bo') {
       primaryResponse = {
         author: AGENT_DISPLAY_NAMES.bo,
@@ -827,6 +863,21 @@ export async function dispatchMessage({
       text: triText,
       focusConcept: concept,
     };
+  }
+
+  // Khử triệt để artifact mã hóa d6c2 nếu có xuất hiện từ LLM hay chuỗi thô
+  const sanitizeText = (txt) => {
+    if (!txt || typeof txt !== 'string') return txt;
+    return txt
+      .replace(/d6c2([A-Za-z0-9'′]+)/gi, 'vectơ $1')
+      .replace(/d6c2/gi, 'vectơ ');
+  };
+
+  if (primaryResponse?.text) {
+    primaryResponse.text = sanitizeText(primaryResponse.text);
+  }
+  if (followUpResponse?.text) {
+    followUpResponse.text = sanitizeText(followUpResponse.text);
   }
 
   const latencyMs = Date.now() - t0;

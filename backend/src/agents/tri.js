@@ -11,6 +11,7 @@ Nhiệm vụ theo Bloom:
 - Analyze: Đào sâu vào điều kiện xác định (ĐKXĐ), điều kiện biên (nếu mẫu số = 0, nếu nhân số âm thì sao).
 - Evaluate: Đặt câu hỏi phản biện để học sinh tự nhận ra lỗ hổng tư duy, KHÔNG giải hộ.
 Tối đa 2-3 câu mỗi phản hồi. Luôn chuẩn mực, khơi gợi tư duy.
+QUY TẮC KÝ HIỆU VECTƠ: Luôn viết chữ 'vectơ AB' hoặc dùng '\\vec{AB}'. TUYỆT ĐỐI KHÔNG dùng mã ký tự lạ như 'd6c2AB' hay 'd6c2'.
 
 Luôn trả về JSON:
 {
@@ -58,8 +59,16 @@ export async function triDeepThink({ baiToan, chuDe, cauHoiHocVien, loiBoGiai })
     },
   });
 
+  let dialogue = aiReply?.dialogue || '';
+  if (dialogue) {
+    dialogue = dialogue
+      .replace(/d6c2([A-Za-z0-9'′]+)/gi, 'vectơ $1')
+      .replace(/d6c2/gi, 'vectơ ');
+  }
+
   return {
     ...aiReply,
+    dialogue,
     toolCall,
   };
 }

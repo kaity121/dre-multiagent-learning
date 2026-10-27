@@ -182,7 +182,35 @@ async function runTests() {
   assert.match(d11.followUpResponse.text, /ngược hướng|vectơ AB = - vectơ BA/i, 'Trí follows up with rigorous explanation');
   console.log('✅ PASS Test 11: Bo đồng cảm ngộ nhận và nhường Trí chốt kiến thức, không ảo giác bẫy hình hộp.\n');
 
-  console.log('🎉 TẤT CẢ 11 BÀI TEST ĐÃ VƯỢT QUA XUẤT SẮC!');
+  // TEST 12: Câu hỏi tại mốc 7:15 về hành trình khép kín / Quãng đường vs Độ dời
+  console.log('--- Test 12: "từ C về A thì vẫn là 1 đoạn dài mà, giống như tớ tới trường rồi về nhà cũng đi 1 đoạn dài mà, chứ đâu phải là 0" ---');
+  const h12 = classifyHeuristic('từ C về A thì vẫn là 1 đoạn dài mà, giống như tớ tới trường rồi về nhà cũng đi 1 đoạn dài mà, chứ đâu phải là 0');
+  assert.equal(h12.dispatchedAgent, 'tri', 'Must route to Trí');
+  assert.equal(h12.detectedIntent, 'ask_deep_concept', 'Must be ask_deep_concept');
+  assert.equal(h12.isZeroVectorTopic, true, 'Must flag isZeroVectorTopic');
+
+  const d12 = await dispatchMessage({
+    message: 'từ C về A thì vẫn là 1 đoạn dài mà, giống như tớ tới trường rồi về nhà cũng đi 1 đoạn dài mà, chứ đâu phải là 0',
+    currentTime: 435, // 7:15
+    useLLM: false,
+  });
+  assert.equal(d12.primaryResponse.author, 'Trí');
+  assert.match(d12.primaryResponse.text, /QUÃNG ĐƯỜNG.*ĐỘ DỜI|vectơ-không|vectơ 0/i, 'Trí distinguishes distance vs displacement');
+  assert.doesNotMatch(d12.primaryResponse.text, /hình lập phương|căn 2|1 \+ 1 = 2/i, 'Trí does NOT hallucinate irrelevant cube traps');
+  assert.notEqual(d12.followUpResponse, null, 'Minh Khang must follow up');
+  assert.equal(d12.followUpResponse.author, 'Minh Khang');
+  assert.match(d12.followUpResponse.text, /máy tập gym|chạy bộ|độ dời/i, 'Minh Khang explains with treadmill analogy');
+  console.log('✅ PASS Test 12: Trí giải thích Quãng đường vs Độ dời + Minh Khang ví von máy tập gym chuẩn xác.\n');
+
+  // TEST 13: Đảm bảo không tồn tại artifact 'd6c2' trong bất kỳ phản hồi nào
+  console.log('--- Test 13: Sanitize d6c2 artifact check ---');
+  assert.doesNotMatch(d12.primaryResponse.text, /d6c2/, 'Primary response must not contain d6c2');
+  assert.doesNotMatch(d12.followUpResponse.text, /d6c2/, 'Follow-up response must not contain d6c2');
+  assert.doesNotMatch(d11.primaryResponse.text, /d6c2/, 'Primary response must not contain d6c2');
+  assert.doesNotMatch(d11.followUpResponse.text, /d6c2/, 'Follow-up response must not contain d6c2');
+  console.log('✅ PASS Test 13: Toàn bộ phản hồi sạch bóng artifact d6c2.\n');
+
+  console.log('🎉 TẤT CẢ 13 BÀI TEST ĐÃ VƯỢT QUA XUẤT SẮC!');
 }
 
 runTests().catch((err) => {

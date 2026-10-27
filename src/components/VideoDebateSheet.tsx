@@ -146,6 +146,8 @@ interface VideoDebateSheetProps {
 const cleanText = (str?: string) =>
   str
     ? str
+        .replace(/d6c2([A-Za-z0-9'′]+)/gi, 'vectơ $1')
+        .replace(/d6c2/gi, 'vectơ ')
         .replace(/\u20d7/g, '')
         .replace(/📌|📝|🔍|😂|🤔|🟢|🌸|🧒|👓|⚡/g, '')
         .trim()
@@ -177,6 +179,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   const [toolCallThinking, setToolCallThinking] = useState<string[]>([]);
   const [userChatInput, setUserChatInput] = useState<string>('');
   const [recipient, setRecipient] = useState<RecipientTarget>('all');
+  const [replyingToComment, setReplyingToComment] = useState<TimelineComment | null>(null);
   const [isRecipientOpen, setIsRecipientOpen] = useState(false);
   const recipientDropdownRef = useRef<HTMLDivElement | null>(null);
   const chatInputRef = useRef<HTMLInputElement | null>(null);
@@ -205,6 +208,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     setLiveChatMessages([]);
     setTaHintTier(0);
     setActivePeerNote(null);
+    setReplyingToComment(null);
     prevCommentsCountRef.current = 0;
   }, [lesson.id]);
 
@@ -348,20 +352,46 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
         ? ' (tới Minh Khang)'
         : '';
 
+    const currentReplyTo = replyingToComment
+      ? {
+          id: replyingToComment.id,
+          author: replyingToComment.author,
+          text: replyingToComment.text,
+        }
+      : null;
+
     const newMsg: TimelineComment = {
       id: `user_${Date.now()}`,
       second: currentTime,
       author: `${learnerName || 'Bạn'}${recipientLabel}`,
       role: 'classmate',
       text,
+      replyTo: currentReplyTo,
     };
 
     setLiveChatMessages((prev) => [...prev, newMsg]);
     if (!overrideText) setUserChatInput('');
+    setReplyingToComment(null);
 
     const lower = text.toLowerCase();
     let replyAuthor = 'Trí';
     let replyText = '';
+
+    const isZeroVector =
+      lower.includes('đâu phải là 0') ||
+      lower.includes('dau phai la 0') ||
+      lower.includes('chứ đâu phải là 0') ||
+      lower.includes('chu dau phai la 0') ||
+      lower.includes('sao lại là 0') ||
+      lower.includes('sao lai la 0') ||
+      lower.includes('sao lại bằng 0') ||
+      lower.includes('sao lai bang 0') ||
+      (lower.includes('về a') && lower.includes('đoạn')) ||
+      (lower.includes('ve a') && lower.includes('doan')) ||
+      (lower.includes('trường') && lower.includes('về nhà')) ||
+      (lower.includes('truong') && lower.includes('ve nha')) ||
+      (lower.includes('quãng đường') && lower.includes('0')) ||
+      (lower.includes('quang duong') && lower.includes('0'));
 
     const isDistracted =
       lower.includes('đi chơi') ||
@@ -430,7 +460,11 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       lower.includes('giống hệt lớp 10') ||
       lower.includes('giong het lop 10');
 
-    if (isDistracted) {
+    if (isZeroVector) {
+      replyAuthor = 'Trí';
+      replyText =
+        'Câu hỏi của bạn cực kỳ sắc sảo và chạm đúng bản chất vật lý! Bạn cần phân biệt rạch ròi giữa QUÃNG ĐƯỜNG và ĐỘ DỜI (vectơ):\n1. Về QUÃNG ĐƯỜNG (vô hướng): Khi bạn đi từ Nhà (A) đến Trường (B) rồi từ Trường về Nhà (A), đồng hồ xe vẫn đo được độ dài đã đi (quãng đường s = |AB| + |BA| > 0).\n2. Nhưng về ĐỘ DỜI (vectơ): Vectơ chỉ quan tâm đến vị trí điểm đầu và điểm cuối! Điểm xuất phát là Nhà (A), điểm kết thúc cũng là Nhà (A). Vectơ tổng là vectơ AB + vectơ BA = vectơ AA = vectơ 0! Vectơ-không ở đây cho thấy sau cả hành trình khép kín, vị trí tổng thể của bạn không hề bị dịch chuyển so với ban đầu!';
+    } else if (isDistracted) {
       if (target === 'bo' || lower.includes('bo') || lower.includes('@bo')) {
         replyAuthor = 'Bo';
         replyText =
@@ -567,6 +601,11 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               text: aiRes.text,
               toolCall: attachedToolCalls[0],
               toolCalls: attachedToolCalls,
+              replyTo: {
+                id: newMsg.id,
+                author: newMsg.author,
+                text: newMsg.text,
+              },
             },
           ]);
 
@@ -587,6 +626,11 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                   author: followUpAuthor,
                   role: followUpRole,
                   text: followUpText,
+                  replyTo: {
+                    id: newMsg.id,
+                    author: newMsg.author,
+                    text: newMsg.text,
+                  },
                 },
               ]);
             }, 800);
@@ -619,12 +663,36 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             role: 'classmate',
             text: replyText,
             toolCall: attachedToolCall,
+            replyTo: {
+              id: newMsg.id,
+              author: newMsg.author,
+              text: newMsg.text,
+            },
           },
         ]);
       }, 350);
 
-      // Nếu người học có dấu hiệu xao nhãng hoặc rủ đi chơi, Cô Lam lên tiếng chấn chỉnh và khích lệ quay lại bài
-      if (isDistracted) {
+      if (isZeroVector) {
+        setTimeout(() => {
+          sound.playBubblePop();
+          setLiveChatMessages((prev) => [
+            ...prev,
+            {
+              id: `reply_khang_${Date.now()}`,
+              second: currentTime,
+              author: 'Minh Khang',
+              role: 'classmate',
+              text: 'Chuẩn luôn Trí ơi! Giống như bạn chạy bộ trên máy tập gym 5km: mồ hôi nhễ nhại, tiêu hao 300 calo (quãng đường 5km), nhưng bước xuống máy thì vị trí bạn vẫn đứng yên trong phòng tập (vectơ độ dời = 0)! Vectơ chỉ nhìn điểm đầu và điểm cuối thôi bạn ơi!',
+              replyTo: {
+                id: newMsg.id,
+                author: newMsg.author,
+                text: newMsg.text,
+              },
+            },
+          ]);
+        }, 850);
+      } else if (isDistracted) {
+        // Nếu người học có dấu hiệu xao nhãng hoặc rủ đi chơi, Cô Lam lên tiếng chấn chỉnh và khích lệ quay lại bài
         setTimeout(() => {
           sound.playBubblePop();
           setLiveChatMessages((prev) => [
@@ -635,6 +703,11 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               author: 'Cô Lam',
               role: 'teacher',
               text: 'Cô nghe thấy có bạn rủ nhau đi chơi đấy nhé! Kiến thức vectơ không gian lớp 12 này ban đầu có vẻ hơi trừu tượng, nhưng chỉ cần kiên nhẫn nắm chắc các quy tắc là các em sẽ thấy rất thú vị và tự tin. Cố gắng lên nào, cả lớp cùng tập trung theo dõi tiếp bài giảng của Thầy Tiến nhé!',
+              replyTo: {
+                id: newMsg.id,
+                author: newMsg.author,
+                text: newMsg.text,
+              },
             },
           ]);
         }, 950);
@@ -654,6 +727,11 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               author: followAuthor,
               role: 'classmate',
               text: followText,
+              replyTo: {
+                id: newMsg.id,
+                author: newMsg.author,
+                text: newMsg.text,
+              },
             },
           ]);
         }, 850);
@@ -668,6 +746,11 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               author: 'Cô Lam',
               role: 'teacher',
               text: 'Cô rất thích sự tự tin của em! Nhưng không gian 3 chiều mở ra một thế giới hình học hoàn toàn mới và rất nhiều điều kỳ thú. Cùng kiên nhẫn theo dõi tiếp bài giảng của Thầy Tiến để khám phá nhé!',
+              replyTo: {
+                id: newMsg.id,
+                author: newMsg.author,
+                text: newMsg.text,
+              },
             },
           ]);
         }, 900);
@@ -682,6 +765,11 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               author: 'Bo',
               role: 'classmate',
               text: "Đó cũng là điều tớ từng thắc mắc đấy! Tớ cứ tưởng nhìn thấy hai cạnh bằng 1 thì cộng đại 1 + 1 = 2 luôn cho nhanh, nghe Trí giải thích Pytago mới sáng tỏ!",
+              replyTo: {
+                id: newMsg.id,
+                author: newMsg.author,
+                text: newMsg.text,
+              },
             },
           ]);
         }, 950);
@@ -849,8 +937,33 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             >
               {formatSec(msg.second)}
             </button>
+            {/* Nút Trả lời nhanh khi hover tin nhắn */}
+            <button
+              type="button"
+              onClick={() => {
+                sound.playPencilTap();
+                setReplyingToComment(msg);
+                const matchedOpt = RECIPIENT_OPTIONS.find(
+                  (o) => o.id !== 'all' && msg.author.toLowerCase().includes(o.label.toLowerCase())
+                );
+                if (matchedOpt) setRecipient(matchedOpt.id);
+                chatInputRef.current?.focus();
+              }}
+              className="opacity-0 group-hover:opacity-100 transition-opacity px-1.5 py-0.2 rounded text-[10px] font-semibold text-stone-500 hover:text-[#1B4338] hover:bg-stone-200/60 cursor-pointer flex items-center gap-0.5 ml-auto"
+              title={`Trả lời tin nhắn của ${msg.author}`}
+            >
+              <span>↩ Trả lời</span>
+            </button>
           </div>
           <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-800 leading-relaxed font-normal shadow-2xs select-text">
+            {/* Trích dẫn tin nhắn đang được phản hồi (Quote chip) */}
+            {msg.replyTo && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 mb-2 rounded-lg bg-stone-200/60 border border-stone-300/70 text-[10.5px] text-stone-700 font-medium max-w-full overflow-hidden">
+                <span className="text-[#1B4338] font-mono text-xs font-bold">↩</span>
+                <span className="font-bold text-[#1B4338] shrink-0">@{msg.replyTo.author}:</span>
+                <span className="truncate italic text-stone-600">"{cleanText(msg.replyTo.text)}"</span>
+              </div>
+            )}
             {renderToolBadges(
               (msg as any).toolCalls || (isTri && (msg.second >= 2200 && msg.second <= 2260) ? [
                 {
@@ -1334,6 +1447,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           </span>
           {[
             'Tại sao độ dài tổng 2 vectơ không bằng 1 + 1 = 2?',
+            'Về nhà rồi thì quãng đường dài mà sao vectơ tổng lại bằng 0?',
             "Thế DD' = CC' nối tiếp vectơ như thế nào?",
             'Quy tắc trừ chung gốc OA - OB = BA dùng ra sao?',
           ].map((promptText, idx) => (
@@ -1352,6 +1466,25 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             </button>
           ))}
         </div>
+
+        {/* Banner hiển thị tin nhắn đang trả lời */}
+        {replyingToComment && (
+          <div className="flex items-center justify-between px-2.5 py-1 mb-1.5 rounded-lg bg-emerald-50/95 border border-emerald-300/80 text-xs text-[#1B4338] shadow-2xs animate-in fade-in duration-100">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="font-mono text-emerald-700 font-bold text-xs">↩</span>
+              <span className="font-bold shrink-0">Đang trả lời @{replyingToComment.author}:</span>
+              <span className="truncate text-stone-600 italic">"{cleanText(replyingToComment.text)}"</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setReplyingToComment(null)}
+              className="p-0.5 hover:bg-emerald-200/60 rounded text-emerald-800 text-xs font-bold cursor-pointer shrink-0 ml-1.5"
+              title="Hủy trả lời"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Khung nhập tin nhắn tích hợp 1 DÒNG DUY NHẤT (Dropdown người nhận + Input + Badge giờ + Gửi) */}
         <div
