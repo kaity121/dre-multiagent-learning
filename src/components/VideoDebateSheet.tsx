@@ -228,7 +228,13 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   const visibleTimelineComments = showAllTimeline ? unpinnedComments : progressiveComments;
 
   const allStreamComments = useMemo(() => {
-    return [...visibleTimelineComments, ...liveChatMessages];
+    const combined = [...visibleTimelineComments, ...liveChatMessages];
+    return combined.slice().sort((a, b) => {
+      if (a.second !== b.second) {
+        return a.second - b.second;
+      }
+      return 0;
+    });
   }, [visibleTimelineComments, liveChatMessages]);
   const pinnedComment = defaultComments.find((c) => c.isPinned);
 
@@ -357,11 +363,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
         text.toLowerCase().includes('độ dài')
       ) {
         effectiveSecond = lesson.checkpointTimestamp || 2233;
-      } else if (visibleTimelineComments.length > 0) {
-        const lastC = visibleTimelineComments[visibleTimelineComments.length - 1];
-        effectiveSecond = lastC?.second || lesson.checkpointTimestamp || 2233;
       } else {
-        effectiveSecond = lesson.checkpointTimestamp || 2233;
+        effectiveSecond = 0;
       }
     }
 

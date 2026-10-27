@@ -119,7 +119,7 @@
             "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
           },
           "isValid": true,
-          "timestampMs": 1793112100503
+          "timestampMs": 1793112638479
         },
         {
           "toolName": "tool_query_misconception_kb",
@@ -151,7 +151,7 @@
             "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
           },
           "isValid": true,
-          "timestampMs": 1793112100503
+          "timestampMs": 1793112638479
         },
         {
           "toolName": "tool_query_misconception_kb",
@@ -183,7 +183,7 @@
             "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
           },
           "isValid": true,
-          "timestampMs": 1793112100503
+          "timestampMs": 1793112638479
         },
         {
           "toolName": "tool_query_misconception_kb",
@@ -215,7 +215,7 @@
             "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
           },
           "isValid": true,
-          "timestampMs": 1793112100503
+          "timestampMs": 1793112638479
         },
         {
           "toolName": "tool_query_misconception_kb",
@@ -247,7 +247,7 @@
             "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
           },
           "isValid": true,
-          "timestampMs": 1793112100503
+          "timestampMs": 1793112638479
         },
         {
           "toolName": "tool_evaluate_bloom_level",
@@ -271,7 +271,7 @@
             "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
           },
           "isValid": true,
-          "timestampMs": 1793112100503
+          "timestampMs": 1793112638479
         },
         {
           "toolName": "tool_evaluate_bloom_level",
@@ -295,7 +295,7 @@
             "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
           },
           "isValid": true,
-          "timestampMs": 1793112100503
+          "timestampMs": 1793112638479
         },
         {
           "toolName": "tool_timeline_collision_checker",
@@ -327,7 +327,7 @@
             "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
           },
           "isValid": true,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638479
         },
         {
           "toolName": "tool_timeline_collision_checker",
@@ -359,21 +359,21 @@
             "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
           },
           "isValid": true,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638479
         }
       ],
       "reasoning_events": [
         {
-          "id": "EVT_1793112100503_cu6xu",
+          "id": "EVT_1793112638479_zwxm5",
           "eventType": "thought",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
           "secondTarget": 37,
           "content": "Cô Lam đang phân tích phân đoạn \"Phần 1: Khái niệm & Phương hướng Vectơ trong không gian\". Phát hiện mốc thời gian 00:37 (37s) có mức độ rủi ro ngộ nhận: high. Bắt đầu phiên họp Roundtable biên kịch.",
-          "timestamp": "2026-10-27T14:41:40.503Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100503_fberu",
+          "id": "EVT_1793112638479_uvg99",
           "eventType": "tool_call",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -409,12 +409,12 @@
               "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
             },
             "isValid": true,
-            "timestampMs": 1793112100503
+            "timestampMs": 1793112638479
           },
-          "timestamp": "2026-10-27T14:41:40.503Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100503_det3e",
+          "id": "EVT_1793112638479_z165n",
           "eventType": "tool_result",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -450,30 +450,30 @@
               "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
             },
             "isValid": true,
-            "timestampMs": 1793112100503
+            "timestampMs": 1793112638479
           },
-          "timestamp": "2026-10-27T14:41:40.503Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100503_hwxms",
+          "id": "EVT_1793112638479_agzwq",
           "eventType": "debate_turn",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
           "secondTarget": 37,
           "content": "Chào cả lớp! Tại mốc 00:37, thầy Tiến đang giảng về Ví dụ 3: Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính độ dài tổng vectơ B. Bo ơi, cậu thấy đoạn này học sinh hay vướng bẫy gì nhất?",
-          "timestamp": "2026-10-27T14:41:40.503Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100503_umr2i",
+          "id": "EVT_1793112638479_2d5le",
           "eventType": "debate_turn",
           "agentId": "bo",
           "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
           "secondTarget": 37,
           "content": "Hai đường thẳng chéo nhau thì tớ thấy giá của chúng vẫn xét cùng phương được mà!",
-          "timestamp": "2026-10-27T14:41:40.503Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100503_t5dbr",
+          "id": "EVT_1793112638479_ydj6h",
           "eventType": "tool_call",
           "agentId": "tri",
           "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -509,12 +509,12 @@
               "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
             },
             "isValid": true,
-            "timestampMs": 1793112100503
+            "timestampMs": 1793112638479
           },
-          "timestamp": "2026-10-27T14:41:40.503Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100503_eljio",
+          "id": "EVT_1793112638479_si0ad",
           "eventType": "tool_result",
           "agentId": "tri",
           "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -550,12 +550,12 @@
               "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
             },
             "isValid": true,
-            "timestampMs": 1793112100503
+            "timestampMs": 1793112638479
           },
-          "timestamp": "2026-10-27T14:41:40.503Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100503_s7shh",
+          "id": "EVT_1793112638479_1mnzl",
           "eventType": "cross_check_verdict",
           "agentId": "tri",
           "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -591,48 +591,48 @@
               "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
             },
             "isValid": true,
-            "timestampMs": 1793112100503
+            "timestampMs": 1793112638479
           },
-          "timestamp": "2026-10-27T14:41:40.503Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100503_3fkod",
+          "id": "EVT_1793112638479_xcnv2",
           "eventType": "thought",
           "agentId": "linhchi",
           "agentDisplayName": "Linh Chi (Note Taker)",
           "secondTarget": 37,
           "content": "Linh Chi trích xuất quy tắc sư phạm và lập bảng ghi chú bỏ túi cho học sinh.",
-          "timestamp": "2026-10-27T14:41:40.503Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100503_pdi1r",
+          "id": "EVT_1793112638479_sbuz7",
           "eventType": "debate_turn",
           "agentId": "linhchi",
           "agentDisplayName": "Linh Chi (Note Taker)",
           "secondTarget": 37,
           "content": "Linh Chi ghi nhớ: Đưa về chung gốc hoặc nối đuôi liên tiếp trước khi kết luận!",
-          "timestamp": "2026-10-27T14:41:40.503Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100503_vf4sh",
+          "id": "EVT_1793112638479_vfm3b",
           "eventType": "thought",
           "agentId": "minhkhang",
           "agentDisplayName": "Minh Khang (Trực quan)",
           "secondTarget": 37,
           "content": "Minh Khang liên hệ bài toán với hiện tượng đời sống hàng ngày để học sinh dễ nhớ.",
-          "timestamp": "2026-10-27T14:41:40.503Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100503_3p4rh",
+          "id": "EVT_1793112638479_weycy",
           "eventType": "debate_turn",
           "agentId": "minhkhang",
           "agentDisplayName": "Minh Khang (Trực quan)",
           "secondTarget": 37,
           "content": "Minh Khang hình dung: Giống như kéo một thùng hàng trong không gian, lực nâng lên và lực kéo ngang kết hợp lại sẽ kéo xiên theo đường chéo!",
-          "timestamp": "2026-10-27T14:41:40.503Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100504_egvti",
+          "id": "EVT_1793112638479_eqprt",
           "eventType": "tool_call",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -660,12 +660,12 @@
               "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
             },
             "isValid": true,
-            "timestampMs": 1793112100503
+            "timestampMs": 1793112638479
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100504_v8aex",
+          "id": "EVT_1793112638479_egi2m",
           "eventType": "tool_result",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -693,12 +693,12 @@
               "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
             },
             "isValid": true,
-            "timestampMs": 1793112100503
+            "timestampMs": 1793112638479
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100504_p1k0f",
+          "id": "EVT_1793112638479_sjcsg",
           "eventType": "tool_call",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -734,12 +734,12 @@
               "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
             },
             "isValid": true,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638479
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100504_mgn1e",
+          "id": "EVT_1793112638479_8ucj9",
           "eventType": "tool_result",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -775,18 +775,18 @@
               "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
             },
             "isValid": true,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638479
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100504_38g5g",
+          "id": "EVT_1793112638479_dpykc",
           "eventType": "checkpoint_created",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
           "secondTarget": 37,
           "content": "Cô phê duyệt checkpoint dừng tại giây thứ 37 (00:37). Bẫy ngộ nhận của Bo rất chân thực, Trí đã chỉ rõ căn cứ hình học và Linh Chi có mẹo ghi nhớ rất tuyệt vời. Các em hãy chú ý: không bao giờ cộng độ dài trực tiếp mà phải quy về một vectơ tổng trước!",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         }
       ],
       "crossCheckCorrectionOccurred": false
@@ -904,7 +904,7 @@
             "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_006"
           },
           "isValid": true,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638479
         },
         {
           "toolName": "tool_query_misconception_kb",
@@ -936,7 +936,7 @@
             "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_006"
           },
           "isValid": true,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638479
         },
         {
           "toolName": "tool_verify_vector_algebra",
@@ -960,7 +960,7 @@
             ]
           },
           "isValid": false,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_verify_vector_algebra",
@@ -984,7 +984,7 @@
             ]
           },
           "isValid": false,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_verify_vector_algebra",
@@ -1008,7 +1008,7 @@
             ]
           },
           "isValid": false,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_evaluate_bloom_level",
@@ -1032,7 +1032,7 @@
             "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
           },
           "isValid": true,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_evaluate_bloom_level",
@@ -1056,7 +1056,7 @@
             "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
           },
           "isValid": true,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_timeline_collision_checker",
@@ -1088,7 +1088,7 @@
             "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
           },
           "isValid": true,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_timeline_collision_checker",
@@ -1120,20 +1120,20 @@
             "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
           },
           "isValid": true,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         }
       ],
       "reasoning_events": [
         {
-          "id": "EVT_1793112100504_vf8df",
+          "id": "EVT_1793112638479_90bdh",
           "eventType": "thought",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
           "content": "Cô Lam đang phân tích phân đoạn \"Phần 2: Phép toán Vectơ & Quy tắc Hình hộp\". Phát hiện mốc thời gian 00:30 (930s) có mức độ rủi ro ngộ nhận: high. Bắt đầu phiên họp Roundtable biên kịch.",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.479Z"
         },
         {
-          "id": "EVT_1793112100504_o7m7q",
+          "id": "EVT_1793112638480_0vy34",
           "eventType": "tool_call",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -1168,12 +1168,12 @@
               "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_006"
             },
             "isValid": true,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638479
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_s74gd",
+          "id": "EVT_1793112638480_7a2ey",
           "eventType": "tool_result",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -1208,28 +1208,28 @@
               "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_006"
             },
             "isValid": true,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638479
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_aett4",
+          "id": "EVT_1793112638480_avuyv",
           "eventType": "debate_turn",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
           "content": "Chào cả lớp! Tại mốc 00:30, thầy Tiến đang giảng về biểu thức vectơ. Bo ơi, cậu thấy đoạn này học sinh hay vướng bẫy gì nhất?",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_kv55s",
+          "id": "EVT_1793112638480_iy53a",
           "eventType": "debate_turn",
           "agentId": "bo",
           "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
           "content": "Quy tắc hình hộp: Xuất phát từ gốc A thì AB + AD + AA' ra đường chéo đáy AC chứ nhỉ!",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_k4jec",
+          "id": "EVT_1793112638480_gzbm4",
           "eventType": "tool_call",
           "agentId": "tri",
           "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -1256,12 +1256,12 @@
               ]
             },
             "isValid": false,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_boexl",
+          "id": "EVT_1793112638480_i7rrn",
           "eventType": "tool_result",
           "agentId": "tri",
           "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -1288,12 +1288,12 @@
               ]
             },
             "isValid": false,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_jpvlb",
+          "id": "EVT_1793112638480_0bt0g",
           "eventType": "cross_check_verdict",
           "agentId": "tri",
           "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -1320,44 +1320,44 @@
               ]
             },
             "isValid": false,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_i5r12",
+          "id": "EVT_1793112638480_758iq",
           "eventType": "thought",
           "agentId": "linhchi",
           "agentDisplayName": "Linh Chi (Note Taker)",
           "content": "Linh Chi trích xuất quy tắc sư phạm và lập bảng ghi chú bỏ túi cho học sinh.",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_clqli",
+          "id": "EVT_1793112638480_zqq0s",
           "eventType": "debate_turn",
           "agentId": "linhchi",
           "agentDisplayName": "Linh Chi (Note Taker)",
           "content": "Linh Chi ghi nhớ: Đưa về chung gốc hoặc nối đuôi liên tiếp trước khi kết luận!",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_r02n4",
+          "id": "EVT_1793112638480_9wdh1",
           "eventType": "thought",
           "agentId": "minhkhang",
           "agentDisplayName": "Minh Khang (Trực quan)",
           "content": "Minh Khang liên hệ bài toán với hiện tượng đời sống hàng ngày để học sinh dễ nhớ.",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_sm5z3",
+          "id": "EVT_1793112638480_s1soq",
           "eventType": "debate_turn",
           "agentId": "minhkhang",
           "agentDisplayName": "Minh Khang (Trực quan)",
           "content": "Minh Khang hình dung: Giống như kéo một thùng hàng trong không gian, lực nâng lên và lực kéo ngang kết hợp lại sẽ kéo xiên theo đường chéo!",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_3b94l",
+          "id": "EVT_1793112638480_2qt90",
           "eventType": "tool_call",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -1384,12 +1384,12 @@
               "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
             },
             "isValid": true,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_7awg4",
+          "id": "EVT_1793112638480_rqtrs",
           "eventType": "tool_result",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -1416,12 +1416,12 @@
               "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
             },
             "isValid": true,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_7p7ct",
+          "id": "EVT_1793112638480_b6nop",
           "eventType": "tool_call",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -1456,12 +1456,12 @@
               "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
             },
             "isValid": true,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_7uux3",
+          "id": "EVT_1793112638480_gbwm5",
           "eventType": "tool_result",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -1496,17 +1496,17 @@
               "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
             },
             "isValid": true,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_e25uc",
+          "id": "EVT_1793112638480_yy9as",
           "eventType": "checkpoint_created",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
           "content": "Cô phê duyệt checkpoint dừng tại giây thứ 930 (00:30). Bẫy ngộ nhận của Bo rất chân thực, Trí đã chỉ rõ căn cứ hình học và Linh Chi có mẹo ghi nhớ rất tuyệt vời. Các em hãy chú ý: không bao giờ cộng độ dài trực tiếp mà phải quy về một vectơ tổng trước!",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         }
       ],
       "crossCheckCorrectionOccurred": false
@@ -1624,7 +1624,7 @@
             "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_005"
           },
           "isValid": true,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_query_misconception_kb",
@@ -1656,7 +1656,7 @@
             "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_005"
           },
           "isValid": true,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_verify_vector_algebra",
@@ -1680,7 +1680,7 @@
             ]
           },
           "isValid": false,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_verify_vector_algebra",
@@ -1704,7 +1704,7 @@
             ]
           },
           "isValid": false,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_verify_vector_algebra",
@@ -1728,7 +1728,7 @@
             ]
           },
           "isValid": false,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_verify_vector_algebra",
@@ -1752,7 +1752,7 @@
             ]
           },
           "isValid": false,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_verify_vector_algebra",
@@ -1776,7 +1776,7 @@
             ]
           },
           "isValid": false,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_verify_vector_algebra",
@@ -1800,7 +1800,7 @@
             ]
           },
           "isValid": false,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_evaluate_bloom_level",
@@ -1824,7 +1824,7 @@
             "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
           },
           "isValid": true,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_evaluate_bloom_level",
@@ -1848,7 +1848,7 @@
             "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
           },
           "isValid": true,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_timeline_collision_checker",
@@ -1880,7 +1880,7 @@
             "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
           },
           "isValid": true,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         },
         {
           "toolName": "tool_timeline_collision_checker",
@@ -1912,20 +1912,20 @@
             "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
           },
           "isValid": true,
-          "timestampMs": 1793112100504
+          "timestampMs": 1793112638480
         }
       ],
       "reasoning_events": [
         {
-          "id": "EVT_1793112100504_3odjc",
+          "id": "EVT_1793112638480_f9ivm",
           "eventType": "thought",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
           "content": "Cô Lam đang phân tích phân đoạn \"Phần 3: Bài tập Tính toán độ dài & Bẫy cộng độ dài (Trọng tâm)\". Phát hiện mốc thời gian 00:30 (2030s) có mức độ rủi ro ngộ nhận: high. Bắt đầu phiên họp Roundtable biên kịch.",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_m6yj8",
+          "id": "EVT_1793112638480_hoatv",
           "eventType": "tool_call",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -1960,12 +1960,12 @@
               "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_005"
             },
             "isValid": true,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_bymy8",
+          "id": "EVT_1793112638480_difp4",
           "eventType": "tool_result",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -2000,44 +2000,44 @@
               "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_005"
             },
             "isValid": true,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_434s1",
+          "id": "EVT_1793112638480_kj3qh",
           "eventType": "debate_turn",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
           "content": "Chào cả lớp! Tại mốc 00:30, thầy Tiến đang giảng về biểu thức vectơ. Bo ơi, cậu thấy đoạn này học sinh hay vướng bẫy gì nhất?",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_8era1",
+          "id": "EVT_1793112638480_nfito",
           "eventType": "thought",
           "agentId": "bo",
           "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
           "content": "Bo muốn đề xuất bẫy shortcut tính nhanh và đoán mò vectơ tổng là AB.",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_7nhrp",
+          "id": "EVT_1793112638480_lxhry",
           "eventType": "debate_turn",
           "agentId": "bo",
           "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
           "content": "Cộng độ dài cho lẹ: |BC + DD'| = 1 + 1 = 2! Với lại vectơ BC cộng DD' chắc chắn ra luôn vectơ AB rồi!",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_bclp5",
+          "id": "EVT_1793112638480_nhwy0",
           "eventType": "thought",
           "agentId": "tri",
           "agentDisplayName": "Trí (Hệ 2 - Logic)",
           "content": "Trí nghi ngờ phát biểu của Bo có sự sai lệch về cả hình học lẫn độ dài. Kích hoạt tool_verify_vector_algebra để kiểm chứng toạ độ.",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_3392p",
+          "id": "EVT_1793112638480_yubyu",
           "eventType": "tool_call",
           "agentId": "tri",
           "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -2064,12 +2064,12 @@
               ]
             },
             "isValid": false,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_pw1pe",
+          "id": "EVT_1793112638480_o8lr3",
           "eventType": "tool_result",
           "agentId": "tri",
           "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -2096,12 +2096,12 @@
               ]
             },
             "isValid": false,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_xefva",
+          "id": "EVT_1793112638480_xoclo",
           "eventType": "cross_check_verdict",
           "agentId": "tri",
           "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -2128,28 +2128,28 @@
               ]
             },
             "isValid": false,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_xm8ck",
+          "id": "EVT_1793112638480_zyu4u",
           "eventType": "thought",
           "agentId": "bo",
           "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
           "content": "Bo rút kinh nghiệm từ tool kiểm chứng của Trí, chuyển sang gài bẫy ngộ nhận cộng trực tiếp độ dài 1+1=2.",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_sa198",
+          "id": "EVT_1793112638480_d42fa",
           "eventType": "debate_turn",
           "agentId": "bo",
           "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
           "content": "À tớ nhìn nhầm đỉnh! Nhưng về độ dài thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_lfarz",
+          "id": "EVT_1793112638480_wxu4f",
           "eventType": "tool_call",
           "agentId": "tri",
           "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -2176,12 +2176,12 @@
               ]
             },
             "isValid": false,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_1jybu",
+          "id": "EVT_1793112638480_cip3d",
           "eventType": "tool_result",
           "agentId": "tri",
           "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -2208,12 +2208,12 @@
               ]
             },
             "isValid": false,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_yb4zb",
+          "id": "EVT_1793112638480_y1h65",
           "eventType": "cross_check_verdict",
           "agentId": "tri",
           "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -2240,44 +2240,44 @@
               ]
             },
             "isValid": false,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_512bm",
+          "id": "EVT_1793112638480_6d714",
           "eventType": "thought",
           "agentId": "linhchi",
           "agentDisplayName": "Linh Chi (Note Taker)",
           "content": "Linh Chi trích xuất quy tắc sư phạm và lập bảng ghi chú bỏ túi cho học sinh.",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_76qs6",
+          "id": "EVT_1793112638480_7xpae",
           "eventType": "debate_turn",
           "agentId": "linhchi",
           "agentDisplayName": "Linh Chi (Note Taker)",
           "content": "Linh Chi note vào sổ tay nè: Muốn tính độ dài vectơ tổng, bước 1 là tìm vectơ thay thế để gom về một vectơ duy nhất (DD' = CC' => BC + CC' = BC'), sau đó mới tính Pytago đường chéo ra a√2!",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_o2i1j",
+          "id": "EVT_1793112638480_yive4",
           "eventType": "thought",
           "agentId": "minhkhang",
           "agentDisplayName": "Minh Khang (Trực quan)",
           "content": "Minh Khang liên hệ bài toán với hiện tượng đời sống hàng ngày để học sinh dễ nhớ.",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_c4tc9",
+          "id": "EVT_1793112638480_vvbop",
           "eventType": "debate_turn",
           "agentId": "minhkhang",
           "agentDisplayName": "Minh Khang (Trực quan)",
           "content": "Minh Khang ví von đời sống nè: Giống như bạn đi bộ từ nhà ra đầu ngõ a mét rồi rẽ vuông góc đi tiếp a mét. Khoảng cách đường chim bay từ nhà đến điểm cuối là cạnh huyền a√2, làm sao mà lấy a + a = 2a được!",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_7saqv",
+          "id": "EVT_1793112638480_oj7k5",
           "eventType": "tool_call",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -2304,12 +2304,12 @@
               "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
             },
             "isValid": true,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_8154b",
+          "id": "EVT_1793112638480_npa11",
           "eventType": "tool_result",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -2336,12 +2336,12 @@
               "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
             },
             "isValid": true,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_iih0i",
+          "id": "EVT_1793112638480_p3m6s",
           "eventType": "tool_call",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -2376,12 +2376,12 @@
               "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
             },
             "isValid": true,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_dlyac",
+          "id": "EVT_1793112638480_yinjl",
           "eventType": "tool_result",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
@@ -2416,17 +2416,17 @@
               "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
             },
             "isValid": true,
-            "timestampMs": 1793112100504
+            "timestampMs": 1793112638480
           },
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         },
         {
-          "id": "EVT_1793112100504_h3wz8",
+          "id": "EVT_1793112638480_88hxp",
           "eventType": "checkpoint_created",
           "agentId": "colam",
           "agentDisplayName": "Cô Lam (Director)",
           "content": "Cô phê duyệt checkpoint dừng tại giây thứ 2030 (00:30). Bẫy ngộ nhận của Bo rất chân thực, Trí đã chỉ rõ căn cứ hình học và Linh Chi có mẹo ghi nhớ rất tuyệt vời. Các em hãy chú ý: không bao giờ cộng độ dài trực tiếp mà phải quy về một vectơ tổng trước!",
-          "timestamp": "2026-10-27T14:41:40.504Z"
+          "timestamp": "2026-10-27T14:50:38.480Z"
         }
       ],
       "crossCheckCorrectionOccurred": true
@@ -2571,7 +2571,7 @@
   ],
   "timelineComments": [
     {
-      "id": "cmt_1_colam_1793112100504",
+      "id": "cmt_1_colam_1793112638479",
       "second": 37,
       "author": "COLAM",
       "role": "teacher",
@@ -2580,7 +2580,7 @@
       "isPinned": true
     },
     {
-      "id": "cmt_1_bo_1793112100504",
+      "id": "cmt_1_bo_1793112638479",
       "second": 39,
       "author": "BO",
       "role": "classmate",
@@ -2589,7 +2589,7 @@
       "isPinned": false
     },
     {
-      "id": "cmt_1_tri_1793112100504",
+      "id": "cmt_1_tri_1793112638479",
       "second": 41,
       "author": "TRI",
       "role": "classmate",
@@ -2598,7 +2598,7 @@
       "isPinned": false
     },
     {
-      "id": "cmt_1_linhchi_1793112100504",
+      "id": "cmt_1_linhchi_1793112638479",
       "second": 41,
       "author": "LINHCHI",
       "role": "classmate",
@@ -2607,7 +2607,7 @@
       "isPinned": false
     },
     {
-      "id": "cmt_1_minhkhang_1793112100504",
+      "id": "cmt_1_minhkhang_1793112638479",
       "second": 41,
       "author": "MINHKHANG",
       "role": "classmate",
@@ -2616,7 +2616,7 @@
       "isPinned": false
     },
     {
-      "id": "cmt_2_colam_1793112100504",
+      "id": "cmt_2_colam_1793112638480",
       "second": 930,
       "author": "COLAM",
       "role": "teacher",
@@ -2625,7 +2625,7 @@
       "isPinned": true
     },
     {
-      "id": "cmt_2_bo_1793112100504",
+      "id": "cmt_2_bo_1793112638480",
       "second": 932,
       "author": "BO",
       "role": "classmate",
@@ -2634,7 +2634,7 @@
       "isPinned": false
     },
     {
-      "id": "cmt_2_tri_1793112100504",
+      "id": "cmt_2_tri_1793112638480",
       "second": 934,
       "author": "TRI",
       "role": "classmate",
@@ -2643,7 +2643,7 @@
       "isPinned": false
     },
     {
-      "id": "cmt_2_linhchi_1793112100504",
+      "id": "cmt_2_linhchi_1793112638480",
       "second": 934,
       "author": "LINHCHI",
       "role": "classmate",
@@ -2652,7 +2652,7 @@
       "isPinned": false
     },
     {
-      "id": "cmt_2_minhkhang_1793112100504",
+      "id": "cmt_2_minhkhang_1793112638480",
       "second": 934,
       "author": "MINHKHANG",
       "role": "classmate",
@@ -2661,7 +2661,7 @@
       "isPinned": false
     },
     {
-      "id": "cmt_3_colam_1793112100504",
+      "id": "cmt_3_colam_1793112638480",
       "second": 2030,
       "author": "COLAM",
       "role": "teacher",
@@ -2670,7 +2670,7 @@
       "isPinned": true
     },
     {
-      "id": "cmt_3_bo_1793112100504",
+      "id": "cmt_3_bo_1793112638480",
       "second": 2032,
       "author": "BO",
       "role": "classmate",
@@ -2679,7 +2679,7 @@
       "isPinned": false
     },
     {
-      "id": "cmt_3_tri_1793112100504",
+      "id": "cmt_3_tri_1793112638480",
       "second": 2034,
       "author": "TRI",
       "role": "classmate",
@@ -2688,7 +2688,7 @@
       "isPinned": false
     },
     {
-      "id": "cmt_3_linhchi_1793112100504",
+      "id": "cmt_3_linhchi_1793112638480",
       "second": 2034,
       "author": "LINHCHI",
       "role": "classmate",
@@ -2697,7 +2697,7 @@
       "isPinned": false
     },
     {
-      "id": "cmt_3_minhkhang_1793112100504",
+      "id": "cmt_3_minhkhang_1793112638480",
       "second": 2034,
       "author": "MINHKHANG",
       "role": "classmate",
@@ -2715,16 +2715,16 @@
   ],
   "allReasoningEvents": [
     {
-      "id": "EVT_1793112100503_cu6xu",
+      "id": "EVT_1793112638479_zwxm5",
       "eventType": "thought",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
       "secondTarget": 37,
       "content": "Cô Lam đang phân tích phân đoạn \"Phần 1: Khái niệm & Phương hướng Vectơ trong không gian\". Phát hiện mốc thời gian 00:37 (37s) có mức độ rủi ro ngộ nhận: high. Bắt đầu phiên họp Roundtable biên kịch.",
-      "timestamp": "2026-10-27T14:41:40.503Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100503_fberu",
+      "id": "EVT_1793112638479_uvg99",
       "eventType": "tool_call",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -2760,12 +2760,12 @@
           "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
         },
         "isValid": true,
-        "timestampMs": 1793112100503
+        "timestampMs": 1793112638479
       },
-      "timestamp": "2026-10-27T14:41:40.503Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100503_det3e",
+      "id": "EVT_1793112638479_z165n",
       "eventType": "tool_result",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -2801,30 +2801,30 @@
           "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
         },
         "isValid": true,
-        "timestampMs": 1793112100503
+        "timestampMs": 1793112638479
       },
-      "timestamp": "2026-10-27T14:41:40.503Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100503_hwxms",
+      "id": "EVT_1793112638479_agzwq",
       "eventType": "debate_turn",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
       "secondTarget": 37,
       "content": "Chào cả lớp! Tại mốc 00:37, thầy Tiến đang giảng về Ví dụ 3: Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính độ dài tổng vectơ B. Bo ơi, cậu thấy đoạn này học sinh hay vướng bẫy gì nhất?",
-      "timestamp": "2026-10-27T14:41:40.503Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100503_umr2i",
+      "id": "EVT_1793112638479_2d5le",
       "eventType": "debate_turn",
       "agentId": "bo",
       "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
       "secondTarget": 37,
       "content": "Hai đường thẳng chéo nhau thì tớ thấy giá của chúng vẫn xét cùng phương được mà!",
-      "timestamp": "2026-10-27T14:41:40.503Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100503_t5dbr",
+      "id": "EVT_1793112638479_ydj6h",
       "eventType": "tool_call",
       "agentId": "tri",
       "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -2860,12 +2860,12 @@
           "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
         },
         "isValid": true,
-        "timestampMs": 1793112100503
+        "timestampMs": 1793112638479
       },
-      "timestamp": "2026-10-27T14:41:40.503Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100503_eljio",
+      "id": "EVT_1793112638479_si0ad",
       "eventType": "tool_result",
       "agentId": "tri",
       "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -2901,12 +2901,12 @@
           "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
         },
         "isValid": true,
-        "timestampMs": 1793112100503
+        "timestampMs": 1793112638479
       },
-      "timestamp": "2026-10-27T14:41:40.503Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100503_s7shh",
+      "id": "EVT_1793112638479_1mnzl",
       "eventType": "cross_check_verdict",
       "agentId": "tri",
       "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -2942,48 +2942,48 @@
           "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
         },
         "isValid": true,
-        "timestampMs": 1793112100503
+        "timestampMs": 1793112638479
       },
-      "timestamp": "2026-10-27T14:41:40.503Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100503_3fkod",
+      "id": "EVT_1793112638479_xcnv2",
       "eventType": "thought",
       "agentId": "linhchi",
       "agentDisplayName": "Linh Chi (Note Taker)",
       "secondTarget": 37,
       "content": "Linh Chi trích xuất quy tắc sư phạm và lập bảng ghi chú bỏ túi cho học sinh.",
-      "timestamp": "2026-10-27T14:41:40.503Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100503_pdi1r",
+      "id": "EVT_1793112638479_sbuz7",
       "eventType": "debate_turn",
       "agentId": "linhchi",
       "agentDisplayName": "Linh Chi (Note Taker)",
       "secondTarget": 37,
       "content": "Linh Chi ghi nhớ: Đưa về chung gốc hoặc nối đuôi liên tiếp trước khi kết luận!",
-      "timestamp": "2026-10-27T14:41:40.503Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100503_vf4sh",
+      "id": "EVT_1793112638479_vfm3b",
       "eventType": "thought",
       "agentId": "minhkhang",
       "agentDisplayName": "Minh Khang (Trực quan)",
       "secondTarget": 37,
       "content": "Minh Khang liên hệ bài toán với hiện tượng đời sống hàng ngày để học sinh dễ nhớ.",
-      "timestamp": "2026-10-27T14:41:40.503Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100503_3p4rh",
+      "id": "EVT_1793112638479_weycy",
       "eventType": "debate_turn",
       "agentId": "minhkhang",
       "agentDisplayName": "Minh Khang (Trực quan)",
       "secondTarget": 37,
       "content": "Minh Khang hình dung: Giống như kéo một thùng hàng trong không gian, lực nâng lên và lực kéo ngang kết hợp lại sẽ kéo xiên theo đường chéo!",
-      "timestamp": "2026-10-27T14:41:40.503Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100504_egvti",
+      "id": "EVT_1793112638479_eqprt",
       "eventType": "tool_call",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -3011,12 +3011,12 @@
           "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
         },
         "isValid": true,
-        "timestampMs": 1793112100503
+        "timestampMs": 1793112638479
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100504_v8aex",
+      "id": "EVT_1793112638479_egi2m",
       "eventType": "tool_result",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -3044,12 +3044,12 @@
           "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
         },
         "isValid": true,
-        "timestampMs": 1793112100503
+        "timestampMs": 1793112638479
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100504_p1k0f",
+      "id": "EVT_1793112638479_sjcsg",
       "eventType": "tool_call",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -3085,12 +3085,12 @@
           "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
         },
         "isValid": true,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638479
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100504_mgn1e",
+      "id": "EVT_1793112638479_8ucj9",
       "eventType": "tool_result",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -3126,29 +3126,29 @@
           "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
         },
         "isValid": true,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638479
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100504_38g5g",
+      "id": "EVT_1793112638479_dpykc",
       "eventType": "checkpoint_created",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
       "secondTarget": 37,
       "content": "Cô phê duyệt checkpoint dừng tại giây thứ 37 (00:37). Bẫy ngộ nhận của Bo rất chân thực, Trí đã chỉ rõ căn cứ hình học và Linh Chi có mẹo ghi nhớ rất tuyệt vời. Các em hãy chú ý: không bao giờ cộng độ dài trực tiếp mà phải quy về một vectơ tổng trước!",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100504_vf8df",
+      "id": "EVT_1793112638479_90bdh",
       "eventType": "thought",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
       "content": "Cô Lam đang phân tích phân đoạn \"Phần 2: Phép toán Vectơ & Quy tắc Hình hộp\". Phát hiện mốc thời gian 00:30 (930s) có mức độ rủi ro ngộ nhận: high. Bắt đầu phiên họp Roundtable biên kịch.",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.479Z"
     },
     {
-      "id": "EVT_1793112100504_o7m7q",
+      "id": "EVT_1793112638480_0vy34",
       "eventType": "tool_call",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -3183,12 +3183,12 @@
           "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_006"
         },
         "isValid": true,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638479
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_s74gd",
+      "id": "EVT_1793112638480_7a2ey",
       "eventType": "tool_result",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -3223,28 +3223,28 @@
           "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_006"
         },
         "isValid": true,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638479
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_aett4",
+      "id": "EVT_1793112638480_avuyv",
       "eventType": "debate_turn",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
       "content": "Chào cả lớp! Tại mốc 00:30, thầy Tiến đang giảng về biểu thức vectơ. Bo ơi, cậu thấy đoạn này học sinh hay vướng bẫy gì nhất?",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_kv55s",
+      "id": "EVT_1793112638480_iy53a",
       "eventType": "debate_turn",
       "agentId": "bo",
       "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
       "content": "Quy tắc hình hộp: Xuất phát từ gốc A thì AB + AD + AA' ra đường chéo đáy AC chứ nhỉ!",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_k4jec",
+      "id": "EVT_1793112638480_gzbm4",
       "eventType": "tool_call",
       "agentId": "tri",
       "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -3271,12 +3271,12 @@
           ]
         },
         "isValid": false,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_boexl",
+      "id": "EVT_1793112638480_i7rrn",
       "eventType": "tool_result",
       "agentId": "tri",
       "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -3303,12 +3303,12 @@
           ]
         },
         "isValid": false,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_jpvlb",
+      "id": "EVT_1793112638480_0bt0g",
       "eventType": "cross_check_verdict",
       "agentId": "tri",
       "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -3335,44 +3335,44 @@
           ]
         },
         "isValid": false,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_i5r12",
+      "id": "EVT_1793112638480_758iq",
       "eventType": "thought",
       "agentId": "linhchi",
       "agentDisplayName": "Linh Chi (Note Taker)",
       "content": "Linh Chi trích xuất quy tắc sư phạm và lập bảng ghi chú bỏ túi cho học sinh.",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_clqli",
+      "id": "EVT_1793112638480_zqq0s",
       "eventType": "debate_turn",
       "agentId": "linhchi",
       "agentDisplayName": "Linh Chi (Note Taker)",
       "content": "Linh Chi ghi nhớ: Đưa về chung gốc hoặc nối đuôi liên tiếp trước khi kết luận!",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_r02n4",
+      "id": "EVT_1793112638480_9wdh1",
       "eventType": "thought",
       "agentId": "minhkhang",
       "agentDisplayName": "Minh Khang (Trực quan)",
       "content": "Minh Khang liên hệ bài toán với hiện tượng đời sống hàng ngày để học sinh dễ nhớ.",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_sm5z3",
+      "id": "EVT_1793112638480_s1soq",
       "eventType": "debate_turn",
       "agentId": "minhkhang",
       "agentDisplayName": "Minh Khang (Trực quan)",
       "content": "Minh Khang hình dung: Giống như kéo một thùng hàng trong không gian, lực nâng lên và lực kéo ngang kết hợp lại sẽ kéo xiên theo đường chéo!",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_3b94l",
+      "id": "EVT_1793112638480_2qt90",
       "eventType": "tool_call",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -3399,12 +3399,12 @@
           "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
         },
         "isValid": true,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_7awg4",
+      "id": "EVT_1793112638480_rqtrs",
       "eventType": "tool_result",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -3431,12 +3431,12 @@
           "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
         },
         "isValid": true,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_7p7ct",
+      "id": "EVT_1793112638480_b6nop",
       "eventType": "tool_call",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -3471,12 +3471,12 @@
           "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
         },
         "isValid": true,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_7uux3",
+      "id": "EVT_1793112638480_gbwm5",
       "eventType": "tool_result",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -3511,28 +3511,28 @@
           "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
         },
         "isValid": true,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_e25uc",
+      "id": "EVT_1793112638480_yy9as",
       "eventType": "checkpoint_created",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
       "content": "Cô phê duyệt checkpoint dừng tại giây thứ 930 (00:30). Bẫy ngộ nhận của Bo rất chân thực, Trí đã chỉ rõ căn cứ hình học và Linh Chi có mẹo ghi nhớ rất tuyệt vời. Các em hãy chú ý: không bao giờ cộng độ dài trực tiếp mà phải quy về một vectơ tổng trước!",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_3odjc",
+      "id": "EVT_1793112638480_f9ivm",
       "eventType": "thought",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
       "content": "Cô Lam đang phân tích phân đoạn \"Phần 3: Bài tập Tính toán độ dài & Bẫy cộng độ dài (Trọng tâm)\". Phát hiện mốc thời gian 00:30 (2030s) có mức độ rủi ro ngộ nhận: high. Bắt đầu phiên họp Roundtable biên kịch.",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_m6yj8",
+      "id": "EVT_1793112638480_hoatv",
       "eventType": "tool_call",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -3567,12 +3567,12 @@
           "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_005"
         },
         "isValid": true,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_bymy8",
+      "id": "EVT_1793112638480_difp4",
       "eventType": "tool_result",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -3607,44 +3607,44 @@
           "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_005"
         },
         "isValid": true,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_434s1",
+      "id": "EVT_1793112638480_kj3qh",
       "eventType": "debate_turn",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
       "content": "Chào cả lớp! Tại mốc 00:30, thầy Tiến đang giảng về biểu thức vectơ. Bo ơi, cậu thấy đoạn này học sinh hay vướng bẫy gì nhất?",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_8era1",
+      "id": "EVT_1793112638480_nfito",
       "eventType": "thought",
       "agentId": "bo",
       "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
       "content": "Bo muốn đề xuất bẫy shortcut tính nhanh và đoán mò vectơ tổng là AB.",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_7nhrp",
+      "id": "EVT_1793112638480_lxhry",
       "eventType": "debate_turn",
       "agentId": "bo",
       "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
       "content": "Cộng độ dài cho lẹ: |BC + DD'| = 1 + 1 = 2! Với lại vectơ BC cộng DD' chắc chắn ra luôn vectơ AB rồi!",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_bclp5",
+      "id": "EVT_1793112638480_nhwy0",
       "eventType": "thought",
       "agentId": "tri",
       "agentDisplayName": "Trí (Hệ 2 - Logic)",
       "content": "Trí nghi ngờ phát biểu của Bo có sự sai lệch về cả hình học lẫn độ dài. Kích hoạt tool_verify_vector_algebra để kiểm chứng toạ độ.",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_3392p",
+      "id": "EVT_1793112638480_yubyu",
       "eventType": "tool_call",
       "agentId": "tri",
       "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -3671,12 +3671,12 @@
           ]
         },
         "isValid": false,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_pw1pe",
+      "id": "EVT_1793112638480_o8lr3",
       "eventType": "tool_result",
       "agentId": "tri",
       "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -3703,12 +3703,12 @@
           ]
         },
         "isValid": false,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_xefva",
+      "id": "EVT_1793112638480_xoclo",
       "eventType": "cross_check_verdict",
       "agentId": "tri",
       "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -3735,28 +3735,28 @@
           ]
         },
         "isValid": false,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_xm8ck",
+      "id": "EVT_1793112638480_zyu4u",
       "eventType": "thought",
       "agentId": "bo",
       "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
       "content": "Bo rút kinh nghiệm từ tool kiểm chứng của Trí, chuyển sang gài bẫy ngộ nhận cộng trực tiếp độ dài 1+1=2.",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_sa198",
+      "id": "EVT_1793112638480_d42fa",
       "eventType": "debate_turn",
       "agentId": "bo",
       "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
       "content": "À tớ nhìn nhầm đỉnh! Nhưng về độ dài thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_lfarz",
+      "id": "EVT_1793112638480_wxu4f",
       "eventType": "tool_call",
       "agentId": "tri",
       "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -3783,12 +3783,12 @@
           ]
         },
         "isValid": false,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_1jybu",
+      "id": "EVT_1793112638480_cip3d",
       "eventType": "tool_result",
       "agentId": "tri",
       "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -3815,12 +3815,12 @@
           ]
         },
         "isValid": false,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_yb4zb",
+      "id": "EVT_1793112638480_y1h65",
       "eventType": "cross_check_verdict",
       "agentId": "tri",
       "agentDisplayName": "Trí (Hệ 2 - Logic)",
@@ -3847,44 +3847,44 @@
           ]
         },
         "isValid": false,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_512bm",
+      "id": "EVT_1793112638480_6d714",
       "eventType": "thought",
       "agentId": "linhchi",
       "agentDisplayName": "Linh Chi (Note Taker)",
       "content": "Linh Chi trích xuất quy tắc sư phạm và lập bảng ghi chú bỏ túi cho học sinh.",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_76qs6",
+      "id": "EVT_1793112638480_7xpae",
       "eventType": "debate_turn",
       "agentId": "linhchi",
       "agentDisplayName": "Linh Chi (Note Taker)",
       "content": "Linh Chi note vào sổ tay nè: Muốn tính độ dài vectơ tổng, bước 1 là tìm vectơ thay thế để gom về một vectơ duy nhất (DD' = CC' => BC + CC' = BC'), sau đó mới tính Pytago đường chéo ra a√2!",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_o2i1j",
+      "id": "EVT_1793112638480_yive4",
       "eventType": "thought",
       "agentId": "minhkhang",
       "agentDisplayName": "Minh Khang (Trực quan)",
       "content": "Minh Khang liên hệ bài toán với hiện tượng đời sống hàng ngày để học sinh dễ nhớ.",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_c4tc9",
+      "id": "EVT_1793112638480_vvbop",
       "eventType": "debate_turn",
       "agentId": "minhkhang",
       "agentDisplayName": "Minh Khang (Trực quan)",
       "content": "Minh Khang ví von đời sống nè: Giống như bạn đi bộ từ nhà ra đầu ngõ a mét rồi rẽ vuông góc đi tiếp a mét. Khoảng cách đường chim bay từ nhà đến điểm cuối là cạnh huyền a√2, làm sao mà lấy a + a = 2a được!",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_7saqv",
+      "id": "EVT_1793112638480_oj7k5",
       "eventType": "tool_call",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -3911,12 +3911,12 @@
           "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
         },
         "isValid": true,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_8154b",
+      "id": "EVT_1793112638480_npa11",
       "eventType": "tool_result",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -3943,12 +3943,12 @@
           "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
         },
         "isValid": true,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_iih0i",
+      "id": "EVT_1793112638480_p3m6s",
       "eventType": "tool_call",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -3983,12 +3983,12 @@
           "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
         },
         "isValid": true,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_dlyac",
+      "id": "EVT_1793112638480_yinjl",
       "eventType": "tool_result",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
@@ -4023,17 +4023,17 @@
           "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
         },
         "isValid": true,
-        "timestampMs": 1793112100504
+        "timestampMs": 1793112638480
       },
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     },
     {
-      "id": "EVT_1793112100504_h3wz8",
+      "id": "EVT_1793112638480_88hxp",
       "eventType": "checkpoint_created",
       "agentId": "colam",
       "agentDisplayName": "Cô Lam (Director)",
       "content": "Cô phê duyệt checkpoint dừng tại giây thứ 2030 (00:30). Bẫy ngộ nhận của Bo rất chân thực, Trí đã chỉ rõ căn cứ hình học và Linh Chi có mẹo ghi nhớ rất tuyệt vời. Các em hãy chú ý: không bao giờ cộng độ dài trực tiếp mà phải quy về một vectơ tổng trước!",
-      "timestamp": "2026-10-27T14:41:40.504Z"
+      "timestamp": "2026-10-27T14:50:38.480Z"
     }
   ],
   "pedagogicalSummary": {
@@ -4042,6 +4042,6 @@
     "totalTrapsIdentified": 4,
     "bloomMasteryTarget": "Analyze (Mức 4/6)",
     "approvedByTeacher": false,
-    "generatedAt": "2026-10-27T14:41:40.504Z"
+    "generatedAt": "2026-10-27T14:50:38.480Z"
   }
 }

@@ -338,7 +338,7 @@ app.post('/api/chat/classroom', async (req, res) => {
       ) {
         effectiveTime = 2233; // Mốc Ví dụ 3 (37:13)
       } else {
-        effectiveTime = 2233;
+        effectiveTime = 0;
       }
     }
 
