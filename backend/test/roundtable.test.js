@@ -1,0 +1,159 @@
+/**
+ * backend/test/roundtable.test.js
+ *
+ * Test suite cho Issue #302: A2A Scriptwriting Roundtable Orchestrator.
+ * Kiểm tra các tiêu chí Definition of Done (DoD):
+ * 1. Chạy trên fixture bài 58 phút -> ra lesson draft hợp lệ, >= 3 parts, có scenario của nhiều actor.
+ * 2. Log chứng minh ít nhất 1 lần rà soát chéo bác bỏ và sửa đề xuất dựa trên kết quả tool (WOW moment).
+ * 3. Có >= 1 lượt gọi RAG và >= 1 lượt gọi tool thật trong một lần chạy.
+ * 4. Chạy được trên output clip ngắn (1 segment/part).
+ * 5. Reasoning events đúng type chuẩn contract src/types/pipeline.ts.
+ * 6. Thời gian chạy hợp lý cho demo (< 30s).
+ */
+
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import {
+  runRoundtableForPart,
+  runFullLessonRoundtable,
+  partitionTimelineIntoParts,
+} from '../src/services/roundtableOrchestrator.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const FIXTURE_PATH = path.join(__dirname, '../../mock/mock_cognitive_stream_vecto12.json');
+
+describe('A2A Scriptwriting Roundtable Orchestrator - Unit Tests (#302)', () => {
+  const cognitiveStream = JSON.parse(fs.readFileSync(FIXTURE_PATH, 'utf-8'));
+
+  it('1. Phân chia CognitiveEventStream thành >= 3 Parts bài giảng theo đúng tiến trình sư phạm', () => {
+    const parts = partitionTimelineIntoParts(cognitiveStream);
+    assert.ok(parts.length >= 3, 'Phải có ít nhất 3 parts');
+    assert.strictEqual(parts[0].partNumber, 1);
+    assert.strictEqual(parts[1].partNumber, 2);
+    assert.strictEqual(parts[2].partNumber, 3);
+
+    // Mốc vàng Ví dụ 3 (37:13) phải thuộc Part 3
+    assert.ok(parts[2].chosenSegment.second === 2233);
+  });
+
+  it('2. Khoảnh khắc WOW: Trí kích hoạt Tool bác bỏ bẫy sai phi thực tế của Bo và Bo sửa lại thành công', async () => {
+    const part3 = partitionTimelineIntoParts(cognitiveStream)[2];
+    const result = await runRoundtableForPart(part3, { useLLM: false });
+
+    // Kiểm tra cờ crossCheckCorrectionOccurred
+    assert.strictEqual(
+      result.crossCheckCorrectionOccurred,
+      true,
+      'Phải có sự kiện sửa sai sau rà soát chéo'
+    );
+
+    // Kiểm tra chuỗi suy luận có sự kiện cross_check_verdict
+    const crossCheckEvents = result.reasoning_events.filter(
+      e => e.eventType === 'cross_check_verdict'
+    );
+    assert.ok(crossCheckEvents.length >= 2, 'Phải có lượt bác bỏ và lượt đồng thuận');
+
+    // Lượt 1: Bác bỏ bẫy vô lý AB
+    const rejectionEvt = crossCheckEvents[0];
+    assert.strictEqual(rejectionEvt.agentId, 'tri');
+    assert.ok(
+      rejectionEvt.content.includes('Bo nhầm to rồi') || rejectionEvt.content.includes('bác bỏ')
+    );
+    assert.strictEqual(rejectionEvt.toolCall?.isValid, false);
+
+    // Lượt 2: Đồng thuận bẫy 2a tự nhiên
+    const consensusEvt = crossCheckEvents[1];
+    assert.ok(
+      consensusEvt.content.includes('đồng ý') || consensusEvt.content.includes('tự nhiên')
+    );
+  });
+
+  it('3. Đầy đủ các loại Reasoning Event theo đúng chuẩn contract pipeline.ts', async () => {
+    const part1 = partitionTimelineIntoParts(cognitiveStream)[0];
+    const result = await runRoundtableForPart(part1, { useLLM: false });
+
+    const eventTypes = new Set(result.reasoning_events.map(e => e.eventType));
+    assert.ok(eventTypes.has('thought'), 'Phải có thought event');
+    assert.ok(eventTypes.has('tool_call'), 'Phải có tool_call event');
+    assert.ok(eventTypes.has('tool_result'), 'Phải có tool_result event');
+    assert.ok(eventTypes.has('debate_turn'), 'Phải có debate_turn event');
+    assert.ok(eventTypes.has('cross_check_verdict'), 'Phải có cross_check_verdict event');
+    assert.ok(eventTypes.has('checkpoint_created'), 'Phải có checkpoint_created event');
+
+    // Kiểm tra các Agent tham gia thảo luận
+    const agentIds = new Set(result.reasoning_events.map(e => e.agentId));
+    assert.ok(agentIds.has('colam'), 'Cô Lam phải tham gia');
+    assert.ok(agentIds.has('bo'), 'Bo phải tham gia');
+    assert.ok(agentIds.has('tri'), 'Trí phải tham gia');
+    assert.ok(agentIds.has('linhchi'), 'Linh Chi phải tham gia');
+    assert.ok(agentIds.has('minhkhang'), 'Minh Khang phải tham gia');
+  });
+
+  it('4. Chạy toàn bộ bài giảng 58 phút sinh ra draft package hợp lệ, >= 3 parts và lưu file draft', async () => {
+    const startTime = Date.now();
+    const draft = await runFullLessonRoundtable(cognitiveStream, { useLLM: false });
+    const elapsedMs = Date.now() - startTime;
+
+    assert.strictEqual(draft.status, 'draft');
+    assert.ok(draft.parts.length >= 3, 'Bài giảng phải có ít nhất 3 parts');
+    assert.ok(draft.checkpoints.length >= 3, 'Phải có ít nhất 3 checkpoints');
+    assert.ok(draft.timelineComments.length >= 6, 'Phải có timeline comments');
+    assert.ok(draft.crossCheckLogs.length >= 1, 'Phải có log ghi nhận rà soát chéo');
+    assert.ok(draft.allReasoningEvents.length >= 15, 'Phải có chuỗi sự kiện suy luận đầy đủ');
+
+    // Kiểm tra luật sư phạm
+    assert.ok(
+      draft.checkpoints.every(c => c.options.length >= 3),
+      'Mỗi checkpoint phải có các lựa chọn trắc nghiệm kèm feedback note'
+    );
+    assert.ok(
+      draft.checkpoints.every(c => c.boInitialChallenge && c.boInitialChallenge.length > 0),
+      'Phải có lời thách đố ban đầu của Bo'
+    );
+
+    // Kiểm tra thời gian thực thi cho demo (< 30s)
+    assert.ok(elapsedMs < 30000, `Thời gian chạy phải < 30s (thực tế: ${elapsedMs}ms)`);
+
+    // Kiểm tra file draft đã được ghi thành công trên đĩa
+    const draftPath = path.join(
+      __dirname,
+      `../src/data/drafts/lesson_draft_${cognitiveStream.videoId}.json`
+    );
+    assert.ok(fs.existsSync(draftPath), 'File draft phải tồn tại trên đĩa');
+    const savedContent = JSON.parse(fs.readFileSync(draftPath, 'utf-8'));
+    assert.strictEqual(savedContent.lessonId, draft.lessonId);
+  });
+
+  it('5. Chạy được trên clip ngắn 60s (Single-segment cognitive stream)', async () => {
+    const shortStream = {
+      videoId: 'VID_SHORT_60S',
+      videoTitle: 'Clip 60s: Ví dụ tính nhanh độ dài vectơ',
+      teacherName: 'Thầy Nguyễn Phan Tiến',
+      subject: 'Toán 12',
+      durationSeconds: 65,
+      segments: [
+        {
+          id: 'seg_clip_37',
+          second: 37,
+          timeFormatted: '00:37',
+          audioTranscript: "Ví dụ 3: Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính độ dài tổng vectơ BC cộng DD'.",
+          speaker: 'Thầy Tiến',
+          blackboardText: "Tính: |BC + DD'|",
+          blackboardLatex: ["|\\vec{BC} + \\vec{DD'}|"],
+          trapRiskLevel: 'high',
+          pedagogicalTags: ['length_addition_fallacy'],
+        },
+      ],
+    };
+
+    const draft = await runFullLessonRoundtable(shortStream, { useLLM: false });
+    assert.strictEqual(draft.status, 'draft');
+    assert.strictEqual(draft.durationSeconds, 65);
+    assert.ok(draft.checkpoints.length >= 1);
+  });
+});
