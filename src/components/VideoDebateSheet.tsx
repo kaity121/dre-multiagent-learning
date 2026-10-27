@@ -62,12 +62,16 @@ const SendArrowSvg = ({ className = 'w-3.5 h-3.5' }: { className?: string }) => 
   </svg>
 );
 
+type RecipientTarget = 'all' | 'bo' | 'tri' | 'linhchi' | 'minhkhang' | 'an' | 'colam';
+
 const RECIPIENT_OPTIONS: { id: RecipientTarget; label: string; sublabel: string; color: string }[] = [
   { id: 'all', label: 'Cả lớp', sublabel: 'Công khai', color: '#0e7490' },
-  { id: 'bo', label: 'Bo', sublabel: 'Nhắn riêng', color: '#ea580c' },
-  { id: 'tri', label: 'Trí', sublabel: 'Nhắn riêng', color: '#0891b2' },
-  { id: 'linhchi', label: 'Linh Chi', sublabel: 'Nhắn riêng', color: '#db2777' },
-  { id: 'minhkhang', label: 'Minh Khang', sublabel: 'Nhắn riêng', color: '#0284c7' },
+  { id: 'bo', label: 'Bo', sublabel: 'Bẫy ngộ nhận', color: '#b45309' },
+  { id: 'tri', label: 'Trí', sublabel: 'Đào sâu bản chất', color: '#1d4ed8' },
+  { id: 'linhchi', label: 'Linh Chi', sublabel: 'Sổ tay công thức', color: '#059669' },
+  { id: 'minhkhang', label: 'Minh Khang', sublabel: 'Trực quan đời sống', color: '#7c3aed' },
+  { id: 'an', label: 'Trợ giảng An', sublabel: 'Gợi ý giải bài', color: '#0f766e' },
+  { id: 'colam', label: 'Cô Lam', sublabel: 'Giáo viên chủ trì', color: '#991b1b' },
 ];
 
 // Helper render badges cho RAG & Deterministic Tools
@@ -138,8 +142,6 @@ interface VideoDebateSheetProps {
   onToggleChatExpanded?: () => void;
   onSwitchToStation2?: () => void;
 }
-
-type RecipientTarget = 'all' | 'bo' | 'tri' | 'linhchi' | 'minhkhang';
 
 const cleanText = (str?: string) =>
   str
@@ -470,30 +472,40 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D: a√2)',
           }] : []);
 
+          const isPrimaryTeacher = aiRes.author.includes('Cô Lam');
+          const isPrimaryTa = aiRes.author.includes('Trợ giảng');
+          const primaryRole = isPrimaryTeacher ? 'teacher' : isPrimaryTa ? 'ta' : 'classmate';
+
           setLiveChatMessages((prev) => [
             ...prev,
             {
               id: `reply_${Date.now()}`,
               second: currentTime,
               author: aiRes.author,
-              role: 'classmate',
+              role: primaryRole,
               text: aiRes.text,
               toolCall: attachedToolCalls[0],
               toolCalls: attachedToolCalls,
             },
           ]);
 
-          if (aiRes.followUpBoText) {
+          const followUp = (aiRes as any)?.followUpResponse;
+          const followUpText = followUp?.text || aiRes.followUpBoText;
+          if (followUpText) {
+            const followUpAuthor = followUp?.author || 'Cô Lam';
+            const isFollowUpTeacher = followUpAuthor.includes('Cô Lam');
+            const isFollowUpTa = followUpAuthor.includes('Trợ giảng');
+            const followUpRole = isFollowUpTeacher ? 'teacher' : isFollowUpTa ? 'ta' : 'classmate';
             setTimeout(() => {
               sound.playBubblePop();
               setLiveChatMessages((prev) => [
                 ...prev,
                 {
-                  id: `reply_bo_${Date.now()}`,
+                  id: `reply_followup_${Date.now()}`,
                   second: currentTime,
-                  author: 'Bo',
-                  role: 'classmate',
-                  text: aiRes.followUpBoText!,
+                  author: followUpAuthor,
+                  role: followUpRole,
+                  text: followUpText,
                 },
               ]);
             }, 800);
@@ -634,13 +646,19 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   }, [allStreamComments, lesson.checkpointTimestamp]);
 
   const renderChatMessage = (msg: TimelineComment) => {
-    const isBo = msg.author.includes('Bo');
+    const isBo = msg.author.trim() === 'Bo' || msg.author.includes('Bo');
     const isChi = msg.author.includes('Linh Chi');
     const isKhang = msg.author.includes('Khang');
     const isTri = msg.author.includes('Trí');
-    const isMe = msg.author.includes('Bạn');
+    const isCoLam = msg.author.includes('Cô Lam');
+    const isTaAn = msg.author.includes('Trợ giảng An');
+    const isMe = msg.author.includes('Bạn') || msg.author === 's';
 
-    const initialLetter = isBo
+    const initialLetter = isCoLam
+      ? 'L'
+      : isTaAn
+      ? 'A'
+      : isBo
       ? 'B'
       : isTri
       ? 'T'
@@ -652,7 +670,11 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       ? 'Bạn'
       : msg.author.charAt(0);
 
-    const avatarBg = isBo
+    const avatarBg = isCoLam
+      ? '#991b1b' // Đỏ đô ấm áp nhà giáo
+      : isTaAn
+      ? '#0f766e' // Xanh mòng két trợ giảng
+      : isBo
       ? '#b45309'
       : isTri
       ? '#1d4ed8'
@@ -681,6 +703,16 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             <span className="font-bold text-xs text-stone-900 truncate">
               {msg.author}
             </span>
+            {isCoLam && (
+              <span className="px-1.5 py-0.2 rounded bg-red-100 text-[10px] font-semibold text-red-800">
+                Giáo viên
+              </span>
+            )}
+            {isTaAn && (
+              <span className="px-1.5 py-0.2 rounded bg-teal-100 text-[10px] font-semibold text-teal-800">
+                Trợ giảng
+              </span>
+            )}
             <button
               type="button"
               onClick={() => onSeekVideo?.(msg.second)}
