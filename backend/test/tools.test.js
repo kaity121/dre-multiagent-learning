@@ -7,16 +7,20 @@
  *    - Case cạnh a (claim "2a" -> false, "a\\sqrt{2}" -> true, a√2, căn 2, BC', unparseable)
  *    - Case cạnh side = 2 (claim "2\\sqrt{2}", "2√2" -> true; claim "4" -> false)
  *    - Case không có claim (chỉ tính độ dài |BC + DD'| = a√2, isValid: null, không phán sai)
- *    - Parser tự động trích xuất expr và claim từ câu hỏi học sinh
+ *    - Trích xuất expr và claim từ câu hỏi tự do, hỗ trợ chữ ("vectơ BC cộng vectơ DD'"), tránh nuốt "ba" trong "bằng bao nhiêu"
  * 2. tool_calculate_dot_product:
  *    - Tính tích vô hướng u.v = |u||v|cos(theta)
  *    - Góc tù 120° cho tích vô hướng âm (MISC_VEC_019)
  *    - Đảo chiều u và -v đổi góc bù 180° - theta (MISC_VEC_017)
- *    - Vectơ không không xác định góc (MISC_VEC_018)
+ *    - Vectơ không: tích vô hướng = 0 (đúng), góc không xác định, không dính lỗi includes('0') với '10' (MISC_VEC_018)
+ *    - Bình phương tổng bỏ số hạng chéo (MISC_VEC_020)
  * 3. tool_query_misconception_kb: Tra cứu KB theo latex hoặc tags trả về PedagogicalRAGItem
- * 4. tool_timeline_collision_checker: Phát hiện vi phạm minGapS (< 20s) và warmup period
+ * 4. tool_timeline_collision_checker:
+ *    - Phát hiện vi phạm minGapS (< 20s) và warmup period
+ *    - Cho phép sự kiện nối tiếp trong cùng một mốc dừng (checkpoint 37:13 + debate turn cách 2s)
  * 5. tool_evaluate_bloom_level: Thẩm định thang đo Bloom chính xác
  * 6. executeTool trả về cấu trúc DeterministicToolCall đúng chuẩn contract
+ * 7. runRoundtable tích hợp trơn tru với MISC_VEC_005, MISC_VEC_017, MISC_VEC_020
  */
 
 import { describe, it } from 'node:test';
@@ -32,6 +36,7 @@ import { queryMisconceptionKB } from '../src/tools/tool_query_misconception_kb.j
 import { checkTimelineCollision } from '../src/tools/tool_timeline_collision_checker.js';
 import { evaluateBloomLevel } from '../src/tools/tool_evaluate_bloom_level.js';
 import { executeTool, OPENAI_TOOL_DEFINITIONS } from '../src/tools/index.js';
+import { runRoundtable } from '../src/services/roundtable.js';
 
 describe('Deterministic Tools - Unit Tests', () => {
 
@@ -117,6 +122,19 @@ describe('Deterministic Tools - Unit Tests', () => {
       const q3 = "Cho hình lập phương, AB + AD + AA' ra a√3 hả bạn?";
       assert.strictEqual(extractVectorExpr(q3), "|AB + AD + AA'|");
       assert.strictEqual(extractClaimFromText(q3), "a√3");
+    });
+
+    it('Tránh nuốt từ "ba" trong câu hỏi "bằng bao nhiêu" thành vectơ BA', () => {
+      const question = "BC + DD' bằng bao nhiêu ạ?";
+      assert.strictEqual(extractClaimFromText(question), null, 'Không được gán chữ "ba" thành vectơ BA');
+
+      const claimBA = "BC + DD' bằng BA";
+      assert.strictEqual(extractClaimFromText(claimBA), "BA", 'Vẫn phải nhận diện đúng khi học sinh claim vectơ BA');
+    });
+
+    it('Hỗ trợ biểu thức vectơ viết bằng chữ "vectơ BC cộng vectơ DD\'"', () => {
+      const text = "vectơ BC cộng vectơ DD' bằng bao nhiêu?";
+      assert.strictEqual(extractVectorExpr(text), "|BC + DD'|");
     });
 
     it('Hỗ trợ ký hiệu căn đa dạng: a√2, √2a, căn 2, a căn 2 đều nhận diện đúng isValid: true', () => {
@@ -211,18 +229,92 @@ describe('Deterministic Tools - Unit Tests', () => {
       assert.strictEqual(result.dotProduct, 4);
     });
 
-    it('Phát hiện bẫy vectơ không có góc 0° (MISC_VEC_018): góc không xác định', () => {
-      const result = calculateDotProduct({
+    it('Vectơ không (MISC_VEC_018): dot_product với claim 0 là true, không dính lỗi với số 10', () => {
+      // Tích vô hướng với vectơ không = 0 là đúng
+      const validZero = calculateDotProduct({
+        uMag: 0,
+        vMag: 2,
+        claimValue: '0',
+        claimType: 'dot_product',
+      });
+      assert.strictEqual(validZero.isValid, true);
+      assert.strictEqual(validZero.dotProduct, 0);
+
+      // Claim 10 không được coi là 0 (tránh lỗi includes('0'))
+      const wrongTen = calculateDotProduct({
+        uMag: 0,
+        vMag: 2,
+        claimValue: '10',
+        claimType: 'dot_product',
+      });
+      assert.strictEqual(wrongTen.isValid, false);
+
+      // Với góc: góc với vectơ không luôn không xác định
+      const invalidAngle = calculateDotProduct({
         uMag: 0,
         vMag: 3,
         angleDeg: 0,
         claimValue: '0',
         claimType: 'angle',
       });
+      assert.strictEqual(invalidAngle.isZeroVector, true);
+      assert.strictEqual(invalidAngle.isValid, false);
+      assert.ok(invalidAngle.reason.includes('không xác định góc'));
+    });
 
-      assert.strictEqual(result.isZeroVector, true);
-      assert.strictEqual(result.isValid, false);
-      assert.ok(result.reason.includes('không xác định góc'));
+    it('MISC_VEC_017: Đảo một vectơ thì góc bù angle(-u, v) = 180° - theta', () => {
+      // Ban đầu theta = 60°. Bo claim sau khi đảo góc vẫn là 60° -> false
+      const boBusted = calculateDotProduct({
+        uMag: 2,
+        vMag: 3,
+        angleDeg: 60,
+        claimValue: '60',
+        claimType: 'reverse_angle',
+        isReversed: true,
+      });
+
+      assert.strictEqual(boBusted.isValid, false, 'Bo claim góc không đổi phải bị bác bỏ');
+      assert.strictEqual(boBusted.reversedAngleDeg, 120);
+      assert.ok(boBusted.reason.includes('120°'));
+
+      // Claim đúng góc bù 120° -> true
+      const correctClaim = calculateDotProduct({
+        uMag: 2,
+        vMag: 3,
+        angleDeg: 60,
+        claimValue: '120',
+        claimType: 'reverse_angle',
+        isReversed: true,
+      });
+      assert.strictEqual(correctClaim.isValid, true);
+      assert.strictEqual(correctClaim.reversedAngleDeg, 120);
+    });
+
+    it('MISC_VEC_020: Bình phương tổng bỏ số hạng chéo |u+v|^2', () => {
+      // u=2, v=3, theta=60° -> |u+v|^2 = 4 + 9 + 2*2*3*0.5 = 19
+      // Bo bỏ số hạng chéo: 2^2 + 3^2 = 13 -> false
+      const boTrap = calculateDotProduct({
+        uMag: 2,
+        vMag: 3,
+        angleDeg: 60,
+        claimValue: '13',
+        claimType: 'norm_sum_squared',
+      });
+
+      assert.strictEqual(boTrap.isValid, false);
+      assert.strictEqual(boTrap.correct, '19');
+      assert.ok(boTrap.reason.includes('bỏ quên số hạng chéo') || boTrap.reason.includes('19'));
+
+      // Claim đúng 19 -> true
+      const correctClaim = calculateDotProduct({
+        uMag: 2,
+        vMag: 3,
+        angleDeg: 60,
+        claimValue: '19',
+        claimType: 'norm_sum_squared',
+      });
+      assert.strictEqual(correctClaim.isValid, true);
+      assert.strictEqual(correctClaim.correct, '19');
     });
   });
 
@@ -259,7 +351,7 @@ describe('Deterministic Tools - Unit Tests', () => {
   // 4. tool_timeline_collision_checker
   // ==========================================================================
   describe('tool_timeline_collision_checker', () => {
-    it('Phát hiện va chạm thời gian nếu khoảng cách giữa 2 sự kiện < 20s', () => {
+    it('Phát hiện va chạm thời gian nếu khoảng cách giữa 2 sự kiện < 20s độc lập', () => {
       const result = checkTimelineCollision({
         events: [
           { id: 'ev_1', at_s: 30, actor_id: 'bo', type: 'comment' },
@@ -300,6 +392,32 @@ describe('Deterministic Tools - Unit Tests', () => {
       assert.strictEqual(result.isValid, true);
       assert.strictEqual(result.collisions.length, 0);
       assert.strictEqual(result.warnings.length, 0);
+    });
+
+    it('Bỏ qua va chạm cho chuỗi tương tác nối tiếp cùng mốc dừng: checkpoint 37:13 (2233s) và Bo (2235s, cách 2s)', () => {
+      const result = checkTimelineCollision({
+        events: [
+          { id: 'colam_stop_point', at_s: 2233, actor_id: 'colam', type: 'checkpoint' },
+          { id: 'bo_challenge_turn', at_s: 2235, actor_id: 'bo', type: 'comment' },
+        ],
+        minGapS: 20,
+      });
+
+      assert.strictEqual(result.isValid, true, 'Sự kiện debate nối tiếp checkpoint cách 2s phải hợp lệ');
+      assert.strictEqual(result.collisions.length, 0);
+    });
+
+    it('Bỏ qua va chạm khi có cờ isChained hoặc cùng groupId', () => {
+      const result = checkTimelineCollision({
+        events: [
+          { id: 'turn_1', at_s: 50, actor_id: 'bo', type: 'comment', groupId: 'stop_1' },
+          { id: 'turn_2', at_s: 52, actor_id: 'tri', type: 'comment', groupId: 'stop_1' },
+        ],
+        minGapS: 20,
+      });
+
+      assert.strictEqual(result.isValid, true);
+      assert.strictEqual(result.collisions.length, 0);
     });
   });
 
@@ -356,6 +474,34 @@ describe('Deterministic Tools - Unit Tests', () => {
       assert.ok(names.includes('tool_query_misconception_kb'));
       assert.ok(names.includes('tool_timeline_collision_checker'));
       assert.ok(names.includes('tool_evaluate_bloom_level'));
+    });
+  });
+
+  // ==========================================================================
+  // 7. runRoundtable Integration với các loại bẫy toán
+  // ==========================================================================
+  describe('runRoundtable Integration', () => {
+    it('Chạy Roundtable với MISC_VEC_005 (Độ dài lập phương)', async () => {
+      const draft = await runRoundtable('MISC_VEC_005', { useLLM: false });
+      assert.strictEqual(draft.status, 'draft');
+      assert.ok(draft.deterministic_tool_calls.some(tc => tc.toolName === 'tool_verify_vector_algebra'));
+      assert.ok(draft.dialogues.length >= 4);
+    });
+
+    it('Chạy Roundtable với MISC_VEC_017 (Đảo vectơ đổi góc)', async () => {
+      const draft = await runRoundtable('MISC_VEC_017', { useLLM: false });
+      assert.strictEqual(draft.status, 'draft');
+      const dotTool = draft.deterministic_tool_calls.find(tc => tc.toolName === 'tool_calculate_dot_product');
+      assert.ok(dotTool, 'Phải kích hoạt tool_calculate_dot_product');
+      assert.strictEqual(dotTool.isValid, false, 'Bẫy của Bo phải bị bác bỏ');
+    });
+
+    it('Chạy Roundtable với MISC_VEC_020 (Bình phương tổng bỏ số hạng chéo)', async () => {
+      const draft = await runRoundtable('MISC_VEC_020', { useLLM: false });
+      assert.strictEqual(draft.status, 'draft');
+      const dotTool = draft.deterministic_tool_calls.find(tc => tc.toolName === 'tool_calculate_dot_product');
+      assert.ok(dotTool, 'Phải kích hoạt tool_calculate_dot_product');
+      assert.strictEqual(dotTool.isValid, false, 'Bẫy bỏ số hạng chéo của Bo phải bị bác bỏ');
     });
   });
 });

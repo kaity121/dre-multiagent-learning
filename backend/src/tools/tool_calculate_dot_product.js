@@ -5,7 +5,7 @@
  * và góc giữa hai vectơ theta = arccos((u . v) / (|u||v|)).
  *
  * Phục vụ kiểm chứng các bẫy ngộ nhận:
- * - MISC_VEC_017: Đảo một vectơ không đổi góc (góc bù: 180° - theta)
+ * - MISC_VEC_017: Đảo một vectơ không đổi góc (góc bù: angle(-u, v) = 180° - theta)
  * - MISC_VEC_018: Gán góc cố định cho vectơ không (mẫu số bằng 0, không xác định)
  * - MISC_VEC_019: Tích vô hướng luôn không âm hoặc là vectơ (thực tế có thể âm khi góc tù, kết quả là số thực)
  * - MISC_VEC_020: Bình phương tổng bỏ số hạng chéo (|u+v|^2 = |u|^2 + |v|^2 + 2u.v)
@@ -16,20 +16,46 @@ export function calculateDotProduct({
   vMag,
   angleDeg,
   claimValue,
-  claimType = 'dot_product', // 'dot_product' | 'angle'
+  claimType = 'dot_product', // 'dot_product' | 'angle' | 'reverse_angle' | 'norm_sum_squared'
+  isReversed = false,
 }) {
   const u = typeof uMag === 'string' ? parseFloat(uMag) : uMag;
   const v = typeof vMag === 'string' ? parseFloat(vMag) : vMag;
   const theta = typeof angleDeg === 'string' ? parseFloat(angleDeg) : angleDeg;
 
-  // 1. Kiểm tra trường hợp góc với vectơ không (MISC_VEC_018)
+  // 1. Kiểm tra trường hợp với vectơ không (MISC_VEC_018)
   if (u === 0 || v === 0) {
+    let zeroValid = null;
+    let zeroReason = '';
+
+    if (claimValue !== undefined && claimValue !== null && claimValue !== '') {
+      const claimNum = parseFloat(String(claimValue).trim());
+      if (claimType === 'angle' || claimType === 'reverse_angle') {
+        // Với góc: góc với vectơ-không là KHÔNG XÁC ĐỊNH, mọi phát biểu góc cụ thể đều sai
+        zeroValid = false;
+        zeroReason = 'Vectơ không có độ dài bằng 0 nên không xác định góc với vectơ khác (mẫu số |u||v| = 0 trong công thức cos).';
+      } else {
+        // Với tích vô hướng: u . v = 0 là HOÀN TOÀN ĐÚNG
+        if (!isNaN(claimNum)) {
+          zeroValid = Math.abs(claimNum - 0) < 1e-5;
+          zeroReason = zeroValid
+            ? 'Chính xác! Tích vô hướng của vectơ không với mọi vectơ luôn bằng 0.'
+            : `Tích vô hướng với vectơ không luôn bằng 0, không phải ${claimNum}.`;
+        } else {
+          zeroValid = null;
+          zeroReason = 'Không phân tích được giá trị số từ phát biểu.';
+        }
+      }
+    } else {
+      zeroReason = 'Vectơ không có độ dài bằng 0 nên tích vô hướng bằng 0 nhưng góc không xác định.';
+    }
+
     return {
-      isValid: claimValue !== undefined ? (String(claimValue).includes('0') ? false : null) : null,
+      isValid: zeroValid,
       dotProduct: 0,
       angleDeg: null,
       isZeroVector: true,
-      reason: 'Vectơ không có độ dài bằng 0 nên không xác định góc với vectơ khác (mẫu số |u||v| = 0 trong công thức cos).',
+      reason: zeroReason,
       formula: '\\vec{u} \\cdot \\vec{v} = 0 \\text{ nhưng góc không xác định}',
     };
   }
@@ -55,12 +81,66 @@ export function calculateDotProduct({
   // 3. Đánh giá claim nếu có
   let isValid = null;
   let reason = '';
+  let correct = null;
+
+  const effectiveIsReversed = isReversed || claimType === 'reverse_angle';
 
   if (claimValue !== undefined && claimValue !== null && claimValue !== '') {
     const claimStr = String(claimValue).trim().toLowerCase();
     const claimNum = parseFloat(claimStr);
 
-    if (claimType === 'angle') {
+    // DẠNG A: Góc đảo chiều angle(-u, v) = 180° - theta (MISC_VEC_017)
+    if (effectiveIsReversed) {
+      const reversedTheta = 180 - theta;
+      correct = `${reversedTheta}°`;
+
+      if (!isNaN(claimNum)) {
+        if (Math.abs(claimNum - reversedTheta) < 0.1) {
+          isValid = true;
+          reason = `Chính xác! Khi đảo một vectơ (ví dụ từ \\vec{v} thành -\\vec{v}), góc giữa hai vectơ trở thành góc bù: 180° - ${theta}° = ${reversedTheta}°.`;
+        } else if (Math.abs(claimNum - theta) < 0.1 || claimStr.includes('không đổi') || claimStr.includes('bằng nhau')) {
+          isValid = false;
+          reason = `Sai lầm ngộ nhận 'đảo một vectơ không đổi góc'! Với hai vectơ khác không, đảo một vectơ sẽ làm góc θ thành góc bù 180° - θ (tức 180° - ${theta}° = ${reversedTheta}°), không giữ nguyên ${theta}°.`;
+        } else {
+          isValid = false;
+          reason = `Góc sau khi đảo một vectơ là 180° - ${theta}° = ${reversedTheta}°, không phải ${claimNum}°.`;
+        }
+      } else {
+        isValid = false;
+        reason = `Góc bù khi đảo một vectơ là ${reversedTheta}°.`;
+      }
+
+      steps.push(`Đảo một vectơ: (-\\vec{u}, \\vec{v}) = 180^\\circ - (${theta}^\\circ) = ${reversedTheta}^\\circ.`);
+    }
+    // DẠNG B: Bình phương tổng bỏ số hạng chéo (MISC_VEC_020)
+    else if (claimType === 'norm_sum_squared' || claimType === 'dot_expansion') {
+      const uSq = Math.round(u * u * 1000) / 1000;
+      const vSq = Math.round(v * v * 1000) / 1000;
+      const crossTerm = Math.round(2 * calculatedDot * 1000) / 1000;
+      const sumSquared = Math.round((uSq + vSq + crossTerm) * 1000) / 1000;
+      correct = String(sumSquared);
+
+      // Nếu Bo bỏ số hạng chéo: claimNum === u^2 + v^2
+      const omittedCrossValue = uSq + vSq;
+
+      if (!isNaN(claimNum)) {
+        if (Math.abs(claimNum - sumSquared) < 0.05) {
+          isValid = true;
+          reason = `Chính xác! |\\vec{u}+\\vec{v}|^2 = |\\vec{u}|^2 + |\\vec{v}|^2 + 2\\vec{u}\\cdot\\vec{v} = ${uSq} + ${vSq} + ${crossTerm} = ${sumSquared}.`;
+        } else if (Math.abs(claimNum - omittedCrossValue) < 0.05) {
+          isValid = false;
+          reason = `Sai lầm ngộ nhận bỏ quên số hạng chéo 2\\vec{u}\\cdot\\vec{v}! Theo hằng đẳng thức: |\\vec{u}+\\vec{v}|^2 = |\\vec{u}|^2 + |\\vec{v}|^2 + 2\\vec{u}\\cdot\\vec{v} = ${uSq} + ${vSq} + ${crossTerm} = ${sumSquared}, không phải ${claimNum}. (Chỉ được bỏ số hạng chéo khi hai vectơ vuông góc).`;
+        } else {
+          isValid = false;
+          reason = `Bình phương độ dài tổng chính xác là ${sumSquared}, trong khi phát biểu đưa ra là ${claimNum}.`;
+        }
+      }
+
+      steps.push(`Khai triển bình phương tổng: |\\vec{u}+\\vec{v}|^2 = ${u}^2 + ${v}^2 + 2(${calculatedDot}) = ${sumSquared}.`);
+    }
+    // DẠNG C: Kiểm tra góc thông thường
+    else if (claimType === 'angle') {
+      correct = `${theta}°`;
       if (!isNaN(claimNum) && theta !== undefined) {
         if (Math.abs(claimNum - theta) < 0.1) {
           isValid = true;
@@ -70,9 +150,10 @@ export function calculateDotProduct({
           reason = `Góc tính toán là ${theta}°, trong khi phát biểu cho rằng là ${claimNum}°.`;
         }
       }
-    } else {
-      // claimType === 'dot_product'
-      // Kiểm tra ngộ nhận tích vô hướng là vectơ hoặc luôn không âm
+    }
+    // DẠNG D: Tích vô hướng thông thường (MISC_VEC_019, v.v.)
+    else {
+      correct = String(calculatedDot);
       if (claimStr.includes('vecto') || claimStr.includes('vector')) {
         isValid = false;
         reason = 'Tích vô hướng của hai vectơ là một SỐ THỰC (vô hướng), không phải là một vectơ!';
@@ -93,12 +174,20 @@ export function calculateDotProduct({
     }
   }
 
+  const reversedAngleVal = theta !== undefined && theta !== null ? 180 - theta : null;
+
   return {
     isValid,
     dotProduct: calculatedDot,
     cosValue: calculatedCos,
     angleDeg: theta,
-    formula: '\\vec{u} \\cdot \\vec{v} = |\\vec{u}| |\\vec{v}| \\cos(\\theta)',
+    reversedAngleDeg: reversedAngleVal,
+    correct,
+    formula: effectiveIsReversed 
+      ? '(\\vec{u}, -\\vec{v}) = 180^\\circ - (\\vec{u}, \\vec{v})'
+      : claimType === 'norm_sum_squared'
+        ? '|\\vec{u}+\\vec{v}|^2 = |\\vec{u}|^2 + |\\vec{v}|^2 + 2\\vec{u}\\cdot\\vec{v}'
+        : '\\vec{u} \\cdot \\vec{v} = |\\vec{u}| |\\vec{v}| \\cos(\\theta)',
     reason: reason || `Kết quả tích vô hướng: ${calculatedDot}.`,
     steps,
   };

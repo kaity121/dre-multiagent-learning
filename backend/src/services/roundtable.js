@@ -23,14 +23,27 @@ function getMisconceptionVerifiableConfig(misconception) {
       params: { shape: 'cube', side: 'a', expr: "|AB + AD + AA'|", defaultClaim: 'a\\sqrt{3}' },
     };
   }
-  // 3. Tích vô hướng & góc giữa hai vectơ (MISC_VEC_017, MISC_VEC_018, MISC_VEC_019, MISC_VEC_020)
-  if (['MISC_VEC_017', 'MISC_VEC_018', 'MISC_VEC_019', 'MISC_VEC_020'].includes(misconception.id) ||
+  // 3. MISC_VEC_017: Đảo một vectơ không đổi góc (góc bù: angle(-u, v) = 180° - theta)
+  if (misconception.id === 'MISC_VEC_017') {
+    return {
+      toolType: 'dot_product',
+      toolName: 'tool_calculate_dot_product',
+      params: { uMag: 2, vMag: 3, angleDeg: 60, claimValue: '60', claimType: 'reverse_angle', isReversed: true },
+    };
+  }
+  // 4. MISC_VEC_020: Bình phương tổng bỏ số hạng chéo (|u+v|^2 = |u|^2 + |v|^2 + 2u.v)
+  if (misconception.id === 'MISC_VEC_020' || (misconception.tags || []).includes('cross_term')) {
+    return {
+      toolType: 'dot_product',
+      toolName: 'tool_calculate_dot_product',
+      params: { uMag: 2, vMag: 3, angleDeg: 60, claimValue: '13', claimType: 'norm_sum_squared' },
+    };
+  }
+  // 5. MISC_VEC_018, MISC_VEC_019 & các dạng tích vô hướng / góc khác
+  if (['MISC_VEC_018', 'MISC_VEC_019'].includes(misconception.id) ||
       (misconception.tags || []).some(t => ['dot_product', 'vector_angle', 'zero_angle'].includes(t))) {
     let u = 2, v = 3, theta = 120, claim = 'không âm';
-    if (misconception.id === 'MISC_VEC_017') {
-      theta = 120;
-      claim = '60';
-    } else if (misconception.id === 'MISC_VEC_018') {
+    if (misconception.id === 'MISC_VEC_018') {
       u = 0; v = 2; theta = 0; claim = '0';
     } else if (misconception.id === 'MISC_VEC_019') {
       u = 2; v = 3; theta = 120; claim = 'không âm';
@@ -38,10 +51,10 @@ function getMisconceptionVerifiableConfig(misconception) {
     return {
       toolType: 'dot_product',
       toolName: 'tool_calculate_dot_product',
-      params: { uMag: u, vMag: v, angleDeg: theta, claimValue: claim, claimType: misconception.id === 'MISC_VEC_017' ? 'angle' : 'dot_product' },
+      params: { uMag: u, vMag: v, angleDeg: theta, claimValue: claim, claimType: misconception.id === 'MISC_VEC_018' ? 'angle' : 'dot_product' },
     };
   }
-  // 4. Mặc định cho các chủ đề khác (vectơ không, trọng tâm...)
+  // 6. Mặc định cho các chủ đề khác (vectơ không, trọng tâm...)
   return {
     toolType: 'kb_rag',
     toolName: 'tool_query_misconception_kb',
@@ -168,6 +181,26 @@ Trả về JSON chuẩn:
   "geometric_basis": "<căn cứ hình học từ tool reason>"
 }`;
         forcedToolChoice = { type: 'function', function: { name: 'tool_verify_vector_algebra' } };
+      } else if (toolConfig.toolType === 'dot_product') {
+        const claim = boTurn.claim || toolConfig.params.claimValue;
+        triPrompt = `Bạn là "Trí" — bạn học Deep Thinker đào sâu bản chất trong buồng họp Roundtable.
+Bo vừa phát biểu: "${boTurn.dialogue}" với claim là "${claim}".
+BẠN BẮT BUỘC PHẢI DÙNG TOOL "tool_calculate_dot_product" để kiểm chứng claim này trước khi phát biểu!
+- uMag: ${toolConfig.params.uMag}
+- vMag: ${toolConfig.params.vMag}
+- angleDeg: ${toolConfig.params.angleDeg}
+- claimValue: "${claim}"
+- claimType: "${toolConfig.params.claimType || 'dot_product'}"
+
+Sau khi nhận kết quả từ tool:
+- Bác bỏ sai lầm của Bo dựa trên kết quả tính toán từ tool và nêu rõ bản chất hình học.
+Trả về JSON chuẩn:
+{
+  "counter_claim": "<kết luận toán học chuẩn từ tool>",
+  "dialogue": "<câu Trí trích dẫn kết quả tool để bác bẫy Bo>",
+  "geometric_basis": "<căn cứ từ tool reason>"
+}`;
+        forcedToolChoice = { type: 'function', function: { name: 'tool_calculate_dot_product' } };
       } else {
         triPrompt = `Bạn là "Trí" — bạn học Deep Thinker đào sâu bản chất trong buồng họp Roundtable.
 Bo vừa phát biểu: "${boTurn.dialogue}".
@@ -190,7 +223,7 @@ Trả về JSON chuẩn:
         userPayload: {
           ...triPayload,
           bo_claim: boTurn.dialogue,
-          claim_value: boTurn.claim || toolConfig.params?.defaultClaim || '',
+          claim_value: boTurn.claim || toolConfig.params?.defaultClaim || toolConfig.params?.claimValue || '',
         },
       });
 
@@ -267,12 +300,19 @@ Trả về JSON chuẩn:
       console.warn('[Roundtable] LLM gọi không thành công hoặc lỗi, chuyển sang fallback có thực thi tool nội bộ:', err.message);
 
       // Fallback: Chạy theo đúng thứ tự nhân quả
-      const boClaim = toolConfig.params?.defaultClaim || misconception.incorrect_claim;
+      const boClaim = toolConfig.params?.defaultClaim || toolConfig.params?.claimValue || misconception.incorrect_claim;
+      let boDialogue = `Theo tớ thì: ${misconception.incorrect_claim}!`;
+      if (misconception.id === 'MISC_VEC_005') {
+        boDialogue = `Theo tớ thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!`;
+      } else if (misconception.id === 'MISC_VEC_017') {
+        boDialogue = `Góc giữa u và v là 60° thì đảo một vectơ v thành -v thì góc giữa u và -v vẫn là 60° chứ!`;
+      } else if (misconception.id === 'MISC_VEC_020') {
+        boDialogue = `Theo định lý Pythagore thì |u + v|^2 = |u|^2 + |v|^2 = 2^2 + 3^2 = 13!`;
+      }
+
       boTurn = {
         claim: boClaim,
-        dialogue: misconception.id === 'MISC_VEC_005'
-          ? `Theo tớ thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!`
-          : `Theo tớ thì: ${misconception.incorrect_claim}!`,
+        dialogue: boDialogue,
       };
       recordEvent('debate_turn', 'bo', 'Bo (Hệ 1 - Trực giác)', boTurn.dialogue);
 
@@ -284,6 +324,11 @@ Trả về JSON chuẩn:
           side: toolConfig.params.side || 'a',
           expr: toolConfig.params.expr,
           claim: boClaim,
+        });
+      } else if (toolConfig.toolType === 'dot_product') {
+        vectorToolCall = executeTool('tool_calculate_dot_product', {
+          ...toolConfig.params,
+          claimValue: boClaim,
         });
       } else {
         vectorToolCall = executeTool('tool_query_misconception_kb', {
@@ -320,12 +365,19 @@ Trả về JSON chuẩn:
     }
   } else {
     // Chế độ không dùng LLM (useLLM = false): Chạy hoàn toàn Deterministic Tools
-    const boClaim = toolConfig.params?.defaultClaim || misconception.incorrect_claim;
+    const boClaim = toolConfig.params?.defaultClaim || toolConfig.params?.claimValue || misconception.incorrect_claim;
+    let boDialogue = `Theo tớ thì: ${misconception.incorrect_claim}!`;
+    if (misconception.id === 'MISC_VEC_005') {
+      boDialogue = `Theo tớ thì cạnh bằng a nên |BC + DD'| = a + a = 2a!`;
+    } else if (misconception.id === 'MISC_VEC_017') {
+      boDialogue = `Góc giữa u và v là 60° thì đảo một vectơ v thành -v thì góc giữa u và -v vẫn là 60° chứ!`;
+    } else if (misconception.id === 'MISC_VEC_020') {
+      boDialogue = `Theo định lý Pythagore thì |u + v|^2 = |u|^2 + |v|^2 = 2^2 + 3^2 = 13!`;
+    }
+
     boTurn = {
       claim: boClaim,
-      dialogue: misconception.id === 'MISC_VEC_005'
-        ? `Theo tớ thì cạnh bằng a nên |BC + DD'| = a + a = 2a!`
-        : `Theo tớ thì: ${misconception.incorrect_claim}!`,
+      dialogue: boDialogue,
     };
     recordEvent('debate_turn', 'bo', 'Bo (Hệ 1 - Trực giác)', boTurn.dialogue);
 
@@ -337,13 +389,18 @@ Trả về JSON chuẩn:
         expr: toolConfig.params.expr,
         claim: boClaim,
       });
+    } else if (toolConfig.toolType === 'dot_product') {
+      vectorToolCall = executeTool('tool_calculate_dot_product', {
+        ...toolConfig.params,
+        claimValue: boClaim,
+      });
     } else {
       vectorToolCall = executeTool('tool_query_misconception_kb', {
         misconceptionId: misconception.id,
       });
     }
 
-    recordEvent('tool_call', 'tri', 'Trí (Hệ 2 - Logic)', `Kiểm chứng đại số vectơ ${toolConfig.toolName}`, vectorToolCall);
+    recordEvent('tool_call', 'tri', 'Trí (Hệ 2 - Logic)', `Kiểm chứng toán học ${toolConfig.toolName}`, vectorToolCall);
     recordEvent('tool_result', 'tri', 'Trí (Hệ 2 - Logic)', `Kết quả: ${vectorToolCall.output?.correct || 'Hoàn tất'}`, vectorToolCall);
 
     triTurn = {
@@ -391,7 +448,7 @@ Trả về JSON chuẩn:
       {
         actor: 'bo',
         role: 'Sparring Partner',
-        claim: boTurn.claim || toolConfig.params?.defaultClaim || '2a',
+        claim: boTurn.claim || toolConfig.params?.defaultClaim || toolConfig.params?.claimValue || '2a',
         dialogue: boTurn.dialogue,
         intentional_error: true,
       },

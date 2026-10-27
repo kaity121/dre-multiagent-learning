@@ -284,9 +284,15 @@ app.post('/api/chat/classroom', async (req, res) => {
     }
 
     if (parsedExpr) {
-      // Trích xuất claim thực tế từ câu hỏi học sinh (nếu học sinh không khẳng định gì thì claim = null)
-      const parsedClaim = extractClaimFromText(message);
-      const detectedSide = lower.includes('cạnh 2') ? '2' : 'a';
+      // Trích xuất claim thực tế từ câu hỏi học sinh
+      // Nếu câu hỏi có tính chất phản biện / nghi vấn về phát biểu của Bo (vd: "Bo nói ... sai đúng không?"),
+      // không coi đó là claim khẳng định của học sinh!
+      const isQuestioningBo = /(?:bo\s+nói|bo\s+bảo|có\s+phải|sai\s+đúng\s+không|đúng\s+không\s*\?)/i.test(message);
+      const parsedClaim = isQuestioningBo ? null : extractClaimFromText(message);
+
+      // Trích xuất độ dài cạnh linh hoạt: "cạnh 2", "cạnh bằng 2", "cạnh = 2", "cạnh là 2"
+      const sideMatch = lower.match(/(?:cạnh|side)\s*(?:bằng|=|là)?\s*(\d+(?:\.\d+)?)/i);
+      const detectedSide = sideMatch ? sideMatch[1] : (lower.includes('cạnh 2') ? '2' : 'a');
 
       vectorAlgebraTool = executeTool('tool_verify_vector_algebra', {
         shape: 'cube',
@@ -367,11 +373,11 @@ Quy tắc ứng xử:
 1. Giữ đúng persona của ${targetPeer} (Bo: lém lỉnh; Trí: trầm tĩnh, đào sâu bản chất; Linh Chi: cẩn thận, tóm tắt công thức; Minh Khang: ví dụ trực quan đời thực; Cô Lam: ấm áp, dẫn dắt Socratic "nudges, not answers").
 2. Khi học sinh hỏi về bẫy tổng 1+1=2 hoặc cộng độ dài: Trí giải thích bản chất bất đẳng thức tam giác và Pytago ra a√2, không bằng 2a.
 3. Không xả ngay đáp án chi tiết nếu học sinh đang hỏi gợi ý; gợi ý từng nấc nhẹ nhàng (1-2 câu).
-5. QUY TẮC BẢO VỆ PHẠM VI (SCOPE & OUT-OF-DOMAIN GUARDRAIL):
+4. QUY TẮC BẢO VỆ PHẠM VI (SCOPE & OUT-OF-DOMAIN GUARDRAIL):
 - Bạn đang tham gia lớp học Toán 12 bài "${lessonTitle}".
 - Khi học sinh hỏi câu hỏi ngoài lề, lạc đề, câu hỏi đời sống không thuộc môn Toán (ví dụ: con chó có mấy chân, thời tiết, chơi game...):
   + Phải phản hồi ngắn gọn, hóm hỉnh đúng phong cách bạn học/cô giáo, NHƯNG BẮT BUỘC phải khéo léo bẻ lái / nhắc bạn học quay trở lại bài toán vectơ trong không gian của thầy Tiến đang học (ví dụ: "Con chó thường có 4 chân nhé 🐶! Cơ mà nhắc tới số 4, tụi mình quay lại bài vectơ của thầy Tiến thôi: cậu đã nắm được quy tắc hình hộp 8 đỉnh 4 đường chéo chưa?")!
-4. Luôn trả về JSON:
+5. Luôn trả về JSON:
 {
   "author": "${targetPeer === 'bo' ? 'Bo' : targetPeer === 'tri' ? 'Trí' : targetPeer === 'linhchi' ? 'Linh Chi' : targetPeer === 'minhkhang' ? 'Minh Khang' : 'Cô Lam'}",
   "text": "Câu trả lời của bạn",
