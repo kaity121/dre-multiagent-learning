@@ -133,6 +133,7 @@ export interface ClassroomChatResponse {
   toolCall?: DeterministicToolCallInfo | null;
   toolCalls?: DeterministicToolCallInfo[] | null;
   timeStr: string;
+  second?: number;
 }
 
 /**

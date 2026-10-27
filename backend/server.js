@@ -311,7 +311,7 @@ app.post('/api/tools/execute', async (req, res) => {
 // POST /api/chat/classroom — OpenMAIC: Khung chat lớp học tích hợp RAG Knowledge Base & 4 AI Peers
 app.post('/api/chat/classroom', async (req, res) => {
   try {
-    const { message, currentTime = 2233, recipient = 'all', lessonTitle = 'Toán 12 — Vectơ trong không gian' } = req.body || {};
+    const { message, currentTime = 0, recipient = 'all', lessonTitle = 'Toán 12 — Vectơ trong không gian' } = req.body || {};
     if (!message) {
       return res.status(400).json({ error: 'Thiếu message' });
     }
@@ -319,27 +319,13 @@ app.post('/api/chat/classroom', async (req, res) => {
     // 0. Khởi tạo & chuẩn hóa chuỗi ngay từ đầu (TRÁNH TDZ CRASH)
     const lower = String(message).toLowerCase().trim();
 
-    // Xác định mốc thời gian bài giảng chuẩn xác (tránh hiển thị 0:00 khi client chưa kịp play video)
+    // Xác định mốc thời gian bài giảng: ưu tiên tiền tố tường minh ^\[(?:Tại\s+)?(\d{1,2}):(\d{2})\] hoặc trung thực theo currentTime
+    const timePrefixMatch = String(message).trim().match(/^\[(?:Tại\s+)?(\d{1,2}):(\d{2})\]/i);
     let effectiveTime = Number(currentTime);
-    if (isNaN(effectiveTime) || effectiveTime <= 0) {
-      const timeMatch = String(message).match(/\[?(\d{1,2}):(\d{2})\]?/);
-      if (timeMatch) {
-        effectiveTime = parseInt(timeMatch[1], 10) * 60 + parseInt(timeMatch[2], 10);
-      } else if (
-        lower.includes('1+1') ||
-        lower.includes('1 + 1') ||
-        lower.includes('2a') ||
-        lower.includes('bc') ||
-        lower.includes('dd') ||
-        lower.includes('ví dụ 3') ||
-        lower.includes('vi du 3') ||
-        lower.includes('lập phương') ||
-        lower.includes('lap phuong')
-      ) {
-        effectiveTime = 2233; // Mốc Ví dụ 3 (37:13)
-      } else {
-        effectiveTime = 0;
-      }
+    if (timePrefixMatch) {
+      effectiveTime = parseInt(timePrefixMatch[1], 10) * 60 + parseInt(timePrefixMatch[2], 10);
+    } else if (isNaN(effectiveTime) || effectiveTime < 0) {
+      effectiveTime = 0;
     }
 
     const { search, getById } = await import('./src/services/knowledgeBase.js');

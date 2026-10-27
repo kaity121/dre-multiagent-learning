@@ -229,12 +229,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
   const allStreamComments = useMemo(() => {
     const combined = [...visibleTimelineComments, ...liveChatMessages];
-    return combined.slice().sort((a, b) => {
-      if (a.second !== b.second) {
-        return a.second - b.second;
-      }
-      return 0;
-    });
+    return combined.slice().sort((a, b) => a.second - b.second);
   }, [visibleTimelineComments, liveChatMessages]);
   const pinnedComment = defaultComments.find((c) => c.isPinned);
 
@@ -345,29 +340,13 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
         ? ' (tới Minh Khang)'
         : '';
 
-    // Xác định mốc thời gian thảo luận thực tế (effectiveSecond) tránh hiển thị 0:00
-    let effectiveSecond = currentTime > 0 ? currentTime : 0;
-    if (effectiveSecond <= 0) {
-      const timeMatch = text.match(/\[?(\d{1,2}):(\d{2})\]?/);
-      if (timeMatch) {
-        effectiveSecond = parseInt(timeMatch[1], 10) * 60 + parseInt(timeMatch[2], 10);
-      } else if (
-        text.toLowerCase().includes('1+1') ||
-        text.toLowerCase().includes('1 + 1') ||
-        text.toLowerCase().includes('2a') ||
-        text.toLowerCase().includes('bc') ||
-        text.toLowerCase().includes('dd') ||
-        text.toLowerCase().includes('ví dụ 3') ||
-        text.toLowerCase().includes('vi du 3') ||
-        text.toLowerCase().includes('lập phương') ||
-        text.toLowerCase().includes('độ dài')
-      ) {
-        effectiveSecond = lesson.checkpointTimestamp || 2233;
-      } else {
-        effectiveSecond = 0;
-      }
+    // Xác định mốc thời gian thảo luận thực tế: phản ánh trung thực currentTime hoặc tiền tố tường minh ^\[(?:Tại\s+)?(\d{1,2}):(\d{2})\]
+    const timePrefixMatch = text.match(/^\[(?:Tại\s+)?(\d{1,2}):(\d{2})\]/i);
+    let effectiveSecond = Math.max(0, Math.floor(currentTime || 0));
+    if (timePrefixMatch) {
+      effectiveSecond = parseInt(timePrefixMatch[1], 10) * 60 + parseInt(timePrefixMatch[2], 10);
     }
-
+    
     const newMsg: TimelineComment = {
       id: `user_${Date.now()}`,
       second: effectiveSecond,
@@ -499,7 +478,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D: a√2)',
           }] : []);
 
-          const replySecond = (aiRes as any)?.second || effectiveSecond;
+          const replySecond = typeof (aiRes as any)?.second === 'number' ? (aiRes as any).second : effectiveSecond;
           setLiveChatMessages((prev) => [
             ...prev,
             {
@@ -722,19 +701,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           </div>
           <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-800 leading-relaxed font-normal shadow-2xs select-text">
             {renderToolBadges(
-              (msg as any).toolCalls || (isTri && (msg.second >= 2200 && msg.second <= 2260) ? [
-                {
-                  toolName: 'tool_query_misconception_kb',
-                  category: 'rag',
-                  badgeText: 'RAG: MISC_VEC_005 (Cộng độ dài thay cho độ dài tổng)',
-                },
-                {
-                  toolName: 'tool_verify_vector_algebra',
-                  category: 'math_verify',
-                  badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D: a√2)',
-                }
-              ] : null),
-              msg.toolCall
+              (msg as any).toolCalls || (msg.toolCall ? [msg.toolCall] : null)
             )}
             <div>
               <FormattedMathText text={cleanText(msg.text)} />
