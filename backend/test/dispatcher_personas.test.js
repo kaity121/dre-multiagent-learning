@@ -80,7 +80,25 @@ async function runTests() {
   assert.equal(d5.followUpResponse.avatarId, 'colam');
   console.log('✅ PASS Test 5: Chuỗi liên hoàn Bo nhận thua -> Cô Lam chốt kiến thức với author Cô Lam chuẩn xác.\n');
 
-  console.log('🎉 TẤT CẢ 5 BÀI TEST ĐÃ VƯỢT QUA XUẤT SẮC!');
+  // TEST 6: Học sinh rủ đi chơi / xao nhãng học tập "chắc giống hệt thôi học hành gì bo ơi, mình đi chơi thôi"
+  console.log('--- Test 6: "chắc giống hệt thôi học hành gì bo ơi, mình đi chơi thôi" (Encourage Study Focus) ---');
+  const h6 = classifyHeuristic('chắc giống hệt thôi học hành gì bo ơi, mình đi chơi thôi');
+  assert.equal(h6.detectedIntent, 'encourage_study_focus');
+  assert.equal(h6.dispatchedAgent, 'bo');
+
+  const d6 = await dispatchMessage({
+    message: 'chắc giống hệt thôi học hành gì bo ơi, mình đi chơi thôi',
+    useLLM: false,
+  });
+  assert.equal(d6.primaryResponse.author, 'Bo');
+  assert.match(d6.primaryResponse.text, /trốn học|THPT Quốc Gia|Ráng ở lại học/i, 'Bo urges to stay and study');
+  assert.notEqual(d6.followUpResponse, null, 'Cô Lam must step in to encourage and focus');
+  assert.equal(d6.followUpResponse.author, 'Cô Lam');
+  assert.equal(d6.followUpResponse.avatarId, 'colam');
+  assert.match(d6.followUpResponse.text, /Cô nghe thấy|rủ nhau đi chơi|tập trung/i, 'Cô Lam reminds and encourages');
+  console.log('✅ PASS Test 6: Bo từ chối đi chơi + Cô Lam nhắc nhở kéo về bài học và khích lệ học tập chuẩn xác.\n');
+
+  console.log('🎉 TẤT CẢ 6 BÀI TEST ĐÃ VƯỢT QUA XUẤT SẮC!');
 }
 
 runTests().catch((err) => {

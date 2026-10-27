@@ -22,6 +22,7 @@ export const INTENT_AGENT_MAP = {
   ask_scaffolding_help: 'an',
   sharp_rebuttal: 'bo', // primary is bo (concede), follow-up is colam (close)
   general_classroom_chitchat: 'minhkhang',
+  encourage_study_focus: 'minhkhang',
 };
 
 const AGENT_DISPLAY_NAMES = {
@@ -84,7 +85,26 @@ export function classifyHeuristic(message, recipient = 'all') {
   const rawLower = String(message || '').toLowerCase().trim();
   const norm = normalizeText(message);
 
-  // 1. Direct @mention overrides
+  // 1. Nhận diện học sinh xao nhãng, rủ đi chơi, chán học, muốn bỏ cuộc -> Kéo về bài học & Khích lệ
+  const distractionPatterns = [
+    /\b(di choi|di net|di game|di ngu|di an|da banh|di ca phe|di luon|tron hoc)\b/,
+    /\b(hoc hanh gi|hoc lam gi|khong hoc nua|nghi thoi|nghi hoc|bo hoc|nghi di)\b/,
+    /\b(chan qua|chan hoc|luoi qua|luoi hoc|nan qua|met qua nghi|khong them hoc)\b/,
+    /\b(bo qua di|ke di|dep di|tat video|out thoi|thoat thoi)\b/,
+  ];
+  if (distractionPatterns.some((pattern) => pattern.test(norm))) {
+    const isTargetingBo = recipient === 'bo' || rawLower.includes('@bo') || /\bbo\s+oi\b/.test(norm) || norm.includes('voi bo');
+    return {
+      detectedIntent: 'encourage_study_focus',
+      dispatchedAgent: isTargetingBo ? 'bo' : 'minhkhang',
+      confidence: 0.98,
+      reasoning: 'Học sinh có biểu hiện xao nhãng hoặc rủ đi chơi; kích hoạt Bo từ chối lém lỉnh và Cô Lam chấn chỉnh, khích lệ quay lại bài học.',
+      fastPath: true,
+      isDistraction: true,
+    };
+  }
+
+  // 2. Direct @mention overrides
   if (recipient === 'bo' || rawLower.includes('@bo') || /\b(chao bo|hoi bo|bo oi)\b/.test(rawLower)) {
     return {
       detectedIntent: 'challenge_shortcut_fallacy',
@@ -485,7 +505,33 @@ export async function dispatchMessage({
   let followUpResponse = null;
 
   // 3. Thực thi Agent theo Ý định với Try-Catch an toàn
-  if (verdict.detectedIntent === 'sharp_rebuttal') {
+  if (verdict.detectedIntent === 'encourage_study_focus') {
+    let primaryText = '';
+    let authorName = AGENT_DISPLAY_NAMES.minhkhang;
+    let avatar = 'minhkhang';
+
+    if (verdict.dispatchedAgent === 'bo') {
+      authorName = AGENT_DISPLAY_NAMES.bo;
+      avatar = 'bo';
+      primaryText = 'Haha nghe rủ đi chơi tớ cũng ham lắm! Nhưng thôi chết, bài này Thầy Tiến bảo là trọng tâm thi THPT Quốc Gia đó, trốn học là lát nữa làm bài tập toang liền. Ráng ở lại học nốt bài này với tớ đi cậu!';
+    } else {
+      primaryText = 'Khoan đi chơi bạn ơi! Tưởng tượng vectơ như lực đẩy động cơ máy bay vậy, nắm được hướng và độ lớn là giải quyết bài toán mượt mà ngay. Cố gắng theo dõi nốt ví dụ của Thầy Tiến rồi tụi mình xả hơi sau cũng chưa muộn mà!';
+    }
+
+    const coLamEncourageText = 'Cô nghe thấy có bạn rủ nhau đi chơi đấy nhé! Kiến thức vectơ không gian lớp 12 này ban đầu có vẻ hơi trừu tượng, nhưng chỉ cần kiên nhẫn nắm chắc các quy tắc là các em sẽ thấy rất thú vị và tự tin. Cố gắng lên nào, cả lớp cùng tập trung theo dõi tiếp bài giảng của Thầy Tiến nhé!';
+
+    primaryResponse = {
+      author: authorName,
+      avatarId: avatar,
+      text: primaryText,
+    };
+
+    followUpResponse = {
+      author: AGENT_DISPLAY_NAMES.colam,
+      avatarId: 'colam',
+      text: coLamEncourageText,
+    };
+  } else if (verdict.detectedIntent === 'sharp_rebuttal') {
     // CHUỖI LIÊN HOÀN (Chained Sequence): Bo nhận thua -> Cô Lam chốt kiến thức
     let boText = 'Ủa... ừ ha! Cậu nói đúng rồi, tớ quên mất điều kiện cùng hướng! Phục cậu thật đó!';
     let coLamText = 'Rất xuất sắc! Bạn đã chỉ ra chính xác bản chất bất đẳng thức tam giác trong vectơ. Cả lớp nhớ ghi quy tắc vàng này vào vở nhé!';

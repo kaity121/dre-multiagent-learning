@@ -230,7 +230,14 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   const visibleTimelineComments = showAllTimeline ? unpinnedComments : progressiveComments;
 
   const allStreamComments = useMemo(() => {
-    return [...visibleTimelineComments, ...liveChatMessages];
+    const combined = [...visibleTimelineComments, ...liveChatMessages];
+    // Sắp xếp tin nhắn theo tiến trình thời gian video: mốc giây nhỏ hơn nằm trên, mốc giây lớn hơn nằm dưới
+    return combined.slice().sort((a, b) => {
+      if (a.second !== b.second) {
+        return a.second - b.second;
+      }
+      return 0; // Giữ nguyên thứ tự nếu cùng mốc giây (tin nhắn của Bạn trước, AI trả lời sau)
+    });
   }, [visibleTimelineComments, liveChatMessages]);
   const pinnedComment = defaultComments.find((c) => c.isPinned);
 
@@ -356,6 +363,22 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     let replyAuthor = 'Trí';
     let replyText = '';
 
+    const isDistracted =
+      lower.includes('đi chơi') ||
+      lower.includes('di choi') ||
+      lower.includes('học hành gì') ||
+      lower.includes('hoc hanh gi') ||
+      lower.includes('nghỉ thôi') ||
+      lower.includes('nghi thoi') ||
+      lower.includes('chán quá') ||
+      lower.includes('chan qua') ||
+      lower.includes('lười') ||
+      lower.includes('luoi') ||
+      lower.includes('bỏ học') ||
+      lower.includes('bo hoc') ||
+      lower.includes('không học nữa') ||
+      lower.includes('khong hoc nua');
+
     const isSumTrap =
       lower.includes('1 + 1') ||
       lower.includes('1+1') ||
@@ -374,7 +397,17 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       lower.includes('bc + dd') ||
       (lower.includes('tại sao') && (lower.includes('tổng') || lower.includes('độ dài') || lower.includes('vectơ') || lower.includes('vector') || lower.includes('1') || lower.includes('2')));
 
-    if (isSumTrap) {
+    if (isDistracted) {
+      if (target === 'bo' || lower.includes('bo') || lower.includes('@bo')) {
+        replyAuthor = 'Bo';
+        replyText =
+          'Haha nghe rủ đi chơi tớ cũng ham lắm! Nhưng thôi chết, bài này Thầy Tiến bảo là trọng tâm thi THPT Quốc Gia đó, trốn học là lát nữa làm bài tập toang liền. Ráng ở lại học nốt bài này với tớ đi cậu!';
+      } else {
+        replyAuthor = 'Minh Khang';
+        replyText =
+          'Khoan đi chơi bạn ơi! Tưởng tượng vectơ như lực đẩy động cơ máy bay vậy, nắm được hướng và độ lớn là giải quyết bài toán mượt mà ngay. Cố gắng theo dõi nốt ví dụ của Thầy Tiến rồi tụi mình xả hơi sau cũng chưa muộn mà!';
+      }
+    } else if (isSumTrap) {
       replyAuthor = 'Trí';
       replyText =
         "Bản chất ở [37:13] là bất đẳng thức tam giác: |a + b| ≤ |a| + |b|, dấu bằng chỉ xảy ra khi hai vectơ cùng hướng. Ở đây BC và DD' vuông góc nhau trong không gian nên bắt buộc phải gom thành BC' rồi tính độ dài bằng định lý Pytago ra √2 (khoảng 1.41) chứ không thể bằng 1 + 1 = 2 được bạn nhé!";
@@ -542,8 +575,22 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
         ]);
       }, 350);
 
-      // Nếu người học hỏi về bẫy tổng 2 vectơ (Ví dụ 3), Bo tiếp lời sau câu trả lời của Trí để tạo không khí tranh luận lớp học
-      if (isSumTrap) {
+      // Nếu người học có dấu hiệu xao nhãng hoặc rủ đi chơi, Cô Lam lên tiếng chấn chỉnh và khích lệ quay lại bài
+      if (isDistracted) {
+        setTimeout(() => {
+          sound.playBubblePop();
+          setLiveChatMessages((prev) => [
+            ...prev,
+            {
+              id: `reply_colam_${Date.now()}`,
+              second: currentTime,
+              author: 'Cô Lam',
+              role: 'teacher',
+              text: 'Cô nghe thấy có bạn rủ nhau đi chơi đấy nhé! Kiến thức vectơ không gian lớp 12 này ban đầu có vẻ hơi trừu tượng, nhưng chỉ cần kiên nhẫn nắm chắc các quy tắc là các em sẽ thấy rất thú vị và tự tin. Cố gắng lên nào, cả lớp cùng tập trung theo dõi tiếp bài giảng của Thầy Tiến nhé!',
+            },
+          ]);
+        }, 950);
+      } else if (isSumTrap) {
         setTimeout(() => {
           sound.playBubblePop();
           setLiveChatMessages((prev) => [
