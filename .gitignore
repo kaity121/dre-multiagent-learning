@@ -22,3 +22,6 @@ backend/.env*
 Thumbs.db
 __pycache__/
 *.pyc
+.venv/
+*.zip
+_backup_local_teacher_portal/
