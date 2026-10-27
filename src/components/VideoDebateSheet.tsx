@@ -153,6 +153,32 @@ const cleanText = (str?: string) =>
         .trim()
     : '';
 
+interface TypingAgentInfo {
+  name: string;
+  avatarBg: string;
+  initial: string;
+  text: string;
+}
+
+const getAgentMeta = (author: string): TypingAgentInfo => {
+  if (author.includes('Bo')) {
+    return { name: 'Bo', avatarBg: 'bg-[#D97706]', initial: 'B', text: 'Bo đang suy nghĩ & soạn tin...' };
+  }
+  if (author.includes('Trí')) {
+    return { name: 'Trí', avatarBg: 'bg-[#2563EB]', initial: 'T', text: 'Trí đang suy luận & soạn tin...' };
+  }
+  if (author.includes('Linh Chi')) {
+    return { name: 'Linh Chi', avatarBg: 'bg-[#059669]', initial: 'L', text: 'Linh Chi đang tra sổ tay & soạn tin...' };
+  }
+  if (author.includes('Cô Lam')) {
+    return { name: 'Cô Lam', avatarBg: 'bg-[#9333EA]', initial: 'L', text: 'Cô Lam đang chuẩn bị dặn dò & chốt bài...' };
+  }
+  if (author.includes('Trợ giảng') || author.includes('An')) {
+    return { name: 'Trợ giảng An', avatarBg: 'bg-[#047857]', initial: 'A', text: 'Trợ giảng An đang soạn gợi ý...' };
+  }
+  return { name: 'Minh Khang', avatarBg: 'bg-[#DC2626]', initial: 'K', text: 'Minh Khang đang liên hệ thực tế & soạn tin...' };
+};
+
 export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   lesson,
   phase,
@@ -180,6 +206,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   const [userChatInput, setUserChatInput] = useState<string>('');
   const [recipient, setRecipient] = useState<RecipientTarget>('all');
   const [replyingToComment, setReplyingToComment] = useState<TimelineComment | null>(null);
+  const [typingAgent, setTypingAgent] = useState<TypingAgentInfo | null>(null);
   const [isRecipientOpen, setIsRecipientOpen] = useState(false);
   const recipientDropdownRef = useRef<HTMLDivElement | null>(null);
   const chatInputRef = useRef<HTMLInputElement | null>(null);
@@ -209,6 +236,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     setTaHintTier(0);
     setActivePeerNote(null);
     setReplyingToComment(null);
+    setTypingAgent(null);
     prevCommentsCountRef.current = 0;
   }, [lesson.id]);
 
@@ -288,11 +316,11 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   }, [isLectureEnded, onSwitchToStation2]);
 
   useEffect(() => {
-    if (allStreamComments.length > prevCommentsCountRef.current || isLectureEnded) {
+    if (allStreamComments.length > prevCommentsCountRef.current || isLectureEnded || typingAgent) {
       chatStreamEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
     prevCommentsCountRef.current = allStreamComments.length;
-  }, [allStreamComments.length, isLectureEnded]);
+  }, [allStreamComments.length, isLectureEnded, typingAgent]);
 
   // Nhận câu hỏi từ Modal Giơ tay bên Video gửi sang
   useEffect(() => {
@@ -377,6 +405,73 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     let replyAuthor = 'Trí';
     let replyText = '';
 
+    const isOffTopic =
+      lower.includes('quả bóng vàng') ||
+      lower.includes('qua bong vang') ||
+      lower.includes('ballon') ||
+      lower.includes('bóng đá') ||
+      lower.includes('bong da') ||
+      lower.includes('ronaldo') ||
+      lower.includes('messi') ||
+      lower.includes('bellingham') ||
+      lower.includes('vinicius') ||
+      lower.includes('mbappe') ||
+      lower.includes('champions league') ||
+      lower.includes('ngoại hạng anh') ||
+      lower.includes('chính trị') ||
+      lower.includes('tổng thống') ||
+      lower.includes('trump') ||
+      lower.includes('biden') ||
+      lower.includes('game') ||
+      lower.includes('liên quân');
+
+    const isSumTrap =
+      lower.includes('1 + 1') ||
+      lower.includes('1+1') ||
+      lower.includes('chân lý') ||
+      lower.includes('chan ly') ||
+      lower.includes('không bằng') ||
+      lower.includes('ko bằng') ||
+      lower.includes('k bằng') ||
+      lower.includes('khong bang') ||
+      lower.includes('tổng 2') ||
+      lower.includes('tong 2') ||
+      lower.includes('tổng hai') ||
+      lower.includes('bằng 2') ||
+      lower.includes('bằng 1') ||
+      lower.includes('bang 1') ||
+      lower.includes('bang 2') ||
+      lower.includes('tách') ||
+      lower.includes('tach') ||
+      lower.includes('gạch bỏ') ||
+      lower.includes('gach bo') ||
+      lower.includes('gạch') ||
+      lower.includes('bc + dd') ||
+      (lower.includes('tại sao') && (lower.includes('tổng') || lower.includes('độ dài') || lower.includes('vectơ') || lower.includes('vector') || lower.includes('1') || lower.includes('2')));
+
+    const isLineOfVector =
+      lower.includes('giá là') ||
+      lower.includes('gia la') ||
+      lower.includes('giá của') ||
+      lower.includes('gia cua') ||
+      lower.includes('sao gọi là giá') ||
+      lower.includes('sao lai goi la gia') ||
+      lower.includes('giá đỗ') ||
+      lower.includes('gia do') ||
+      (lower.includes('giá') && (lower.includes('vecto') || lower.includes('vector') || lower.includes('độ dài') || lower.includes('giá trị')));
+
+    const isWhyNeedVectors =
+      lower.includes('đoạn thẳng cho khỏe') ||
+      lower.includes('doan thang cho khoe') ||
+      lower.includes('dùng vector làm gì') ||
+      lower.includes('dung vector lam gi') ||
+      lower.includes('dùng vecto làm gì') ||
+      lower.includes('dung vecto lam gi') ||
+      lower.includes('học lại đâu có gì mới') ||
+      lower.includes('hoc lai dau co gi moi') ||
+      lower.includes('khác gì với bài cũ') ||
+      lower.includes('khac gi voi bai cu');
+
     const isZeroVector =
       lower.includes('đâu phải là 0') ||
       lower.includes('dau phai la 0') ||
@@ -408,24 +503,6 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       lower.includes('bo hoc') ||
       lower.includes('không học nữa') ||
       lower.includes('khong hoc nua');
-
-    const isSumTrap =
-      lower.includes('1 + 1') ||
-      lower.includes('1+1') ||
-      lower.includes('không bằng') ||
-      lower.includes('ko bằng') ||
-      lower.includes('k bằng') ||
-      lower.includes('khong bang') ||
-      lower.includes('tổng 2') ||
-      lower.includes('tong 2') ||
-      lower.includes('tổng hai') ||
-      lower.includes('bằng 2') ||
-      lower.includes('bằng 1') ||
-      lower.includes('bang 1') ||
-      lower.includes('bang 2') ||
-      lower.includes('tách') ||
-      lower.includes('bc + dd') ||
-      (lower.includes('tại sao') && (lower.includes('tổng') || lower.includes('độ dài') || lower.includes('vectơ') || lower.includes('vector') || lower.includes('1') || lower.includes('2')));
 
     const isVectorEquality =
       lower.includes('ab ba') ||
@@ -460,7 +537,35 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       lower.includes('giống hệt lớp 10') ||
       lower.includes('giong het lop 10');
 
-    if (isZeroVector) {
+    if (isOffTopic) {
+      replyAuthor = 'Minh Khang';
+      const isBallon = lower.includes('quả bóng vàng') || lower.includes('qua bong vang') || lower.includes('ballon');
+      replyText = isBallon
+        ? 'À về Quả Bóng Vàng thì làng túc cầu vẫn luôn tranh luận sôi nổi giữa các siêu sao như Bellingham, Vinicius, Mbappe hay Rodri... Nhưng mà cậu ơi! Trận cầu đinh lúc này là bài giảng Vectơ không gian của Thầy Tiến kìa! Cùng tập trung xem tiếp ví dụ của Thầy Tiến để không bị "thủng lưới" trong bài kiểm tra nhé!'
+        : 'Chủ đề này nghe thú vị ghê! Nhưng tụi mình đang trong tiết học trực tiếp của Thầy Tiến nè, bài này nhiều bẫy lắm, ráng tập trung theo dõi nốt ví dụ rồi lát nữa tha hồ bàn luận nhé bạn!';
+    } else if (isSumTrap) {
+      if (target === 'bo' || lower.includes('@bo')) {
+        replyAuthor = 'Bo';
+        replyText = 'Ủa... lúc đầu tớ cũng nghĩ 1 + 1 = 2 là chân lý hiển nhiên thì cứ thế mà cộng độ dài cho lẹ! Ai ngờ bị Thầy Tiến gạch bỏ cái rụp... Cậu nghe Trí giải thích lý do này:';
+      } else {
+        replyAuthor = 'Trí';
+        replyText =
+          'Trong số học thông thường thì 1 + 1 = 2 đúng là chân lý! Nhưng trong VECTƠ, Thầy Tiến gạch bỏ biểu thức |BC + DD\'| = 1 + 1 = 2 vì độ dài của tổng KHÔNG ĐƯỢC tách tuỳ tiện thành tổng hai độ dài:\nTheo bất đẳng thức tam giác: |a + b| ≤ |a| + |b|, dấu bằng "chân lý" đó CHỈ XẢY RA KHI hai vectơ a và b CÙNG HƯỚNG!\nTrong Ví dụ 3, BC và DD\' vuông góc nhau trong không gian. Muốn tính độ dài, bắt buộc phải thay DD\' = CC\' để nối tiếp thành BC + CC\' = BC\', sau đó áp dụng định lý Pytago tính đường chéo mặt bên: |BC\'| = √(1² + 1²) = √2 (khoảng 1.41) chứ tuyệt đối không thể bằng 2 được bạn nhé!';
+      }
+    } else if (isLineOfVector) {
+      if (lower.includes('giá đỗ') || lower.includes('gia do')) {
+        replyAuthor = 'Bo';
+        replyText = 'Haha giá đỗ xào thịt bò thì ngon chứ trong hình học không có giá đỗ đâu nha bạn ơi! 😂 Tớ từng bị Thầy Tiến nhắc nhở chỗ này nè:';
+      } else {
+        replyAuthor = 'Trí';
+        replyText =
+          'Nhầm to rồi bạn ơi! Trong toán học, "GIÁ" của vectơ KHÔNG PHẢI là "giá trị" đại số và cũng KHÔNG PHẢI là "độ dài" của vectơ!\nĐịnh nghĩa chuẩn của SGK nè: Giá của vectơ AB là ĐƯỜNG THẲNG đi qua hai điểm A và B (đường thẳng mang vectơ đó). Đường thẳng này kéo dài vô tận về hai phía, còn vectơ AB chỉ là một đoạn thẳng có hướng nằm trên đường thẳng đó thôi bạn nhé!';
+      }
+    } else if (isWhyNeedVectors) {
+      replyAuthor = 'Trí';
+      replyText =
+        'Câu hỏi rất thực tế! Nếu chỉ dùng đoạn thẳng, bạn chỉ biết khoảng cách giữa hai điểm nhưng hoàn toàn KHÔNG BIẾT hướng chuyển động hay lực tác dụng: Đi từ Hà Nội vào Đà Nẵng khác hẳn bay ngược lại dù đoạn thẳng như nhau.\nĐặc biệt trong không gian 3D, vật thể có thêm chiều cao (trục Oz). Vectơ chính là công cụ duy nhất giúp định vị chính xác độ dời, lực đẩy động cơ hay quỹ đạo máy bay trong không gian 3 chiều mà đoạn thẳng vô hướng không thể làm được!';
+    } else if (isZeroVector) {
       replyAuthor = 'Trí';
       replyText =
         'Câu hỏi của bạn cực kỳ sắc sảo và chạm đúng bản chất vật lý! Bạn cần phân biệt rạch ròi giữa QUÃNG ĐƯỜNG và ĐỘ DỜI (vectơ):\n1. Về QUÃNG ĐƯỜNG (vô hướng): Khi bạn đi từ Nhà (A) đến Trường (B) rồi từ Trường về Nhà (A), đồng hồ xe vẫn đo được độ dài đã đi (quãng đường s = |AB| + |BA| > 0).\n2. Nhưng về ĐỘ DỜI (vectơ): Vectơ chỉ quan tâm đến vị trí điểm đầu và điểm cuối! Điểm xuất phát là Nhà (A), điểm kết thúc cũng là Nhà (A). Vectơ tổng là vectơ AB + vectơ BA = vectơ AA = vectơ 0! Vectơ-không ở đây cho thấy sau cả hành trình khép kín, vị trí tổng thể của bạn không hề bị dịch chuyển so với ban đầu!';
@@ -488,10 +593,6 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       replyAuthor = 'Trí';
       replyText =
         'Bạn thấy giống lớp 10 nên nghĩ nó đơn giản đúng không? Vậy tớ đố bạn câu này để xem không gian 3D khác biệt thế nào nhé: Trong 2D hai đường thẳng không cắt nhau thì song song. Nhưng trong không gian 3D căn phòng bạn ngồi, hai đường thẳng CHÉO NHAU (không song song, không cắt nhau) thì góc giữa hai vectơ của chúng được tính thế nào? Và liệu hai vectơ có thể VUÔNG GÓC dù không bao giờ chạm nhau không?';
-    } else if (isSumTrap) {
-      replyAuthor = 'Trí';
-      replyText =
-        "Bản chất ở [37:13] là bất đẳng thức tam giác: |a + b| ≤ |a| + |b|, dấu bằng chỉ xảy ra khi hai vectơ cùng hướng. Ở đây BC và DD' vuông góc nhau trong không gian nên bắt buộc phải gom thành BC' rồi tính độ dài bằng định lý Pytago ra √2 (khoảng 1.41) chứ không thể bằng 1 + 1 = 2 được bạn nhé!";
     } else if (target === 'bo' || lower.includes('bo') || lower.includes('@bo')) {
       replyAuthor = 'Bo';
       replyText =
@@ -555,6 +656,30 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       }
     }
 
+    // Xác định tên bạn học AI sẽ trả lời trước để hiển thị trạng thái đang soạn tin (Live Typing Indicator)
+    const initialRespondentName =
+      target === 'bo'
+        ? 'Bo'
+        : target === 'tri'
+        ? 'Trí'
+        : target === 'linhchi'
+        ? 'Linh Chi'
+        : target === 'minhkhang'
+        ? 'Minh Khang'
+        : target === 'colam'
+        ? 'Cô Lam'
+        : target === 'an'
+        ? 'Trợ giảng An'
+        : isOffTopic || isDistracted
+        ? 'Minh Khang'
+        : (target === 'all' && (isSumTrap || isLineOfVector || isWhyNeedVectors))
+        ? replyAuthor
+        : lower.includes('bo') || lower.includes('@bo')
+        ? 'Bo'
+        : 'Trí';
+
+    setTypingAgent(getAgentMeta(initialRespondentName));
+
     const isMathVerificationNeeded = target === 'tri' || 
       text.toLowerCase().includes('độ dài') || 
       text.toLowerCase().includes('do dai') || 
@@ -613,11 +738,13 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           const followUpText = followUp?.text || aiRes.followUpBoText;
           if (followUpText) {
             const followUpAuthor = followUp?.author || 'Cô Lam';
+            setTypingAgent(getAgentMeta(followUpAuthor));
             const isFollowUpTeacher = followUpAuthor.includes('Cô Lam');
             const isFollowUpTa = followUpAuthor.includes('Trợ giảng');
             const followUpRole = isFollowUpTeacher ? 'teacher' : isFollowUpTa ? 'ta' : 'classmate';
             setTimeout(() => {
               sound.playBubblePop();
+              setTypingAgent(null);
               setLiveChatMessages((prev) => [
                 ...prev,
                 {
@@ -634,6 +761,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                 },
               ]);
             }, 800);
+          } else {
+            setTypingAgent(null);
           }
           return;
         }
@@ -646,6 +775,48 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       });
 
     function runLocalReplySimulation() {
+      // Xác định bạn học kế tiếp sẽ tiếp lời
+      let localFollowAuthor = '';
+      let localFollowText = '';
+
+      if (isOffTopic) {
+        localFollowAuthor = 'Cô Lam';
+        localFollowText = 'Cô thấy lớp mình bàn luận rất rôm rả! Tuy nhiên hình học không gian đòi hỏi trí tưởng tượng và sự tập trung cao độ. Cả lớp cùng hướng mắt lên màn hình tiếp tục theo dõi bài giảng của Thầy Tiến nhé!';
+      } else if (isSumTrap) {
+        if (target === 'bo' || lower.includes('@bo')) {
+          localFollowAuthor = 'Trí';
+          localFollowText = 'Trong số học thông thường thì 1 + 1 = 2 đúng là chân lý! Nhưng trong VECTƠ, Thầy Tiến gạch bỏ biểu thức |BC + DD\'| = 1 + 1 = 2 vì độ dài của tổng KHÔNG ĐƯỢC tách tuỳ tiện thành tổng hai độ dài:\nTheo bất đẳng thức tam giác: |a + b| ≤ |a| + |b|, dấu bằng "chân lý" đó CHỈ XẢY RA KHI hai vectơ a và b CÙNG HƯỚNG!\nTrong Ví dụ 3, BC và DD\' vuông góc nhau trong không gian. Muốn tính độ dài, bắt buộc phải thay DD\' = CC\' để nối tiếp thành BC + CC\' = BC\', sau đó áp dụng định lý Pytago tính đường chéo mặt bên: |BC\'| = √(1² + 1²) = √2 (khoảng 1.41) chứ tuyệt đối không thể bằng 2 được bạn nhé!';
+        } else {
+          localFollowAuthor = 'Cô Lam';
+          localFollowText = 'Trí giải thích rất chuẩn xác! Các em cần ghi nhớ thật kỹ: Tuyệt đối không được nhầm lẫn giữa phép cộng đại số thông thường và độ dài của tổng vectơ. Dấu bằng |a + b| = |a| + |b| chỉ đúng khi hai vectơ cùng hướng thôi nhé!';
+        }
+      } else if (isLineOfVector) {
+        if (lower.includes('giá đỗ') || lower.includes('gia do')) {
+          localFollowAuthor = 'Linh Chi';
+          localFollowText = 'Giá của vectơ AB là đường thẳng vô hạn đi qua hai điểm A và B nhé các bạn. Từ Hán-Việt "giá" ở đây có nghĩa là cái giá đỡ, đường thẳng mang vectơ nằm trên đó!';
+        } else {
+          localFollowAuthor = 'Minh Khang';
+          localFollowText = 'Tớ lấy ví dụ cho dễ nhớ nè: Tưởng tượng con tàu chạy từ ga A đến ga B là vectơ AB (có hướng đi và độ dài hành trình). Còn hai thanh ray kéo dài tít tắp trên mặt đất chính là GIÁ của vectơ đó! Con tàu chỉ chạy trên thanh ray ấy thôi!';
+        }
+      } else if (isWhyNeedVectors) {
+        localFollowAuthor = 'Minh Khang';
+        localFollowText = 'Chuẩn luôn! Giống như bạn mở Google Maps ấy, nếu bản đồ chỉ hiện đoạn thẳng thì bạn đâu biết phải quẹo hướng nào. Mũi tên vectơ màu xanh chỉ đường mới giúp bạn đi đúng hướng đến đích được chứ!';
+      } else if (isZeroVector) {
+        localFollowAuthor = 'Minh Khang';
+        localFollowText = 'Chuẩn luôn Trí ơi! Giống như bạn chạy bộ trên máy tập gym 5km: mồ hôi nhễ nhại, tiêu hao 300 calo (quãng đường 5km), nhưng bước xuống máy thì vị trí bạn vẫn đứng yên trong phòng tập (vectơ độ dời = 0)! Vectơ chỉ nhìn điểm đầu và điểm cuối thôi bạn ơi!';
+      } else if (isDistracted) {
+        localFollowAuthor = 'Cô Lam';
+        localFollowText = 'Cô nghe thấy có bạn rủ nhau đi chơi đấy nhé! Kiến thức vectơ không gian lớp 12 này ban đầu có vẻ hơi trừu tượng, nhưng chỉ cần kiên nhẫn nắm chắc các quy tắc là các em sẽ thấy rất thú vị và tự tin. Cố gắng lên nào, cả lớp cùng tập trung theo dõi tiếp bài giảng của Thầy Tiến nhé!';
+      } else if (isVectorEquality) {
+        localFollowAuthor = target === 'bo' || lower.includes('@bo') ? 'Trí' : 'Minh Khang';
+        localFollowText = target === 'bo' || lower.includes('@bo')
+          ? 'Đoạn thẳng không phân biệt thứ tự nên độ dài |AB| = |BA|. Nhưng VECTƠ có điểm đầu và điểm cuối: vectơ AB đi từ A đến B, còn vectơ BA đi từ B về A. Hai vectơ này ngược hướng nhau (vectơ AB = - vectơ BA) nên không thể bằng nhau được bạn nhé!'
+          : 'Chuẩn đó Trí! Cứ liên tưởng vé máy bay từ Đà Nẵng (A) ra Hà Nội (B) thì đưa bạn ra Thủ đô, còn bay từ Hà Nội (B) về Đà Nẵng (A) là về ngắm biển. Quãng đường bằng nhau nhưng bay ngược hướng là tới hai nơi hoàn toàn khác nhau liền!';
+      } else if (isTrivializingOrBored) {
+        localFollowAuthor = 'Cô Lam';
+        localFollowText = 'Cô rất thích sự tự tin của em! Nhưng không gian 3 chiều mở ra một thế giới hình học hoàn toàn mới và rất nhiều điều kỳ thú. Cùng kiên nhẫn theo dõi tiếp bài giảng của Thầy Tiến để khám phá nhé!';
+      }
+
       setTimeout(() => {
         sound.playBubblePop();
         const attachedToolCall = isMathVerificationNeeded ? {
@@ -654,13 +825,17 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D: a√2)',
         } : null;
 
+        const isPrimaryTeacher = replyAuthor.includes('Cô Lam');
+        const isPrimaryTa = replyAuthor.includes('Trợ giảng');
+        const primaryRole = isPrimaryTeacher ? 'teacher' : isPrimaryTa ? 'ta' : 'classmate';
+
         setLiveChatMessages((prev) => [
           ...prev,
           {
             id: `reply_${Date.now()}`,
             second: currentTime,
             author: replyAuthor,
-            role: 'classmate',
+            role: primaryRole,
             text: replyText,
             toolCall: attachedToolCall,
             replyTo: {
@@ -670,19 +845,30 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             },
           },
         ]);
+
+        if (localFollowAuthor && localFollowText) {
+          setTypingAgent(getAgentMeta(localFollowAuthor));
+        } else {
+          setTypingAgent(null);
+        }
       }, 350);
 
-      if (isZeroVector) {
+      if (localFollowAuthor && localFollowText) {
         setTimeout(() => {
           sound.playBubblePop();
+          setTypingAgent(null);
+          const isFollowUpTeacher = localFollowAuthor.includes('Cô Lam');
+          const isFollowUpTa = localFollowAuthor.includes('Trợ giảng');
+          const followRole = isFollowUpTeacher ? 'teacher' : isFollowUpTa ? 'ta' : 'classmate';
+
           setLiveChatMessages((prev) => [
             ...prev,
             {
-              id: `reply_khang_${Date.now()}`,
+              id: `reply_local_follow_${Date.now()}`,
               second: currentTime,
-              author: 'Minh Khang',
-              role: 'classmate',
-              text: 'Chuẩn luôn Trí ơi! Giống như bạn chạy bộ trên máy tập gym 5km: mồ hôi nhễ nhại, tiêu hao 300 calo (quãng đường 5km), nhưng bước xuống máy thì vị trí bạn vẫn đứng yên trong phòng tập (vectơ độ dời = 0)! Vectơ chỉ nhìn điểm đầu và điểm cuối thôi bạn ơi!',
+              author: localFollowAuthor,
+              role: followRole,
+              text: localFollowText,
               replyTo: {
                 id: newMsg.id,
                 author: newMsg.author,
@@ -691,88 +877,6 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             },
           ]);
         }, 850);
-      } else if (isDistracted) {
-        // Nếu người học có dấu hiệu xao nhãng hoặc rủ đi chơi, Cô Lam lên tiếng chấn chỉnh và khích lệ quay lại bài
-        setTimeout(() => {
-          sound.playBubblePop();
-          setLiveChatMessages((prev) => [
-            ...prev,
-            {
-              id: `reply_colam_${Date.now()}`,
-              second: currentTime,
-              author: 'Cô Lam',
-              role: 'teacher',
-              text: 'Cô nghe thấy có bạn rủ nhau đi chơi đấy nhé! Kiến thức vectơ không gian lớp 12 này ban đầu có vẻ hơi trừu tượng, nhưng chỉ cần kiên nhẫn nắm chắc các quy tắc là các em sẽ thấy rất thú vị và tự tin. Cố gắng lên nào, cả lớp cùng tập trung theo dõi tiếp bài giảng của Thầy Tiến nhé!',
-              replyTo: {
-                id: newMsg.id,
-                author: newMsg.author,
-                text: newMsg.text,
-              },
-            },
-          ]);
-        }, 950);
-      } else if (isVectorEquality) {
-        setTimeout(() => {
-          sound.playBubblePop();
-          const followAuthor = target === 'bo' || lower.includes('@bo') ? 'Trí' : 'Minh Khang';
-          const followText =
-            target === 'bo' || lower.includes('@bo')
-              ? 'Đoạn thẳng không phân biệt thứ tự nên độ dài |AB| = |BA|. Nhưng VECTƠ có điểm đầu và điểm cuối: vectơ AB đi từ A đến B, còn vectơ BA đi từ B về A. Hai vectơ này ngược hướng nhau (vectơ AB = - vectơ BA) nên không thể bằng nhau được bạn nhé!'
-              : 'Chuẩn đó Trí! Cứ liên tưởng vé máy bay từ Đà Nẵng (A) ra Hà Nội (B) thì đưa bạn ra Thủ đô, còn bay từ Hà Nội (B) về Đà Nẵng (A) là về ngắm biển. Quãng đường bằng nhau nhưng bay ngược hướng là tới hai nơi hoàn toàn khác nhau liền!';
-          setLiveChatMessages((prev) => [
-            ...prev,
-            {
-              id: `reply_follow_${Date.now()}`,
-              second: currentTime,
-              author: followAuthor,
-              role: 'classmate',
-              text: followText,
-              replyTo: {
-                id: newMsg.id,
-                author: newMsg.author,
-                text: newMsg.text,
-              },
-            },
-          ]);
-        }, 850);
-      } else if (isTrivializingOrBored) {
-        setTimeout(() => {
-          sound.playBubblePop();
-          setLiveChatMessages((prev) => [
-            ...prev,
-            {
-              id: `reply_colam_${Date.now()}`,
-              second: currentTime,
-              author: 'Cô Lam',
-              role: 'teacher',
-              text: 'Cô rất thích sự tự tin của em! Nhưng không gian 3 chiều mở ra một thế giới hình học hoàn toàn mới và rất nhiều điều kỳ thú. Cùng kiên nhẫn theo dõi tiếp bài giảng của Thầy Tiến để khám phá nhé!',
-              replyTo: {
-                id: newMsg.id,
-                author: newMsg.author,
-                text: newMsg.text,
-              },
-            },
-          ]);
-        }, 900);
-      } else if (isSumTrap) {
-        setTimeout(() => {
-          sound.playBubblePop();
-          setLiveChatMessages((prev) => [
-            ...prev,
-            {
-              id: `reply_bo_${Date.now()}`,
-              second: currentTime,
-              author: 'Bo',
-              role: 'classmate',
-              text: "Đó cũng là điều tớ từng thắc mắc đấy! Tớ cứ tưởng nhìn thấy hai cạnh bằng 1 thì cộng đại 1 + 1 = 2 luôn cho nhanh, nghe Trí giải thích Pytago mới sáng tỏ!",
-              replyTo: {
-                id: newMsg.id,
-                author: newMsg.author,
-                text: newMsg.text,
-              },
-            },
-          ]);
-        }, 950);
       }
     }
   };
@@ -1372,6 +1476,23 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                   >
                     <span>↺ Xem lại từ đầu</span>
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* Live Typing Indicator */}
+            {typingAgent && (
+              <div className="flex items-center gap-2.5 px-3 py-2 bg-stone-50/90 rounded-2xl border border-stone-200/90 w-fit animate-in fade-in duration-200 shadow-2xs">
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 ${typingAgent.avatarBg}`}>
+                  {typingAgent.initial}
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-stone-600 font-medium">
+                  <span>{typingAgent.text}</span>
+                  <span className="flex items-center gap-0.5 ml-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-stone-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-stone-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-stone-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </span>
                 </div>
               </div>
             )}

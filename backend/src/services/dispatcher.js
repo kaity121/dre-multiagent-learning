@@ -79,13 +79,109 @@ export function hasSubstantiatedMathReason(normText) {
 }
 
 /**
+ * Cung cấp ngữ cảnh bài giảng toán 12 theo mốc thời gian video
+ */
+export function getVideoLectureContext(currentTime) {
+  const sec = Number(currentTime) || 0;
+  if (sec < 75) { // 0:00 - 1:15
+    return {
+      segment: 'intro_2d_to_3d',
+      title: 'Giới thiệu & Mở rộng từ 2D lên 3D',
+      keyConcept: 'Chiều thứ 3 (trục Z, độ cao, không gian 3 chiều)',
+      commonMisconception: 'Nghĩ rằng vectơ không gian giống hệt 2D phẳng, không có gì mới.',
+    };
+  }
+  if (sec < 175) { // 1:15 - 2:55
+    return {
+      segment: 'vector_definition',
+      title: 'Định nghĩa Vectơ trong không gian',
+      keyConcept: 'Đoạn thẳng có hướng: Điểm đầu (gốc), Điểm cuối (ngọn), Ký hiệu vectơ AB. AB ≠ BA.',
+      commonMisconception: 'Nhầm đoạn thẳng vô hướng (AB = BA) với vectơ có hướng (vectơ AB = - vectơ BA).',
+    };
+  }
+  if (sec < 255) { // 2:55 - 4:15
+    return {
+      segment: 'line_of_vector',
+      title: 'Giá của Vectơ',
+      keyConcept: 'Giá của vectơ AB là đường thẳng vô hạn đi qua hai điểm A và B. Không phải giá trị số, không phải độ dài.',
+      commonMisconception: 'Nghĩ "giá" là "giá trị" hoặc "độ dài" của vectơ, hoặc đùa "giá đỗ".',
+    };
+  }
+  if (sec < 330) { // 4:15 - 5:30
+    return {
+      segment: 'collinear_vectors',
+      title: 'Vectơ cùng phương và cùng hướng',
+      keyConcept: 'Cùng phương = giá song song hoặc trùng nhau. Chỉ khi cùng phương mới xét cùng hướng hoặc ngược hướng.',
+      commonMisconception: 'Hai vectơ có đường thẳng chéo nhau trong 3D thì không cùng phương, không có khái niệm cùng hay ngược chiều.',
+    };
+  }
+  if (sec < 690) { // 5:30 - 11:30
+    return {
+      segment: 'zero_vector',
+      title: 'Vectơ-không và Độ dời',
+      keyConcept: 'Vectơ-không có điểm đầu trùng điểm cuối (vectơ AA = 0), độ dài bằng 0. Quãng đường s > 0 nhưng độ dời = 0.',
+      commonMisconception: 'Đi một vòng rồi về chỗ cũ có quãng đường > 0 nên thắc mắc tại sao vectơ lại bằng 0.',
+    };
+  }
+  if (sec < 1350) { // 11:30 - 22:30
+    return {
+      segment: 'equal_vectors',
+      title: 'Hai vectơ bằng nhau trong không gian',
+      keyConcept: 'Hai vectơ bằng nhau khi cùng hướng VÀ cùng độ dài. Có thể tịnh tiến tự do trong không gian.',
+      commonMisconception: 'Chỉ cần cùng độ dài là kết luận bằng nhau mà bỏ qua hướng.',
+    };
+  }
+  if (sec < 2233) { // 22:30 - 37:13
+    return {
+      segment: 'vector_addition_rules',
+      title: 'Phép cộng vectơ: Quy tắc 3 điểm & Quy tắc hình bình hành / hình hộp',
+      keyConcept: 'Quy tắc 3 điểm (nối tiếp): AB + BC = AC. Quy tắc hình hộp: AB + AD + AA\' = AC\'.',
+      commonMisconception: 'Cộng tuỳ tiện không đúng đỉnh chung hoặc không nối tiếp.',
+    };
+  }
+  if (sec < 3134) { // 37:13 - 52:14
+    return {
+      segment: 'example_3_sum_trap',
+      title: 'Ví dụ 3: Độ dài tổng vectơ & Bất đẳng thức tam giác',
+      keyConcept: '|a + b| ≤ |a| + |b|, dấu bằng chỉ khi a và b cùng hướng. Không được tách độ dài tổng thành tổng hai độ dài.',
+      commonMisconception: 'Nghĩ 1+1=2 là chân lý nên tách |BC + DD\'| = |BC| + |DD\'| = 1 + 1 = 2; thắc mắc sao Thầy Tiến gạch bỏ.',
+    };
+  }
+  return { // 52:14+
+    segment: 'vector_subtraction_rules',
+    title: 'Phép trừ vectơ & Nhân vectơ với một số',
+    keyConcept: 'Quy tắc hiệu: "Chung đầu - Lộn ngược" (AB - AC = CB).',
+    commonMisconception: 'Trừ vectơ lấy nhầm ngọn trước trừ gốc sau hoặc ngược chiều.',
+  };
+}
+
+/**
  * TẦNG 1: Heuristic / Regex Fast-Path Classifier (0ms latency)
  */
 export function classifyHeuristic(message, recipient = 'all') {
   const rawLower = String(message || '').toLowerCase().trim();
   const norm = normalizeText(message);
 
-  // 1. Nhận diện học sinh xao nhãng, rủ đi chơi, chán học, muốn bỏ cuộc -> Kéo về bài học & Khích lệ
+  // 1. Nhận diện câu hỏi ngoài lề (Off-topic): Thể thao, Quả bóng vàng, Cầu thủ, Chính trị, Game, Đời sống...
+  const offTopicPatterns = [
+    /\b(qua bong vang|ballon d'?or|bong da|cau thu|ronaldo|messi|bellingham|vinicius|mbappe|rodri|ngoai hang anh|champions league|world cup)\b/,
+    /\b(tong thong|bau cu|trump|donald trump|biden|chinh tri)\b/,
+    /\b(game|choi game|lien quan|toc chien|free fire|pubg|dota|csgo|fifa)\b/,
+    /\b(dien vien|ca si|idol|showbiz|rap viet|tiktok)\b/,
+  ];
+  if (offTopicPatterns.some((pattern) => pattern.test(norm))) {
+    const isTargetingBo = recipient === 'bo' || rawLower.includes('@bo');
+    return {
+      detectedIntent: 'encourage_study_focus',
+      dispatchedAgent: isTargetingBo ? 'bo' : 'minhkhang',
+      confidence: 0.98,
+      reasoning: 'Học sinh hỏi chủ đề ngoài lề (thể thao, đời sống, người nổi tiếng); Minh Khang giải đáp ngắn gọn và khéo léo kéo học sinh quay lại bài học.',
+      fastPath: true,
+      isOffTopic: true,
+    };
+  }
+
+  // 2. Nhận diện học sinh xao nhãng, rủ đi chơi, chán học, muốn bỏ cuộc -> Kéo về bài học & Khích lệ
   const distractionPatterns = [
     /\b(di choi|di net|di game|di ngu|di an|da banh|di ca phe|di luon|tron hoc)\b/,
     /\b(hoc hanh gi|hoc lam gi|khong hoc nua|nghi thoi|nghi hoc|bo hoc|nghi di)\b/,
@@ -104,7 +200,69 @@ export function classifyHeuristic(message, recipient = 'all') {
     };
   }
 
-  // 2. Nhận diện ngộ nhận về định nghĩa vectơ, hướng vectơ và so sánh đoạn thẳng với vectơ (AB vs BA)
+  // 3. Nhận diện ngộ nhận về "1 + 1 = 2 là chân lý" / "sao thầy gạch bỏ" / "tách ra bình thường mà" trong cộng vectơ
+  const sumOnePlusOnePatterns = [
+    /1\s*\+\s*1\s*=\s*2/,
+    /1\s*\+\s*1/,
+    /\b(chan ly|chan li)\b/,
+    /\b(sao thay lai gach|sao thay gach|sao lai gach bo|sao gach bo|sao bi gach)\b/,
+    /\b(tach ra binh thuong|sao khong tach|tach ra duoc ma|sao khong cong do dai|cong do dai tung cai)\b/,
+    /\b(bc\s*\+\s*dd|dd\s*\+\s*bc)\b/,
+  ];
+  const isSumOnePlusOneTopic =
+    sumOnePlusOnePatterns.some((pattern) => pattern.test(norm)) &&
+    (norm.includes('1 + 1') || norm.includes('1+1') || norm.includes('chan ly') || norm.includes('gach') || norm.includes('tach') || norm.includes('bc') || norm.includes('dd'));
+  if (isSumOnePlusOneTopic) {
+    const isTargetingBo = recipient === 'bo' || rawLower.includes('@bo');
+    return {
+      detectedIntent: 'ask_deep_concept',
+      dispatchedAgent: isTargetingBo ? 'bo' : 'tri',
+      confidence: 0.98,
+      reasoning: 'Học sinh thắc mắc tại sao 1+1=2 là chân lý mà Thầy Tiến lại gạch bỏ phép tách độ dài |BC + DD\'|; Trí phân tích rạch ròi giữa số học vô hướng và bất đẳng thức tam giác trong vectơ.',
+      fastPath: true,
+      isSumOnePlusOneTopic: true,
+    };
+  }
+
+  // 4. Nhận diện ngộ nhận về "Giá của vectơ" (Line of vector): Giá là giá trị, độ dài, hoặc đùa "giá đỗ"
+  const lineOfVectorPatterns = [
+    /\b(gia cua vecto|gia cua vector|gia vecto|gia vector)\b/,
+    /\b(gia la gia tri|gia la do dai|la do dai cua vector|la do dai cua vecto|gia la gi|sao goi la gia|sao lai goi la gia)\b/,
+    /\b(gia do|gia la gia do)\b/,
+  ];
+  const isLineOfVectorTopic =
+    lineOfVectorPatterns.some((pattern) => pattern.test(norm)) ||
+    ((norm.includes('gia') || norm.includes('gia tri') || norm.includes('do dai')) && (norm.includes('vecto') || norm.includes('vector')) && (norm.includes('la gi') || norm.includes('la do dai') || norm.includes('la gia tri') || norm.includes('gia do') || norm.includes('sao goi')));
+  if (isLineOfVectorTopic) {
+    const isTargetingBo = recipient === 'bo' || rawLower.includes('@bo');
+    return {
+      detectedIntent: 'ask_deep_concept',
+      dispatchedAgent: isTargetingBo ? 'bo' : 'tri',
+      confidence: 0.98,
+      reasoning: 'Học sinh thắc mắc hoặc ngộ nhận về "Giá của vectơ" (nhầm là giá trị/độ dài/giá đỗ); Trí hoặc Linh Chi đính chính định nghĩa đường thẳng chứa vectơ.',
+      fastPath: true,
+      isLineOfVectorTopic: true,
+    };
+  }
+
+  // 5. Nhận diện câu hỏi "Tại sao phải học vectơ" / "sao không dùng đoạn thẳng cho khỏe" / "khác gì bài cũ"
+  const whyNeedVectorsPatterns = [
+    /\b(dung doan thang cho khoe|sao khong dung doan thang|dung doan thang duoc roi)\b/,
+    /\b(dung vector lam gi|dung vecto lam gi|hoc vector lam gi|hoc vecto lam gi|sao phai dung vecto|sao phai dung vector)\b/,
+    /\b(hoc lai dau co gi moi|hoc them dau co gi moi|khac gi voi bai cu|khac gi bai cu)\b/,
+  ];
+  if (whyNeedVectorsPatterns.some((pattern) => pattern.test(norm))) {
+    return {
+      detectedIntent: 'ask_deep_concept',
+      dispatchedAgent: 'tri',
+      confidence: 0.97,
+      reasoning: 'Học sinh băn khoăn lý do cần dùng vectơ thay vì đoạn thẳng trong không gian 3 chiều; Trí phân tích bậc tự do và hướng lực/vận tốc, Minh Khang liên hệ drone/Google Maps.',
+      fastPath: true,
+      isWhyNeedVectorsTopic: true,
+    };
+  }
+
+  // 6. Nhận diện ngộ nhận về định nghĩa vectơ, hướng vectơ và so sánh đoạn thẳng với vectơ (AB vs BA)
   const vectorEqualityPatterns = [
     /\b(ab ba|ba ab)\b/,
     /\b(vecto ab|vecto ba|vector ab|vector ba)\b/,
@@ -129,7 +287,7 @@ export function classifyHeuristic(message, recipient = 'all') {
     };
   }
 
-  // 2b. Nhận diện thắc mắc về Vectơ-không (Zero Vector): Hành trình khép kín, Quãng đường (s > 0) vs Vectơ Độ dời (vectơ AA = 0)
+  // 7. Nhận diện thắc mắc về Vectơ-không (Zero Vector): Hành trình khép kín, Quãng đường (s > 0) vs Vectơ Độ dời (vectơ AA = 0)
   const zeroVectorDisplacementPatterns = [
     /\b(tu c ve a|tu a ve a|ve cho cu|ve lai diem dau|ve nha)\b/,
     /\b(toi truong roi ve nha|di toi truong|di hoc roi ve)\b/,
@@ -153,7 +311,7 @@ export function classifyHeuristic(message, recipient = 'all') {
     };
   }
 
-  // 3. Nhận diện học sinh xem thường kiến thức, bảo dễ/chán, giống hệt lớp 10 -> Kích thích tư duy bằng nghịch lý 3D
+  // 8. Nhận diện học sinh xem thường kiến thức, bảo dễ/chán, giống hệt lớp 10 -> Kích thích tư duy bằng nghịch lý 3D
   const trivializationPatterns = [
     /\b(quan trong gi dau|co gi dau ma|don gian qua|de qua|de ec|de ot)\b/,
     /\b(giong het thoi|giong het lop 10|giong lop 10|co khac gi dau|tuong the nao)\b/,
@@ -570,7 +728,89 @@ export async function dispatchMessage({
   let followUpResponse = null;
 
   // 3. Thực thi Agent theo Ý định với Try-Catch an toàn
-  if (verdict.isZeroVectorTopic) {
+  const normMessage = normalizeText(message);
+
+  if (verdict.isOffTopic) {
+    const isBallonDor = normMessage.includes('qua bong vang') || normMessage.includes('ballon');
+    let mkText = isBallonDor
+      ? 'À về Quả Bóng Vàng thì làng túc cầu vẫn luôn tranh luận sôi nổi giữa các siêu sao như Bellingham, Vinicius, Mbappe hay Rodri... Nhưng mà cậu ơi! Trận cầu đinh lúc này là bài giảng Vectơ không gian của Thầy Tiến kìa! Cùng tập trung xem tiếp ví dụ của Thầy Tiến để không bị "thủng lưới" trong bài kiểm tra nhé!'
+      : 'Chủ đề này nghe thú vị ghê! Nhưng tụi mình đang trong tiết học trực tiếp của Thầy Tiến nè, bài này nhiều bẫy lắm, ráng tập trung theo dõi nốt ví dụ rồi lát nữa tha hồ bàn luận nhé bạn!';
+
+    primaryResponse = {
+      author: AGENT_DISPLAY_NAMES.minhkhang,
+      avatarId: 'minhkhang',
+      text: mkText,
+    };
+    followUpResponse = {
+      author: AGENT_DISPLAY_NAMES.colam,
+      avatarId: 'colam',
+      text: 'Cô thấy lớp mình bàn luận rất rôm rả! Tuy nhiên hình học không gian đòi hỏi trí tưởng tượng và sự tập trung cao độ. Cả lớp cùng hướng mắt lên màn hình tiếp tục theo dõi bài giảng của Thầy Tiến nhé!',
+    };
+  } else if (verdict.isSumOnePlusOneTopic) {
+    if (targetAgent === 'bo') {
+      primaryResponse = {
+        author: AGENT_DISPLAY_NAMES.bo,
+        avatarId: 'bo',
+        text: 'Ủa... lúc đầu tớ cũng nghĩ 1 + 1 = 2 là chân lý hiển nhiên thì cứ thế mà cộng độ dài cho lẹ! Ai ngờ bị Thầy Tiến gạch bỏ cái rụp... Cậu nghe Trí giải thích lý do này:',
+      };
+      followUpResponse = {
+        author: AGENT_DISPLAY_NAMES.tri,
+        avatarId: 'tri',
+        text: 'Trong số học thông thường thì 1 + 1 = 2 đúng là chân lý! Nhưng trong VECTƠ, Thầy Tiến gạch bỏ biểu thức |BC + DD\'| = 1 + 1 = 2 vì độ dài của tổng KHÔNG ĐƯỢC tách tuỳ tiện thành tổng hai độ dài:\nTheo bất đẳng thức tam giác: |a + b| ≤ |a| + |b|, dấu bằng "chân lý" đó CHỈ XẢY RA KHI hai vectơ a và b CÙNG HƯỚNG!\nTrong Ví dụ 3, BC và DD\' vuông góc nhau trong không gian. Muốn tính độ dài, bắt buộc phải thay DD\' = CC\' để nối tiếp thành BC + CC\' = BC\', sau đó áp dụng định lý Pytago tính đường chéo mặt bên: |BC\'| = √(1² + 1²) = √2 (khoảng 1.41) chứ tuyệt đối không thể bằng 2 được bạn nhé!',
+        focusConcept: 'Bất đẳng thức tam giác trong vectơ & Điều kiện biên của phép cộng độ dài',
+      };
+    } else {
+      primaryResponse = {
+        author: AGENT_DISPLAY_NAMES.tri,
+        avatarId: 'tri',
+        text: 'Trong số học thông thường thì 1 + 1 = 2 đúng là chân lý! Nhưng trong VECTƠ, Thầy Tiến gạch bỏ biểu thức |BC + DD\'| = 1 + 1 = 2 vì độ dài của tổng KHÔNG ĐƯỢC tách tuỳ tiện thành tổng hai độ dài:\nTheo bất đẳng thức tam giác: |a + b| ≤ |a| + |b|, dấu bằng "chân lý" đó CHỈ XẢY RA KHI hai vectơ a và b CÙNG HƯỚNG!\nTrong Ví dụ 3, BC và DD\' vuông góc nhau trong không gian. Muốn tính độ dài, bắt buộc phải thay DD\' = CC\' để nối tiếp thành BC + CC\' = BC\', sau đó áp dụng định lý Pytago tính đường chéo mặt bên: |BC\'| = √(1² + 1²) = √2 (khoảng 1.41) chứ tuyệt đối không thể bằng 2 được bạn nhé!',
+        focusConcept: 'Bất đẳng thức tam giác trong vectơ & Điều kiện biên của phép cộng độ dài',
+      };
+      followUpResponse = {
+        author: AGENT_DISPLAY_NAMES.colam,
+        avatarId: 'colam',
+        text: 'Trí giải thích rất chuẩn xác! Các em cần ghi nhớ thật kỹ: Tuyệt đối không được nhầm lẫn giữa phép cộng đại số thông thường và độ dài của tổng vectơ. Dấu bằng |a + b| = |a| + |b| chỉ đúng khi hai vectơ cùng hướng thôi nhé!',
+      };
+    }
+  } else if (verdict.isLineOfVectorTopic) {
+    const isJokingGiaDo = normMessage.includes('gia do');
+    if (isJokingGiaDo) {
+      primaryResponse = {
+        author: AGENT_DISPLAY_NAMES.bo,
+        avatarId: 'bo',
+        text: 'Haha giá đỗ xào thịt bò thì ngon chứ trong hình học không có giá đỗ đâu nha bạn ơi! 😂 Tớ từng bị Thầy Tiến nhắc nhở chỗ này nè:',
+      };
+      followUpResponse = {
+        author: AGENT_DISPLAY_NAMES.linhchi,
+        avatarId: 'linhchi',
+        text: 'Giá của vectơ AB là đường thẳng vô hạn đi qua hai điểm A và B nhé các bạn. Từ Hán-Việt "giá" ở đây có nghĩa là cái giá đỡ, đường thẳng mang vectơ nằm trên đó!',
+      };
+    } else {
+      primaryResponse = {
+        author: AGENT_DISPLAY_NAMES.tri,
+        avatarId: 'tri',
+        text: 'Nhầm to rồi bạn ơi! Trong toán học, "GIÁ" của vectơ KHÔNG PHẢI là "giá trị" đại số và cũng KHÔNG PHẢI là "độ dài" của vectơ!\nĐịnh nghĩa chuẩn của SGK nè: Giá của vectơ AB là ĐƯỜNG THẲNG đi qua hai điểm A và B (đường thẳng mang vectơ đó). Đường thẳng này kéo dài vô tận về hai phía, còn vectơ AB chỉ là một đoạn thẳng có hướng nằm trên đường thẳng đó thôi bạn nhé!',
+        focusConcept: 'Định nghĩa Giá của vectơ: Đường thẳng mang vectơ, không phải giá trị hay độ dài',
+      };
+      followUpResponse = {
+        author: AGENT_DISPLAY_NAMES.minhkhang,
+        avatarId: 'minhkhang',
+        text: 'Tớ lấy ví dụ cho dễ nhớ nè: Tưởng tượng con tàu chạy từ ga A đến ga B là vectơ AB (có hướng đi và độ dài hành trình). Còn hai thanh ray kéo dài tít tắp trên mặt đất chính là GIÁ của vectơ đó! Con tàu chỉ chạy trên thanh ray ấy thôi!',
+      };
+    }
+  } else if (verdict.isWhyNeedVectorsTopic) {
+    primaryResponse = {
+      author: AGENT_DISPLAY_NAMES.tri,
+      avatarId: 'tri',
+      text: 'Câu hỏi rất thực tế! Nếu chỉ dùng đoạn thẳng, bạn chỉ biết khoảng cách giữa hai điểm nhưng hoàn toàn KHÔNG BIẾT hướng chuyển động hay lực tác dụng: Đi từ Hà Nội vào Đà Nẵng khác hẳn bay ngược lại dù đoạn thẳng như nhau.\nĐặc biệt trong không gian 3D, vật thể có thêm chiều cao (trục Oz). Vectơ chính là công cụ duy nhất giúp định vị chính xác độ dời, lực đẩy động cơ hay quỹ đạo máy bay trong không gian 3 chiều mà đoạn thẳng vô hướng không thể làm được!',
+      focusConcept: 'Ý nghĩa của vectơ trong không gian 3 chiều',
+    };
+    followUpResponse = {
+      author: AGENT_DISPLAY_NAMES.minhkhang,
+      avatarId: 'minhkhang',
+      text: 'Chuẩn luôn! Giống như bạn mở Google Maps ấy, nếu bản đồ chỉ hiện đoạn thẳng thì bạn đâu biết phải quẹo hướng nào. Mũi tên vectơ màu xanh chỉ đường mới giúp bạn đi đúng hướng đến đích được chứ!',
+    };
+  } else if (verdict.isZeroVectorTopic) {
     primaryResponse = {
       author: AGENT_DISPLAY_NAMES.tri,
       avatarId: 'tri',
@@ -902,6 +1142,7 @@ export async function dispatchMessage({
 
 export default {
   INTENT_AGENT_MAP,
+  getVideoLectureContext,
   classifyHeuristic,
   classifyWithLLM,
   classifyLearnerIntent,

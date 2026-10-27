@@ -210,7 +210,97 @@ async function runTests() {
   assert.doesNotMatch(d11.followUpResponse.text, /d6c2/, 'Follow-up response must not contain d6c2');
   console.log('✅ PASS Test 13: Toàn bộ phản hồi sạch bóng artifact d6c2.\n');
 
-  console.log('🎉 TẤT CẢ 13 BÀI TEST ĐÃ VƯỢT QUA XUẤT SẮC!');
+  // TEST 14: Thắc mắc "1 + 1 = 2 thì chân lý mà nhỉ" tại 1:33
+  console.log('--- Test 14: "1 + 1 =2 thì chân lý mà nhỉ" (1+1=2 vs Vector Magnitude) ---');
+  const h14 = classifyHeuristic('1 + 1 =2 thì chân lý mà nhỉ');
+  assert.equal(h14.isSumOnePlusOneTopic, true);
+  assert.equal(h14.dispatchedAgent, 'tri');
+
+  const d14 = await dispatchMessage({
+    message: '1 + 1 =2 thì chân lý mà nhỉ',
+    currentTime: 93, // 1:33
+    useLLM: false,
+  });
+  assert.equal(d14.primaryResponse.author, 'Trí');
+  assert.match(d14.primaryResponse.text, /1 \+ 1 = 2 đúng là chân lý|bất đẳng thức tam giác|CÙNG HƯỚNG/i);
+  assert.notEqual(d14.followUpResponse, null);
+  assert.equal(d14.followUpResponse.author, 'Cô Lam');
+  assert.match(d14.followUpResponse.text, /không được nhầm lẫn|đại số thông thường/i);
+  console.log('✅ PASS Test 14: Trí giải thích rạch ròi chân lý 1+1=2 số học vs bất đẳng thức tam giác vectơ + Cô Lam chốt.\n');
+
+  // TEST 15: Câu hỏi ngoài lề quả bóng vàng "ai vừa giành quả bóng vàng 2026 vậy" tại 2:22
+  console.log('--- Test 15: "ai vừa giành quả bóng vàng 2026 vậy" (Off-topic Ballon d\'Or with Study Focus Reminder) ---');
+  const h15 = classifyHeuristic('ai vừa giành quả bóng vàng 2026 vậy');
+  assert.equal(h15.isOffTopic, true);
+  assert.equal(h15.dispatchedAgent, 'minhkhang');
+
+  const d15 = await dispatchMessage({
+    message: 'ai vừa giành quả bóng vàng 2026 vậy',
+    currentTime: 142, // 2:22
+    useLLM: false,
+  });
+  assert.equal(d15.primaryResponse.author, 'Minh Khang');
+  assert.match(d15.primaryResponse.text, /Quả Bóng Vàng|Bellingham|Vinicius|Mbappe|Rodri/i);
+  assert.match(d15.primaryResponse.text, /Thầy Tiến|tập trung|bài kiểm tra/i, 'Minh Khang must encourage returning to lesson');
+  assert.notEqual(d15.followUpResponse, null);
+  assert.equal(d15.followUpResponse.author, 'Cô Lam');
+  assert.match(d15.followUpResponse.text, /tập trung|Thầy Tiến/i);
+  console.log('✅ PASS Test 15: Minh Khang trả lời khéo léo Quả bóng vàng và nhắc nhở quay lại bài học của Thầy Tiến.\n');
+
+  // TEST 16: Ngộ nhận định nghĩa Giá của vectơ "giá là giá trị của vector, là độ dài của vector đó" tại 3:22
+  console.log('--- Test 16: "giá là giá trị của vector, là độ dài của vector đó" (Line of Vector Misconception Correction) ---');
+  const h16 = classifyHeuristic('giá là giá trị của vector, là độ dài của vector đó');
+  assert.equal(h16.isLineOfVectorTopic, true);
+  assert.equal(h16.dispatchedAgent, 'tri');
+
+  const d16 = await dispatchMessage({
+    message: 'giá là giá trị của vector, là độ dài của vector đó',
+    currentTime: 202, // 3:22
+    useLLM: false,
+  });
+  assert.equal(d16.primaryResponse.author, 'Trí');
+  assert.match(d16.primaryResponse.text, /KHÔNG PHẢI là "giá trị"|KHÔNG PHẢI là "độ dài"|ĐƯỜNG THẲNG đi qua/i, 'Trí must refute value/magnitude misconception');
+  assert.doesNotMatch(d16.primaryResponse.text, /Cậu làm đúng rồi/i, 'Must NEVER praise misconception');
+  assert.notEqual(d16.followUpResponse, null);
+  assert.equal(d16.followUpResponse.author, 'Minh Khang');
+  assert.match(d16.followUpResponse.text, /đường ray|con tàu/i, 'Minh Khang gives train track analogy');
+  console.log('✅ PASS Test 16: Trí đính chính trực tiếp Giá của vectơ là đường thẳng mang vectơ + Minh Khang ví von đường ray xe lửa.\n');
+
+  // TEST 17: Thắc mắc tại sao Thầy Tiến gạch bỏ "tách ra bình thường mà nhỉ, sao thầy lại gạch bỏ" tại 37:18
+  console.log('--- Test 17: "tách ra bình thường mà nhỉ, sao thầy lại gạch bỏ" (Why Teacher Crossed Out Split Expression) ---');
+  const h17 = classifyHeuristic('tách ra bình thường mà nhỉ, sao thầy lại gạch bỏ');
+  assert.equal(h17.isSumOnePlusOneTopic, true);
+  assert.equal(h17.dispatchedAgent, 'tri');
+
+  const d17 = await dispatchMessage({
+    message: 'tách ra bình thường mà nhỉ, sao thầy lại gạch bỏ',
+    currentTime: 2238, // 37:18
+    useLLM: false,
+  });
+  assert.equal(d17.primaryResponse.author, 'Trí');
+  assert.match(d17.primaryResponse.text, /Thầy Tiến gạch bỏ|KHÔNG ĐƯỢC tách|bất đẳng thức tam giác|vuông góc/i);
+  assert.notEqual(d17.followUpResponse, null);
+  assert.equal(d17.followUpResponse.author, 'Cô Lam');
+  console.log('✅ PASS Test 17: Trí giải thích lý do Thầy Tiến gạch bỏ phép tách độ dài ở Ví dụ 3 chuẩn xác.\n');
+
+  // TEST 18: Học sinh đùa "giá là giá đỗ" tại 3:29
+  console.log('--- Test 18: "giá là giá đỗ" (Humorous Misconception Handling) ---');
+  const h18 = classifyHeuristic('giá là giá đỗ');
+  assert.equal(h18.isLineOfVectorTopic, true);
+
+  const d18 = await dispatchMessage({
+    message: 'giá là giá đỗ',
+    currentTime: 209,
+    useLLM: false,
+  });
+  assert.equal(d18.primaryResponse.author, 'Bo');
+  assert.match(d18.primaryResponse.text, /giá đỗ xào thịt bò/i);
+  assert.notEqual(d18.followUpResponse, null);
+  assert.equal(d18.followUpResponse.author, 'Linh Chi');
+  assert.match(d18.followUpResponse.text, /đường thẳng vô hạn|giá đỡ/i);
+  console.log('✅ PASS Test 18: Bo hưởng ứng hóm hỉnh + Linh Chi giải nghĩa từ nguyên học của "Giá của vectơ".\n');
+
+  console.log('🎉 TẤT CẢ 18 BÀI TEST ĐÃ VƯỢT QUA XUẤT SẮC!');
 }
 
 runTests().catch((err) => {
