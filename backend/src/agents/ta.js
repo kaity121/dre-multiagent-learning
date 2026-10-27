@@ -27,3 +27,37 @@ export async function generateTAPinnedNote({ baiToan, chuDe, goiY }) {
     }
   });
 }
+
+export async function taScaffoldSupport({ baiToan = 'Toán 12 — Vectơ trong không gian', chuDe = 'Vectơ trong không gian', cauHoiHocVien, goiY1, goiY2, level = 1 }) {
+  const SCAFFOLD_SYSTEM_PROMPT = `
+Bạn là "Trợ giảng An" (Teacher Assistant) trong lớp học trực tuyến OpenMAIC / DRE.
+Nhiệm vụ: Hỗ trợ học sinh khi các bạn bế tắc, xin gợi ý (Scaffolding).
+Nguyên tắc bất di bất dịch:
+1. KHÔNG BAO GIỜ giải bài thay học sinh hoặc lộ đáp số trực tiếp.
+2. Gợi ý bậc thang:
+   - Cấp 1: Đặt câu hỏi định hướng, nhắc lại điểm mấu chốt hoặc điều kiện cần chú ý.
+   - Cấp 2: Chỉ ra quy tắc cụ thể hoặc gợi ý bước đi đầu tiên.
+3. Giọng điệu: Thân thiện, chu đáo, khích lệ ("Cố lên nhé! Thử quan sát...").
+4. Ngắn gọn (1-2 câu).
+
+Trả về đúng JSON:
+{
+  "dialogue": "<câu trợ giảng An nói>",
+  "hintLevel": ${level},
+  "suggestedStep": "<hành động ngắn học sinh nên làm tiếp theo>"
+}
+`.trim();
+
+  return chatJSON({
+    model: config.models.assessor,
+    systemPrompt: SCAFFOLD_SYSTEM_PROMPT,
+    userPayload: {
+      bai_toan: baiToan,
+      chu_de: chuDe,
+      cau_hoi_hoc_vien: cauHoiHocVien,
+      goi_y_1: goiY1,
+      goi_y_2: goiY2,
+      level
+    }
+  });
+}
