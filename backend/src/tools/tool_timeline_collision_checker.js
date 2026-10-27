@@ -12,7 +12,8 @@
  * Hàm thực thi Tool: tool_timeline_collision_checker
  *
  * @param {Object} input
- * @param {Array<Object>} [input.events] - Danh sách sự kiện { id, at_s, actor_id, type, duration_s }
+ * @param {Array<Object>} [input.events] - Danh sách sự kiện { id, at_s, actor_id, type, duration_s, chainedTo }
+ *   chainedTo: id của sự kiện mà sự kiện này nối tiếp trong cùng một lần dừng (không tính khoảng cách tối thiểu)
  * @param {Array<number>} [input.timelineSeconds] - Danh sách mốc thời gian (giây)
  * @param {number} [input.minGapS=20] - Khoảng cách tối thiểu giữa 2 sự kiện (giây)
  * @param {number} [input.minGapSeconds] - Alias cho minGapS
@@ -78,8 +79,11 @@ export function checkTimelineCollision({
     if (i > 0) {
       const prev = sorted[i - 1];
       const gap = current.at_s - prev.at_s;
+      // An event chained to the previous one (e.g. Bo's debate right after the checkpoint)
+      // happens inside the same pause, so the gap rule does not apply between them.
+      const chained = current.chainedTo === prev.id || prev.chainedTo === current.id;
 
-      if (gap < effectiveMinGap) {
+      if (gap < effectiveMinGap && !chained) {
         collisions.push({
           eventId1: prev.id || `event_${i - 1}`,
           eventId2: current.id || `event_${i}`,

@@ -23,22 +23,20 @@ function getMisconceptionVerifiableConfig(misconception) {
       params: { shape: 'cube', side: 'a', expr: "|AB + AD + AA'|", defaultClaim: 'a\\sqrt{3}' },
     };
   }
-  // 3. Tích vô hướng & góc giữa hai vectơ (MISC_VEC_017, MISC_VEC_018, MISC_VEC_019, MISC_VEC_020)
-  if (['MISC_VEC_017', 'MISC_VEC_018', 'MISC_VEC_019', 'MISC_VEC_020'].includes(misconception.id) ||
-      (misconception.tags || []).some(t => ['dot_product', 'vector_angle', 'zero_angle'].includes(t))) {
-    let u = 2, v = 3, theta = 120, claim = 'không âm';
-    if (misconception.id === 'MISC_VEC_017') {
-      theta = 120;
-      claim = '60';
-    } else if (misconception.id === 'MISC_VEC_018') {
-      u = 0; v = 2; theta = 0; claim = '0';
-    } else if (misconception.id === 'MISC_VEC_019') {
-      u = 2; v = 3; theta = 120; claim = 'không âm';
-    }
+  // 3. Góc & tích vô hướng (MISC_VEC_017, MISC_VEC_018, MISC_VEC_019)
+  const DOT_PRODUCT_CHECKS = {
+    // Bo: "đảo u thì góc với v vẫn là 60°" → tool tính góc giữa -u và v
+    MISC_VEC_017: { uMag: 2, vMag: 3, angleDeg: 60, reverseU: true, claimValue: '60', claimType: 'angle' },
+    // Bo: "góc giữa vectơ không và v bằng 0°" → góc không xác định
+    MISC_VEC_018: { uMag: 0, vMag: 2, angleDeg: 0, claimValue: '0', claimType: 'angle' },
+    // Bo: "tích vô hướng luôn không âm" → góc 120° cho tích âm
+    MISC_VEC_019: { uMag: 2, vMag: 3, angleDeg: 120, claimValue: 'không âm', claimType: 'dot_product' },
+  };
+  if (DOT_PRODUCT_CHECKS[misconception.id]) {
     return {
       toolType: 'dot_product',
       toolName: 'tool_calculate_dot_product',
-      params: { uMag: u, vMag: v, angleDeg: theta, claimValue: claim, claimType: misconception.id === 'MISC_VEC_017' ? 'angle' : 'dot_product' },
+      params: DOT_PRODUCT_CHECKS[misconception.id],
     };
   }
   // 4. Mặc định cho các chủ đề khác (vectơ không, trọng tâm...)
@@ -47,6 +45,22 @@ function getMisconceptionVerifiableConfig(misconception) {
     toolName: 'tool_query_misconception_kb',
     params: { misconceptionId: misconception.id, defaultClaim: misconception.incorrect_claim },
   };
+}
+
+/** Runs the verification tool Trí uses for this misconception without the LLM (fallback paths). */
+function runVerificationTool(toolConfig, misconception, boClaim) {
+  if (toolConfig.toolType === 'vector_algebra') {
+    return executeTool('tool_verify_vector_algebra', {
+      shape: toolConfig.params.shape || 'cube',
+      side: toolConfig.params.side || 'a',
+      expr: toolConfig.params.expr,
+      claim: boClaim,
+    });
+  }
+  if (toolConfig.toolType === 'dot_product') {
+    return executeTool('tool_calculate_dot_product', toolConfig.params);
+  }
+  return executeTool('tool_query_misconception_kb', { misconceptionId: misconception.id });
 }
 
 /**
@@ -168,6 +182,21 @@ Trả về JSON chuẩn:
   "geometric_basis": "<căn cứ hình học từ tool reason>"
 }`;
         forcedToolChoice = { type: 'function', function: { name: 'tool_verify_vector_algebra' } };
+      } else if (toolConfig.toolType === 'dot_product') {
+        triPrompt = `Bạn là "Trí" — bạn học Deep Thinker đào sâu bản chất trong buồng họp Roundtable.
+Bo vừa phát biểu: "${boTurn.dialogue}".
+BẠN BẮT BUỘC PHẢI DÙNG TOOL "tool_calculate_dot_product" với đúng tham số sau để kiểm chứng trước khi phát biểu:
+${JSON.stringify(toolConfig.params)}
+
+Sau khi nhận kết quả từ tool:
+- Dựa vào giá trị tích vô hướng / góc và lý do (reason) từ tool để BÁC BỎ bẫy của Bo, rồi đặt một câu hỏi gợi mở cho học sinh.
+Trả về JSON chuẩn:
+{
+  "counter_claim": "<kết luận toán học từ tool>",
+  "dialogue": "<câu Trí trích dẫn kết quả tool để bác bẫy Bo và đặt câu hỏi gợi mở>",
+  "geometric_basis": "<căn cứ từ tool reason>"
+}`;
+        forcedToolChoice = { type: 'function', function: { name: 'tool_calculate_dot_product' } };
       } else {
         triPrompt = `Bạn là "Trí" — bạn học Deep Thinker đào sâu bản chất trong buồng họp Roundtable.
 Bo vừa phát biểu: "${boTurn.dialogue}".
@@ -277,19 +306,7 @@ Trả về JSON chuẩn:
       recordEvent('debate_turn', 'bo', 'Bo (Hệ 1 - Trực giác)', boTurn.dialogue);
 
       // Thực thi tool phù hợp
-      let vectorToolCall;
-      if (toolConfig.toolType === 'vector_algebra') {
-        vectorToolCall = executeTool('tool_verify_vector_algebra', {
-          shape: toolConfig.params.shape || 'cube',
-          side: toolConfig.params.side || 'a',
-          expr: toolConfig.params.expr,
-          claim: boClaim,
-        });
-      } else {
-        vectorToolCall = executeTool('tool_query_misconception_kb', {
-          misconceptionId: misconception.id,
-        });
-      }
+      const vectorToolCall = runVerificationTool(toolConfig, misconception, boClaim);
 
       recordEvent('tool_call', 'tri', 'Trí (Hệ 2 - Logic)', `Kiểm chứng toán học ${toolConfig.toolName}`, vectorToolCall);
       recordEvent('tool_result', 'tri', 'Trí (Hệ 2 - Logic)', `Kết quả kiểm chứng: ${vectorToolCall.isValid ? 'Hợp lệ' : 'Bác bỏ'}`, vectorToolCall);
@@ -329,19 +346,7 @@ Trả về JSON chuẩn:
     };
     recordEvent('debate_turn', 'bo', 'Bo (Hệ 1 - Trực giác)', boTurn.dialogue);
 
-    let vectorToolCall;
-    if (toolConfig.toolType === 'vector_algebra') {
-      vectorToolCall = executeTool('tool_verify_vector_algebra', {
-        shape: toolConfig.params.shape || 'cube',
-        side: toolConfig.params.side || 'a',
-        expr: toolConfig.params.expr,
-        claim: boClaim,
-      });
-    } else {
-      vectorToolCall = executeTool('tool_query_misconception_kb', {
-        misconceptionId: misconception.id,
-      });
-    }
+    const vectorToolCall = runVerificationTool(toolConfig, misconception, boClaim);
 
     recordEvent('tool_call', 'tri', 'Trí (Hệ 2 - Logic)', `Kiểm chứng đại số vectơ ${toolConfig.toolName}`, vectorToolCall);
     recordEvent('tool_result', 'tri', 'Trí (Hệ 2 - Logic)', `Kết quả: ${vectorToolCall.output?.correct || 'Hoàn tất'}`, vectorToolCall);

@@ -184,9 +184,14 @@ function formatLatexResult(lengthSquared, isMagnitude, side = 'a') {
  */
 export function extractVectorExpr(text) {
   if (!text) return null;
+  // "vectơ BC cộng vectơ DD'" → "BC + DD'"
+  const normalized = String(text)
+    .replace(/\b(?:vectơ|vecto|vector|vec)\s+/gi, '')
+    .replace(/\s+cộng\s+/gi, ' + ')
+    .replace(/\s+trừ\s+/gi, ' - ');
   // Tìm mẫu vectơ cộng/trừ: BC + DD', AB + AD + AA', BC - DD'
   // Regex bao phủ toàn bộ chuỗi nối tiếp các vectơ qua dấu + hoặc -
-  const match = text.match(/((?:\|?\s*)?[A-D][1'′]?[A-D][1'′]?(?:\s*[+\-]\s*[A-D][1'′]?[A-D][1'′]?)+(?:\s*\|)?)/i);
+  const match = normalized.match(/((?:\|?\s*)?[A-D][1'′]?[A-D][1'′]?(?:\s*[+\-]\s*[A-D][1'′]?[A-D][1'′]?)+(?:\s*\|)?)/i);
   if (match) {
     const cleanExpr = match[1].trim().toUpperCase().replace(/1/g, "'");
     return cleanExpr.includes('|') ? cleanExpr : `|${cleanExpr}|`;
@@ -199,14 +204,19 @@ export function extractVectorExpr(text) {
  */
 export function extractClaimFromText(text) {
   if (!text) return null;
+  // A value someone else said ("Bo nói ... bằng 2a") is being questioned, not claimed by the learner.
+  if (/(?:^|\s)(?:bo|bạn ấy|cậu ấy|bạn)\s+(?:nói|bảo|ghi|viết|cho rằng)\b/i.test(text)) return null;
+
   const lower = text.toLowerCase();
-  
-  // Khớp các đáp số: 2a, a√2, 2√2, căn 2, 2\sqrt{2}, BC', v.v.
-  const mSquare = lower.match(/(?:bằng|=|\blà\b)?\s*([0-9]*\.?[0-9]*\s*(?:a\s*)?(?:√|căn|\\sqrt)\s*\{?\d+\}?a?)/i);
+
+  // Khớp các đáp số: 2a, a√2, 2√2, căn 2, căn 3 a, 2\sqrt{2}
+  const mSquare = lower.match(/(?:bằng|=|\blà\b)?\s*([0-9]*\.?[0-9]*\s*(?:a\s*)?(?:√|căn|\\sqrt)\s*\{?\d+\}?(?:\s*a\b)?)/i);
   if (mSquare) return mSquare[1].replace(/\s+/g, '');
 
-  const mVec = lower.match(/(?:bằng|=|\blà\b)\s*([A-D][1']?[A-D][1']?)/i);
-  if (mVec) return mVec[1].toUpperCase();
+  // Vector names are always uppercase; matching case-sensitively on the original text keeps
+  // "bằng bao nhiêu" from being read as the vector BA.
+  const mVec = text.match(/(?:bằng|=|là)\s*([A-D][1'′]?[A-D][1'′]?)(?![A-Za-zÀ-ỹ])/);
+  if (mVec) return mVec[1].replace(/′/g, "'");
 
   const mA = lower.match(/(?:bằng|=|\blà\b)?\s*(\d+(?:\.\d+)?a)\b/i);
   if (mA) return mA[1].toLowerCase();

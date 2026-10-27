@@ -81,6 +81,10 @@ export const OPENAI_TOOL_DEFINITIONS = [
             enum: ['dot_product', 'angle'],
             description: 'Loại phát biểu: dot_product (tích vô hướng) hoặc angle (góc)',
           },
+          reverseU: {
+            type: 'boolean',
+            description: 'true để tính với -u (đảo hướng u): góc thành 180° - angleDeg',
+          },
         },
         required: ['uMag', 'vMag'],
       },
@@ -132,6 +136,10 @@ export const OPENAI_TOOL_DEFINITIONS = [
                 at_s: { type: 'number', description: 'Thời điểm xảy ra sự kiện tính bằng giây' },
                 actor_id: { type: 'string' },
                 type: { type: 'string', enum: ['comment', 'checkpoint', 'rebuttal'] },
+                chainedTo: {
+                  type: 'string',
+                  description: 'id của sự kiện mà sự kiện này nối tiếp trong cùng một lần dừng (vd: Bo tranh biện ngay sau checkpoint)',
+                },
               },
               required: ['at_s'],
             },
