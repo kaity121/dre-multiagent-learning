@@ -1,5 +1,5 @@
 import React from 'react';
-import { BoCircleAvatar, TutorLamCircleAvatar } from './HandmadeArtwork';
+import { AgentAvatar } from './AgentAvatar';
 import { LearnerLevel } from '../types/dre';
 import { Sparkles, X } from 'lucide-react';
 
@@ -63,7 +63,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
             {/* Thẻ Bo */}
             <div className="bg-[#F3F8E8] border border-[#E2EAD2] rounded-[24px] p-3 flex items-center gap-3">
-              <BoCircleAvatar className="w-10 h-10 shrink-0 shadow-2xs" />
+              <AgentAvatar role="bo" size={40} tooltip />
               <div className="min-w-0">
                 <div className="text-sm font-bold text-[#121712] leading-tight">Bo</div>
                 <div className="text-xs font-medium text-stone-600 mt-0.5">Bạn học AI · Hay tính nhầm</div>
@@ -72,7 +72,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
             {/* Thẻ Cô Lam */}
             <div className="bg-[#F3F8E8] border border-[#E2EAD2] rounded-[24px] p-3 flex items-center gap-3">
-              <TutorLamCircleAvatar className="w-10 h-10 shrink-0 shadow-2xs" />
+              <AgentAvatar role="colam" size={40} tooltip />
               <div className="min-w-0">
                 <div className="text-sm font-bold text-[#121712] leading-tight">Cô Lam</div>
                 <div className="text-xs font-medium text-stone-600 mt-0.5">Giáo viên AI · Luôn đồng hành</div>

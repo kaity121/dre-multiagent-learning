@@ -2,13 +2,6 @@
 import React, { useState } from 'react';
 import { LearningMode, SilentLearningRecord } from '../types/dre';
 import { 
-  BoAvatar, 
-  BoCircleAvatar,
-  TutorLamAvatar,
-  TutorLamCircleAvatar,
-  TriDeepThinkerAvatar, 
-  LinhChiNoteTakerAvatar, 
-  MinhKhangInquisitiveAvatar,
   RubberStampSuccess,
   SparkleIcon,
   CheckCircleIcon,
@@ -20,6 +13,7 @@ import {
   ChalkboardIcon,
   LightningZapIcon
 } from './HandmadeArtwork';
+import { AgentAvatar } from './AgentAvatar';
 import { Vec, MathView, SegmentVectorDiagram, BoxVectorDiagram } from './MathVector';
 import { sound } from '../utils/soundEffects';
 import { RotateCcw } from 'lucide-react';
@@ -202,7 +196,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <BoCircleAvatar className="w-7 h-7 shrink-0" />
+                      <AgentAvatar role="bo" size={28} tooltip />
                       <span className={`font-bold text-xs leading-tight ${poePrediction === 'bo_camp' ? 'text-white' : 'text-[#121712]'}`}>
                         Phe Bo: IA = 3·IG
                       </span>
@@ -233,7 +227,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <TriDeepThinkerAvatar className="w-7 h-7 shrink-0" />
+                      <AgentAvatar role="tri" size={28} tooltip />
                       <span className={`font-bold text-xs leading-tight ${poePrediction === 'tri_camp' ? 'text-white' : 'text-[#121712]'}`}>
                         Phe Trí: IA = −3·IG
                       </span>
@@ -260,7 +254,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
             ) : (
               <div className="p-4 rounded-2xl bg-[#F3F8E8] border border-[#E2EAD2] space-y-2.5 animate-in fade-in duration-150">
                 <div className="flex items-center gap-2 text-xs font-bold text-[#121712]">
-                  <MinhKhangInquisitiveAvatar className="w-5 h-5 shrink-0" />
+                  <AgentAvatar role="minhkhang" size={24} tooltip />
                   <StepBadge num={2} />
                   <span>Bước 2 · Quan sát — Thực nghiệm kiểm chứng của Minh Khang:</span>
                 </div>
@@ -291,7 +285,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
             ) : (
               <div className="space-y-3 pt-1 border-t border-[#E2EAD2] animate-in fade-in duration-150">
                 <div className="flex items-center gap-2">
-                  <LinhChiNoteTakerAvatar className="w-6 h-6 shrink-0" />
+                  <AgentAvatar role="linhchi" size={24} tooltip />
                   <div>
                     <h3 className="font-bold text-xs sm:text-sm text-[#121712] flex items-center gap-1.5">
                       <StepBadge num={3} />
@@ -410,7 +404,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white border border-[#E2EAD2] text-xs shadow-2xs cursor-default"
               title="Cô Lam: Cố vấn Socratic & Tổng kết"
             >
-              <TutorLamCircleAvatar className="w-5 h-5 shrink-0" />
+              <AgentAvatar role="colam" size={24} tooltip />
               <span className="font-bold text-[#121712] text-xs">Cô Lam</span>
               <span className="hidden sm:inline text-stone-500 font-normal">(Cố vấn)</span>
             </div>
@@ -422,7 +416,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
               }`}
               title="Bo: Học sinh tiếp thu & Biến đổi"
             >
-              <BoCircleAvatar className="w-5 h-5 shrink-0" />
+              <AgentAvatar role="bo" size={24} tooltip />
               <span className={`font-bold text-xs ${selectedTeachStyle ? 'text-white' : 'text-[#121712]'}`}>Bo</span>
               <span className={`hidden sm:inline font-normal ${selectedTeachStyle ? 'text-stone-300' : 'text-stone-500'}`}>(Học sinh)</span>
             </div>
@@ -434,7 +428,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
               }`}
               title="Linh Chi: Thư ký thẩm định cấu trúc"
             >
-              <LinhChiNoteTakerAvatar className="w-5 h-5 shrink-0" />
+              <AgentAvatar role="linhchi" size={24} tooltip />
               <span className={`font-bold text-xs ${createValidationState.status !== 'idle' ? 'text-white' : 'text-[#121712]'}`}>Linh Chi</span>
               <span className={`hidden sm:inline font-normal ${createValidationState.status !== 'idle' ? 'text-stone-300' : 'text-stone-500'}`}>(Cấu trúc)</span>
             </div>
@@ -446,7 +440,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
               }`}
               title="Minh Khang: Khẩu quyết trực quan thực tế"
             >
-              <MinhKhangInquisitiveAvatar className="w-5 h-5 shrink-0" />
+              <AgentAvatar role="minhkhang" size={24} tooltip />
               <span className={`font-bold text-xs ${selectedTeachStyle === 'khang' ? 'text-white' : 'text-[#121712]'}`}>Minh Khang</span>
               <span className={`hidden sm:inline font-normal ${selectedTeachStyle === 'khang' ? 'text-stone-300' : 'text-stone-500'}`}>(Trực quan)</span>
             </div>
@@ -458,7 +452,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
               }`}
               title="Trí: Deep Thinker kiểm chứng vế phải"
             >
-              <TriDeepThinkerAvatar className="w-5 h-5 shrink-0" />
+              <AgentAvatar role="tri" size={24} tooltip />
               <span className={`font-bold text-xs ${createValidationState.status === 'pass_create' ? 'text-white' : 'text-[#121712]'}`}>Trí</span>
               <span className={`hidden sm:inline font-normal ${createValidationState.status === 'pass_create' ? 'text-stone-300' : 'text-stone-500'}`}>(Kiểm chứng)</span>
             </div>
@@ -519,7 +513,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
 
           {/* Lời nhờ của Bo */}
           <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#F3F8E8] border border-[#E2EAD2]">
-            <BoCircleAvatar className="w-7 h-7 shrink-0" />
+            <AgentAvatar role="bo" size={28} tooltip />
             <div className="text-xs text-[#121712] leading-relaxed">
               <span className="font-bold text-[#121712] block mb-0.5">Bo nhờ bạn chỉ giáo:</span>
               "Bạn chọn giúp mình 1 bí kíp dễ nhớ nhất của <strong>Minh Khang</strong> hoặc <strong>Linh Chi</strong> để đi thi không bao giờ bị nhầm quy tắc nối tiếp và quy tắc trừ nhé!"
@@ -543,7 +537,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
             >
               <div className="flex items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2">
-                  <MinhKhangInquisitiveAvatar className="w-6 h-6 shrink-0" />
+                  <AgentAvatar role="minhkhang" size={24} tooltip />
                   <span className={`font-bold text-xs sm:text-sm ${
                     selectedTeachStyle === 'khang' ? 'text-white' : 'text-[#121712]'
                   }`}>
@@ -577,7 +571,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
             >
               <div className="flex items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2">
-                  <LinhChiNoteTakerAvatar className="w-6 h-6 shrink-0" />
+                  <AgentAvatar role="linhchi" size={24} tooltip />
                   <span className={`font-bold text-xs sm:text-sm ${
                     selectedTeachStyle === 'chi' ? 'text-white' : 'text-[#121712]'
                   }`}>
@@ -602,7 +596,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
             <div className="p-3 rounded-xl bg-[#F3F8E8] border border-[#E2EAD2] space-y-2 animate-in fade-in duration-150 shadow-2xs">
               <div className="flex items-start justify-between gap-2.5">
                 <div className="flex items-start gap-2.5">
-                  <BoCircleAvatar className="w-8 h-8 shrink-0 mt-0.5" />
+                  <AgentAvatar role="bo" size={32} tooltip />
                   <div className="text-xs leading-relaxed">
                     <span className="font-bold block text-xs mb-0.5 text-[#121712]">
                       {selectedTeachStyle === 'khang' ? 'Bo tiếp thu bí kíp của Minh Khang:' : 'Bo tiếp thu bí kíp của Linh Chi:'}
@@ -719,7 +713,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
           {createValidationState.status === 'fail_create' && (
             <div className="p-4 rounded-2xl bg-rose-50 border border-rose-300 space-y-2.5 animate-in fade-in duration-150 shadow-2xs">
               <div className="flex items-start gap-2.5">
-                <LinhChiNoteTakerAvatar className="w-7 h-7 shrink-0 mt-0.5" />
+                <AgentAvatar role="linhchi" size={28} tooltip />
                 <div className="text-xs text-rose-950 leading-relaxed">
                   <span className="font-bold text-rose-900 block text-xs mb-0.5">
                     Linh Chi nhắc cấu trúc đề:
@@ -760,7 +754,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
               <div className="space-y-2 text-xs">
                 {/* Bước 1: Linh Chi */}
                 <div className="flex items-start gap-2.5 bg-white p-2.5 rounded-xl border border-[#E2EAD2]">
-                  <LinhChiNoteTakerAvatar className="w-6 h-6 shrink-0 mt-0.5" />
+                  <AgentAvatar role="linhchi" size={24} tooltip />
                   <p className="text-[#121712]">
                     <strong className="text-stone-900">Linh Chi:</strong> “Đẳng thức có đầy đủ vế trái <span className="font-bold">{createValidationState.lhs}</span>, dấu = và vế phải <span className="font-bold">{createValidationState.rhs}</span>. Cấu trúc chuẩn xác!”
                   </p>
@@ -768,7 +762,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
 
                 {/* Bước 2: Bo */}
                 <div className="flex items-start gap-2.5 bg-white p-2.5 rounded-xl border border-[#E2EAD2]">
-                  <BoCircleAvatar className="w-6 h-6 shrink-0 mt-0.5" />
+                  <AgentAvatar role="bo" size={24} tooltip />
                   <p className="text-[#121712]">
                     <strong className="text-stone-900">Bo:</strong> “Áp dụng quy tắc hình bình hành đáy ABCD: <span className="font-bold">AB + AD = AC</span>. Rút gọn thành <span className="font-bold">AC + AA'</span>...”
                   </p>
@@ -776,7 +770,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
 
                 {/* Bước 3: Trí */}
                 <div className="flex items-start gap-2.5 bg-white p-2.5 rounded-xl border border-[#E2EAD2]">
-                  <TriDeepThinkerAvatar className="w-6 h-6 shrink-0 mt-0.5" />
+                  <AgentAvatar role="tri" size={24} tooltip />
                   <p className="text-[#121712]">
                     <strong className="text-stone-900">Trí:</strong> “Trong mặt phẳng chéo ACC'A', <span className="font-bold">AC + AA' = AC'</span>. Trùng khớp hoàn hảo với vế phải!”
                   </p>
@@ -785,7 +779,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                 {/* Cô Lam & Hội đồng */}
                 <div className="flex items-center justify-between gap-2 p-2.5 bg-white rounded-xl border border-[#E2EAD2]">
                   <div className="flex items-center gap-2">
-                    <TutorLamAvatar size="sm" className="scale-75 -ml-1 shrink-0" />
+                    <AgentAvatar role="colam" size={24} tooltip />
                     <span className="text-xs text-[#121712] font-bold">
                       Cô Lam &amp; Hội đồng: Chúc mừng bạn đã hoàn thành xuất sắc cấp độ Sáng tạo!
                     </span>
@@ -824,7 +818,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
             {/* 1. HEADER CỐ ĐỊNH (SHRINK-0) */}
             <div className="shrink-0 px-5 py-3 sm:px-7 sm:py-3.5 border-b border-[#E2EAD2] flex flex-wrap items-center justify-between gap-3 sm:gap-6 bg-white z-10">
               <div className="flex items-center gap-3 sm:gap-4">
-                <TutorLamCircleAvatar className="w-11 h-11 sm:w-13 sm:h-13 shrink-0 shadow-2xs" />
+                <AgentAvatar role="colam" size={40} tooltip />
                 <div className="flex flex-col gap-0.5">
                   <span className="text-xs font-semibold tracking-wider text-[#4A5540] bg-[#F3F8E8] rounded-full px-3 py-0.5 self-start inline-block border border-[#E2EAD2]">
                     {DEMO_LESSON_INFO.fullTopicChip}
@@ -1030,7 +1024,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                       {/* Messages card (Lời nhắn nhủ từ Cô Lam & Bo) */}
                       <div className="bg-white border border-[#E2EAD2] rounded-2xl sm:rounded-[22px] p-3 sm:p-3.5 flex flex-col gap-2 flex-1 shadow-2xs">
                         <div className="flex items-start gap-2.5">
-                          <TutorLamCircleAvatar className="w-8 h-8 shrink-0 shadow-2xs mt-0.5" />
+                          <AgentAvatar role="colam" size={32} tooltip />
                           <div className="flex flex-col gap-0.5">
                             <span className="text-xs sm:text-sm font-bold text-[#121712]">Cô Lam nhắn nhủ</span>
                             <p className="m-0 text-xs sm:text-[13px] leading-relaxed text-[#2B3326]">
@@ -1042,7 +1036,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                         <div className="h-px bg-[#E2EAD2]" />
 
                         <div className="flex items-start gap-2.5">
-                          <BoCircleAvatar className="w-8 h-8 shrink-0 shadow-2xs mt-0.5" />
+                          <AgentAvatar role="bo" size={32} tooltip />
                           <div className="flex flex-col gap-0.5">
                             <span className="text-xs sm:text-sm font-bold text-[#121712]">Lời cảm ơn từ Bo</span>
                             <p className="m-0 text-xs sm:text-[13px] leading-relaxed text-[#2B3326]">

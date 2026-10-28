@@ -2,12 +2,9 @@
 import React, { useState } from 'react';
 import { 
   TutorLamAvatar, 
-  BoCircleAvatar, 
-  TriDeepThinkerAvatar, 
-  LinhChiNoteTakerAvatar, 
-  MinhKhangInquisitiveAvatar,
   CheckCircleIcon
 } from './HandmadeArtwork';
+import { AgentAvatar } from './AgentAvatar';
 import { sound } from '../utils/soundEffects';
 
 interface PreClassLobbyModalProps {
@@ -180,10 +177,10 @@ export const PreClassLobbyModal: React.FC<PreClassLobbyModalProps> = ({
 
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-1.5">
-                    <BoCircleAvatar className="w-6 h-6 rounded-full ring-2 ring-[#121712]" />
-                    <TriDeepThinkerAvatar className="w-6 h-6 rounded-full bg-white ring-2 ring-[#121712]" />
-                    <LinhChiNoteTakerAvatar className="w-6 h-6 rounded-full bg-white ring-2 ring-[#121712]" />
-                    <MinhKhangInquisitiveAvatar className="w-6 h-6 rounded-full bg-white ring-2 ring-[#121712]" />
+                    <AgentAvatar role="bo" size={24} tooltip />
+                    <AgentAvatar role="tri" size={24} tooltip />
+                    <AgentAvatar role="linhchi" size={24} tooltip />
+                    <AgentAvatar role="minhkhang" size={24} tooltip />
                   </div>
                   <span className="text-xs text-white font-medium">
                     Bo, Trí, Linh Chi & Minh Khang đang chờ trong lớp

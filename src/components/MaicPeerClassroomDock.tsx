@@ -7,6 +7,7 @@ import {
   LinhChiNoteTakerAvatar, 
   MinhKhangInquisitiveAvatar
 } from './HandmadeArtwork';
+import { AgentAvatar } from './AgentAvatar';
 import { sound } from '../utils/soundEffects';
 import { sendPeerChat } from '../services/dreBackendApi';
 
@@ -361,9 +362,9 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
         }`}
       >
         <div className="flex items-center -space-x-1.5">
-          <TriDeepThinkerAvatar className="w-4 h-4 rounded-full bg-white ring-1 ring-[#E2D9C8]" />
-          <LinhChiNoteTakerAvatar className="w-4 h-4 rounded-full bg-white ring-1 ring-[#E2D9C8]" />
-          <MinhKhangInquisitiveAvatar className="w-4 h-4 rounded-full bg-white ring-1 ring-[#E2D9C8]" />
+          <AgentAvatar role="tri" size={16} tooltip />
+          <AgentAvatar role="linhchi" size={16} tooltip />
+          <AgentAvatar role="minhkhang" size={16} tooltip />
         </div>
         <span>Sổ tay & Hỏi riêng 4 bạn</span>
       </button>

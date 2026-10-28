@@ -1,16 +1,11 @@
 // File: src/components/VideoDebateSheet.tsx
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { VideoLessonItem, VideoCheckpointPhase, TimelineComment } from '../types/dre';
-import { 
-  ClassmateAvatar,
-  BoCircleAvatar,
-  TriDeepThinkerAvatar,
-  LinhChiNoteTakerAvatar,
-  MinhKhangInquisitiveAvatar,
-  TaAvatar,
+import {
   HandStopIcon,
   GentleLightbulb
 } from './HandmadeArtwork';
+import { AgentAvatar } from './AgentAvatar';
 import { FormattedMathText } from './MathVector';
 import { ChatSavedQuizBlock } from './ChatSavedQuizBlock';
 import { sound } from '../utils/soundEffects';
@@ -635,22 +630,11 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   }, [allStreamComments, lesson.checkpointTimestamp]);
 
   const renderPeerAvatar = (author: string, className = 'w-8 h-8') => {
-    if (author.includes('Bo')) return <BoCircleAvatar className={className} />;
-    if (author.includes('Trí')) return <TriDeepThinkerAvatar className={className} />;
-    if (author.includes('Linh Chi') || author.includes('Chi')) return <LinhChiNoteTakerAvatar className={className} />;
-    if (author.includes('Minh Khang') || author.includes('Khang')) return <MinhKhangInquisitiveAvatar className={className} />;
-    if (author.includes('An') || author.includes('Trợ giảng')) return <TaAvatar className={className} />;
-    return <ClassmateAvatar name={author} className={className} />;
+    return <AgentAvatar role={author} size={className} />;
   };
 
   const getRosterAvatar = (id: string, className = 'w-9 h-9') => {
-    switch (id) {
-      case 'bo': return <BoCircleAvatar className={className} />;
-      case 'tri': return <TriDeepThinkerAvatar className={className} />;
-      case 'linhchi': return <LinhChiNoteTakerAvatar className={className} />;
-      case 'minhkhang': return <MinhKhangInquisitiveAvatar className={className} />;
-      default: return null;
-    }
+    return <AgentAvatar role={id} size={className} />;
   };
 
   const renderChatMessage = (msg: TimelineComment) => {
@@ -962,7 +946,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           {pinnedComment && (
             <div className="mx-3.5 mt-2.5 p-3 rounded-2xl bg-[#F3F8E8] text-[#121712] shrink-0 text-xs space-y-1.5 border border-[#E2EAD2] shadow-2xs">
               <div className="flex items-center gap-2">
-                <TaAvatar className="w-6 h-6 shrink-0" />
+                <AgentAvatar role="an" size={24} tooltip />
                 <span className="px-1.5 py-0.5 rounded-md bg-[#C8F169] text-[#121712] font-black text-xs tracking-wide uppercase">
                   GHIM
                 </span>

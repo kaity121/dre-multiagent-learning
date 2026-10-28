@@ -1,7 +1,7 @@
 // File: src/components/WorkingObjectSheet.tsx
 import React from 'react';
 import { MisconceptionItem, DREState } from '../types/dre';
-import { BoCircleAvatar } from './HandmadeArtwork';
+import { AgentAvatar } from './AgentAvatar';
 import { Vec, PrismVectorDiagram, MathColorLegend, FormattedMathText } from './MathVector';
 import { sound } from '../utils/soundEffects';
 import { Check, ArrowRight } from 'lucide-react';
@@ -79,9 +79,7 @@ export const WorkingObjectSheet: React.FC<WorkingObjectSheetProps> = React.memo(
     <div className="w-full flex flex-col justify-start space-y-3.5">
       {/* Khối bạn học Bo (Tone Lime Soft, Card cấp 1) */}
       <div className="flex items-center gap-3 p-3.5 rounded-[16px] bg-white border border-[#E2EAD2] shadow-xs">
-        <div className="shrink-0">
-          <BoCircleAvatar className="w-9 h-9 shrink-0 rounded-full border border-amber-300 shadow-2xs" />
-        </div>
+        <AgentAvatar role="bo" size={36} tooltip />
         <div className="flex-1 min-w-0">
           <div className="text-xs font-bold text-[#121712] uppercase tracking-wider">
             {isCompleted ? 'Bo đã sửa lại bài giải chuẩn xác:' : 'Bài làm của bạn học Bo (Chờ chẩn đoán):'}

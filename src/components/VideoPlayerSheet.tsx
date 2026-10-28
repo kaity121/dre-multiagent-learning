@@ -4,7 +4,6 @@ import { VideoLessonItem, VideoCheckpointPhase, RebuttalSticker } from '../types
 import { VIDEO_LESSON_LIBRARY } from '../data/videoLessons';
 import { 
   BoAvatar,
-  BoCircleAvatar,
   HandStopIcon, 
   LinkChainIcon, 
   RubberStampSuccess,

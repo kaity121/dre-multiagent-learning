@@ -1,11 +1,7 @@
 // File: src/components/InteractionCardSheet.tsx
 import React, { useState, useEffect } from 'react';
 import { MisconceptionItem, DREState } from '../types/dre';
-import { 
-  TutorLamCircleAvatar, 
-  BoCircleAvatar,
-  LinhChiNoteTakerAvatar, 
-} from './HandmadeArtwork';
+import { AgentAvatar } from './AgentAvatar';
 import { Vec, MathView, FormattedMathText } from './MathVector';
 import { sound } from '../utils/soundEffects';
 import { 
@@ -80,7 +76,7 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
       <div className="p-4 bg-white border border-[#E2EAD2] rounded-[16px] space-y-2.5 shadow-xs">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <LinhChiNoteTakerAvatar className="w-8 h-8 rounded-full border border-stone-200 shadow-2xs shrink-0" />
+            <AgentAvatar role="linhchi" size={32} tooltip />
             <div className="min-w-0">
               <span className="font-bold text-[#121712] text-sm block truncate">
                 Sổ tay quy tắc chuẩn · Linh Chi
@@ -157,9 +153,9 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
               </p>
             </div>
 
-            {/* Lời dặn dò phương pháp của Cô Lam (TutorLamCircleAvatar không đè viền) */}
+            {/* Lời dặn dò phương pháp của Cô Lam */}
             <div className="p-3 rounded-[12px] bg-[#F3F8E8] border border-[#E2EAD2] flex items-center gap-3 text-xs text-stone-700 text-left mt-1">
-              <TutorLamCircleAvatar className="w-8 h-8 rounded-full border border-[#4E9B87] shrink-0" />
+              <AgentAvatar role="colam" size={32} tooltip />
               <div className="leading-relaxed">
                 <span className="font-bold text-[#121712]">Lời dặn của Cô Lam:</span> Quan sát kỹ chiều mũi tên của vectơ <Vec role="target">B'C</Vec> và quy tắc trừ hai vectơ chung gốc A để phát hiện lỗi của Bo!
               </div>
@@ -173,7 +169,7 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
             {selectedStep === 1 && lesson.id === 'MISC_VECTO_12' ? (
               <div className="p-5 rounded-[16px] bg-white border border-[#E2EAD2] text-[#121712] space-y-3 shadow-xs">
                 <div className="flex items-center gap-2.5 text-sm font-bold text-[#121712]">
-                  <TutorLamCircleAvatar className="w-8 h-8 rounded-full border border-[#4E9B87] shrink-0" />
+                  <AgentAvatar role="colam" size={32} tooltip />
                   <span>Gợi ý Cô Lam · Bước 1 của Bo hoàn toàn đúng hướng</span>
                 </div>
                 <p className="text-xs sm:text-sm text-stone-700 leading-relaxed">
@@ -245,9 +241,9 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
                   )}
                 </button>
 
-                {/* Gợi ý lập luận từ Cô Lam (TutorLamCircleAvatar không đè viền) */}
+                {/* Gợi ý lập luận từ Cô Lam */}
                 <div className="p-3 rounded-[12px] bg-[#F3F8E8] border border-[#E2EAD2] flex items-center gap-2.5 text-xs text-stone-700">
-                  <TutorLamCircleAvatar className="w-7 h-7 rounded-full border border-[#4E9B87] shrink-0" />
+                  <AgentAvatar role="colam" size={28} tooltip />
                   <div className="leading-relaxed">
                     <span className="font-bold text-[#121712]">Mẹo lập luận:</span> Nhắc Bo nhớ khẩu quyết "Chung đầu – Lộn ngược" khi trừ hai vectơ để Bo tâm phục khẩu phục!
                   </div>
@@ -281,7 +277,7 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
         {currentState === 'BO_CHALLENGE' && (
           <div className="p-5 rounded-[16px] bg-white border border-[#E2EAD2] space-y-3.5 shadow-xs animate-in fade-in duration-150">
             <div className="p-4 bg-[#121712] text-white rounded-[14px] flex items-start gap-3">
-              <BoCircleAvatar className="w-9 h-9 rounded-full border-2 border-white/20 shrink-0 mt-0.5" />
+              <AgentAvatar role="bo" size={36} tooltip />
               <div className="text-xs sm:text-sm leading-relaxed">
                 <span className="font-bold text-[#C8F169] block mb-1">
                   Bạn bắt trúng Bước {selectedStep} rồi, nhưng Bo vẫn thắc mắc:
@@ -298,7 +294,7 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
 
             {tutorFeedbackOverride && (
               <div className="p-3 rounded-[12px] bg-amber-50/80 border border-amber-200/80 text-xs text-amber-900 leading-relaxed flex items-center gap-2 animate-in fade-in duration-150">
-                <TutorLamCircleAvatar className="w-7 h-7 rounded-full border border-[#4E9B87] shrink-0" />
+                <AgentAvatar role="colam" size={28} tooltip />
                 <div className="flex-1">
                   <span className="font-bold">Gợi ý Cô Lam: </span>
                   {cleanText(tutorFeedbackOverride)}
@@ -355,7 +351,7 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
           <div className="p-5 rounded-[16px] bg-white border border-[#C8F169] space-y-4 shadow-xs animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <TutorLamCircleAvatar className="w-8 h-8 rounded-full border border-[#4E9B87] shadow-xs shrink-0" />
+                <AgentAvatar role="colam" size={32} tooltip />
                 <span className="font-extrabold text-sm sm:text-base text-[#121712]">
                   Chẩn đoán & Sửa lỗi thành công!
                 </span>

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { VideoLessonItem } from '../types/dre';
 import { FormattedMathText } from './MathVector';
-import { TutorLamCircleAvatar } from './HandmadeArtwork';
+import { AgentAvatar } from './AgentAvatar';
 
 export interface ChatSavedQuizBlockProps {
   lesson: VideoLessonItem;
@@ -63,7 +63,7 @@ export const ChatSavedQuizBlock: React.FC<ChatSavedQuizBlockProps> = ({
       <div className="bg-white border border-[#E2EAD2] rounded-2xl p-4 shadow-2xs space-y-3">
         {/* Header: Avatar Cô Lam + KIỂM TRA NHANH + @Cả lớp + ▶ 37:13 */}
         <div className="flex items-start gap-2.5">
-          <TutorLamCircleAvatar className="w-8 h-8 shrink-0 shadow-2xs" />
+          <AgentAvatar role="colam" size={32} tooltip />
           <div className="space-y-1 min-w-0 flex-1">
             <div className="text-xs font-bold uppercase tracking-wider text-stone-500">
               Kiểm tra nhanh · Hết Part 2
