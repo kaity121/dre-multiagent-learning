@@ -1151,28 +1151,37 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
       {/* 6. BỘ GÕ COMPOSER ĐA NĂNG */}
       <div className="px-3 py-2 bg-[#F3F8E8] border-t border-[#E2EAD2] shrink-0">
-        {/* Dải Pill câu hỏi gợi ý nhanh */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1.5 shrink-0">
-          <span className="text-[11px] font-bold text-stone-600 shrink-0 uppercase tracking-wider">
+        {/* Dải Pill câu hỏi gợi ý nhanh - Gọn gàng 1 dòng thanh thoát, không vỡ bóng tròn */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1.5 shrink-0 flex-nowrap">
+          <span className="text-[11px] font-bold text-stone-600 shrink-0 uppercase tracking-wider whitespace-nowrap">
             Gợi ý hỏi:
           </span>
           {[
-            'Tại sao độ dài tổng 2 vectơ không bằng 1 + 1 = 2?',
-            "Thế DD' = CC' nối tiếp vectơ như thế nào?",
-            'Quy tắc trừ chung gốc OA - OB = BA dùng ra sao?',
-          ].map((promptText, idx) => (
+            {
+              display: 'Tại sao |a+b| ≠ 1+1=2?',
+              full: 'Tại sao độ dài tổng 2 vectơ không bằng 1 + 1 = 2?'
+            },
+            {
+              display: "Thế DD' = CC' nối tiếp?",
+              full: "Thế DD' = CC' nối tiếp vectơ như thế nào?"
+            },
+            {
+              display: 'Quy tắc trừ OA - OB?',
+              full: 'Quy tắc trừ chung gốc OA - OB = BA dùng ra sao?'
+            }
+          ].map((item, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => {
                 sound.playPencilTap();
-                setUserChatInput(promptText);
-                handleSendUserChatMessage(promptText, 'all');
+                setUserChatInput(item.full);
+                handleSendUserChatMessage(item.full, 'all');
               }}
-              className="px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-all border border-[#E2EAD2] bg-white hover:bg-[#C8F169]/30 text-[#121712] shadow-2xs leading-tight"
-              title="Bấm để gửi nhanh câu hỏi này vào lớp học"
+              className="h-7 px-3 rounded-full text-xs font-medium cursor-pointer transition-all border border-[#E2EAD2] bg-white hover:bg-[#C8F169]/40 text-[#121712] shadow-2xs whitespace-nowrap shrink-0 inline-flex items-center justify-center leading-none"
+              title={item.full}
             >
-              {promptText}
+              <span>{item.display}</span>
             </button>
           ))}
         </div>
