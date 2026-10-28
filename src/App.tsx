@@ -1423,9 +1423,9 @@ export default function App() {
                   )}
 
                   {/* THANH ĐIỀU KHIỂN DƯỚI VIDEO (CHUẨN 100% THEO CODE CŨ & ẢNH 2) */}
-                  <div className="bg-white border border-stone-200/90 rounded-2xl p-2 sm:p-2.5 flex flex-wrap lg:flex-nowrap items-center justify-between gap-2 shadow-2xs text-xs overflow-x-hidden">
+                  <div className="bg-white border border-stone-200/90 rounded-2xl p-2 sm:p-2.5 flex flex-wrap items-center justify-between gap-2 shadow-2xs text-xs">
                     {/* Cụm trái: Menu Phân cảnh & Đổi link */}
-                    <div className="flex items-center gap-1.5 min-w-0 shrink-0 flex-nowrap">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <button
                         type="button"
                         onClick={() => setIsChaptersDrawerOpen(prev => !prev)}
@@ -1461,7 +1461,7 @@ export default function App() {
                     </div>
 
                     {/* Cụm phải: Combo phản xạ [Đã hiểu | Chưa rõ] + Câu hỏi dừng 37:13 + Giơ tay */}
-                    <div className="flex items-center gap-1.5 shrink-0 flex-nowrap">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       {/* COMBO PILL: [👍 Đã hiểu | ❓ Chưa rõ] */}
                       <div className="h-8 px-1 rounded-xl bg-white border border-stone-200 flex items-center shadow-2xs shrink-0">
                         <button
@@ -1595,7 +1595,7 @@ export default function App() {
                         Ghi chú trọng tâm từ Cô Lam:
                       </span>
                       <p className="text-stone-700">
-                        “Tại mốc 37:13, thầy Tiến đưa ra ví dụ hình lập phương. Bo sẽ mắc bẫy trực giác cộng tách hai độ dài 1 + 1 = 2. Con hãy chú ý quan sát cách Trí và Linh Chi dùng quy tắc thế để giải thích cho Bo nhé!”
+                        “Tại mốc 37:13, thầy Tiến đưa ra bài toán cộng hai vectơ không cùng gốc trong hình lập phương. Con hãy chú ý quan sát cách xác định hướng và điểm đặt của vectơ trước khi tính độ dài nhé!”
                       </p>
                     </div>
                   </div>
@@ -1603,7 +1603,7 @@ export default function App() {
 
                 {/* CỘT GIỮA: THẢO LUẬN LỚP HỌC */}
                 <div 
-                  style={{ height: 'calc(100vh - 85px)', minHeight: '560px' }}
+                  style={{ height: 'calc(100vh - 120px)', minHeight: '480px', maxHeight: 'calc(100vh - 110px)' }}
                   className={`${
                     isInspectorDrawerOpen ? 'w-full lg:w-[280px] xl:w-[300px] 2xl:w-[360px] shrink-0' : (isChatExpanded ? 'w-full lg:w-[48%] shrink-0' : 'w-full lg:w-[380px] xl:w-[420px] shrink-0')
                   } bg-white rounded-3xl border border-[#E2EAD2] overflow-visible flex flex-col shadow-xs transition-all duration-300 relative group/chatcol`}

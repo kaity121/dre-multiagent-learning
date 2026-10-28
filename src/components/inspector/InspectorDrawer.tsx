@@ -97,7 +97,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
   return (
     <aside
       id="inspector-drawer-panel"
-      className="w-full bg-white border border-[#E2EAD2] rounded-3xl shadow-sm flex flex-col overflow-hidden max-h-[calc(100vh-95px)] min-h-[560px] sticky top-20 text-[#121712]"
+      className="w-full bg-white border border-[#E2EAD2] rounded-3xl shadow-sm flex flex-col overflow-hidden max-h-[calc(100vh-120px)] min-h-[560px] sticky top-20 text-[#121712]"
       role="complementary"
       aria-label="Soi não tác nhân"
     >

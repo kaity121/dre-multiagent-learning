@@ -705,11 +705,11 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   return (
     <div className="relative w-full h-full flex flex-col justify-between overflow-hidden select-none bg-white font-sans">
       {/* 1. THANH TIÊU ĐỀ: [🟢 Lớp học · 4 bạn AI] + [💡 Gợi ý (0/3)] + [⤢ Mở rộng] */}
-      <div className="px-3.5 pt-3 pb-2 flex items-center justify-between gap-1.5 shrink-0 bg-white border-b border-[#E2EAD2]">
+      <div className="px-3 pt-2.5 pb-2 flex items-center justify-between gap-1 shrink-0 bg-white border-b border-[#E2EAD2]">
         <div className="flex items-center gap-2 shrink-0">
           <span className="w-2.5 h-2.5 rounded-full bg-[#C8F169] ring-2 ring-[#121712] inline-block shrink-0" />
-          <span className="text-xs font-bold text-[#121712] whitespace-nowrap">
-            Lớp học · 4 bạn AI
+          <span className="text-xs font-bold text-[#121712] truncate">
+            Lớp học 4 bạn AI
           </span>
         </div>
 
@@ -735,7 +735,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                 sound.playPencilTap();
                 onToggleChatExpanded();
               }}
-              className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
+              className={`px-2 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer flex items-center gap-1 shrink-0 whitespace-nowrap ${
                 isChatExpanded
                   ? 'bg-[#121712] text-white border-[#121712] shadow-xs'
                   : 'bg-white hover:bg-[#F3F8E8] text-[#121712] border-[#E2EAD2] shadow-2xs'
@@ -839,10 +839,10 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                     {getRosterAvatar(p.id, 'w-9 h-9')}
                     <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#C8F169] ring-2 ring-white" />
                   </div>
-                  <span className="text-xs font-bold text-[#121712] leading-tight text-center w-full break-words">
+                  <span className="text-[11px] sm:text-xs font-bold text-[#121712] leading-snug text-center w-full truncate" title={p.name}>
                     {p.name}
                   </span>
-                  <span className="text-xs text-stone-500 leading-tight text-center w-full mt-0.5">
+                  <span className="text-[10px] sm:text-[11px] text-stone-500 leading-tight text-center w-full mt-0.5 truncate">
                     {p.status}
                   </span>
                 </button>
@@ -1152,8 +1152,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       {/* 6. BỘ GÕ COMPOSER ĐA NĂNG */}
       <div className="px-3 py-2 bg-[#F3F8E8] border-t border-[#E2EAD2] shrink-0">
         {/* Dải Pill câu hỏi gợi ý nhanh */}
-        <div className="flex items-center gap-1.5 flex-wrap pb-2">
-          <span className="text-xs font-bold text-stone-600 shrink-0 uppercase tracking-wider">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1.5 shrink-0">
+          <span className="text-[11px] font-bold text-stone-600 shrink-0 uppercase tracking-wider">
             Gợi ý hỏi:
           </span>
           {[
