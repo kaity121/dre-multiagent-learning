@@ -107,11 +107,11 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('collision') === '1') {
       const cloned = JSON.parse(JSON.stringify(initialLesson)) as DRELessonSchema;
       if (cloned.parts && cloned.parts[0] && cloned.parts[0].scenarios) {
-        // Adjust scenario 2 to 183s (only 3s after question at 180s)
+        // Adjust scenario 2 to 303s (only 3s after question at 300s) to trigger collision warning
         const sc = cloned.parts[0].scenarios.find((s) => s.id === 'sc-02') || cloned.parts[0].scenarios[0];
         if (sc) {
-          sc.timestamp = 183;
-          sc.dialogue = 'Lưu ý ngay: Tỷ số các đoạn thẳng phải tương ứng vị trí trên hai cạnh!';
+          sc.timestamp = 303;
+          sc.dialogue = 'Lưu ý ngay: Phải kiểm tra điều kiện cùng phương trước khi thực hiện cộng vectơ!';
         }
       }
       return cloned;
@@ -149,8 +149,8 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
   const activePart =
     draftLesson.parts.find((p) => p.id === selectedPartId) || draftLesson.parts[0] || {
       id: 'part-01',
-      title: 'Phần 1: Giới thiệu tỷ số của hai đoạn thẳng và định lý Ta-lét thuận',
-      duration: 420,
+      title: 'Phần 1: Khởi động & Quy tắc hình trong không gian (00:00 - 21:00)',
+      duration: 1260,
       pause_questions: [],
       scenarios: [],
     };
@@ -189,14 +189,16 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     return draftLesson.parts.reduce((sum, p) => sum + (p.duration || 0), 0);
   }, [draftLesson.parts]);
 
-  const { totalActiveQuestions, totalActiveScenarios, bloomCoverage, highestBloom, allAgentsSummary } = useMemo(() => {
+  const { totalQuestions, totalActiveQuestions, totalActiveScenarios, bloomCoverage, highestBloom, allAgentsSummary, partsDurationSummary } = useMemo(() => {
     let questionsCount = 0;
+    let totalQuestionsCount = 0;
     let scenariosCount = 0;
     const bloomSet = new Set<number>();
     const agentSet = new Set<string>();
     let maxBloomLevel = 1;
 
     draftLesson.parts.forEach((p) => {
+      totalQuestionsCount += (p.pause_questions || []).length;
       (p.pause_questions || []).forEach((q) => {
         if (q.is_active) {
           questionsCount++;
@@ -219,12 +221,18 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     const highest = BLOOM_LEVELS.find((b) => b.index === maxBloomLevel) || BLOOM_LEVELS[2];
     const agentList = Array.from(agentSet);
 
+    const partsDurationSummary = draftLesson.parts
+      .map((p) => formatTime(p.duration || 0))
+      .join(' + ');
+
     return {
+      totalQuestions: totalQuestionsCount,
       totalActiveQuestions: questionsCount,
       totalActiveScenarios: scenariosCount,
       bloomCoverage: Math.max(1, Math.min(6, bloomSet.size)),
       highestBloom: highest,
       allAgentsSummary: agentList.length > 0 ? agentList.join(' · ') : 'Bo · Trí · An',
+      partsDurationSummary,
     };
   }, [draftLesson.parts]);
 
@@ -373,19 +381,19 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     return warnings.find((w) => w.itemIds.includes(itemId));
   };
 
-  // Generate minute tick markers for ruler (00:00, 01:00, 02:00, 03:00...)
-  const durationSec = activePart.duration || 420;
-  const totalMinutes = Math.ceil(durationSec / 60);
+  // Generate markers every 5 minutes (00:00, 05:00, 10:00...), prevent overlapping timestamps at ends
+  const durationSec = activePart.duration || 1260;
   const minuteTicks = useMemo(() => {
-    const ticks = [];
-    for (let m = 0; m <= totalMinutes; m++) {
-      const sec = m * 60;
-      if (sec <= durationSec) {
-        ticks.push(sec);
-      }
+    const stepSec = 300; // 5 minutes
+    const ticks: number[] = [0];
+    for (let s = stepSec; s < durationSec - 120; s += stepSec) {
+      ticks.push(s);
+    }
+    if (durationSec > 120) {
+      ticks.push(durationSec);
     }
     return ticks;
-  }, [durationSec, totalMinutes]);
+  }, [durationSec]);
 
   // Unified & Chronologically Sorted Rows for Interaction Table
   const sortedTimelineRows = useMemo(() => {
@@ -450,7 +458,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
           >
             {draftLesson.title || 'Biên tập dòng thời gian tương tác'}
           </h1>
-          <p className="text-sm text-stone-600 line-clamp-2">
+          <p className="text-sm text-stone-600 truncate max-w-4xl">
             {draftLesson.description ||
               'Kiểm duyệt và tinh chỉnh các mốc câu hỏi dừng, kịch bản tranh luận đa tác nhân và thang nhận thức Bloom.'}
           </p>
@@ -486,8 +494,8 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
             <div className="text-xl sm:text-2xl font-bold text-[#121712] font-mono">
               {formatTime(totalDuration)}
             </div>
-            <div className="text-xs text-stone-600 truncate mt-0.5">
-              Cả 2 phần (07:00 + 08:00)
+            <div className="text-xs text-stone-600 truncate mt-0.5" title={`Cả ${draftLesson.parts.length} phần (${partsDurationSummary})`}>
+              Cả {draftLesson.parts.length} phần ({partsDurationSummary})
             </div>
           </div>
         </div>
@@ -505,7 +513,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
               {totalActiveQuestions} <span className="text-xs font-normal text-stone-600">mốc kích hoạt</span>
             </div>
             <div className="text-xs text-stone-600 truncate mt-0.5">
-              Cả 2 phần (Đang bật 2/2)
+              Cả {draftLesson.parts.length} phần (Đang bật {totalActiveQuestions}/{totalQuestions})
             </div>
           </div>
         </div>
@@ -522,8 +530,8 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
             <div className="text-xl sm:text-2xl font-bold text-[#121712] font-mono">
               {totalActiveScenarios} <span className="text-xs font-normal text-stone-600">lượt thoại</span>
             </div>
-            <div className="text-xs text-stone-600 truncate mt-0.5">
-              Cả 2 phần ({allAgentsSummary})
+            <div className="text-xs text-stone-600 truncate mt-0.5" title={`Cả ${draftLesson.parts.length} phần (${allAgentsSummary})`}>
+              Cả {draftLesson.parts.length} phần ({allAgentsSummary})
             </div>
           </div>
         </div>
@@ -687,7 +695,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
 
               {/* Playhead Marker on Ruler (khớp vạch thời gian) */}
               <div
-                className="absolute top-0 bottom-0 w-0.5 bg-[#121712] z-30 transition-all pointer-events-none"
+                className="absolute top-0 bottom-0 w-px bg-[#121712] z-30 transition-all pointer-events-none"
                 style={{
                   left: `${Math.min(99, Math.max(1, (playheadSec / durationSec) * 100))}%`,
                 }}
@@ -703,7 +711,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
               Track 1 · Video
             </div>
             <div className="flex-1 h-9 bg-[#F3F8E8] border border-[#E2EAD2] rounded-xl relative flex items-center px-3 overflow-hidden shadow-2xs">
-              <span className="text-xs font-bold text-[#121712] truncate flex items-center gap-2">
+              <span className="relative z-10 text-xs font-bold text-[#121712] truncate flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" />
                 <span className="truncate">{activePart.title}</span>
                 <span className="text-stone-600 font-mono text-[11px] font-normal">
@@ -711,9 +719,9 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                 </span>
               </span>
 
-              {/* Playhead line through track 1 */}
+              {/* Playhead line through track 1 (1px hairline behind label) */}
               <div
-                className="absolute top-0 bottom-0 w-0.5 bg-[#121712]/30 pointer-events-none"
+                className="absolute top-0 bottom-0 w-px bg-[#121712]/30 pointer-events-none z-0"
                 style={{
                   left: `${Math.min(99, Math.max(1, (playheadSec / durationSec) * 100))}%`,
                 }}
@@ -745,7 +753,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                       setPlayheadSec(q.timestamp);
                       setIsDetailDrawerOpen(true);
                     }}
-                    className={`absolute top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${
+                    className={`absolute z-10 top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${
                       isSelected
                         ? 'bg-[#121712] text-white ring-2 ring-[#C8F169] z-20 scale-105'
                         : q.is_active
@@ -767,9 +775,9 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                 );
               })}
 
-              {/* Playhead line through track 2 */}
+              {/* Playhead line through track 2 (1px hairline behind chips) */}
               <div
-                className="absolute top-0 bottom-0 w-0.5 bg-[#121712]/30 pointer-events-none"
+                className="absolute top-0 bottom-0 w-px bg-[#121712]/30 pointer-events-none z-0"
                 style={{
                   left: `${Math.min(99, Math.max(1, (playheadSec / durationSec) * 100))}%`,
                 }}
@@ -801,7 +809,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                       setPlayheadSec(s.timestamp);
                       setIsDetailDrawerOpen(true);
                     }}
-                    className={`absolute top-2 bottom-2 px-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${
+                    className={`absolute z-10 top-2 bottom-2 px-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${
                       isSelected
                         ? 'bg-[#121712] text-white ring-2 ring-[#C8F169] z-20 scale-105'
                         : s.is_active
@@ -823,9 +831,9 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                 );
               })}
 
-              {/* Playhead line through track 3 */}
+              {/* Playhead line through track 3 (1px hairline behind chips) */}
               <div
-                className="absolute top-0 bottom-0 w-0.5 bg-[#121712]/30 pointer-events-none"
+                className="absolute top-0 bottom-0 w-px bg-[#121712]/30 pointer-events-none z-0"
                 style={{
                   left: `${Math.min(99, Math.max(1, (playheadSec / durationSec) * 100))}%`,
                 }}
@@ -1435,7 +1443,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
               <div className="flex justify-between items-center">
                 <span className="text-stone-700">Số phân đoạn bài học:</span>
                 <span className="font-bold text-[#121712] font-mono">
-                  {draftLesson.parts.length} phân đoạn (Cả 2 phần)
+                  {draftLesson.parts.length} phân đoạn (Cả {draftLesson.parts.length} phần)
                 </span>
               </div>
               <div className="flex justify-between items-center">

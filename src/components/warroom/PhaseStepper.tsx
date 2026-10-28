@@ -41,8 +41,8 @@ export const PhaseStepper: React.FC<PhaseStepperProps> = ({ currentPhase, phaseS
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-2 relative z-10">
           {phasesConfig.map((phase, idx) => {
             const status = phaseStatuses[phase.id] || 'pending';
-            const isActive = currentPhase === phase.id || status === 'running';
             const isCompleted = status === 'completed';
+            const isActive = (currentPhase === phase.id || status === 'running') && !isCompleted;
 
             return (
               <div
@@ -79,15 +79,15 @@ export const PhaseStepper: React.FC<PhaseStepperProps> = ({ currentPhase, phaseS
 
                   {/* Badge trạng thái */}
                   <div className="pt-1">
-                    {isActive ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-bold text-[#121712] bg-[#C8F169] px-2.5 py-0.5 rounded-full shadow-2xs">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#121712] animate-ping" />
-                        <span>Đang chạy</span>
-                      </span>
-                    ) : isCompleted ? (
+                    {isCompleted ? (
                       <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                         <Check className="w-3.5 h-3.5 text-emerald-600" />
                         <span>Hoàn thành</span>
+                      </span>
+                    ) : isActive ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-bold text-[#121712] bg-[#C8F169] px-2.5 py-0.5 rounded-full shadow-2xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#121712] animate-ping" />
+                        <span>Đang chạy</span>
                       </span>
                     ) : status === 'error' ? (
                       <span className="inline-flex items-center gap-1 text-xs font-bold text-rose-800 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">

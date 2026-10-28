@@ -1,23 +1,23 @@
 {
-  "lesson_id": "lesson_dre_geo_001",
-  "title": "Định lý Ta-lét trong tam giác và ứng dụng hình học 8",
-  "description": "Bài học tương tác đa tác tử AI khám phá tỷ lệ đoạn thẳng và giải bài toán thực tế.",
+  "lesson_id": "lesson_dre_vector_12",
+  "title": "Toán 12 · Vectơ trong không gian · Thầy Nguyễn Phan Tiến",
+  "description": "Giáo án tương tác sư phạm Đa tác tử DRE: Khám phá vectơ không gian, quy tắc hình hộp và bẻ gãy bẫy trực giác độ dài.",
   "status": "draft",
   "parts": [
     {
       "id": "part-01",
-      "title": "Phần 1: Giới thiệu tỷ số của hai đoạn thẳng và định lý Ta-lét thuận",
-      "duration": 420,
-      "video_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+      "title": "Phần 1: Khởi động & Quy tắc hình trong không gian (00:00 - 21:00)",
+      "duration": 1260,
+      "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
       "pause_questions": [
         {
           "id": "pq-01",
-          "timestamp": 180,
-          "question": "Nếu đường thẳng d song song với cạnh BC của tam giác ABC và cắt AB tại D, AC tại E thì khẳng định nào sau đây đúng?",
-          "bloom_level": "Hiểu (Understand)",
+          "timestamp": 300,
+          "question": "Trong không gian, hai vectơ cùng phương khi và chỉ khi giá của chúng có quan hệ gì?",
+          "bloom_level": "Nhớ (Remember · L1)",
           "expected_answers": [
-            "AD/AB = AE/AC",
-            "AD/DB = AE/EC"
+            "Giá của chúng song song hoặc trùng nhau",
+            "Song song hoặc trùng"
           ],
           "is_active": true,
           "type": "active"
@@ -26,21 +26,21 @@
       "scenarios": [
         {
           "id": "sc-01",
-          "timestamp": 60,
+          "timestamp": 120,
           "agent": "Trí",
-          "trigger_condition": "Học sinh vừa xem xong phần đặt vấn đề đo chiều cao kim tự tháp",
-          "dialogue": "Bạn có thắc mắc tại sao chỉ cần đo bóng của chiếc cọc mà Ta-lét lại tính được chiều cao kim tự tháp vĩ đại không?",
-          "bloom_level": "Nhớ (Remember)",
+          "trigger_condition": "Học sinh vừa xem xong phần giới thiệu giá của vectơ",
+          "dialogue": "Các bạn lưu ý nhé: Trong không gian 3 chiều, hai đường thẳng không cắt nhau chưa chắc đã song song đâu, chúng có thể chéo nhau đấy!",
+          "bloom_level": "Hiểu (Understand · L2)",
           "is_active": true,
           "type": "passive"
         },
         {
           "id": "sc-02",
-          "timestamp": 240,
+          "timestamp": 900,
           "agent": "Bo",
-          "trigger_condition": "Sau khi học sinh trả lời xong câu hỏi dừng",
-          "dialogue": "Chính xác! Tỷ lệ các đoạn thẳng tạo ra luôn đồng dạng tỷ lệ thuận với nhau.",
-          "bloom_level": "Vận dụng (Apply)",
+          "trigger_condition": "Khi thầy Tiến giảng về quy tắc ba điểm OA + AB = OB",
+          "dialogue": "A, quy tắc nối tiếp này giống hệt trong mặt phẳng! Cứ điểm cuối của vectơ này nối vào điểm đầu của vectơ kia là triệt tiêu được!",
+          "bloom_level": "Vận dụng (Apply · L3)",
           "is_active": true,
           "type": "passive"
         }
@@ -48,18 +48,18 @@
     },
     {
       "id": "part-02",
-      "title": "Phần 2: Hệ quả định lý Ta-lét và bài tập ứng dụng",
-      "duration": 480,
-      "video_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+      "title": "Phần 2: Bẫy trực giác độ dài vectơ và Quy tắc thế (21:00 - 1:06:30)",
+      "duration": 2730,
+      "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
       "pause_questions": [
         {
           "id": "pq-02",
-          "timestamp": 200,
-          "question": "Cho tam giác ABC có DE // BC. Biết AD = 2cm, BD = 4cm, DE = 3cm. Tính độ dài BC?",
-          "bloom_level": "Vận dụng (Apply)",
+          "timestamp": 2233,
+          "question": "Cho hình lập phương ABCD.A'B'C'D' cạnh 1. Độ dài tổng |BC + DD'| bằng bao nhiêu? Có bằng 1 + 1 = 2 không?",
+          "bloom_level": "Đánh giá (Evaluate · L5)",
           "expected_answers": [
-            "9cm",
-            "9"
+            "|BC + DD'| = √2 ≈ 1.414, không bằng 2 vì hai vectơ vuông góc nhau.",
+            "Căn 2 (≈ 1.414)"
           ],
           "is_active": true,
           "type": "active"
@@ -68,11 +68,85 @@
       "scenarios": [
         {
           "id": "sc-03",
-          "timestamp": 120,
-          "agent": "An",
-          "trigger_condition": "Chuyển sang phần bài tập thực hành",
-          "dialogue": "Lưu ý hệ quả Ta-lét cho phép ta tính được cả độ dài của đoạn thẳng song song DE và BC nhé!",
-          "bloom_level": "Hiểu (Understand)",
+          "timestamp": 1800,
+          "agent": "Trí",
+          "trigger_condition": "Trước mốc dừng 37:13",
+          "dialogue": "Chuẩn bị đến bài toán bẫy kinh điển của thầy Tiến rồi! Mọi người chú ý: Độ dài của tổng khác với tổng độ dài nhé!",
+          "bloom_level": "Phân tích (Analyze · L4)",
+          "is_active": true,
+          "type": "passive"
+        },
+        {
+          "id": "sc-04",
+          "timestamp": 2240,
+          "agent": "Bo",
+          "trigger_condition": "Sau khi học sinh đối mặt với câu hỏi dừng 37:13",
+          "dialogue": "Ối, nhìn thấy cạnh BC = 1 và DD' = 1 làm mình cứ tưởng cộng đại 1 + 1 = 2 luôn cho xong!",
+          "bloom_level": "Đánh giá (Evaluate · L5)",
+          "is_active": true,
+          "type": "passive"
+        }
+      ]
+    },
+    {
+      "id": "part-03",
+      "title": "Phần 3: Dự đoán POE & Săn bẫy vectơ ngược hướng (1:06:30 - 1:30:30)",
+      "duration": 1440,
+      "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "pause_questions": [
+        {
+          "id": "pq-03",
+          "timestamp": 5430,
+          "question": "Cho điểm I thuộc đoạn AG sao cho IA = 3·IG. Khi biểu diễn vectơ IA theo vectơ IG, dấu của hệ số k là dương hay âm?",
+          "bloom_level": "Phân tích (Analyze · L4)",
+          "expected_answers": [
+            "Hệ số mang dấu âm (k = -3) vì vectơ IA và vectơ IG ngược hướng.",
+            "k = -3 (ngược hướng)"
+          ],
+          "is_active": true,
+          "type": "active"
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "sc-05",
+          "timestamp": 5400,
+          "agent": "Bo",
+          "trigger_condition": "Khi bước vào trạm POE",
+          "dialogue": "Độ dài IA gấp 3 lần IG thì gắn mũi tên vectơ vào vẫn phải là IA = 3·IG chứ, sao lại có dấu trừ được?",
+          "bloom_level": "Hiểu (Understand · L2)",
+          "is_active": true,
+          "type": "passive"
+        }
+      ]
+    },
+    {
+      "id": "part-04",
+      "title": "Phần 4: Gia sư nhí & Tự ra đề đẳng thức hình hộp (1:30:30 - 1:38:00)",
+      "duration": 450,
+      "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "pause_questions": [
+        {
+          "id": "pq-04",
+          "timestamp": 5800,
+          "question": "Em hãy viết một đẳng thức biểu diễn quy tắc hình hộp xuất phát từ đỉnh A của hình hộp ABCD.A'B'C'D'.",
+          "bloom_level": "Sáng tạo (Create · L6)",
+          "expected_answers": [
+            "AB + AD + AA' = AC'",
+            "AC' = AB + AD + AA'"
+          ],
+          "is_active": true,
+          "type": "active"
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "sc-06",
+          "timestamp": 5850,
+          "agent": "Cô Lam",
+          "trigger_condition": "Sau khi đề toán thách đấu được Hội đồng thẩm định phê duyệt",
+          "dialogue": "Xuất sắc lắm các em! Các em đã làm chủ trọn vẹn từ định nghĩa nền tảng đến sáng tạo đề toán không gian!",
+          "bloom_level": "Sáng tạo (Create · L6)",
           "is_active": true,
           "type": "passive"
         }

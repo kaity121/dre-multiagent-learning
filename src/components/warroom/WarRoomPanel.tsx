@@ -35,25 +35,45 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [events, setEvents] = useState<ReasoningEvent[]>(() => {
-    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('active') === '1') {
-      return (mockReasoningEvents as any[]) || [];
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      if (s.get('active') === '1' || s.get('completed') === '1' || s.get('full') === '1') {
+        return (mockReasoningEvents as any[]) || [];
+      }
     }
     return [];
   });
   const [currentPhase, setCurrentPhase] = useState<PhaseType | null>(() => {
-    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('active') === '1') {
-      return 'roundtable';
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      if (s.get('completed') === '1' || s.get('full') === '1') {
+        return 'bloom';
+      }
+      if (s.get('active') === '1') {
+        return 'roundtable';
+      }
     }
     return null;
   });
   const [phaseStatuses, setPhaseStatuses] = useState<Record<PhaseType, PhaseStatus>>(() => {
-    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('active') === '1') {
-      return {
-        extract: 'completed',
-        rag: 'completed',
-        roundtable: 'running',
-        bloom: 'pending',
-      };
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      if (s.get('completed') === '1' || s.get('full') === '1') {
+        return {
+          extract: 'completed',
+          rag: 'completed',
+          roundtable: 'completed',
+          bloom: 'completed',
+        };
+      }
+      if (s.get('active') === '1') {
+        return {
+          extract: 'completed',
+          rag: 'completed',
+          roundtable: 'running',
+          bloom: 'pending',
+        };
+      }
     }
     return {
       extract: 'pending',
@@ -83,13 +103,21 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
     };
   });
   const [isPlaying, setIsPlaying] = useState(() => {
-    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('active') === '1') {
-      return true;
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      if (s.get('completed') === '1' || s.get('full') === '1') return false;
+      if (s.get('active') === '1') return true;
     }
     return false;
   });
   const [speed, setSpeed] = useState(1.0);
-  const [isDone, setIsDone] = useState(false);
+  const [isDone, setIsDone] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      if (s.get('completed') === '1' || s.get('full') === '1') return true;
+    }
+    return false;
+  });
 
   const feedBottomRef = useRef<HTMLDivElement>(null);
 
@@ -376,7 +404,7 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
             </div>
 
             {/* Vùng hiển thị sự kiện theo Timeline dọc */}
-            <div className="max-h-[520px] overflow-y-auto pr-2 space-y-1 select-text">
+            <div className="space-y-1 select-text">
               {events.length === 0 ? (
                 /* TRẠNG THÁI CHƯA PHÁT: NÚT PHÁT LỚN Ở TRUNG TÂM + LỜI HƯỚNG DẪN TRỰC QUAN */
                 <div className="py-14 px-4 flex flex-col items-center justify-center text-center space-y-4 bg-white rounded-2xl border border-dashed border-stone-300">

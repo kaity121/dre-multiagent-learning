@@ -5,7 +5,7 @@
     "agent": "Dispatcher",
     "eventType": "thinking",
     "phase": "extract",
-    "content": "Phát hiện câu hỏi của học sinh về định lý Thales và tam giác đồng dạng. Cần kích hoạt bộ trích xuất bài toán."
+    "content": "Phát hiện câu hỏi của học sinh về bẫy độ dài vectơ tại mốc 37:13: |BC + DD'|. Cần kích hoạt bộ trích xuất bài toán không gian."
   },
   {
     "id": "evt-002",
@@ -16,7 +16,7 @@
     "toolCall": {
       "toolName": "tool_extract_problem_entities",
       "args": {
-        "text": "Cho tam giác ABC, đoạn thẳng DE song song với BC..."
+        "text": "Cho hình lập phương ABCD.A'B'C'D' cạnh 1. Tính độ dài |BC + DD'|..."
       }
     }
   },
@@ -31,11 +31,11 @@
       "status": "success",
       "result": {
         "entities": [
-          "Tam giác ABC",
-          "Đoạn thẳng DE",
-          "Quan hệ song song DE // BC"
+          "Hình lập phương ABCD.A'B'C'D' cạnh 1",
+          "Vectơ BC và Vectơ DD' chéo nhau vuông góc",
+          "Phép tịnh tiến thế DD' = CC'"
         ],
-        "targetTheorem": "Thales Theorem"
+        "targetTheorem": "Vector Addition & Triangle Inequality in Space"
       }
     }
   },
@@ -45,7 +45,7 @@
     "agent": "An",
     "eventType": "thinking",
     "phase": "rag",
-    "content": "Truy hồi SGK Toán 8 tập 2 - Chương III: Định lý Talet trong tam giác."
+    "content": "Truy hồi SGK Toán 12 (SGK Mới) - Chương I: Vectơ trong không gian. Bài giảng Thầy Nguyễn Phan Tiến."
   },
   {
     "id": "evt-005",
@@ -56,8 +56,8 @@
     "toolCall": {
       "toolName": "tool_rag_curriculum_search",
       "args": {
-        "query": "Định lý Ta-lét trong tam giác tỉ số đoạn thẳng",
-        "grade": 8
+        "query": "Bất đẳng thức tam giác vectơ và quy tắc thế hình hộp trong không gian",
+        "grade": 12
       }
     }
   },
@@ -71,8 +71,8 @@
       "toolName": "tool_rag_curriculum_search",
       "status": "success",
       "result": {
-        "lesson": "Bài 1: Định lí Ta-lét trong tam giác",
-        "keyFormula": "AD/AB = AE/AC = DE/BC"
+        "lesson": "Bài 1: Vectơ và các phép toán vectơ trong không gian",
+        "keyFormula": "|a + b| <= |a| + |b|, BC + DD' = BC + CC' = BC'"
       }
     }
   },
@@ -82,7 +82,7 @@
     "agent": "Bo",
     "eventType": "speaking",
     "phase": "roundtable",
-    "content": "Tôi đề xuất giải theo hướng tam giác đồng dạng ngay từ đầu vì học sinh đã học ở phần trước."
+    "content": "Tôi đề xuất cộng trực tiếp độ dài đại số: |BC + DD'| = |BC| + |DD'| = 1 + 1 = 2 cho nhanh vì hai đoạn thẳng đều bằng 1."
   },
   {
     "id": "evt-008",
@@ -90,7 +90,7 @@
     "agent": "Trí",
     "eventType": "thinking",
     "phase": "roundtable",
-    "content": "Ý kiến của Bo có vấn đề về mặt phân phối chương trình: Bài học này đang ở Part 1 về Ta-lét, chưa dạy tới tam giác đồng dạng trường hợp cạnh-góc-cạnh."
+    "content": "Ý kiến của Bo vi phạm bản chất hình học không gian: BC và DD' vuông góc chéo nhau, không được cộng độ dài đại số. Phải dùng quy tắc thế DD' = CC'."
   },
   {
     "id": "evt-009",
@@ -102,9 +102,9 @@
       "judgeAgent": "Trí",
       "targetAgent": "Bo",
       "verdict": "disagree",
-      "confidence": 0.96,
-      "critique": "Không thể dùng tam giác đồng dạng ở đây vì học sinh lớp 8 tại bài học này chưa được học khái niệm đồng dạng. Cần giải chặt chẽ bằng định lý Ta-lét theo SGK.",
-      "counterProposal": "Áp dụng trực tiếp hệ quả Ta-lét: Nếu một đường thẳng song song với một cạnh của tam giác và cắt hai cạnh còn lại thì nó định ra trên hai cạnh đó những đoạn thẳng tương ứng tỉ lệ."
+      "confidence": 0.98,
+      "critique": "Không thể cộng trực tiếp 1 + 1 = 2 vì BC và DD' vuông góc chéo nhau trong không gian. Cần giải chặt chẽ bằng quy tắc thế vectơ theo SGK Toán 12.",
+      "counterProposal": "Áp dụng phép thế DD' = CC' (hai vectơ bằng nhau), khi đó BC + DD' = BC + CC' = BC'. Độ dài là cạnh huyền tam giác vuông BCC': |BC'| = √(1² + 1²) = √2 ≈ 1.414."
     }
   },
   {
@@ -113,7 +113,7 @@
     "agent": "Bo",
     "eventType": "speaking",
     "phase": "roundtable",
-    "content": "Đồng ý với phản biện của Trí. Chúng ta sẽ quy về hệ quả định lý Ta-lét."
+    "content": "A, mình hiểu rồi! Vì hai vectơ vuông góc nhau nên phải thế DD' thành CC' để nối đuôi tam giác vuông, độ dài là đường chéo √2 chứ không phải 2."
   },
   {
     "id": "evt-011",
@@ -121,7 +121,7 @@
     "agent": "Blu",
     "eventType": "speaking",
     "phase": "roundtable",
-    "content": "Kịch bản sư phạm đã thống nhất xong. Tôi sẽ chuyển giao cho Assessor xác định mốc Bloom."
+    "content": "Kịch bản sư phạm phản biện bẫy độ dài đã thống nhất. Tôi chuyển giao cho Assessor xác định mức Bloom cho mốc dừng 37:13."
   },
   {
     "id": "evt-012",
@@ -132,8 +132,8 @@
     "toolCall": {
       "toolName": "tool_bloom_taxonomy_tagger",
       "args": {
-        "question": "Tính độ dài đoạn thẳng DE khi biết AD=3, AB=9, BC=12?",
-        "context": "Ứng dụng hệ quả Ta-lét"
+        "question": "Cho hình lập phương ABCD.A'B'C'D' cạnh 1. Độ dài tổng |BC + DD'| bằng bao nhiêu? Có bằng 1 + 1 = 2 không?",
+        "context": "Bẫy trực giác tách độ dài vectơ |a + b| = |a| + |b| tại mốc 37:13"
       }
     }
   },
@@ -147,8 +147,8 @@
       "toolName": "tool_bloom_taxonomy_tagger",
       "status": "success",
       "result": {
-        "bloom_level": "Vận dụng thấp (Apply)",
-        "score": 0.88
+        "bloom_level": "Đánh giá (Evaluate · L5)",
+        "score": 0.96
       }
     }
   },
@@ -158,7 +158,7 @@
     "agent": "Assessor",
     "eventType": "speaking",
     "phase": "bloom",
-    "content": "Đã định vị câu hỏi dừng ở mức độ Bloom: Vận dụng (Apply), thời điểm dừng lý tưởng tại giây thứ 180 của bài giảng."
+    "content": "Đã định vị câu hỏi dừng ở mức độ Bloom: Đánh giá (Evaluate · L5), phản biện bẫy trực giác tại mốc 37:13 (giây 2233) của bài giảng."
   },
   {
     "id": "evt-015",
@@ -174,7 +174,7 @@
     "agent": "Dispatcher",
     "eventType": "speaking",
     "phase": "bloom",
-    "content": "Giáo án và kịch bản tương tác đã sẵn sàng nạp vào Timeline Editor."
+    "content": "Giáo án và kịch bản tương tác Vectơ 37:13 đã sẵn sàng nạp vào Timeline Editor."
   },
   {
     "id": "evt-017",

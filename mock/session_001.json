@@ -1,15 +1,15 @@
 {
   "session_id": "session_001",
   "student_id": "hs_danang_042",
-  "lesson_id": "lesson_dre_geo_001",
+  "lesson_id": "lesson_dre_vector_12",
   "start_time": 1729000000000,
-  "current_part_id": "part-01",
+  "current_part_id": "part-02",
   "turn_count": 4,
   "history": [
     {
       "turn_id": "turn-01",
-      "user_message": "Em chưa hiểu tại sao đoạn thẳng song song lại tạo ra các tỷ số bằng nhau ạ?",
-      "agent_response": "Chào bạn! Định lý Ta-lét chỉ ra rằng khi một đường thẳng song song cắt hai cạnh của tam giác, nó sẽ chia hai cạnh đó thành những đoạn thẳng tương ứng tỉ lệ."
+      "user_message": "Em chưa hiểu tại sao độ dài |BC + DD'| lại không bằng 1 + 1 = 2 ạ?",
+      "agent_response": "Chào bạn! Trong không gian, hai vectơ BC và DD' vuông góc chéo nhau. Khi thế DD' bằng CC', ta có tam giác vuông BCC' với độ dài đường chéo bằng √2 ≈ 1.414 chứ không bằng tổng đại số 2 đâu nhé!"
     }
   ]
 }
