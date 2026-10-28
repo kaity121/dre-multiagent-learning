@@ -97,6 +97,16 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
   }, [isDrawerOpen, activePeer, activeSubTab, chatHistories, isPeerTyping]);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isDrawerOpen) {
+        setIsDrawerOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDrawerOpen]);
+
+  useEffect(() => {
     setChatHistories({
       bo: [
         {
@@ -245,28 +255,43 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
         <span>Sổ tay & Hỏi riêng 4 bạn</span>
       </button>
 
-      {/* MODAL HỎI RIÊNG 4 BẠN & SỔ TAY (KHỚP 100% ẢNH INSPIRATION 2) */}
+      {/* MODAL HỎI RIÊNG 4 BẠN & SỔ TAY */}
       {isDrawerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="relative w-full max-w-[460px] bg-[#FAF7F2] rounded-3xl border border-stone-200/90 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-150">
+        <div 
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              sound.playPencilTap();
+              setIsDrawerOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-[480px] max-h-[85vh] bg-white rounded-2xl border border-slate-200 shadow-2xl flex flex-col my-auto overflow-hidden animate-in zoom-in-95 duration-150"
+          >
             
             {/* Header: Chọn bạn đồng hành để hỏi riêng hoặc xem Sổ tay */}
-            <div className="p-4 pb-3 space-y-3 shrink-0">
+            <div className="p-3.5 pb-2.5 space-y-2.5 shrink-0 bg-white border-b border-slate-200 sticky top-0 z-10">
               <div className="flex items-center justify-between">
-                <span className="text-[13px] font-bold text-stone-900">
-                  Chọn bạn đồng hành để hỏi riêng hoặc xem Sổ tay:
+                <span className="text-xs sm:text-[13px] font-bold text-slate-900">
+                  Hỏi riêng hoặc xem Sổ tay của 4 bạn:
                 </span>
                 <button
                   type="button"
-                  onClick={() => setIsDrawerOpen(false)}
-                  className="w-7 h-7 rounded-full bg-stone-200/70 hover:bg-stone-300 text-stone-700 font-bold text-xs cursor-pointer flex items-center justify-center transition-colors"
+                  onClick={() => {
+                    sound.playPencilTap();
+                    setIsDrawerOpen(false);
+                  }}
+                  className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer flex items-center justify-center transition-all shadow-2xs"
+                  title="Đóng (Esc)"
                 >
                   ✕
                 </button>
               </div>
 
-              {/* 4 Nút chọn bạn đồng hành (4 Cột chuẩn Inspo 2) */}
-              <div className="grid grid-cols-4 gap-2">
+              {/* 4 Nút chọn bạn đồng hành */}
+              <div className="grid grid-cols-4 gap-1.5">
                 {(['bo', 'tri', 'linhchi', 'minhkhang'] as const).map((id) => {
                   const isSelected = activePeer === id;
                   const meta = peerMeta[id];
@@ -275,28 +300,28 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
                       key={id}
                       type="button"
                       onClick={() => handleSelectPeer(id)}
-                      className={`py-2 px-1 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 shadow-2xs ${
+                      className={`py-1.5 px-1 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 shadow-2xs ${
                         isSelected
                           ? `${meta.tabActive} font-bold shadow-xs scale-102`
                           : `${meta.tabInactive} hover:opacity-90 font-medium`
                       }`}
                     >
                       <span className="text-xs font-bold leading-tight">{meta.name}</span>
-                      <span className="text-[10px] opacity-90 leading-tight">{meta.shortRole}</span>
+                      <span className="text-[9.5px] opacity-85 leading-tight">{meta.shortRole}</span>
                     </button>
                   );
                 })}
               </div>
 
-              {/* Thanh gạt 2 Tab: [💬 Trò chuyện (1)] <-> [📄 Sổ tay của Bo] */}
-              <div className="grid grid-cols-2 gap-1.5 p-1 bg-stone-200/50 rounded-2xl text-xs">
+              {/* Thanh gạt 2 Tab: [💬 Trò chuyện] <-> [📄 Sổ tay] */}
+              <div className="grid grid-cols-2 gap-1 p-0.5 bg-slate-100 rounded-xl text-xs font-semibold">
                 <button
                   type="button"
                   onClick={() => setActiveSubTab('chat')}
-                  className={`py-1.5 rounded-xl font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                  className={`py-1 rounded-lg font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
                     activeSubTab === 'chat'
-                      ? 'bg-white text-stone-900 shadow-2xs'
-                      : 'text-stone-600 hover:text-stone-900 font-medium'
+                      ? 'bg-white text-slate-900 shadow-2xs'
+                      : 'text-slate-500 hover:text-slate-800 font-medium'
                   }`}
                 >
                   <ChatBubbleSvg className="w-3.5 h-3.5" />
@@ -306,10 +331,10 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveSubTab('note')}
-                  className={`py-1.5 rounded-xl font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                  className={`py-1 rounded-lg font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
                     activeSubTab === 'note'
-                      ? 'bg-white text-stone-900 shadow-2xs'
-                      : 'text-stone-600 hover:text-stone-900 font-medium'
+                      ? 'bg-white text-slate-900 shadow-2xs'
+                      : 'text-slate-500 hover:text-slate-800 font-medium'
                   }`}
                 >
                   <NotebookCardSvg className="w-3.5 h-3.5" />
@@ -410,10 +435,10 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
               </div>
             )}
 
-            {/* Đáy Modal: Gợi ý hỏi nhanh + Ô nhập & Nút Gửi (Chuẩn 100% Inspo 2) */}
-            <div className="p-4 pt-2 space-y-2.5 shrink-0 bg-[#FAF7F2] border-t border-stone-200/80">
-              {/* Nút phản hồi nhanh dạng thẻ chữ nhật trắng bo góc */}
-              <div className="flex flex-col gap-1.5">
+            {/* Đáy Modal: Gợi ý hỏi nhanh + Ô nhập & Nút Gửi */}
+            <div className="p-3 pt-2 space-y-2 shrink-0 bg-slate-50 border-t border-slate-200">
+              {/* Nút phản hồi nhanh dạng thẻ gọn */}
+              <div className="flex flex-col gap-1">
                 {(activePeer === 'bo' ? [
                   '“Độ dài tổng 2 vectơ có bằng tổng 2 độ dài đâu Bo!”',
                   '“Phải thay DD\' bằng CC\' để nối đuôi thành BC\' chứ!”'
@@ -431,30 +456,40 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
                     key={i}
                     type="button"
                     onClick={() => handleSendPeerMessage(activePeer, cleanText(q).replace(/[“”]/g, ''))}
-                    className="w-full text-left bg-white hover:bg-stone-50 border border-stone-200 hover:border-[#1B4338] rounded-2xl p-3 text-xs text-stone-800 font-medium cursor-pointer transition-all shadow-2xs leading-snug"
+                    className="w-full text-left bg-white hover:bg-slate-100 border border-slate-200 hover:border-[#1B4338] rounded-xl px-2.5 py-1.5 text-xs text-slate-800 font-medium cursor-pointer transition-all shadow-2xs leading-snug"
                   >
                     {q}
                   </button>
                 ))}
               </div>
 
-              {/* Ô gõ tin nhắn + Nút Gửi xanh đậm */}
-              <div className="flex items-center gap-2 pt-1">
+              {/* Ô gõ tin nhắn + Nút Gửi + Nút Đóng */}
+              <div className="flex items-center gap-1.5 pt-0.5">
                 <input
                   type="text"
                   value={peerChatInput}
                   onChange={(e) => setPeerChatInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendPeerMessage(activePeer)}
                   placeholder={`Nhắn riêng cho ${peerMeta[activePeer].name}...`}
-                  className="flex-1 bg-white border border-stone-200 rounded-2xl px-4 py-2.5 text-xs text-stone-900 placeholder:text-stone-400 outline-none focus:border-[#1B4338] focus:ring-1 focus:ring-[#1B4338] shadow-2xs"
+                  className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#1B4338] focus:ring-1 focus:ring-[#1B4338] shadow-2xs"
                 />
                 <button
                   type="button"
                   onClick={() => handleSendPeerMessage(activePeer)}
-                  className="px-5 py-2.5 bg-[#1B4338] hover:bg-[#285E4F] text-white font-bold text-xs rounded-2xl cursor-pointer flex items-center gap-1.5 shrink-0 transition-colors shadow-xs"
+                  className="px-3.5 py-2 bg-[#1B4338] hover:bg-[#285E4F] text-white font-bold text-xs rounded-xl cursor-pointer flex items-center gap-1 shrink-0 transition-colors shadow-2xs"
                 >
                   <span>Gửi</span>
                   <SendArrowSvg className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playPencilTap();
+                    setIsDrawerOpen(false);
+                  }}
+                  className="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-xs rounded-xl cursor-pointer shrink-0 transition-colors"
+                >
+                  Đóng
                 </button>
               </div>
             </div>

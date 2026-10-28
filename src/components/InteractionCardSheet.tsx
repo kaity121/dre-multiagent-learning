@@ -2,17 +2,23 @@
 import React, { useState, useEffect } from 'react';
 import { MisconceptionItem, DREState } from '../types/dre';
 import { 
-  TutorLamAvatar, 
-  BoAvatar, 
+  TutorLamCircleAvatar, 
   BoCircleAvatar,
   LinhChiNoteTakerAvatar, 
-  RubberStampSuccess, 
-  CheckCircleIcon,
-  EyeSticker,
-  LightbulbSticker
 } from './HandmadeArtwork';
 import { Vec, MathView, FormattedMathText } from './MathVector';
 import { sound } from '../utils/soundEffects';
+import { 
+  BookOpen, 
+  ChevronDown, 
+  ChevronUp, 
+  Check, 
+  ArrowRight, 
+  RotateCcw, 
+  CheckCircle2, 
+  AlertCircle,
+  MousePointerClick
+} from 'lucide-react';
 
 interface InteractionCardSheetProps {
   lesson: MisconceptionItem;
@@ -28,6 +34,7 @@ interface InteractionCardSheetProps {
   onRequestHint: () => void;
   onNextLesson: () => void;
   onRetryLesson: () => void;
+  onSwitchToStation3?: () => void;
   onAcceptNudgeHint?: () => void;
   onDismissNudge?: () => void;
   tutorFeedbackOverride?: string | null;
@@ -37,7 +44,7 @@ interface InteractionCardSheetProps {
   hintLevel?: number;
 }
 
-const cleanText = (str?: string | null) => (str ? str.replace(/\u20d7/g, '').replace(/🌸|📝|⚠️|💡/g, '').trim() : '');
+const cleanText = (str?: string | null) => (str ? str.replace(/\u20d7/g, '').replace(/[\u{1F300}-\u{1F9FF}\u2600-\u26FF]/gu, '').trim() : '');
 
 export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.memo(({
   lesson,
@@ -52,13 +59,14 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
   onSubmitRebuttal,
   onNextLesson,
   onRetryLesson,
+  onSwitchToStation3,
   tutorFeedbackOverride,
   boSpeechOverride,
   isLoadingAi = false,
   hintLevel = 0,
 }) => {
-  // Sổ tay Linh Chi: Mặc định thu gọn để rèn luyện phản xạ, học sinh bấm mở khi cần tra cứu
-  const [isCheatSheetOpen, setIsCheatSheetOpen] = useState<boolean>(false);
+  // Sổ tay Linh Chi: Mặc định mở để học viên đối chiếu công thức và cân bằng chiều cao 2 cột
+  const [isCheatSheetOpen, setIsCheatSheetOpen] = useState<boolean>(true);
 
   useEffect(() => {
     if (currentState === 'HINT' || currentState === 'CLOSE') {
@@ -68,16 +76,16 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
 
   return (
     <div className="w-full flex flex-col justify-start space-y-3.5">
-      {/* PHẦN 1: TỜ SỔ TAY ĐỐI CHIẾU CỦA LINH CHI (CÓ NÚT BẤM ĐÓNG / MỞ BÍ KÍP) */}
-      <div className="p-3.5 bg-pink-50/70 border border-pink-200/90 rounded-2xl space-y-2 transition-all">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <LinhChiNoteTakerAvatar className="w-6 h-6 shrink-0" />
+      {/* PHẦN 1: SỔ TAY ĐỐI CHIẾU LINH CHI (Card cấp 1, TONE LIME SOFT) */}
+      <div className="p-4 bg-white border border-[#E2EAD2] rounded-[16px] space-y-2.5 shadow-xs">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <LinhChiNoteTakerAvatar className="w-8 h-8 rounded-full border border-stone-200 shadow-2xs shrink-0" />
             <div className="min-w-0">
-              <span className="font-bold text-rose-950 text-xs sm:text-sm block truncate">
-                Sổ tay Quy tắc chuẩn của Linh Chi
+              <span className="font-bold text-[#121712] text-sm block truncate">
+                Sổ tay quy tắc chuẩn · Linh Chi
               </span>
-              <p className="text-[10px] text-rose-700/80 truncate">
+              <p className="text-xs text-stone-600 truncate">
                 {isCheatSheetOpen ? 'Đang mở bí kíp đối chiếu công thức' : 'Ẩn bí kíp để bạn tự rèn luyện phản xạ'}
               </p>
             </div>
@@ -88,39 +96,36 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
               sound.playPencilTap();
               setIsCheatSheetOpen((prev) => !prev);
             }}
-            className="h-7 px-2.5 bg-white hover:bg-pink-100/60 text-rose-800 border border-pink-300 font-semibold text-xs rounded-xl cursor-pointer flex items-center gap-1.5 shadow-2xs transition-colors shrink-0 whitespace-nowrap"
+            className="h-8 px-3 bg-white hover:bg-stone-50 text-[#121712] border border-stone-300 font-semibold text-xs rounded-full cursor-pointer flex items-center gap-1.5 transition shrink-0 shadow-2xs"
           >
-            {isCheatSheetOpen ? (
-              <span>✕ Thu gọn</span>
-            ) : (
-              <>
-                <EyeSticker className="w-3.5 h-3.5 text-rose-700" />
-                <span>Xem bí kíp</span>
-              </>
-            )}
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>{isCheatSheetOpen ? 'Thu gọn' : 'Xem bí kíp'}</span>
+            {isCheatSheetOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
         </div>
 
-        {/* NỘI DUNG SỔ TAY KHI MỞ RA (ĐÃ IMPORT MATHVIEW, 100% AN TOÀN, KHÔNG CRASH) */}
+        {/* NỘI DUNG SỔ TAY KHI MỞ RA (Khối cấp 2) */}
         {isCheatSheetOpen && (
-          <div className="pt-2.5 border-t border-pink-200/70 space-y-2 animate-in fade-in duration-150 text-xs">
-            <div className="text-stone-800 space-y-1.5">
-              <span className="font-bold text-rose-900">• Quy tắc hiệu chung gốc (Khẩu quyết Thầy Tiến):</span>
-              <div className="bg-white/90 p-2.5 rounded-xl border border-pink-100 overflow-x-auto no-scrollbar font-medium">
+          <div className="pt-2.5 border-t border-[#E2EAD2] space-y-2.5 animate-in fade-in duration-150 text-xs sm:text-sm">
+            <div className="space-y-1.5">
+              <span className="font-bold text-xs uppercase tracking-wider text-stone-700 block">
+                Quy tắc hiệu chung gốc (Khẩu quyết Thầy Tiến):
+              </span>
+              <div className="bg-[#F3F8E8] p-3 rounded-[12px] border border-[#E2EAD2] overflow-x-auto no-scrollbar font-medium">
                 {currentState === 'IDLE' || currentState === 'MARKED' ? (
                   <div className="space-y-1">
                     <MathView
                       tex="\overrightarrow{OA} - \overrightarrow{OB} = \overrightarrow{BA}"
-                      className="text-xs font-bold text-[#0e7490]"
+                      className="text-xs sm:text-sm font-bold text-[#2563EB]"
                     />
-                    <p className="text-[11px] text-stone-600 mt-0.5">
+                    <p className="text-xs text-stone-600 mt-1">
                       "Chung đầu – Lộn ngược: Điểm sau B viết lên trước, điểm trước A viết ra sau."
                     </p>
                   </div>
                 ) : lesson.id === 'MISC_VECTO_12' ? (
                   <MathView
                     tex="\overrightarrow{B'C} = \overrightarrow{AC} - \overrightarrow{AB'} = \vec{c} - (\vec{a} + \vec{b}) = \vec{c} - \vec{a} - \vec{b}"
-                    className="text-xs font-bold text-rose-900"
+                    className="text-xs sm:text-sm font-bold text-[#121712]"
                   />
                 ) : (
                   <p className="leading-relaxed">{cleanText(lesson.standardExplanation)}</p>
@@ -129,69 +134,49 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
             </div>
 
             {(currentState === 'HINT' || currentState === 'BO_CHALLENGE' || currentState === 'CLOSE') && (
-              <p className="text-amber-900 text-[11px] font-medium leading-relaxed bg-amber-50/80 p-2 rounded-xl border border-amber-200/70 animate-in fade-in duration-150">
-                • <strong>Lưu ý bẫy:</strong> {cleanText(lesson.hintLevel1)}
-              </p>
+              <div className="p-3 bg-amber-50/80 rounded-[12px] border border-amber-200/80 text-xs text-amber-900 leading-relaxed">
+                <span className="font-bold">Lưu ý bẫy:</span> {cleanText(lesson.hintLevel1)}
+              </div>
             )}
           </div>
         )}
       </div>
 
-      {/* PHẦN 2: TƯƠNG TÁC ĐỘNG THEO TỪNG BƯỚC */}
-      <div className="flex flex-col space-y-3">
-        {/* TRẠNG THÁI 1: CHƯA CHỌN BƯỚC SAI */}
+      {/* PHẦN 2: TƯƠNG TÁC ĐỘNG THEO TỪNG BƯỚC (Card cấp 1) */}
+      <div className="space-y-3.5">
+        {/* TRẠNG THÁI 1: CHƯA CHỌN BƯỚC NÀO (Không lặp lại danh sách 3 bước) */}
         {currentState === 'IDLE' && (
-          <div className="p-4 rounded-2xl bg-white border border-stone-200/90 space-y-3 shadow-2xs">
-            <div className="flex items-center justify-between pb-2 border-b border-stone-100">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-amber-100 text-[#92400E] flex items-center justify-center font-bold text-xs shrink-0">
-                  1
-                </div>
-                <div>
-                  <div className="font-bold text-xs text-stone-800">
-                    Bước 1: Bắt lỗi bài giải của Bo
-                  </div>
-                  <p className="text-[10px] text-stone-500">
-                    Đối chiếu với hình lăng trụ bên trái để phát hiện bước bị nhầm
-                  </p>
-                </div>
-              </div>
-              <span className="text-[10px] font-semibold text-stone-500 bg-stone-100 px-2 py-0.5 rounded-md">
-                Gợi ý: {Math.max(0, 3 - hintLevel)}/3 lượt
-              </span>
+          <div className="p-6 rounded-[16px] bg-white border border-[#E2EAD2] text-center space-y-3.5 shadow-xs">
+            <div className="w-11 h-11 rounded-full bg-[#F3F8E8] border border-[#E2EAD2] text-[#121712] flex items-center justify-center mx-auto">
+              <MousePointerClick className="w-5 h-5 text-stone-700" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-bold text-sm text-[#121712]">Chưa chọn bước giải cần bắt lỗi</h3>
+              <p className="text-xs text-stone-600 max-w-sm mx-auto leading-relaxed">
+                Hãy bấm trực tiếp vào 1 trong 3 bước giải ở cột bên trái để bắt đầu phân tích và chỉ ra lỗi sai của Bo.
+              </p>
             </div>
 
-            <div className="space-y-1.5 text-xs text-stone-700">
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-stone-50 border border-stone-100">
-                <span className="font-bold text-stone-500 text-[11px] shrink-0">Bước 1:</span>
-                <span className="text-[11px]">Chèn điểm A vào vectơ mục tiêu <Vec role="target">B'C</Vec>.</span>
-              </div>
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-stone-50 border border-stone-100">
-                <span className="font-bold text-stone-500 text-[11px] shrink-0">Bước 2:</span>
-                <span className="text-[11px]">Quy tắc hiệu vectơ (Kiểm tra thứ tự điểm trước / sau).</span>
-              </div>
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-stone-50 border border-stone-100">
-                <span className="font-bold text-stone-500 text-[11px] shrink-0">Bước 3:</span>
-                <span className="text-[11px]">Thế các vectơ cơ sở <Vec role="reference">a</Vec>, <Vec role="reference">b</Vec>, <Vec role="reference">c</Vec>.</span>
+            {/* Lời dặn dò phương pháp của Cô Lam (TutorLamCircleAvatar không đè viền) */}
+            <div className="p-3 rounded-[12px] bg-[#F3F8E8] border border-[#E2EAD2] flex items-center gap-3 text-xs text-stone-700 text-left mt-1">
+              <TutorLamCircleAvatar className="w-8 h-8 rounded-full border border-[#4E9B87] shrink-0" />
+              <div className="leading-relaxed">
+                <span className="font-bold text-[#121712]">Lời dặn của Cô Lam:</span> Quan sát kỹ chiều mũi tên của vectơ <Vec role="target">B'C</Vec> và quy tắc trừ hai vectơ chung gốc A để phát hiện lỗi của Bo!
               </div>
             </div>
-
-            <p className="text-[11px] text-stone-500 italic text-center pt-0.5">
-              Bấm vào 1 bước giải ở cột bên trái để bắt đầu phản biện!
-            </p>
           </div>
         )}
 
         {/* TRẠNG THÁI 2: ĐÃ CHỌN BƯỚC */}
         {(currentState === 'MARKED' || currentState === 'EXPLAIN_PROMPT' || currentState === 'TUTOR_NUDGE') && (
-          <div className="space-y-3 animate-in fade-in duration-150">
+          <div className="space-y-3.5 animate-in fade-in duration-150">
             {selectedStep === 1 && lesson.id === 'MISC_VECTO_12' ? (
-              <div className="p-4 rounded-xl bg-amber-50/90 border border-amber-200 text-stone-800 space-y-2.5">
-                <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
-                  <span className="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[11px] shrink-0 font-bold">!</span>
-                  <span>Bước 1: Bo chỉ nêu phương pháp chèn điểm A (Hoàn toàn đúng hướng)</span>
+              <div className="p-5 rounded-[16px] bg-white border border-[#E2EAD2] text-[#121712] space-y-3 shadow-xs">
+                <div className="flex items-center gap-2.5 text-sm font-bold text-[#121712]">
+                  <TutorLamCircleAvatar className="w-8 h-8 rounded-full border border-[#4E9B87] shrink-0" />
+                  <span>Gợi ý Cô Lam · Bước 1 của Bo hoàn toàn đúng hướng</span>
                 </div>
-                <p className="text-xs text-stone-700 leading-relaxed">
+                <p className="text-xs sm:text-sm text-stone-700 leading-relaxed">
                   Ý tưởng chèn điểm A vào vectơ <Vec role="target">B'C</Vec> là chuẩn mực để đưa về 3 vectơ cơ sở. Lỗi sai nằm ở <strong>công thức biến đổi quy tắc hiệu</strong> ở dòng tiếp theo!
                 </p>
                 <button
@@ -200,24 +185,25 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
                     sound.playPencilTap();
                     onSelectStep?.(2);
                   }}
-                  className="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg cursor-pointer transition-colors shadow-2xs flex items-center justify-center gap-1.5"
+                  className="w-full py-3 bg-[#121712] hover:bg-black text-white font-bold text-xs sm:text-sm rounded-[14px] cursor-pointer transition shadow-xs flex items-center justify-center gap-2"
                 >
-                  <span>Chuyển sang kiểm tra Bước 2 ➔</span>
+                  <span>Chuyển sang kiểm tra Bước 2</span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             ) : (
-              <div className="p-4 rounded-2xl bg-white border border-stone-200/90 space-y-3 shadow-2xs">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-stone-900">
-                    Bước 2: Vì sao Bước {selectedStep} của Bo chưa đúng?
+              <div className="p-5 rounded-[16px] bg-white border border-[#E2EAD2] space-y-3.5 shadow-xs">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span className="text-sm font-extrabold text-[#121712]">
+                    Phân tích lỗi sai ở Bước {selectedStep}:
                   </span>
                   {lesson.nudgeStarter && (
                     <button
                       type="button"
                       onClick={() => onExplanationChange(cleanText(lesson.nudgeStarter))}
-                      className="px-2.5 py-1 rounded-full border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-semibold whitespace-nowrap cursor-pointer transition-all shadow-2xs shrink-0"
+                      className="px-3 py-1 rounded-full border border-stone-300 bg-white hover:bg-stone-50 text-[#121712] text-xs font-semibold whitespace-nowrap cursor-pointer transition shadow-2xs shrink-0"
                     >
-                      <span>Điền mẫu câu gợi ý</span>
+                      Điền mẫu câu gợi ý
                     </button>
                   )}
                 </div>
@@ -233,9 +219,10 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
                   }}
                   rows={3}
                   placeholder="Nhập lý do toán học hoặc bấm 'Điền mẫu câu gợi ý' ở trên... (Ctrl+Enter để gửi)"
-                  className="w-full p-3 bg-white border border-stone-300 rounded-xl text-xs text-stone-900 outline-none focus:border-[#1B4338] focus:ring-1 focus:ring-[#1B4338]"
+                  className="w-full p-3.5 bg-white border border-stone-300 rounded-[14px] text-xs sm:text-sm text-[#121712] outline-none focus:border-[#121712] focus:ring-2 focus:ring-[#121712]/10 transition"
                 />
 
+                {/* NÚT CHÍNH DUY NHẤT: NỀN XANH CHANH (#C8F169), CHỮ ĐEN, ĐẬM */}
                 <button
                   type="button"
                   disabled={isLoadingAi}
@@ -243,35 +230,47 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
                     sound.playStampThud();
                     onSubmitExplanation();
                   }}
-                  className="w-full py-2.5 bg-[#1B4338] hover:bg-[#285E4F] disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-semibold text-xs sm:text-sm rounded-xl cursor-pointer transition-colors shadow-xs flex items-center justify-center gap-2"
+                  className="w-full py-3.5 bg-[#C8F169] hover:bg-[#bbf054] disabled:bg-stone-200 disabled:text-stone-500 disabled:cursor-not-allowed text-[#121712] font-black text-xs sm:text-sm rounded-[14px] cursor-pointer transition shadow-xs flex items-center justify-center gap-2 active:scale-[0.99]"
                 >
                   {isLoadingAi ? (
                     <>
-                      <span className="w-3.5 h-3.5 border-2 border-white/60 border-t-white rounded-full animate-spin shrink-0" />
+                      <span className="w-4 h-4 border-2 border-black/40 border-t-black rounded-full animate-spin shrink-0" />
                       <span>Đang phân tích lời giải...</span>
                     </>
                   ) : (
-                    <span>Gửi phân tích & Kiểm tra bước đã chọn ➔</span>
+                    <>
+                      <span>Gửi phân tích & Kiểm tra bước đã chọn</span>
+                      <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                    </>
                   )}
                 </button>
+
+                {/* Gợi ý lập luận từ Cô Lam (TutorLamCircleAvatar không đè viền) */}
+                <div className="p-3 rounded-[12px] bg-[#F3F8E8] border border-[#E2EAD2] flex items-center gap-2.5 text-xs text-stone-700">
+                  <TutorLamCircleAvatar className="w-7 h-7 rounded-full border border-[#4E9B87] shrink-0" />
+                  <div className="leading-relaxed">
+                    <span className="font-bold text-[#121712]">Mẹo lập luận:</span> Nhắc Bo nhớ khẩu quyết "Chung đầu – Lộn ngược" khi trừ hai vectơ để Bo tâm phục khẩu phục!
+                  </div>
+                </div>
               </div>
             )}
           </div>
         )}
 
-        {/* TRẠNG THÁI 3: CHỌN NHẦM BƯỚC ĐÚNG */}
+        {/* TRẠNG THÁI 3: CHỌN NHẦM BƯỚC ĐÚNG (HINT) */}
         {currentState === 'HINT' && (
-          <div className="p-4 rounded-xl bg-[#FFF5F5] border border-[#F8B4A5] space-y-2.5 animate-in fade-in duration-150">
-            <div className="font-bold text-xs text-[#9B1C1C]">
-              Bước {selectedStep} này Bo làm đúng rồi! Bạn kiểm tra lại các bước còn lại nhé:
+          <div className="p-5 rounded-[16px] bg-white border border-amber-200 text-[#121712] space-y-3 shadow-xs animate-in fade-in duration-150">
+            <div className="font-bold text-sm text-amber-900 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-700 shrink-0" />
+              <span>Bước {selectedStep} này Bo làm đúng rồi! Bạn kiểm tra lại các bước còn lại nhé:</span>
             </div>
-            <p className="text-xs text-stone-700 leading-relaxed">
+            <p className="text-xs sm:text-sm text-stone-700 leading-relaxed">
               {cleanText(tutorFeedbackOverride || lesson.hintLevel1)}
             </p>
             <button
               type="button"
               onClick={onRetryLesson}
-              className="px-3.5 py-1.5 bg-white border border-[#F8B4A5] text-[#9B1C1C] font-semibold text-xs rounded-lg cursor-pointer"
+              className="px-4 py-2 bg-white border border-stone-300 hover:bg-stone-50 text-[#121712] font-bold text-xs rounded-full cursor-pointer transition shadow-xs"
             >
               Chọn lại bước khác
             </button>
@@ -280,37 +279,40 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
 
         {/* TRẠNG THÁI 4: CHỌN ĐÚNG BƯỚC SAI -> BO CÃI LẠI */}
         {currentState === 'BO_CHALLENGE' && (
-          <div className="p-4 rounded-2xl bg-[#FFFBF2] border border-[#F3DFA8] space-y-3 animate-in fade-in duration-150 shadow-2xs">
-            <div className="flex items-start gap-2.5">
-              <BoCircleAvatar className="w-8 h-8 shrink-0 mt-0.5" />
-              <div className="text-xs text-stone-800 leading-relaxed">
-                <span className="font-bold text-[#92400E] block mb-0.5">
+          <div className="p-5 rounded-[16px] bg-white border border-[#E2EAD2] space-y-3.5 shadow-xs animate-in fade-in duration-150">
+            <div className="p-4 bg-[#121712] text-white rounded-[14px] flex items-start gap-3">
+              <BoCircleAvatar className="w-9 h-9 rounded-full border-2 border-white/20 shrink-0 mt-0.5" />
+              <div className="text-xs sm:text-sm leading-relaxed">
+                <span className="font-bold text-[#C8F169] block mb-1">
                   Bạn bắt trúng Bước {selectedStep} rồi, nhưng Bo vẫn thắc mắc:
                 </span>
-                "{boSpeechOverride ? (
-                  <FormattedMathText text={cleanText(boSpeechOverride)} />
-                ) : (
-                  <FormattedMathText text={cleanText(lesson.errorDescription)} />
-                )}"
+                <span className="text-stone-200">
+                  "{boSpeechOverride ? (
+                    <FormattedMathText text={cleanText(boSpeechOverride)} />
+                  ) : (
+                    <FormattedMathText text={cleanText(lesson.errorDescription)} />
+                  )}"
+                </span>
               </div>
             </div>
 
             {tutorFeedbackOverride && (
-              <div className="p-2.5 rounded-xl bg-amber-50/90 border border-amber-200/90 text-xs text-amber-900 leading-relaxed flex items-start gap-2 animate-in fade-in duration-150">
-                <span className="font-bold shrink-0">💡 Gợi ý:</span>
-                <span className="flex-1">{cleanText(tutorFeedbackOverride)}</span>
+              <div className="p-3 rounded-[12px] bg-amber-50/80 border border-amber-200/80 text-xs text-amber-900 leading-relaxed flex items-center gap-2 animate-in fade-in duration-150">
+                <TutorLamCircleAvatar className="w-7 h-7 rounded-full border border-[#4E9B87] shrink-0" />
+                <div className="flex-1">
+                  <span className="font-bold">Gợi ý Cô Lam: </span>
+                  {cleanText(tutorFeedbackOverride)}
+                </div>
               </div>
             )}
 
-            <div className="flex flex-wrap gap-1.5">
-              <button
-                type="button"
-                onClick={() => onRebuttalChange?.(cleanText(lesson.standardExplanation))}
-                className="w-full text-left p-2.5 rounded-lg bg-white hover:bg-stone-50 border border-stone-200 hover:border-[#1B4338] text-stone-800 text-xs cursor-pointer font-medium transition-colors"
-              >
-                Chọn nhanh: "Quy tắc hiệu chung đầu A thì phải lộn ngược điểm sau lên trước: B'C = AC – AB'."
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => onRebuttalChange?.(cleanText(lesson.standardExplanation))}
+              className="w-full text-left p-3 rounded-[12px] bg-stone-50 hover:bg-[#F3F8E8] border border-stone-200 hover:border-stone-400 text-stone-800 text-xs sm:text-sm cursor-pointer font-medium transition"
+            >
+              Chọn nhanh: "Quy tắc hiệu chung đầu A thì phải lộn ngược điểm sau lên trước: B'C = AC – AB'."
+            </button>
 
             <div className="flex gap-2">
               <input
@@ -323,8 +325,8 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
                     onSubmitRebuttal?.();
                   }
                 }}
-                placeholder="Gõ lời giải thích chốt hạ cho Bo (hoặc chọn nhanh ở trên)..."
-                className="flex-1 px-3 py-2 bg-white border border-stone-300 rounded-xl text-xs outline-none focus:border-[#1B4338] focus:ring-1 focus:ring-[#1B4338]"
+                placeholder="Gõ lời giải thích chốt hạ cho Bo (hoặc bấm chọn nhanh)..."
+                className="flex-1 px-4 py-2.5 bg-white border border-stone-300 rounded-[12px] text-xs sm:text-sm text-[#121712] outline-none focus:border-[#121712] focus:ring-2 focus:ring-[#121712]/10"
               />
               <button
                 type="button"
@@ -333,54 +335,76 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
                   sound.playSuccessChime();
                   onSubmitRebuttal?.();
                 }}
-                className="px-4 py-2 bg-[#1B4338] hover:bg-[#285E4F] disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-semibold text-xs rounded-xl cursor-pointer shrink-0 flex items-center gap-1.5 transition-colors shadow-2xs"
+                className="px-5 py-2.5 bg-[#C8F169] hover:bg-[#bbf054] disabled:bg-stone-200 disabled:text-stone-500 disabled:cursor-not-allowed text-[#121712] font-black text-xs sm:text-sm rounded-[12px] cursor-pointer shrink-0 flex items-center gap-1.5 transition shadow-xs"
               >
                 {isLoadingAi ? (
-                  <>
-                    <span className="w-3 h-3 border-2 border-white/60 border-t-white rounded-full animate-spin shrink-0" />
-                    <span>Đang gửi...</span>
-                  </>
+                  <span className="w-4 h-4 border-2 border-black/40 border-t-black rounded-full animate-spin shrink-0" />
                 ) : (
-                  <span>Gửi ➔</span>
+                  <>
+                    <span>Gửi</span>
+                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                  </>
                 )}
               </button>
             </div>
           </div>
         )}
 
-        {/* TRẠNG THÁI 5: HOÀN THÀNH SỬA LỖI */}
+        {/* TRẠNG THÁI 5: HOÀN THÀNH SỬA LỖI (CLOSE) */}
         {currentState === 'CLOSE' && (
-          <div className="p-4 rounded-2xl bg-[#EBF7F3] border border-[#2E6859] space-y-3 animate-in zoom-in-95 duration-150 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <TutorLamAvatar size="sm" className="scale-90 shrink-0" />
-                <span className="font-bold text-sm text-[#1B4338]">
+          <div className="p-5 rounded-[16px] bg-white border border-[#C8F169] space-y-4 shadow-xs animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <TutorLamCircleAvatar className="w-8 h-8 rounded-full border border-[#4E9B87] shadow-xs shrink-0" />
+                <span className="font-extrabold text-sm sm:text-base text-[#121712]">
                   Chẩn đoán & Sửa lỗi thành công!
                 </span>
               </div>
-              <RubberStampSuccess className="scale-75 shrink-0" />
+              <span className="px-3 py-1 rounded-full bg-[#16A34A] text-white text-xs font-black uppercase tracking-wider flex items-center gap-1 shadow-xs shrink-0">
+                <Check className="w-3.5 h-3.5 stroke-[3]" />
+                <span>ĐÚNG RỒI</span>
+              </span>
             </div>
 
-            <p className="text-xs text-[#1E3B33] leading-relaxed">
+            <p className="text-xs sm:text-sm text-stone-800 leading-relaxed bg-[#F3F8E8] p-3.5 rounded-[12px] border border-[#E2EAD2]">
               {cleanText(tutorFeedbackOverride || lesson.standardExplanation)}
             </p>
 
-            <div className="flex items-center gap-2 pt-1">
+            <div className="space-y-2.5 pt-1">
               <button
                 type="button"
-                onClick={onNextLesson}
-                className="flex-1 py-2 bg-[#1B4338] hover:bg-[#285E4F] text-white font-semibold text-xs rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
+                onClick={() => {
+                  sound.playTabSwitch();
+                  if (onSwitchToStation3) {
+                    onSwitchToStation3();
+                  } else {
+                    onNextLesson();
+                  }
+                }}
+                className="w-full py-3.5 px-4 bg-[#C8F169] hover:bg-[#bbf054] text-[#121712] font-black text-xs sm:text-sm rounded-[14px] cursor-pointer flex items-center justify-center gap-2 shadow-xs transition active:scale-[0.99]"
               >
-                <CheckCircleIcon className="w-3.5 h-3.5" />
-                <span>Chuyển sang bài tiếp theo ➔</span>
+                <span>Tiến lên Trạm 3 · Đoán kết quả (POE)</span>
+                <ArrowRight className="w-4 h-4 stroke-[2.5]" />
               </button>
-              <button
-                type="button"
-                onClick={onRetryLesson}
-                className="px-3 py-2 bg-white border border-[#2E6859] text-[#1B4338] font-semibold text-xs rounded-lg cursor-pointer"
-              >
-                Làm lại
-              </button>
+              
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={onNextLesson}
+                  className="flex-1 py-2 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-semibold text-xs rounded-full cursor-pointer flex items-center justify-center gap-1.5 transition"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Đổi bài tiếp theo</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onRetryLesson}
+                  className="px-4 py-2 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 font-semibold text-xs rounded-full cursor-pointer transition flex items-center gap-1"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Làm lại</span>
+                </button>
+              </div>
             </div>
           </div>
         )}

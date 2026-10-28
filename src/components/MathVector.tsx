@@ -203,84 +203,73 @@ export const MathColorLegend: React.FC<{ className?: string }> = React.memo(({ c
  */
 export const PrismVectorDiagram: React.FC<{ className?: string }> = React.memo(({ className = '' }) => {
   return (
-    <div className={`p-3 bg-white rounded-xl border border-slate-200/90 shadow-2xs select-none space-y-2 ${className}`}>
-      <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
-        <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#0284c7]" />
-          <span>Hình học không gian: Lăng trụ tam giác ABC.A'B'C'</span>
-        </span>
-        <span className="text-[10px] font-semibold text-[#0284c7] bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
-          Minh họa Ví dụ 10 (SGK Toán 12)
-        </span>
-      </div>
-
-      <div className="relative w-full aspect-[16/9] max-h-[140px] flex items-center justify-center my-1 bg-[#FAF8F5]/60 rounded-xl p-1 border border-slate-100">
-        <svg viewBox="0 0 340 220" className="w-full h-full max-w-[340px] drop-shadow-xs">
+    <div className={`select-none ${className}`}>
+      <div className="relative w-full h-[155px] sm:h-[165px] flex items-center justify-center bg-[#FAF8F5] rounded-[12px] p-2 border border-[#E2EAD2]">
+        <svg viewBox="0 0 380 230" className="h-full w-auto max-w-[340px] drop-shadow-xs">
           <defs>
             {/* Markers đầu mũi tên đồng bộ màu */}
             <marker id="prism-arrow-ref" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0284c7" />
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563EB" />
             </marker>
             <marker id="prism-arrow-target" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#dc2626" />
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#DC2626" />
             </marker>
           </defs>
 
           {/* Đáy trên A'B'C' */}
-          <polygon points="70,50 200,30 250,75" fill="#f8fafc" stroke="#94a3b8" strokeWidth="1.5" />
+          <polygon points="70,45 230,25 300,70" fill="#ffffff" stroke="#94a3b8" strokeWidth="1.8" />
           
           {/* Đáy dưới ABC */}
-          <polygon points="70,170 200,150 250,195" fill="#f8fafc" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="3 3" />
+          <polygon points="70,175 230,155 300,200" fill="#ffffff" stroke="#94a3b8" strokeWidth="1.8" strokeDasharray="4 3" />
 
           {/* Các cạnh bên */}
-          <line x1="200" y1="30" x2="200" y2="150" stroke="#94a3b8" strokeWidth="1.5" />
-          <line x1="250" y1="75" x2="250" y2="195" stroke="#94a3b8" strokeWidth="1.5" />
+          <line x1="230" y1="25" x2="230" y2="155" stroke="#94a3b8" strokeWidth="1.8" />
+          <line x1="300" y1="70" x2="300" y2="200" stroke="#94a3b8" strokeWidth="1.8" />
 
-          {/* VECTƠ CƠ SỞ 1: a = AA' (XANH LAM - THAM CHIẾU) */}
-          <line x1="70" y1="170" x2="70" y2="52" stroke="#0284c7" strokeWidth="2.4" markerEnd="url(#prism-arrow-ref)" />
-          <rect x="14" y="103" width="56" height="18" rx="4" fill="#f0f9ff" stroke="#bae6fd" />
-          <text x="18" y="116" fill="#0284c7" fontSize="10.5" fontWeight="bold">◈ a = AA'</text>
+          {/* VECTƠ CƠ SỞ 1: a = AA' (XANH DƯƠNG - DỮ KIỆN CHO TRƯỚC) */}
+          <line x1="70" y1="175" x2="70" y2="47" stroke="#2563EB" strokeWidth="2.8" markerEnd="url(#prism-arrow-ref)" />
+          <rect x="8" y="103" width="58" height="24" rx="6" fill="#EFF6FF" stroke="#BFDBFE" strokeWidth="1.2" />
+          <text x="14" y="120" fill="#2563EB" fontSize="13" fontWeight="bold">a = AA'</text>
 
-          {/* VECTƠ CƠ SỞ 2: b = AB (XANH LAM - NÉT ĐỨT VÌ KHUẤT) */}
-          <line x1="70" y1="170" x2="195" y2="150" stroke="#0284c7" strokeWidth="2" strokeDasharray="4 2" markerEnd="url(#prism-arrow-ref)" />
-          <rect x="120" y="163" width="52" height="18" rx="4" fill="#f0f9ff" stroke="#bae6fd" />
-          <text x="124" y="176" fill="#0284c7" fontSize="10.5" fontWeight="bold">◈ b = AB</text>
+          {/* VECTƠ CƠ SỞ 2: b = AB (XANH DƯƠNG - NÉT ĐỨT VÌ KHUẤT) */}
+          <line x1="70" y1="175" x2="225" y2="155" stroke="#2563EB" strokeWidth="2.4" strokeDasharray="5 3" markerEnd="url(#prism-arrow-ref)" />
+          <rect x="140" y="166" width="56" height="24" rx="6" fill="#EFF6FF" stroke="#BFDBFE" strokeWidth="1.2" />
+          <text x="146" y="183" fill="#2563EB" fontSize="13" fontWeight="bold">b = AB</text>
 
-          {/* VECTƠ CƠ SỞ 3: c = AC (XANH LAM) */}
-          <line x1="70" y1="170" x2="245" y2="195" stroke="#0284c7" strokeWidth="2.2" markerEnd="url(#prism-arrow-ref)" />
-          <rect x="150" y="196" width="52" height="18" rx="4" fill="#f0f9ff" stroke="#bae6fd" />
-          <text x="154" y="209" fill="#0284c7" fontSize="10.5" fontWeight="bold">◈ c = AC</text>
+          {/* VECTƠ CƠ SỞ 3: c = AC (XANH DƯƠNG) */}
+          <line x1="70" y1="175" x2="295" y2="200" stroke="#2563EB" strokeWidth="2.6" markerEnd="url(#prism-arrow-ref)" />
+          <rect x="180" y="198" width="56" height="24" rx="6" fill="#EFF6FF" stroke="#BFDBFE" strokeWidth="1.2" />
+          <text x="186" y="215" fill="#2563EB" fontSize="13" fontWeight="bold">c = AC</text>
 
           {/* VECTƠ ĐỐI TƯỢNG PHÂN TÍCH: B'C (ĐỎ THẮM - NỔI BẬT NHẤT) */}
-          <line x1="200" y1="30" x2="250" y2="192" stroke="#dc2626" strokeWidth="3" markerEnd="url(#prism-arrow-target)" />
-          <rect x="232" y="102" width="62" height="20" rx="4" fill="#fef2f2" stroke="#fecaca" strokeWidth="1.5" />
-          <text x="236" y="116" fill="#dc2626" fontSize="11" fontWeight="extrabold">★ B'C (?)</text>
+          <line x1="230" y1="25" x2="300" y2="196" stroke="#DC2626" strokeWidth="3.2" markerEnd="url(#prism-arrow-target)" />
+          <rect x="272" y="105" width="70" height="26" rx="6" fill="#FEF2F2" stroke="#FCA5A5" strokeWidth="1.5" />
+          <text x="278" y="123" fill="#DC2626" fontSize="13" fontWeight="900">B'C (?)</text>
 
-          {/* Tên các đỉnh */}
-          <circle cx="70" cy="50" r="3.5" fill="#334155" />
-          <text x="56" y="45" fill="#1e293b" fontSize="12" fontWeight="bold">A'</text>
+          {/* Tên các đỉnh (Tối thiểu 14px, rõ ràng dứt khoát) */}
+          <circle cx="70" cy="45" r="4.5" fill="#334155" />
+          <text x="50" y="40" fill="#121712" fontSize="15" fontWeight="bold">A'</text>
 
-          <circle cx="200" cy="30" r="4.5" fill="#dc2626" />
-          <text x="202" y="24" fill="#dc2626" fontSize="13" fontWeight="extrabold">B'</text>
+          <circle cx="230" cy="25" r="5.5" fill="#DC2626" />
+          <text x="233" y="18" fill="#DC2626" fontSize="16" fontWeight="900">B'</text>
 
-          <circle cx="250" cy="75" r="3.5" fill="#334155" />
-          <text x="256" y="78" fill="#1e293b" fontSize="12" fontWeight="bold">C'</text>
+          <circle cx="300" cy="70" r="4.5" fill="#334155" />
+          <text x="310" y="75" fill="#121712" fontSize="15" fontWeight="bold">C'</text>
 
-          <circle cx="70" cy="170" r="4.5" fill="#0284c7" />
-          <text x="54" y="184" fill="#0284c7" fontSize="13" fontWeight="extrabold">A</text>
+          <circle cx="70" cy="175" r="5.5" fill="#2563EB" />
+          <text x="48" y="192" fill="#2563EB" fontSize="16" fontWeight="900">A</text>
 
-          <circle cx="200" cy="150" r="3.5" fill="#334155" />
-          <text x="204" y="162" fill="#1e293b" fontSize="12" fontWeight="bold">B</text>
+          <circle cx="230" cy="155" r="4.5" fill="#334155" />
+          <text x="235" y="172" fill="#121712" fontSize="15" fontWeight="bold">B</text>
 
-          <circle cx="250" cy="195" r="4.5" fill="#dc2626" />
-          <text x="256" y="202" fill="#dc2626" fontSize="13" fontWeight="extrabold">C</text>
+          <circle cx="300" cy="200" r="5.5" fill="#DC2626" />
+          <text x="310" y="215" fill="#DC2626" fontSize="16" fontWeight="900">C</text>
         </svg>
       </div>
 
-      {/* Thông tin vectơ cơ sở & đối tượng (Gọn gàng, không lộ đáp án) */}
-      <div className="flex items-center justify-between text-[11px] text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200/80">
-        <span>◈ Vectơ cơ sở: a = AA', b = AB, c = AC</span>
-        <span className="font-semibold text-[#dc2626]">★ Cần phân tích: B'C theo a, b, c</span>
+      <div className="flex items-center justify-between text-xs text-stone-600 px-1 pt-1.5 font-medium">
+        <span>Vectơ cơ sở: a = AA', b = AB, c = AC</span>
+        <span className="font-bold text-[#DC2626]">Cần tìm: B'C (?)</span>
       </div>
     </div>
   );
@@ -298,25 +287,25 @@ export const SegmentVectorDiagram: React.FC<{
   showVectorArrows?: boolean;
 }> = React.memo(({ className = '', showVectorArrows = false }) => {
   return (
-    <div className={`p-3 bg-white rounded-xl border border-slate-200/90 shadow-2xs select-none space-y-2.5 ${className}`}>
-      <div className="flex items-center justify-between pb-1 border-b border-slate-100">
-        <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#0284c7]" />
+    <div className={`p-4 bg-white rounded-2xl border border-[#E2EAD2] shadow-2xs select-none space-y-3 ${className}`}>
+      <div className="flex items-center justify-between pb-1.5 border-b border-[#E2EAD2]">
+        <span className="text-xs font-bold text-[#121712] flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#121712]" />
           <span>Trực quan hóa đoạn thẳng: Điểm I chia đoạn AG thành 4 phần</span>
         </span>
-        <span className="text-[10px] font-bold text-[#0284c7] bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
-          ◈ Tỉ lệ độ dài: IA = 3·IG
+        <span className="text-xs font-bold text-[#121712] bg-[#F3F8E8] px-2.5 py-0.5 rounded-full border border-[#E2EAD2]">
+          Tỉ lệ độ dài: IA = 3·IG
         </span>
       </div>
 
-      <div className="relative w-full aspect-[20/7] max-h-[140px] flex items-center justify-center bg-[#FAF8F5] rounded-xl p-2 border border-[#EAE3D5]">
+      <div className="relative w-full aspect-[20/7] max-h-[140px] flex items-center justify-center bg-[#F3F8E8]/40 rounded-xl p-2 border border-[#E2EAD2]">
         <svg viewBox="0 0 400 130" className="w-full h-full max-w-[380px]">
           <defs>
             <marker id="arrow-left-ia" viewBox="0 0 10 10" refX="4" refY="5" markerWidth="6" markerHeight="6" orient="auto">
               <path d="M 8 1.5 L 0 5 L 8 8.5 z" fill="#dc2626" />
             </marker>
             <marker id="arrow-right-ig" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0284c7" />
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#121712" />
             </marker>
           </defs>
 
@@ -328,53 +317,53 @@ export const SegmentVectorDiagram: React.FC<{
             <line key={idx} x1={x} y1="58" x2={x} y2="72" stroke="#94a3b8" strokeWidth="2" />
           ))}
 
-          {/* Cung độ dài IA = 3 phần (Xanh lam - độ dài tham chiếu) */}
-          <path d="M 40 46 C 40 32, 280 32, 280 46" fill="none" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 2" />
-          <rect x="135" y="18" width="92" height="18" rx="4" fill="#f0f9ff" stroke="#bae6fd" />
-          <text x="140" y="31" fill="#0284c7" fontSize="10.5" fontWeight="bold">◈ Độ dài IA = 3 phần</text>
+          {/* Cung độ dài IA = 3 phần (Độ dài tham chiếu) */}
+          <path d="M 40 46 C 40 32, 280 32, 280 46" fill="none" stroke="#121712" strokeWidth="1.5" strokeDasharray="3 2" />
+          <rect x="130" y="16" width="105" height="22" rx="5" fill="#FFFFFF" stroke="#E2EAD2" strokeWidth="1.2" />
+          <text x="137" y="32" fill="#121712" fontSize="12" fontWeight="bold">Độ dài IA = 3 phần</text>
 
-          {/* Cung độ dài IG = 1 phần (Xanh lam) */}
-          <path d="M 280 46 C 280 32, 360 32, 360 46" fill="none" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 2" />
-          <rect x="296" y="18" width="58" height="18" rx="4" fill="#f0f9ff" stroke="#bae6fd" />
-          <text x="300" y="31" fill="#0284c7" fontSize="10.5" fontWeight="bold">IG = 1 phần</text>
+          {/* Cung độ dài IG = 1 phần */}
+          <path d="M 280 46 C 280 32, 360 32, 360 46" fill="none" stroke="#121712" strokeWidth="1.5" strokeDasharray="3 2" />
+          <rect x="294" y="16" width="66" height="22" rx="5" fill="#FFFFFF" stroke="#E2EAD2" strokeWidth="1.2" />
+          <text x="299" y="32" fill="#121712" fontSize="12" fontWeight="bold">IG = 1 phần</text>
 
           {/* Điểm A */}
-          <circle cx="40" cy="65" r="5" fill="#1e293b" />
-          <text x="35" y="85" fill="#0f172a" fontSize="13" fontWeight="extrabold">A</text>
+          <circle cx="40" cy="65" r="5" fill="#121712" />
+          <text x="35" y="87" fill="#121712" fontSize="14" fontWeight="extrabold">A</text>
 
           {/* Điểm I (Nằm giữa - đối tượng phân tích) */}
           <circle cx="280" cy="65" r="6" fill="#dc2626" />
-          <text x="277" y="86" fill="#dc2626" fontSize="14" fontWeight="extrabold">I</text>
+          <text x="277" y="88" fill="#dc2626" fontSize="15" fontWeight="extrabold">I</text>
 
           {/* Điểm G */}
-          <circle cx="360" cy="65" r="5" fill="#1e293b" />
-          <text x="355" y="85" fill="#0f172a" fontSize="13" fontWeight="extrabold">G</text>
+          <circle cx="360" cy="65" r="5" fill="#121712" />
+          <text x="355" y="87" fill="#121712" fontSize="14" fontWeight="extrabold">G</text>
 
-          {/* MŨI TÊN VECTƠ CHỈ HIỂN THỊ KHI HỌC SINH ĐÃ SANG BƯỚC QUAN SÁT/GIẢI THÍCH (TRÁNH LỘ ĐÁP ÁN Ở BƯỚC DỰ ĐOÁN) */}
+          {/* MŨI TÊN VECTƠ CHỈ HIỂN THỊ KHI HỌC SINH ĐÃ SANG BƯỚC QUAN SÁT/GIẢI THÍCH */}
           {showVectorArrows && (
             <>
-              {/* MŨI TÊN VECTƠ IA (SANG TRÁI - ĐỎ THẮM / ĐỐI TƯỢNG PHÂN TÍCH) */}
+              {/* MŨI TÊN VECTƠ IA (SANG TRÁI - ĐỎ THẮM) */}
               <line x1="270" y1="102" x2="48" y2="102" stroke="#dc2626" strokeWidth="2.5" markerEnd="url(#arrow-left-ia)" />
-              <rect x="95" y="93" width="124" height="18" rx="4" fill="#dc2626" />
-              <text x="100" y="106" fill="#ffffff" fontSize="10.5" fontWeight="bold">← Vectơ IA (Sang trái)</text>
+              <rect x="90" y="91" width="135" height="22" rx="5" fill="#dc2626" />
+              <text x="96" y="107" fill="#ffffff" fontSize="12" fontWeight="bold">← Vectơ IA (Sang trái)</text>
 
-              {/* MŨI TÊN VECTƠ IG (SANG PHẢI - XANH LAM / CƠ SỞ THAM CHIẾU) */}
-              <line x1="290" y1="102" x2="352" y2="102" stroke="#0284c7" strokeWidth="2.5" markerEnd="url(#arrow-right-ig)" />
-              <rect x="286" y="93" width="76" height="18" rx="4" fill="#0284c7" />
-              <text x="290" y="106" fill="#ffffff" fontSize="10.5" fontWeight="bold">Vectơ IG →</text>
+              {/* MŨI TÊN VECTƠ IG (SANG PHẢI) */}
+              <line x1="290" y1="102" x2="352" y2="102" stroke="#121712" strokeWidth="2.5" markerEnd="url(#arrow-right-ig)" />
+              <rect x="284" y="91" width="82" height="22" rx="5" fill="#121712" />
+              <text x="290" y="107" fill="#ffffff" fontSize="12" fontWeight="bold">Vectơ IG →</text>
             </>
           )}
         </svg>
       </div>
 
       <div className={`grid ${showVectorArrows ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-2 text-xs pt-0.5`}>
-        <div className="p-2.5 rounded-lg bg-sky-50/80 border border-sky-200 text-sky-950 leading-relaxed">
-          <span className="font-bold block text-[11px] text-[#0284c7]">◈ Tỉ lệ độ dài hình học:</span>
+        <div className="p-3 rounded-xl bg-[#F3F8E8] border border-[#E2EAD2] text-[#121712] leading-relaxed">
+          <span className="font-bold block text-xs text-[#121712] mb-0.5">Tỉ lệ độ dài hình học:</span>
           <span>Đoạn thẳng IA gấp 3 lần đoạn IG: <MathView tex="IA = 3 \cdot IG" /></span>
         </div>
         {showVectorArrows && (
-          <div className="p-2.5 rounded-lg bg-emerald-50/80 border border-emerald-200 text-emerald-950 leading-relaxed animate-in fade-in duration-150">
-            <span className="font-bold block text-[11px] text-[#16a34a]">✓ Kết luận vectơ (Ngược hướng):</span>
+          <div className="p-3 rounded-xl bg-[#F3F8E8] border border-[#C8F169] text-[#121712] leading-relaxed animate-in fade-in duration-150">
+            <span className="font-bold block text-xs text-[#121712] mb-0.5">Kết luận vectơ (Ngược hướng):</span>
             <span>Hai vectơ ngược hướng nên có dấu trừ: <MathView tex="\overrightarrow{IA} = -3\overrightarrow{IG}" /></span>
           </div>
         )}
@@ -391,22 +380,22 @@ export const SegmentVectorDiagram: React.FC<{
  */
 export const BoxVectorDiagram: React.FC<{ className?: string }> = React.memo(({ className = '' }) => {
   return (
-    <div className={`p-3 bg-white rounded-xl border border-slate-200/90 shadow-2xs select-none space-y-1.5 ${className}`}>
-      <div className="flex items-center justify-between pb-1 border-b border-slate-100">
-        <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#0284c7]" />
+    <div className={`p-3 bg-white rounded-2xl border border-[#E2EAD2] shadow-2xs select-none space-y-1.5 ${className}`}>
+      <div className="flex items-center justify-between pb-1 border-b border-[#E2EAD2]">
+        <span className="text-xs font-bold text-[#121712] flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#121712]" />
           <span>Hình học không gian: Quy tắc hình hộp</span>
         </span>
-        <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
-          ◈ 3 vectơ cạnh chung gốc A &amp; đường chéo AC'
+        <span className="text-xs font-semibold text-[#121712] bg-[#F3F8E8] px-2 py-0.5 rounded-full border border-[#E2EAD2]">
+          3 vectơ chung gốc A &amp; đường chéo AC'
         </span>
       </div>
 
-      <div className="relative w-full aspect-[16/9] max-h-[155px] flex items-center justify-center bg-[#FAF8F5]/60 rounded-xl p-1 border border-slate-100">
-        <svg viewBox="0 0 320 180" className="w-full h-full max-w-[280px]">
+      <div className="relative w-full aspect-[16/8] max-h-[125px] flex items-center justify-center bg-[#F3F8E8]/40 rounded-xl p-1 border border-[#E2EAD2]">
+        <svg viewBox="0 0 320 180" className="w-full h-full max-w-[270px]">
           <defs>
             <marker id="box-arrow-ref" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0284c7" />
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#121712" />
             </marker>
             <marker id="box-arrow-target" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto">
               <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#dc2626" />
@@ -418,21 +407,21 @@ export const BoxVectorDiagram: React.FC<{ className?: string }> = React.memo(({ 
           <line x1="50" y1="130" x2="50" y2="50" stroke="#cbd5e1" strokeWidth="1.2" strokeDasharray="3 3" />
           <line x1="50" y1="130" x2="90" y2="160" stroke="#cbd5e1" strokeWidth="1.2" strokeDasharray="3 3" />
 
-          {/* 3 Vectơ cơ sở xuất phát từ đỉnh A (XANH LAM) */}
+          {/* 3 Vectơ cơ sở xuất phát từ đỉnh A */}
           {/* AB */}
-          <line x1="50" y1="130" x2="165" y2="130" stroke="#0284c7" strokeWidth="2.2" markerEnd="url(#box-arrow-ref)" />
-          <rect x="100" y="112" width="48" height="16" rx="3" fill="#f0f9ff" stroke="#bae6fd" />
-          <text x="104" y="124" fill="#0284c7" fontSize="10" fontWeight="bold">◈ AB</text>
+          <line x1="50" y1="130" x2="165" y2="130" stroke="#121712" strokeWidth="2.2" markerEnd="url(#box-arrow-ref)" />
+          <rect x="96" y="108" width="56" height="20" rx="4" fill="#FFFFFF" stroke="#E2EAD2" strokeWidth="1.2" />
+          <text x="102" y="123" fill="#121712" fontSize="13" fontWeight="bold">AB</text>
 
           {/* AD */}
-          <line x1="50" y1="130" x2="96" y2="158" stroke="#0284c7" strokeWidth="2.2" markerEnd="url(#box-arrow-ref)" />
-          <rect x="68" y="146" width="48" height="16" rx="3" fill="#f0f9ff" stroke="#bae6fd" />
-          <text x="72" y="158" fill="#0284c7" fontSize="10" fontWeight="bold">◈ AD</text>
+          <line x1="50" y1="130" x2="96" y2="158" stroke="#121712" strokeWidth="2.2" markerEnd="url(#box-arrow-ref)" />
+          <rect x="64" y="142" width="56" height="20" rx="4" fill="#FFFFFF" stroke="#E2EAD2" strokeWidth="1.2" />
+          <text x="70" y="157" fill="#121712" fontSize="13" fontWeight="bold">AD</text>
 
           {/* AA' */}
-          <line x1="50" y1="130" x2="50" y2="54" stroke="#0284c7" strokeWidth="2.2" markerEnd="url(#box-arrow-ref)" />
-          <rect x="8" y="82" width="48" height="16" rx="3" fill="#f0f9ff" stroke="#bae6fd" />
-          <text x="12" y="94" fill="#0284c7" fontSize="10" fontWeight="bold">◈ AA'</text>
+          <line x1="50" y1="130" x2="50" y2="54" stroke="#121712" strokeWidth="2.2" markerEnd="url(#box-arrow-ref)" />
+          <rect x="4" y="78" width="56" height="20" rx="4" fill="#FFFFFF" stroke="#E2EAD2" strokeWidth="1.2" />
+          <text x="10" y="93" fill="#121712" fontSize="13" fontWeight="bold">AA'</text>
 
           {/* Các cạnh khung hộp */}
           <polygon points="100,160 220,160 220,80 100,80" fill="none" stroke="#94a3b8" strokeWidth="1.2" />
@@ -442,15 +431,15 @@ export const BoxVectorDiagram: React.FC<{ className?: string }> = React.memo(({ 
 
           {/* ĐƯỜNG CHÉO CHÍNH AC' (ĐỎ THẮM - ĐỐI TƯỢNG PHÂN TÍCH) */}
           <line x1="50" y1="130" x2="214" y2="82" stroke="#dc2626" strokeWidth="2.8" markerEnd="url(#box-arrow-target)" />
-          <rect x="122" y="85" width="48" height="18" rx="4" fill="#fef2f2" stroke="#fecaca" />
-          <text x="126" y="98" fill="#dc2626" fontSize="10.5" fontWeight="bold">★ AC' (?)</text>
+          <rect x="116" y="80" width="62" height="22" rx="5" fill="#fef2f2" stroke="#fecaca" strokeWidth="1.2" />
+          <text x="122" y="96" fill="#dc2626" fontSize="13" fontWeight="bold">AC' (?)</text>
 
           {/* Đỉnh A và C' */}
-          <circle cx="50" cy="130" r="4.5" fill="#0284c7" />
-          <text x="36" y="138" fill="#0284c7" fontSize="12" fontWeight="bold">A</text>
+          <circle cx="50" cy="130" r="4.5" fill="#121712" />
+          <text x="34" y="140" fill="#121712" fontSize="14" fontWeight="bold">A</text>
 
           <circle cx="220" cy="80" r="4.5" fill="#dc2626" />
-          <text x="226" y="84" fill="#dc2626" fontSize="12" fontWeight="bold">C'</text>
+          <text x="226" y="86" fill="#dc2626" fontSize="14" fontWeight="bold">C'</text>
         </svg>
       </div>
     </div>

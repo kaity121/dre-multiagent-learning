@@ -235,6 +235,17 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   // Trạng thái poster/thumbnail khởi tạo video (tránh màn hình xám trống)
   const [hasStartedPlayback, setHasStartedPlayback] = useState<boolean>(false);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOverlayDrawerOpen(false);
+        setIsRaiseHandModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const [videoDuration, setVideoDuration] = useState<number>(lesson.durationSeconds || 9503); // Mặc định 2:38:23 (9503s)
 
   const ytPlayerRef = useRef<any>(null);
@@ -551,13 +562,13 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
 
   return (
     <div
-      className="relative w-full flex flex-col bg-slate-950 rounded-2xl overflow-hidden border border-stone-200/90 shadow-md ring-1 ring-slate-900/5 transition-all duration-300"
+      className="relative w-full flex flex-col bg-white rounded-3xl overflow-hidden border border-[#E2EAD2] shadow-xs transition-all duration-300"
     >
-      {/* 1. VÙNG VIDEO YOUTUBE (CHUẨN 16:9) + CÁC LỚP OVERLAY THÔNG MINH */}
+      {/* 1. VÙNG VIDEO YOUTUBE (CHUẨN 16:9) */}
       <div className="relative w-full aspect-video bg-black overflow-hidden">
         <div id={playerContainerId.current} className="w-full h-full" />
 
-        {/* THUMBNAIL / POSTER OVERLAY NẾU VIDEO CHƯA BẮT ĐẦU PHÁT (TRÁNH KHUNG XÁM TRỐNG) */}
+        {/* THUMBNAIL / POSTER OVERLAY SẠCH KHÔNG CHỮ PHỦ LÊN VIDEO */}
         {!hasStartedPlayback && !isPlaying && currentTime < 2 && !isCheckpointActive && (
           <div
             onClick={() => {
@@ -568,39 +579,47 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
               }
               if (!isPlaying) onTogglePlay();
             }}
-            className="absolute inset-0 z-20 bg-slate-950 flex flex-col items-center justify-center cursor-pointer group select-none overflow-hidden"
+            className="absolute inset-0 z-20 bg-[#121712] flex items-center justify-center cursor-pointer group select-none overflow-hidden"
           >
-            {/* Background Thumbnail Image */}
+            {/* Background Graphic & Geometry Fallback Pattern */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#121712] via-[#1a241a] to-[#121712] flex flex-col items-center justify-center p-6 text-center select-none">
+              <div className="absolute inset-0 bg-[radial-gradient(#C8F169_1.5px,transparent_1.5px)] [background-size:24px_24px] opacity-20" />
+              <div className="relative z-0 max-w-md opacity-35 pointer-events-none mb-4">
+                <svg viewBox="0 0 220 130" className="w-56 h-auto mx-auto text-[#C8F169] stroke-current fill-none stroke-[1.8]">
+                  <polygon points="40,90 140,90 180,50 80,50" />
+                  <polygon points="40,50 140,50 180,10 80,10" />
+                  <line x1="40" y1="90" x2="40" y2="50" />
+                  <line x1="140" y1="90" x2="140" y2="50" />
+                  <line x1="180" y1="50" x2="180" y2="10" />
+                  <line x1="80" y1="50" x2="80" y2="10" />
+                </svg>
+              </div>
+              <div className="relative z-0 text-xs text-stone-300 font-semibold tracking-wide">
+                Toán 12 · Bài 1.1: Vectơ trong không gian (Thầy Nguyễn Phan Tiến)
+              </div>
+            </div>
+
+            {/* Background Thumbnail Image rõ ràng */}
             <img
               src={`https://img.youtube.com/vi/${activeYoutubeId}/maxresdefault.jpg`}
               alt={cleanText(lesson.topic)}
-              className="absolute inset-0 w-full h-full object-cover opacity-65 group-hover:opacity-80 group-hover:scale-105 transition-all duration-300"
+              className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover:opacity-95 group-hover:scale-102 transition-all duration-300"
               onError={(e) => {
-                // Fallback to hqdefault
-                (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${activeYoutubeId}/hqdefault.jpg`;
+                // Fallback to hqdefault or hide
+                const target = e.target as HTMLImageElement;
+                if (!target.src.includes('hqdefault')) {
+                  target.src = `https://img.youtube.com/vi/${activeYoutubeId}/hqdefault.jpg`;
+                } else {
+                  target.style.display = 'none';
+                }
               }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-900/60" />
 
-            {/* Play Button & Topic Info */}
-            <div className="relative z-10 flex flex-col items-center text-center p-6 space-y-3.5 max-w-lg">
-              <span className="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-cyan-200 text-xs font-semibold backdrop-blur-md">
-                Toán 12 · Thầy Nguyễn Phan Tiến
-              </span>
-
-              <h3 className="text-white font-bold text-base sm:text-xl drop-shadow-md leading-snug">
-                {cleanText(lesson.topic)}
-              </h3>
-
-              <div className="w-16 h-16 rounded-full bg-[#1B4338] group-hover:bg-[#285E4F] text-white flex items-center justify-center shadow-2xl group-hover:scale-110 transition-all border-2 border-white/40">
-                <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 translate-x-0.5">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
-
-              <div className="flex items-center text-xs text-amber-300 font-semibold bg-amber-500/15 border border-amber-400/30 px-3 py-1.5 rounded-full backdrop-blur-md">
-                <span>Câu hỏi dừng</span>
-              </div>
+            {/* Chỉ một nút Phát lớn nổi bật ở trung tâm (Chuẩn Lime Soft #C8F169, không chữ đè) */}
+            <div className="relative z-10 w-16 h-16 rounded-full bg-[#C8F169] hover:bg-[#bbf055] text-[#121712] flex items-center justify-center shadow-2xl group-hover:scale-110 transition-all border-2 border-white">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 translate-x-0.5">
+                <path d="M8 5v14l11-7z" />
+              </svg>
             </div>
           </div>
         )}
@@ -735,7 +754,15 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
 
         {/* KHAY KÍNH MỜ TRẮNG ĐỤC "PHÂN CẢNH | BẢN CHÉP LỜI" */}
         {isOverlayDrawerOpen && (
-          <div className="absolute top-2 bottom-2 right-2 w-[300px] sm:w-[330px] bg-white/98 backdrop-blur-md text-stone-800 rounded-xl border border-stone-200 shadow-2xl z-30 flex flex-col overflow-hidden animate-in fade-in slide-in-from-right-3 duration-150">
+          <>
+            <div 
+              className="absolute inset-0 z-20 bg-black/20"
+              onClick={() => {
+                sound.playPencilTap();
+                setIsOverlayDrawerOpen(false);
+              }}
+            />
+            <div className="absolute top-2 bottom-2 right-2 w-[300px] sm:w-[330px] bg-white/98 backdrop-blur-md text-stone-800 rounded-xl border border-stone-200 shadow-2xl z-30 flex flex-col overflow-hidden animate-in fade-in slide-in-from-right-3 duration-150">
             <div className="px-3.5 pt-3 pb-2.5 border-b border-stone-200 space-y-2.5 shrink-0 bg-stone-50/70">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-xs text-stone-900 tracking-tight">
@@ -887,6 +914,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
               </div>
             )}
           </div>
+        </>
         )}
 
         {/* THẺ CÂU HỎI NGẮT TẠI 37:13 (CHUẨN HIỆU ỨNG BLU1606 - KHÔNG VIỀN VÀNG) */}

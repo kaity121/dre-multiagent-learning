@@ -1,0 +1,82 @@
+{
+  "lesson_id": "lesson_dre_geo_001",
+  "title": "Định lý Ta-lét trong tam giác và ứng dụng hình học 8",
+  "description": "Bài học tương tác đa tác tử AI khám phá tỷ lệ đoạn thẳng và giải bài toán thực tế.",
+  "status": "draft",
+  "parts": [
+    {
+      "id": "part-01",
+      "title": "Phần 1: Giới thiệu tỷ số của hai đoạn thẳng và định lý Ta-lét thuận",
+      "duration": 420,
+      "video_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+      "pause_questions": [
+        {
+          "id": "pq-01",
+          "timestamp": 180,
+          "question": "Nếu đường thẳng d song song với cạnh BC của tam giác ABC và cắt AB tại D, AC tại E thì khẳng định nào sau đây đúng?",
+          "bloom_level": "Hiểu (Understand)",
+          "expected_answers": [
+            "AD/AB = AE/AC",
+            "AD/DB = AE/EC"
+          ],
+          "is_active": true,
+          "type": "active"
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "sc-01",
+          "timestamp": 60,
+          "agent": "Trí",
+          "trigger_condition": "Học sinh vừa xem xong phần đặt vấn đề đo chiều cao kim tự tháp",
+          "dialogue": "Bạn có thắc mắc tại sao chỉ cần đo bóng của chiếc cọc mà Ta-lét lại tính được chiều cao kim tự tháp vĩ đại không?",
+          "bloom_level": "Nhớ (Remember)",
+          "is_active": true,
+          "type": "passive"
+        },
+        {
+          "id": "sc-02",
+          "timestamp": 240,
+          "agent": "Bo",
+          "trigger_condition": "Sau khi học sinh trả lời xong câu hỏi dừng",
+          "dialogue": "Chính xác! Tỷ lệ các đoạn thẳng tạo ra luôn đồng dạng tỷ lệ thuận với nhau.",
+          "bloom_level": "Vận dụng (Apply)",
+          "is_active": true,
+          "type": "passive"
+        }
+      ]
+    },
+    {
+      "id": "part-02",
+      "title": "Phần 2: Hệ quả định lý Ta-lét và bài tập ứng dụng",
+      "duration": 480,
+      "video_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+      "pause_questions": [
+        {
+          "id": "pq-02",
+          "timestamp": 200,
+          "question": "Cho tam giác ABC có DE // BC. Biết AD = 2cm, BD = 4cm, DE = 3cm. Tính độ dài BC?",
+          "bloom_level": "Vận dụng (Apply)",
+          "expected_answers": [
+            "9cm",
+            "9"
+          ],
+          "is_active": true,
+          "type": "active"
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "sc-03",
+          "timestamp": 120,
+          "agent": "An",
+          "trigger_condition": "Chuyển sang phần bài tập thực hành",
+          "dialogue": "Lưu ý hệ quả Ta-lét cho phép ta tính được cả độ dài của đoạn thẳng song song DE và BC nhé!",
+          "bloom_level": "Hiểu (Understand)",
+          "is_active": true,
+          "type": "passive"
+        }
+      ]
+    }
+  ]
+}

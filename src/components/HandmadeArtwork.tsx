@@ -36,7 +36,7 @@ export const BoAvatar: React.FC<{
       text: 'text-sm mt-2',
       tape: '-top-3 left-3 w-10 h-4',
     },
-  }[size];
+  }[size] || { wrapper: "w-16 min-w-[64px]", padding: "p-1.5 pb-2", imageAspect: "w-full aspect-square", text: "text-[10px] mt-1", tape: "-top-2 left-2 w-7 h-3" };
 
   const labelText =
     size === 'sm'
@@ -169,7 +169,7 @@ export const TutorLamAvatar: React.FC<{
       text: 'text-sm mt-2',
       tape: '-top-3 right-2 w-10 h-4',
     },
-  }[size];
+  }[size] || { wrapper: "w-16 min-w-[64px]", padding: "p-1.5 pb-2", imageAspect: "w-full aspect-square", text: "text-[10px] mt-1", tape: "-top-2 right-1 w-7 h-3" };
 
   return (
     <div className={`relative inline-flex flex-col items-center justify-between bg-white ${config.padding} border border-[#E3DDD1] rounded-lg shadow-sm transition-transform hover:rotate-0 rotate-1 shrink-0 ${config.wrapper} ${className}`}>
@@ -260,33 +260,11 @@ export const HalfFilledCircle: React.FC<{ className?: string }> = ({ className =
   </svg>
 );
 
-// Decorative push-pin
-export const PushPin: React.FC<{ color?: string; className?: string }> = ({ color = '#4E9B87', className = '' }) => (
-  <div className={`w-5 h-5 relative ${className}`}>
-    <svg viewBox="0 0 24 24" fill="none" className="w-full h-full drop-shadow-xs">
-      <circle cx="12" cy="8" r="6" fill={color} />
-      <path d="M12 14 L12 22" stroke="#5E6875" strokeWidth="2.5" strokeLinecap="round" />
-      <circle cx="10" cy="6" r="2" fill="white" opacity="0.4" />
-    </svg>
-  </div>
-);
+// Modern clean UI replacement (Removed old scrapbook craft push pin)
+export const PushPin: React.FC<{ color?: string; className?: string }> = () => null;
 
-// Washi Tape Strip
-export const WashiTape: React.FC<{ variant?: 'blue' | 'pink' | 'yellow' | 'green'; className?: string }> = ({ 
-  variant = 'blue', 
-  className = '' 
-}) => {
-  const bg = variant === 'blue' 
-    ? 'washi-tape-blue' 
-    : variant === 'pink' 
-    ? 'washi-tape-pink' 
-    : variant === 'green'
-    ? 'washi-tape-green'
-    : 'washi-tape-yellow';
-  return (
-    <div className={`h-4.5 rounded-[1px] opacity-90 ${bg} ${className}`} />
-  );
-};
+// Modern clean UI replacement (Removed old scrapbook craft washi tape)
+export const WashiTape: React.FC<{ variant?: 'blue' | 'pink' | 'yellow' | 'green'; className?: string }> = () => null;
 
 // -------------------------------------------------------------
 // CUSTOM HANDMADE ICONS (Replacing OS system emojis!)

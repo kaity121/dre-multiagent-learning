@@ -20,3 +20,4 @@ backend/.env*
 *.log
 .DS_Store
 Thumbs.db
+screenshots_real/

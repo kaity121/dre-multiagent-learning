@@ -46,44 +46,43 @@ export const PauseModal: React.FC<PauseModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-md animate-in fade-in duration-150">
-      {/* Khung Modal đục đặc 100% (#FFFDF7), phẳng, bo góc hiện đại, không băng dính/đinh ghim */}
-      <div className="relative w-full max-w-lg bg-[#FFFDF7] border border-[#E2D9C8] rounded-2xl p-6 shadow-2xl space-y-5 text-[#1E242B]">
+      <div className="relative w-full max-w-lg bg-white border border-[#E2EAD2] rounded-3xl p-6 shadow-2xl space-y-5 text-[#121712]">
         
         {/* Header: Avatar Cô Lam gọn đẹp + Tiêu đề rõ nét */}
         <div className="flex items-center gap-3.5">
           <TutorLamAvatar size="sm" />
           <div>
-            <h2 className="font-extrabold text-xl text-[#1E242B] tracking-tight">
+            <h2 className="font-extrabold text-xl text-[#121712] tracking-tight">
               Gấp sổ nghỉ tay một lát nhé!
             </h2>
-            <p className="text-xs sm:text-sm text-[#6E6254] mt-0.5">
+            <p className="text-xs sm:text-sm text-stone-600 mt-0.5">
               Tự học là một chặng đường dài, mệt thì cứ dừng lại nghỉ ngơi.
             </p>
           </div>
         </div>
 
         {/* Thẻ thông tin bài đang học dở */}
-        <div className="p-4 rounded-xl bg-white border border-[#E2D9C8] shadow-2xs space-y-2.5">
+        <div className="p-4 rounded-2xl bg-[#F3F8E8] border border-[#E2EAD2] shadow-2xs space-y-2.5">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#8A7D6F]">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#121712]">
               Đang học dở bài:
             </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EBF7F3] border border-[#99D5C4] text-[#1B4338] font-mono text-[11px] font-semibold">
-              <CheckCircleIcon className="w-3.5 h-3.5 text-[#1B4338]" />
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white border border-[#E2EAD2] text-[#121712] font-mono text-[11px] font-semibold">
+              <CheckCircleIcon className="w-3.5 h-3.5 text-emerald-600" />
               <span>Đã lưu vào máy</span>
             </span>
           </div>
 
-          <div className="font-bold text-sm sm:text-base text-[#1E242B] leading-snug">
+          <div className="font-bold text-sm sm:text-base text-[#121712] leading-snug">
             {displayTitle}
           </div>
 
-          <p className="text-xs text-[#2E6859] italic leading-relaxed bg-[#FAF8F5] p-2.5 rounded-lg border border-[#EFE8DC]">
+          <p className="text-xs text-stone-700 italic leading-relaxed bg-white p-2.5 rounded-xl border border-[#E2EAD2]">
             “Vị trí của bạn và mọi ghi chú đã được lưu vào bộ nhớ trình duyệt. Khi nào sẵn sàng, bạn quay lại học tiếp cùng nhóm nhé.”
           </p>
 
           {formattedSavedTime && (
-            <div className="text-right font-mono text-[11px] text-[#8A7D6F]">
+            <div className="text-right font-mono text-[11px] text-stone-500">
               Lưu lúc: {formattedSavedTime}
             </div>
           )}
@@ -94,9 +93,9 @@ export const PauseModal: React.FC<PauseModalProps> = ({
           <button
             type="button"
             onClick={handleResume}
-            className="w-full py-2.5 px-4 rounded-xl bg-[#2E7D67] hover:bg-[#236351] text-white font-bold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-colors"
+            className="w-full py-2.5 px-4 rounded-xl bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] font-bold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-colors border border-[#A6D83B]"
           >
-            <CoffeeCupIcon className="w-4 h-4 text-white" />
+            <CoffeeCupIcon className="w-4 h-4 text-[#121712]" />
             <span>Quay lại học tiếp</span>
           </button>
 
@@ -106,9 +105,9 @@ export const PauseModal: React.FC<PauseModalProps> = ({
               handleResume();
               handleOpenDrawer();
             }}
-            className="w-full py-2.5 px-4 rounded-xl bg-[#F3EFE6] hover:bg-[#E6DFD1] border border-[#D8CEBC] text-[#1E242B] font-bold text-sm flex items-center justify-center gap-2 cursor-pointer transition-colors"
+            className="w-full py-2.5 px-4 rounded-xl bg-[#F3F8E8] hover:bg-[#E2EAD2] border border-[#E2EAD2] text-[#121712] font-bold text-sm flex items-center justify-center gap-2 cursor-pointer transition-colors"
           >
-            <OpenBookIcon className="w-4 h-4 text-[#5C5043]" />
+            <OpenBookIcon className="w-4 h-4 text-[#121712]" />
             <span>Xem danh sách bài</span>
           </button>
         </div>
@@ -118,7 +117,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
           <button
             type="button"
             onClick={handleReset}
-            className="text-xs font-medium text-[#8A7D6F] hover:text-[#DC2626] underline cursor-pointer transition-colors"
+            className="text-xs font-medium text-stone-500 hover:text-[#DC2626] underline cursor-pointer transition-colors"
           >
             Xoá bản lưu & bắt đầu lại từ đầu
           </button>
