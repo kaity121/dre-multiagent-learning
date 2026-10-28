@@ -324,7 +324,7 @@ export const DEMO_INSPECTOR_TURNS: InspectorTurn[] = [
     },
     context: {
       observedSegment: 'Gia sư nhí & Hội đồng thẩm định (Trạm 4)',
-      problemEntities: ['Khẩu quyết quy tắc trừ', 'Đẳng thức hình hộp AB + AD + AA\' = AC\'', 'Đạt Bậc 6 Tháp Bloom'],
+      problemEntities: ['Khẩu quyết quy tắc trừ', 'Đẳng thức hình hộp AB + AD + AA\' = AC\'', 'Đạt Bậc 6 Sáng tạo'],
       misconceptionDetected: 'Đã khắc phục hoàn toàn mọi ngộ nhận nền tảng'
     },
     thought:
@@ -460,7 +460,7 @@ export const DEMO_TEACHER_SUMMARY = {
   rebuttalRate: '100%',
   rebuttalNote: 'Bẻ gãy trọn vẹn 2 ngộ nhận điển hình',
 
-  tableTitle: 'Kết quả chẩn đoán nhận thức (Tháp Bloom)',
+  tableTitle: 'Kết quả chẩn đoán nhận thức (Thang Bloom)',
   evaluationScope: 'Toàn diện 6 cấp độ',
   colStepTitle: 'Bậc',
   colSkillTitle: 'Năng lực',

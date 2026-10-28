@@ -394,7 +394,7 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
                       Khởi động phiên suy luận đa tác tử
                     </h3>
                     <p className="text-xs text-stone-600 leading-relaxed font-sans">
-                      Nhấn nút <strong>"Phát"</strong> để theo dõi trực tiếp quy trình 4 bước: Trích xuất đề bài → Truy hồi SGK → Bàn tròn tranh luận (Trí, Bo, An) → Đánh giá tháp Bloom.
+                      Nhấn nút <strong>"Phát"</strong> để theo dõi trực tiếp quy trình 4 bước: Trích xuất đề bài → Truy hồi SGK → Bàn tròn tranh luận (Trí, Bo, An) → Đánh giá thang Bloom.
                     </p>
                   </div>
 

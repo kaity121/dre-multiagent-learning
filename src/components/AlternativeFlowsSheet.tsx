@@ -22,6 +22,7 @@ import {
 } from './HandmadeArtwork';
 import { Vec, MathView, SegmentVectorDiagram, BoxVectorDiagram } from './MathVector';
 import { sound } from '../utils/soundEffects';
+import { RotateCcw } from 'lucide-react';
 import { DEMO_TEACHER_SUMMARY, DEMO_LESSON_INFO, BLOOM_TAXONOMY } from '../demo/demoLesson';
 
 const StepBadge = ({ num }: { num: string | number }) => (
@@ -818,7 +819,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
       ========================================================================= */}
       {showFinalBloomReport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="relative w-full max-w-5xl bg-white border border-[#E2EAD2] rounded-3xl sm:rounded-[32px] shadow-[0_24px_60px_rgba(18,23,18,0.18)] flex flex-col h-[88vh] max-h-[860px] overflow-hidden font-['Be_Vietnam_Pro',system-ui,sans-serif] text-[#121712]">
+          <div className="relative w-full max-w-5xl bg-white border border-[#E2EAD2] rounded-3xl sm:rounded-[32px] shadow-[0_24px_60px_rgba(18,23,18,0.18)] flex flex-col max-h-[88vh] overflow-hidden font-['Be_Vietnam_Pro',system-ui,sans-serif] text-[#121712]">
             
             {/* 1. HEADER CỐ ĐỊNH (SHRINK-0) */}
             <div className="shrink-0 px-5 py-3 sm:px-7 sm:py-3.5 border-b border-[#E2EAD2] flex flex-wrap items-center justify-between gap-3 sm:gap-6 bg-white z-10">
@@ -893,7 +894,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                       <div className="bg-[#121712] text-white rounded-2xl sm:rounded-[22px] p-3.5 sm:p-4 flex items-stretch justify-between gap-3">
                         <div className="flex flex-col justify-between py-0.5">
                           <span className="text-xs font-semibold tracking-wider text-[#B9C4A8] uppercase">
-                            MỨC BLOOM CAO NHẤT
+                            MỨC NHẬN THỨC CAO NHẤT
                           </span>
                           <div className="text-[44px] sm:text-[52px] lg:text-[60px] font-extrabold text-[#C8F169] leading-none my-0.5 tracking-tight">
                             L6
@@ -920,7 +921,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                       <div className="bg-[#F3F8E8] border border-[#E2EAD2] rounded-2xl sm:rounded-[22px] p-3 sm:p-3.5 flex flex-col gap-2 flex-1">
                         <div className="flex items-center justify-between gap-2">
                           <h2 className="m-0 text-sm sm:text-base font-extrabold text-[#121712]">
-                            Tháp Bloom
+                            Thang bậc nhận thức
                           </h2>
                           <span className="text-xs font-bold bg-[#C8F169] text-[#121712] rounded-full px-2.5 py-0.5 border border-[#A6D83B]">
                             Đạt 6/6 bậc
@@ -940,7 +941,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                             <div className="text-[11px] font-semibold text-[#4A5540] leading-tight">
                               Ghi nhớ
                             </div>
-                            <div className="text-xs leading-tight text-[#4A5540] min-h-[38px]">
+                            <div className="text-xs leading-snug text-[#3F4A36] min-h-[32px] line-clamp-2">
                               Nắm vững định nghĩa &amp; quy ước
                             </div>
                           </div>
@@ -957,7 +958,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                             <div className="text-[11px] font-semibold text-[#4A5540] leading-tight">
                               Thấu hiểu
                             </div>
-                            <div className="text-xs leading-tight text-[#4A5540] min-h-[38px]">
+                            <div className="text-xs leading-snug text-[#3F4A36] min-h-[32px] line-clamp-2">
                               Phân biệt phương, hướng &amp; độ dài
                             </div>
                           </div>
@@ -974,7 +975,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                             <div className="text-[11px] font-semibold text-[#4A5540] leading-tight">
                               Vận dụng
                             </div>
-                            <div className="text-xs leading-tight text-[#4A5540] min-h-[38px]">
+                            <div className="text-xs leading-snug text-[#3F4A36] min-h-[32px] line-clamp-2">
                               Áp dụng quy tắc hình bình hành &amp; hình hộp
                             </div>
                           </div>
@@ -991,7 +992,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                             <div className="text-[11px] font-semibold text-[#4A5540] leading-tight">
                               Bắt lỗi sai ở Trạm 2
                             </div>
-                            <div className="text-xs leading-tight text-[#4A5540] min-h-[38px]">
+                            <div className="text-xs leading-snug text-[#3F4A36] min-h-[32px] line-clamp-2">
                               Soi ra lỗi hiệu vectơ ở Trạm 2
                             </div>
                           </div>
@@ -1008,7 +1009,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                             <div className="text-[11px] font-semibold text-[#4A5540] leading-tight">
                               Phản biện bẫy |a+b| tại 37:13
                             </div>
-                            <div className="text-xs leading-tight text-[#4A5540] min-h-[38px]">
+                            <div className="text-xs leading-snug text-[#3F4A36] min-h-[32px] line-clamp-2">
                               Bẻ gãy bẫy độ dài tại 37:13
                             </div>
                           </div>
@@ -1025,7 +1026,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                             <div className="text-[11px] font-semibold text-[#8C9C7B] leading-tight">
                               Tự ra đề ở Trạm 4
                             </div>
-                            <div className="text-xs leading-tight text-[#4A5540] min-h-[38px]">
+                            <div className="text-xs leading-snug text-[#3F4A36] min-h-[32px] line-clamp-2">
                               Tự ra đề toán đạt chuẩn Hội đồng
                             </div>
                           </div>
@@ -1169,31 +1170,31 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                       </div>
 
                       <div className="overflow-x-auto no-scrollbar">
-                        <table className="w-full text-left text-xs border-collapse">
+                        <table className="w-full text-left text-sm border-collapse">
                           <thead>
-                            <tr className="border-b border-[#E2EAD2] text-stone-500 font-semibold">
-                              <th className="py-1 pr-3 w-24 whitespace-nowrap">{MOCK_TEACHER_SUMMARY.colStepTitle}</th>
-                              <th className="py-1 pr-3 w-28 whitespace-nowrap">{MOCK_TEACHER_SUMMARY.colSkillTitle}</th>
-                              <th className="py-1 pr-3">{MOCK_TEACHER_SUMMARY.colEvidenceTitle}</th>
-                              <th className="py-1 text-right w-24 whitespace-nowrap">{MOCK_TEACHER_SUMMARY.colStatusTitle}</th>
+                            <tr className="border-b border-[#E2EAD2] text-stone-500 font-semibold text-xs sm:text-sm">
+                              <th className="py-1.5 pr-3 w-24 whitespace-nowrap">{MOCK_TEACHER_SUMMARY.colStepTitle}</th>
+                              <th className="py-1.5 pr-3 w-28 whitespace-nowrap">{MOCK_TEACHER_SUMMARY.colSkillTitle}</th>
+                              <th className="py-1.5 pr-3">{MOCK_TEACHER_SUMMARY.colEvidenceTitle}</th>
+                              <th className="py-1.5 text-right w-24 whitespace-nowrap">{MOCK_TEACHER_SUMMARY.colStatusTitle}</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-[#E2EAD2]/60">
                             {MOCK_TEACHER_SUMMARY.diagnosticRows.map((row, idx) => (
                               <tr key={idx} className="hover:bg-[#F3F8E8]/50 transition-colors">
-                                <td className="py-1.5 pr-3 font-bold text-[#121712] whitespace-nowrap">
-                                  <span className="px-2.5 py-0.5 rounded-md bg-[#F3F8E8] border border-[#E2EAD2] whitespace-nowrap inline-block text-xs leading-normal">
+                                <td className="py-2 pr-3 font-bold text-[#121712] whitespace-nowrap">
+                                  <span className="px-2.5 py-0.5 rounded-md bg-[#F3F8E8] border border-[#E2EAD2] whitespace-nowrap inline-block text-xs sm:text-sm font-bold leading-normal">
                                     {row.step}
                                   </span>
                                 </td>
-                                <td className="py-1.5 pr-3 font-semibold text-[#121712] whitespace-nowrap">
-                                  <div className="font-bold text-[#121712]">{row.skill}</div>
-                                  <div className="text-[11px] text-stone-500 font-normal">{row.skillSub}</div>
+                                <td className="py-2 pr-3 font-semibold text-[#121712] whitespace-nowrap">
+                                  <div className="font-bold text-sm text-[#121712]">{row.skill}</div>
+                                  <div className="text-xs text-stone-500 font-normal">{row.skillSub}</div>
                                 </td>
-                                <td className="py-1.5 pr-3 text-stone-700 leading-snug">
+                                <td className="py-2 pr-3 text-sm text-stone-700 leading-normal">
                                   {row.evidence}
                                 </td>
-                                <td className="py-1.5 text-right whitespace-nowrap">
+                                <td className="py-2 text-right whitespace-nowrap">
                                   <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-xs border ${
                                     row.status === 'Xuất sắc' 
                                       ? 'bg-[#121712] text-[#C8F169] border-[#121712]'
@@ -1215,9 +1216,9 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                     </div>
 
                     {/* 2 THẺ SƯ PHẠM: ĐIỂM CẦN CAN THIỆP & GỢI Ý HÀNH ĐỘNG TIẾP THEO (HIỂN THỊ RÕ RÀNG Ở 1920X1080) */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                       {/* Thẻ 1: Điểm cần can thiệp */}
-                      <div className="bg-white border border-[#E2EAD2] rounded-xl sm:rounded-2xl p-3 shadow-2xs space-y-1.5">
+                      <div className="bg-white border border-[#E2EAD2] rounded-xl sm:rounded-2xl p-3 sm:p-3.5 shadow-2xs space-y-1.5">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-[#121712] bg-[#F3F8E8] px-2.5 py-0.5 rounded-lg border border-[#E2EAD2] self-start inline-flex">
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#121712" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="10" />
@@ -1226,7 +1227,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                           </svg>
                           <span>{MOCK_TEACHER_SUMMARY.interventionTitle}</span>
                         </div>
-                        <ul className="space-y-0.5 text-stone-700 leading-snug pl-1 list-disc list-inside">
+                        <ul className="space-y-1 text-sm text-stone-700 leading-normal pl-1 list-disc list-inside">
                           {MOCK_TEACHER_SUMMARY.interventionNotes.map((note, nIdx) => (
                             <li key={nIdx}>{note}</li>
                           ))}
@@ -1234,14 +1235,14 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                       </div>
 
                       {/* Thẻ 2: Gợi ý hành động tiếp theo */}
-                      <div className="bg-[#F3F8E8] border border-[#E2EAD2] rounded-xl sm:rounded-2xl p-3 shadow-2xs space-y-1.5">
+                      <div className="bg-[#F3F8E8] border border-[#E2EAD2] rounded-xl sm:rounded-2xl p-3 sm:p-3.5 shadow-2xs space-y-1.5">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-[#121712] bg-white px-2.5 py-0.5 rounded-lg border border-[#E2EAD2] self-start inline-flex">
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#121712" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                           </svg>
                           <span>{MOCK_TEACHER_SUMMARY.nextActionTitle}</span>
                         </div>
-                        <ul className="space-y-0.5 text-stone-700 leading-snug pl-1 list-disc list-inside">
+                        <ul className="space-y-1 text-sm text-stone-700 leading-normal pl-1 list-disc list-inside">
                           {MOCK_TEACHER_SUMMARY.nextActionSuggestions.map((sug, sIdx) => (
                             <li key={sIdx}>{sug}</li>
                           ))}
@@ -1272,9 +1273,10 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                       setShowFinalBloomReport(false);
                       onSwitchMode('video_clash');
                     }}
-                    className="px-4 py-2 sm:px-5 sm:h-12 rounded-2xl bg-[#F3F8E8] hover:bg-[#E2EAD2] text-[#121712] text-xs sm:text-sm font-bold cursor-pointer border border-[#E2EAD2] transition-colors"
+                    className="px-4 py-2 sm:px-5 sm:h-12 rounded-2xl bg-[#F3F8E8] hover:bg-[#E2EAD2] text-[#121712] text-xs sm:text-sm font-bold cursor-pointer border border-[#E2EAD2] transition-colors flex items-center gap-2"
                   >
-                    {MOCK_TEACHER_SUMMARY.restartCycleBtn}
+                    <RotateCcw className="w-4 h-4 text-[#121712]" />
+                    <span>Bắt đầu chu trình học mới (Trạm 1)</span>
                   </button>
 
                   <div className="flex items-center gap-2 sm:gap-3 ml-auto">
