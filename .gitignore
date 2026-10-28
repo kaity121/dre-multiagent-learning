@@ -21,3 +21,4 @@ backend/.env*
 .DS_Store
 Thumbs.db
 screenshots_real/
+*.py
