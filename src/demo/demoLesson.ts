@@ -396,12 +396,12 @@ export const DEMO_INSPECTOR_TURNS: InspectorTurn[] = [
     contextView: {
       boardSnippet: '| BC + DD\' |',
       teacherSpeech: 'Đã chép lời',
-      ragKnowledge: 'Không dùng',
+      ragKnowledge: 'SGK Toán 12 · Bất đẳng thức tam giác',
       hiddenItem: 'Lời giải chuẩn của bài',
       visibleContext: [
         'Bảng phấn 37:13: | BC + DD\' |',
         'Lời thầy, 30 giây gần nhất: Đã chép lời',
-        'Tri thức tra cứu: Không dùng'
+        'Tri thức tra cứu: SGK Toán 12 (Tr. 24)'
       ],
       hiddenContext: ['Lời giải chuẩn của bài (Ẩn với Bo)']
     },

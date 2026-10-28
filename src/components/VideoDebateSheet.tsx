@@ -800,7 +800,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       ) : (
         <>
           {/* DÒNG PHỤ: 4 bạn đồng hành + Nút thu gọn */}
-          <div className="px-3.5 py-1 text-[11px] text-stone-500 leading-tight shrink-0 flex items-center justify-between bg-[#F3F8E8]/30">
+          <div className="px-3.5 py-1 text-xs text-stone-500 leading-tight shrink-0 flex items-center justify-between bg-[#F3F8E8]/30">
             <div className="truncate">
               <span className="font-bold text-[#121712] mr-1">4 bạn đồng hành:</span>
               <span className="hidden xl:inline text-stone-500">Cùng tranh biện qua từng bài giảng</span>
@@ -808,7 +808,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             <button
               type="button"
               onClick={() => setIsRosterCollapsed(true)}
-              className="text-[11px] font-semibold text-stone-500 hover:text-[#121712] flex items-center gap-0.5 shrink-0 cursor-pointer px-1.5 py-0.5 rounded hover:bg-white"
+              className="text-xs font-semibold text-stone-500 hover:text-[#121712] flex items-center gap-0.5 shrink-0 cursor-pointer px-1.5 py-0.5 rounded hover:bg-white"
               title="Thu gọn avatar để dành diện tích cho đoạn chat"
             >
               <span>Thu gọn</span>
@@ -839,10 +839,10 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                     {getRosterAvatar(p.id, 'w-9 h-9')}
                     <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#C8F169] ring-2 ring-white" />
                   </div>
-                  <span className="text-xs font-bold text-[#121712] leading-tight truncate w-full">
+                  <span className="text-xs font-bold text-[#121712] leading-tight text-center w-full break-words">
                     {p.name}
                   </span>
-                  <span className="text-[11px] text-stone-500 leading-tight truncate w-full mt-0.5">
+                  <span className="text-xs text-stone-500 leading-tight text-center w-full mt-0.5">
                     {p.status}
                   </span>
                 </button>
@@ -963,7 +963,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             <div className="mx-3.5 mt-2.5 p-3 rounded-2xl bg-[#F3F8E8] text-[#121712] shrink-0 text-xs space-y-1.5 border border-[#E2EAD2] shadow-2xs">
               <div className="flex items-center gap-2">
                 <TaAvatar className="w-6 h-6 shrink-0" />
-                <span className="px-1.5 py-0.5 rounded-md bg-[#C8F169] text-[#121712] font-black text-[10px] tracking-wide uppercase">
+                <span className="px-1.5 py-0.5 rounded-md bg-[#C8F169] text-[#121712] font-black text-xs tracking-wide uppercase">
                   GHIM
                 </span>
                 <span className="text-xs font-bold text-[#121712]">Trợ giảng An · {formatSec(pinnedComment.second)}</span>
@@ -1204,7 +1204,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                       className="w-2 h-2 rounded-full shrink-0"
                       style={{ backgroundColor: currentOpt.color }}
                     />
-                    <span className="text-[11px] font-medium">{currentOpt.label}</span>
+                    <span className="text-xs font-medium">{currentOpt.label}</span>
                     <ChevronDownSvg
                       className={`w-2.5 h-2.5 text-stone-400 transition-transform duration-150 ${
                         isRecipientOpen ? 'rotate-180 text-white' : ''
@@ -1267,7 +1267,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             onKeyDown={(e) => e.key === 'Enter' && handleSendUserChatMessage()}
             placeholder={
               recipient === 'all'
-                ? 'Hỏi @Bo, @Trí, @Linh Chi...'
+                ? 'Nhắn cho cả lớp...'
                 : `Nhắn riêng cho ${peopleRoster.find((p) => p.id === recipient)?.name || 'bạn học'}...`
             }
             className="flex-1 bg-transparent px-1.5 py-1 text-xs font-medium outline-none text-[#121712] placeholder:text-stone-400 min-w-0"
@@ -1275,10 +1275,10 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
           {/* Badge thời gian video */}
           <span
-            className="hidden sm:inline-flex items-center gap-1 font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-[#F3F8E8] text-[#121712] border border-[#E2EAD2] shrink-0"
+            className="hidden sm:inline-flex items-center gap-1 font-sans text-xs font-semibold px-2 py-0.5 rounded-md bg-[#F3F8E8] text-[#121712] border border-[#E2EAD2] shrink-0"
             title="Thời gian hiện tại trong video"
           >
-            <ClockBadgeSvg className="w-2.5 h-2.5 text-stone-500" />
+            <ClockBadgeSvg className="w-3 h-3 text-stone-500" />
             <span>{formatSec(currentTime)}</span>
           </span>
 

@@ -1006,7 +1006,7 @@ export default function App() {
         <div className="w-full bg-slate-900 text-white px-4 py-2 border-b border-cyan-500/40 shadow-lg flex items-center justify-between text-xs sticky top-0 z-40 animate-in slide-in-from-top-1 duration-150">
           <div className="flex items-center gap-2.5 max-w-5xl">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
-            <span className="px-2 py-0.5 rounded bg-cyan-600/60 border border-cyan-400/40 font-mono text-[11px] font-bold shrink-0">
+            <span className="px-2 py-0.5 rounded bg-cyan-600/60 border border-cyan-400/40 font-sans text-xs font-bold shrink-0">
               DEMO LIÊN HOÀN ({autoWalkStep}/6)
             </span>
             <span className="font-semibold text-slate-200 truncate">{autoWalkMessage}</span>
@@ -1176,16 +1176,16 @@ export default function App() {
                         sound.playBubblePop();
                         setIsInspectorDrawerOpen((prev) => !prev);
                       }}
-                      className={`h-8 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer transition shadow-2xs ${
+                      className={`h-8 px-3.5 rounded-full text-xs font-bold flex items-center gap-2 cursor-pointer transition shadow-2xs shrink-0 whitespace-nowrap ${
                         isInspectorDrawerOpen
                           ? 'bg-[#121712] text-[#C8F169] border border-[#121712] ring-1 ring-[#C8F169]'
                           : 'bg-[#121712] hover:bg-black text-white border border-[#121712]'
                       }`}
                       title="Soi não tác nhân (Phím tắt: Alt + I)"
                     >
-                      <Eye className="w-3.5 h-3.5 text-[#C8F169]" />
-                      <span>Soi não</span>
-                      <span className="px-1.5 py-0.5 bg-[#232B23] text-[#C8F169] text-xs font-semibold rounded-md border border-[#3A453A]">
+                      <Eye className="w-4 h-4 text-[#C8F169] shrink-0" />
+                      <span className="text-white font-bold tracking-tight whitespace-nowrap inline-block">Soi não</span>
+                      <span className="px-2 py-0.5 bg-[#263126] text-[#C8F169] text-xs font-sans font-bold rounded-full border border-[#3B4D3B] whitespace-nowrap inline-block">
                         Alt + I
                       </span>
                     </button>
@@ -1252,7 +1252,7 @@ export default function App() {
                                 <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
                                 <span>Thanh tra lượt thoại (Inspector)</span>
                               </div>
-                              <kbd className="px-1.5 py-0.5 text-[10px] bg-stone-100 rounded text-stone-500 font-mono">Alt+I</kbd>
+                              <kbd className="px-1.5 py-0.5 text-xs bg-stone-100 rounded text-stone-600 font-sans font-bold">Alt+I</kbd>
                             </button>
                           </div>
                         </>
@@ -1275,7 +1275,7 @@ export default function App() {
                     Biên tập dòng thời gian bài giảng · Thiết lập câu hỏi dừng & kịch bản sư phạm
                   </span>
                 </div>
-                <div className="text-xs font-mono font-bold text-[#121712] bg-white px-3.5 py-1 rounded-full border border-stone-300 shadow-2xs">
+                <div className="text-xs font-sans font-bold text-[#121712] bg-white px-3.5 py-1 rounded-full border border-stone-300 shadow-2xs">
                   Chế độ thiết kế giáo án
                 </div>
               </div>
@@ -1368,8 +1368,8 @@ export default function App() {
             {/* TRẠM 1: VIDEO BÀI GIẢNG & THẢO LUẬN LỚP HỌC (2 hoặc 3 CỘT CÂN ĐỐI) */}
             {currentMode === 'video_clash' && (
               <div className="flex flex-col lg:flex-row gap-4 xl:gap-5 items-start flex-1 min-h-0 w-full">
-                {/* CỘT TRÁI: VIDEO PLAYER & THANH ĐIỀU KHIỂN (co giãn tự nhiên) */}
-                <div className="flex-1 min-w-0 flex flex-col space-y-4 transition-all duration-300">
+                {/* CỘT TRÁI: VIDEO PLAYER & THANH ĐIỀU KHIỂN (luôn >= 480px, không cắt nút/tiêu đề) */}
+                <div className="flex-1 min-w-[480px] xl:min-w-[540px] flex flex-col space-y-4 transition-all duration-300">
                   <VideoPlayerSheet
                     lesson={currentVideoLesson}
                     phase={videoPhase}
@@ -1537,8 +1537,8 @@ export default function App() {
                       </span>
                     </div>
 
-                    {/* Dải tiến độ 4 mốc thời gian */}
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                    {/* Dải tiến độ 4 mốc thời gian (2 cột trên màn nhỏ/1366, 4 cột trên 1920) */}
+                    <div className="grid grid-cols-2 xl:grid-cols-4 gap-2.5">
                       {[
                         { time: '00:00', title: 'Khởi động', desc: 'Định nghĩa & Giá vectơ', active: videoCurrentTime < 1260 },
                         { time: '21:00', title: 'Quy tắc hình', desc: 'Ba điểm & Bình hành', active: videoCurrentTime >= 1260 && videoCurrentTime < 2233 },
@@ -1568,11 +1568,11 @@ export default function App() {
                           }`}
                         >
                           <div className="flex items-center justify-between">
-                            <span className={`font-mono font-bold text-xs ${marker.active ? 'text-[#C8F169]' : 'text-[#121712]'}`}>
+                            <span className={`font-sans font-bold text-xs tabular-nums ${marker.active ? 'text-[#C8F169]' : 'text-[#121712]'}`}>
                               {marker.time}
                             </span>
                             {marker.isCheckpoint && (
-                              <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
                                 marker.active ? 'bg-[#C8F169] text-[#121712]' : 'bg-[#121712] text-[#C8F169]'
                               }`}>
                                 Điểm dừng
@@ -1582,7 +1582,7 @@ export default function App() {
                           <div className={`font-bold text-xs ${marker.active ? 'text-white' : 'text-[#121712]'}`}>
                             {marker.title}
                           </div>
-                          <p className={`text-[11px] leading-tight line-clamp-1 ${marker.active ? 'text-stone-300' : 'text-stone-600'}`}>
+                          <p className={`text-xs leading-snug ${marker.active ? 'text-stone-300' : 'text-stone-600'}`}>
                             {marker.desc}
                           </p>
                         </button>
@@ -1606,7 +1606,7 @@ export default function App() {
                   style={{ height: 'calc(100vh - 85px)', minHeight: '560px' }}
                   className={`${
                     isInspectorDrawerOpen
-                      ? 'w-full lg:w-[350px] xl:w-[380px] shrink-0'
+                      ? 'w-full lg:w-[320px] xl:w-[360px] shrink-0'
                       : (isChatExpanded ? 'w-full lg:w-[48%] shrink-0' : 'w-full lg:w-[380px] xl:w-[420px] shrink-0')
                   } bg-white rounded-3xl border border-[#E2EAD2] overflow-visible flex flex-col shadow-xs transition-all duration-300 relative group/chatcol`}
                 >
@@ -1677,7 +1677,7 @@ export default function App() {
 
               {/* CỘT PHẢI: SOI NÃO TÁC NHÂN (INSPECTOR DRAWER) - CỘT RIÊNG BÊN PHẢI CẠNH CHAT, KHÔNG CHE VIDEO/CHAT */}
               {isInspectorDrawerOpen && (
-                <div className="w-full lg:w-[440px] xl:w-[480px] shrink-0 transition-all duration-300 animate-in fade-in slide-in-from-right-4">
+                <div className="w-full lg:w-[390px] xl:w-[460px] shrink-0 transition-all duration-300 animate-in fade-in slide-in-from-right-4">
                   <InspectorDrawer
                     isOpen={isInspectorDrawerOpen}
                     onClose={() => setIsInspectorDrawerOpen(false)}
