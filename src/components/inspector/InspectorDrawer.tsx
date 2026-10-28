@@ -192,13 +192,13 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
                 style={{ width: `${confidencePercent}%` }}
               />
             </div>
-            <span className="text-xs font-bold text-[#121712] shrink-0">
+            <span className="text-xs font-bold text-[#121712] shrink-0 tabular-nums whitespace-nowrap">
               {confidenceFormatted}
             </span>
           </div>
 
           {/* Lý do điều phối cụ thể */}
-          <p className="text-xs text-stone-700 leading-relaxed m-0">
+          <p className="text-xs text-stone-700 leading-relaxed m-0 break-words">
             <strong className="text-[#121712]">Lý do:</strong> {dispatcher.reason}
           </p>
         </div>

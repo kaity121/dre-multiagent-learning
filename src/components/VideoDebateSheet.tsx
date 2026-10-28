@@ -678,7 +678,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           </div>
           <div className="p-3 rounded-2xl bg-white border border-[#E2EAD2] text-xs text-[#121712] leading-relaxed font-normal shadow-2xs select-text">
             {renderToolBadges(
-              (msg as any).toolCalls || (isTri && (msg.second >= 2200 && msg.second <= 2260) ? [
+              (msg as any).toolCalls || (((msg.author?.toLowerCase().includes("trí") || msg.author?.toLowerCase().includes("tri"))) && (msg.second >= 2200 && msg.second <= 2260) ? [
                 {
                   toolName: 'tool_query_misconception_kb',
                   category: 'rag',
@@ -1275,7 +1275,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
           {/* Badge thời gian video */}
           <span
-            className="hidden sm:inline-flex items-center gap-1 font-sans text-xs font-semibold px-2 py-0.5 rounded-md bg-[#F3F8E8] text-[#121712] border border-[#E2EAD2] shrink-0"
+            className="hidden 2xl:inline-flex items-center gap-1 font-sans text-xs font-semibold px-2 py-0.5 rounded-md bg-[#F3F8E8] text-[#121712] border border-[#E2EAD2] shrink-0"
             title="Thời gian hiện tại trong video"
           >
             <ClockBadgeSvg className="w-3 h-3 text-stone-500" />
@@ -1286,7 +1286,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           <button
             onClick={() => handleSendUserChatMessage()}
             type="button"
-            className="px-3.5 py-1.5 font-bold text-xs rounded-lg cursor-pointer transition-all bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] border border-[#A6D83B] shadow-xs flex items-center gap-1 shrink-0"
+            className="px-2.5 sm:px-3 py-1.5 font-bold text-xs rounded-lg cursor-pointer transition-all bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] border border-[#A6D83B] shadow-xs flex items-center gap-1 shrink-0"
           >
             <span>Gửi</span>
             <SendArrowSvg className="w-3 h-3 text-[#121712]" />

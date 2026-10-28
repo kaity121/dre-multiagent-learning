@@ -1364,12 +1364,12 @@ export default function App() {
 
         {/* VIEW 3: CLASSROOM 4 STATIONS (TRẠM 1 ĐẾN 4) */}
         {activeStudioView === 'classroom' && (
-          <main className={`flex-1 w-full ${isInspectorDrawerOpen ? 'max-w-[1920px]' : 'max-w-7xl'} mx-auto px-4 sm:px-6 py-5 flex flex-col transition-all duration-300`}>
-            {/* TRẠM 1: VIDEO BÀI GIẢNG & THẢO LUẬN LỚP HỌC (2 hoặc 3 CỘT CÂN ĐỐI) */}
+          <main className={`flex-1 w-full ${isInspectorDrawerOpen ? 'max-w-[1920px]' : 'max-w-7xl'} mx-auto px-2 sm:px-3.5 2xl:px-6 py-3.5 sm:py-4 flex flex-col overflow-x-hidden transition-all duration-300`}>
+            {/* TRẠM 1: VIDEO BÀI GIẢNG & THẢO LUẬN LỚP HỌC (3 CỘT CÂN ĐỐI, VỪA KHÍT 1280 & 1366 KHÔNG TRÀN NGANG) */}
             {currentMode === 'video_clash' && (
-              <div className="flex flex-col lg:flex-row gap-4 xl:gap-5 items-start flex-1 min-h-0 w-full">
-                {/* CỘT TRÁI: VIDEO PLAYER & THANH ĐIỀU KHIỂN (luôn >= 480px, không cắt nút/tiêu đề) */}
-                <div className="flex-1 min-w-[480px] xl:min-w-[540px] flex flex-col space-y-4 transition-all duration-300">
+              <div className="flex flex-col lg:flex-row gap-2.5 2xl:gap-4 items-start flex-1 min-h-0 w-full">
+                {/* CỘT TRÁI: VIDEO PLAYER & THANH ĐIỀU KHIỂN (luôn >= 480px) */}
+                <div className="flex-1 min-w-[440px] sm:min-w-[480px] 2xl:min-w-[560px] flex flex-col space-y-3.5 transition-all duration-300">
                   <VideoPlayerSheet
                     lesson={currentVideoLesson}
                     phase={videoPhase}
@@ -1423,13 +1423,13 @@ export default function App() {
                   )}
 
                   {/* THANH ĐIỀU KHIỂN DƯỚI VIDEO (CHUẨN 100% THEO CODE CŨ & ẢNH 2) */}
-                  <div className="bg-white border border-stone-200/90 rounded-2xl p-2 sm:p-2.5 flex items-center justify-between gap-2 shadow-2xs text-xs overflow-x-auto no-scrollbar flex-nowrap whitespace-nowrap">
+                  <div className="bg-white border border-stone-200/90 rounded-2xl p-2 sm:p-2.5 flex flex-wrap lg:flex-nowrap items-center justify-between gap-2 shadow-2xs text-xs overflow-x-hidden">
                     {/* Cụm trái: Menu Phân cảnh & Đổi link */}
                     <div className="flex items-center gap-1.5 min-w-0 shrink-0 flex-nowrap">
                       <button
                         type="button"
                         onClick={() => setIsChaptersDrawerOpen(prev => !prev)}
-                        className="h-8 px-2.5 sm:px-3 rounded-xl bg-white hover:bg-stone-50 text-stone-700 font-semibold border border-stone-200 flex items-center gap-1.5 max-w-[150px] sm:max-w-[210px] truncate cursor-pointer transition-all shadow-2xs shrink-0"
+                        className="h-8 px-2.5 sm:px-3 rounded-xl bg-white hover:bg-stone-50 text-stone-700 font-semibold border border-stone-200 flex items-center gap-1.5 max-w-[130px] sm:max-w-[170px] truncate cursor-pointer transition-all shadow-2xs shrink-0"
                         title="Xem Phân cảnh & Bản chép lời bài giảng"
                       >
                         <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 text-stone-500 shrink-0">
@@ -1525,20 +1525,20 @@ export default function App() {
 
                   {/* TIẾN TRÌNH BÀI GIẢNG & GHI CHÚ SƯ PHẠM (LẤP ĐẦY NỬA DƯỚI CỘT TRÁI) */}
                   <div className="bg-white border border-[#E2EAD2] rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
-                    <div className="flex items-center justify-between border-b border-[#E2EAD2] pb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#121712]" />
-                        <span className="font-bold text-sm text-[#121712]">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E2EAD2] pb-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#121712] shrink-0" />
+                        <span className="font-bold text-sm text-[#121712] truncate">
                           Tiến trình bài giảng &amp; Điểm dừng tương tác
                         </span>
                       </div>
-                      <span className="text-xs font-semibold text-stone-500">
+                      <span className="text-xs font-semibold text-stone-600 bg-[#F3F8E8] px-2.5 py-0.5 rounded-full border border-[#E2EAD2] shrink-0 ml-auto">
                         Thầy Nguyễn Phan Tiến · 1h 38m
                       </span>
                     </div>
 
                     {/* Dải tiến độ 4 mốc thời gian (2 cột trên màn nhỏ/1366, 4 cột trên 1920) */}
-                    <div className="grid grid-cols-2 xl:grid-cols-4 gap-2.5">
+                    <div className="grid grid-cols-2 2xl:grid-cols-4 gap-2 sm:gap-2.5">
                       {[
                         { time: '00:00', title: 'Khởi động', desc: 'Định nghĩa & Giá vectơ', active: videoCurrentTime < 1260 },
                         { time: '21:00', title: 'Quy tắc hình', desc: 'Ba điểm & Bình hành', active: videoCurrentTime >= 1260 && videoCurrentTime < 2233 },
@@ -1567,12 +1567,12 @@ export default function App() {
                               : 'bg-[#F3F8E8] hover:bg-[#E2EAD2] border-[#E2EAD2] text-[#121712]'
                           }`}
                         >
-                          <div className="flex items-center justify-between">
-                            <span className={`font-sans font-bold text-xs tabular-nums ${marker.active ? 'text-[#C8F169]' : 'text-[#121712]'}`}>
+                          <div className="flex items-center justify-between gap-1 flex-nowrap">
+                            <span className={`font-sans font-bold text-xs tabular-nums shrink-0 ${marker.active ? 'text-[#C8F169]' : 'text-[#121712]'}`}>
                               {marker.time}
                             </span>
                             {marker.isCheckpoint && (
-                              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-bold shrink-0 whitespace-nowrap ${
                                 marker.active ? 'bg-[#C8F169] text-[#121712]' : 'bg-[#121712] text-[#C8F169]'
                               }`}>
                                 Điểm dừng
@@ -1605,9 +1605,7 @@ export default function App() {
                 <div 
                   style={{ height: 'calc(100vh - 85px)', minHeight: '560px' }}
                   className={`${
-                    isInspectorDrawerOpen
-                      ? 'w-full lg:w-[320px] xl:w-[360px] shrink-0'
-                      : (isChatExpanded ? 'w-full lg:w-[48%] shrink-0' : 'w-full lg:w-[380px] xl:w-[420px] shrink-0')
+                    isInspectorDrawerOpen ? 'w-full lg:w-[280px] xl:w-[300px] 2xl:w-[360px] shrink-0' : (isChatExpanded ? 'w-full lg:w-[48%] shrink-0' : 'w-full lg:w-[380px] xl:w-[420px] shrink-0')
                   } bg-white rounded-3xl border border-[#E2EAD2] overflow-visible flex flex-col shadow-xs transition-all duration-300 relative group/chatcol`}
                 >
                   {/* Thanh mở rộng / thu hẹp chat ở mép trái (Interactive Expand Handle Bar) */}
@@ -1677,7 +1675,7 @@ export default function App() {
 
               {/* CỘT PHẢI: SOI NÃO TÁC NHÂN (INSPECTOR DRAWER) - CỘT RIÊNG BÊN PHẢI CẠNH CHAT, KHÔNG CHE VIDEO/CHAT */}
               {isInspectorDrawerOpen && (
-                <div className="w-full lg:w-[390px] xl:w-[460px] shrink-0 transition-all duration-300 animate-in fade-in slide-in-from-right-4">
+                <div className="w-full lg:w-[370px] xl:w-[390px] 2xl:w-[450px] shrink-0 transition-all duration-300 animate-in fade-in slide-in-from-right-4">
                   <InspectorDrawer
                     isOpen={isInspectorDrawerOpen}
                     onClose={() => setIsInspectorDrawerOpen(false)}
