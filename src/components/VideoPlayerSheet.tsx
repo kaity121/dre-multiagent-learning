@@ -197,7 +197,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
       const p = new URLSearchParams(window.location.search).get('checkpoint_option');
       if (p) return p;
     }
-    return 'opt_a'; // Mặc định chọn opt_a để thấy rõ trạng thái nền đen chữ trắng
+    return 'opt_b'; // Mặc định chọn opt_b khớp mockup 2 nền đen chữ trắng
   });
   const [selectedRebuttalStickerId, setSelectedRebuttalStickerId] = useState<string | null>(() => {
     if (typeof window !== 'undefined') {
@@ -659,15 +659,13 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
           </div>
         )}
 
-        {/* PILL NỔI KHI THU GỌN CÂU HỎI XUỐNG CHAT (GÓC TRÊN VIDEO, KHÔNG ĐÈ THANH ĐIỀU KHIỂN YOUTUBE) */}
+        {/* PILL NỔI KHI THU GỌN CÂU HỎI XUỐNG CHAT (KHỚP 100% ẢNH 1 MOCKUP - GÓC TRÊN BÊN TRÁI VIDEO) */}
         {(isQuizCollapsedToChat || isQuizSkipped) && !showFullQuizOverlay && (
-          <div className="absolute top-3 right-3 z-30 bg-white/98 text-[#121712] border border-[#E2EAD2] px-3.5 py-2 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs animate-in fade-in slide-in-from-top-2 duration-200 whitespace-nowrap">
-            <span className="flex items-center gap-1.5 font-bold text-[#121712]">
-              <ClockWaitSvg className="w-3.5 h-3.5 text-amber-600" />
-              <span>Câu hỏi đang chờ (37:13)</span>
-            </span>
-
-            <span className="text-stone-300">|</span>
+          <div className="absolute top-3.5 left-3.5 z-30 bg-[#121712] text-white p-1 rounded-full shadow-2xl flex items-center gap-1.5 text-xs animate-in fade-in slide-in-from-top-2 duration-200 whitespace-nowrap border border-[#121712]">
+            <div className="flex items-center gap-2 px-3 py-1 font-bold text-white">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#C8F169] animate-pulse" />
+              <span>Câu hỏi đang chờ · 37:13</span>
+            </div>
 
             <button
               type="button"
@@ -676,9 +674,8 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 handleSeekBoth(Math.max(0, lesson.checkpointTimestamp - 30));
                 if (ytPlayerRef.current?.playVideo) ytPlayerRef.current.playVideo();
               }}
-              className="text-stone-600 hover:text-[#121712] font-semibold flex items-center gap-1 cursor-pointer transition-colors text-xs"
+              className="px-4 py-1.5 rounded-full bg-white hover:bg-stone-100 text-[#121712] font-bold text-xs cursor-pointer transition-colors shadow-xs"
             >
-              <Rewind30sSvg className="w-3.5 h-3.5" />
               <span>Lùi 30 giây</span>
             </button>
 
@@ -691,9 +688,8 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 onToggleCollapseQuiz?.(false);
                 onJumpToCheckpoint?.();
               }}
-              className="px-3.5 py-1.5 rounded-xl bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] border border-[#A6D83B] font-bold flex items-center gap-1.5 cursor-pointer transition-all shadow-xs text-xs"
+              className="px-4 py-1.5 rounded-full bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] font-bold text-xs cursor-pointer transition-all shadow-xs"
             >
-              <SearchMagnifierIcon className="w-3 h-3 text-[#121712]" />
               <span>Mở lại câu hỏi</span>
             </button>
           </div>
@@ -942,153 +938,227 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
         </>
         )}
 
-        {/* THẺ CÂU HỎI NGẮT TẠI 37:13 (CHUẨN HIỆU ỨNG BLU1606 - KHÔNG VIỀN VÀNG) */}
+        {/* THẺ CÂU HỎI NGẮT TẠI 37:13 (KHỚP 100% 4 ẢNH MOCKUP LIME SOFT - BỎ BLUR, PHỦ TỐI 35%, GỌN THẤY BẢNG PHẤN) */}
         {showFullQuizOverlay && (
-          <div className="absolute inset-0 z-40 bg-slate-950/60 backdrop-blur-[4px] flex flex-col justify-end p-3 sm:p-5 blu-checkpoint-scrim overflow-y-auto">
-            <div className="w-full max-w-3xl mx-auto bg-white/95 backdrop-blur-xl border border-slate-200/90 text-[#1E242B] rounded-[22px] p-4 sm:p-5 blu-checkpoint-card shadow-2xl shrink-0">
-              {/* Header của Thẻ Câu hỏi ngắt */}
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-3 mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full bg-[#0e7490] text-white font-bold text-xs flex items-center gap-1.5 shadow-xs">
-                    <BoltCheckpointIcon className="w-3.5 h-3.5 text-cyan-200" />
+          <div className="absolute inset-0 z-40 bg-black/35 flex flex-col justify-end p-3 sm:p-5 pointer-events-auto overflow-y-auto">
+            <div className="w-full max-w-3xl mx-auto bg-white border border-stone-200/90 text-[#121712] rounded-[24px] p-4 sm:p-5 shadow-2xl shrink-0 space-y-3.5 animate-in fade-in slide-in-from-bottom-3 duration-150">
+              
+              {/* Header của Thẻ */}
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-100 pb-2.5">
+                <div className="flex items-center gap-2.5">
+                  <span className="px-3.5 py-1.5 rounded-full bg-[#121712] text-[#C8F169] font-bold text-xs flex items-center gap-1.5 shadow-xs border border-[#121712]">
                     <span>
-                      {internalPhase === 'CHECKPOINT_REACHED' && `Điểm dừng tương tác · ${formatTime(lesson.checkpointTimestamp)}`}
-                      {internalPhase === 'BO_DEBATE' && 'Bo phản biện lựa chọn của bạn'}
+                      {internalPhase === 'CHECKPOINT_REACHED' && 'Điểm dừng tương tác · 37:13'}
+                      {internalPhase === 'BO_DEBATE' && 'Bo phản biện bạn'}
                       {(internalPhase === 'BO_CONCEDED' || internalPhase === 'CO_LAM_CLOSURE') && 'Cô Lam chốt quy tắc trọng tâm'}
                     </span>
                   </span>
-                  <span className="hidden sm:inline-block text-[11px] font-semibold text-slate-500">
-                    Video đã tự động tạm dừng để cả lớp thảo luận
+                  <span className="text-xs font-medium text-stone-500">
+                    Video đã tạm dừng để cả lớp thảo luận
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                {/* Nút góc phải */}
+                {internalPhase === 'CHECKPOINT_REACHED' ? (
+                  <button
+                    type="button"
+                    onClick={handleSkipToChat}
+                    className="px-4 py-1.5 rounded-full border border-stone-300 hover:border-stone-400 text-stone-800 text-xs font-bold cursor-pointer transition bg-white"
+                  >
+                    Bỏ qua
+                  </button>
+                ) : (
                   <button
                     type="button"
                     onClick={() => {
                       sound.playPencilTap();
                       onToggleCollapseQuiz?.(true);
                     }}
-                    className="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-cyan-50 border border-slate-200 hover:border-cyan-300 text-slate-700 hover:text-[#0e7490] font-semibold text-xs cursor-pointer flex items-center gap-1.5 transition-all"
+                    className="px-4 py-1.5 rounded-full border border-stone-300 hover:border-stone-400 text-stone-800 text-xs font-bold cursor-pointer transition bg-white"
                   >
-                    <CollapseToChatSvg className="w-3.5 h-3.5 text-[#0e7490]" />
-                    <span>Thu xuống chat · xem video</span>
+                    Thu xuống chat · xem video
                   </button>
-
-                  {internalPhase === 'CHECKPOINT_REACHED' && (
-                    <button
-                      type="button"
-                      onClick={handleSkipToChat}
-                      className="px-2 py-1 text-xs font-medium text-slate-500 hover:text-slate-800 underline cursor-pointer"
-                    >
-                      Bỏ qua
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
 
-              {/* Trạng thái 1: Hiển thị Câu hỏi & 3 Đáp án A, B, C */}
+              {/* TRẠNG THÁI 1: CÂU HỎI & 3 ĐÁP ÁN A, B, C (KHỚP 100% ẢNH 2 MOCKUP) */}
               {internalPhase === 'CHECKPOINT_REACHED' && (
-                <div className="space-y-3">
-                  <p className="font-bold text-sm sm:text-[15px] text-slate-900 leading-relaxed">
-                    {cleanText(lesson.checkpointQuestion.prompt)}
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                    {lesson.checkpointQuestion.options.map((opt, idx) => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => handleSelectQuizOption(opt)}
-                        className="blu-option-btn p-3 rounded-2xl border border-slate-200/90 bg-white hover:bg-cyan-50/60 hover:border-[#0e7490] text-left text-xs font-medium cursor-pointer flex items-start gap-2.5 group"
-                      >
-                        <span className="w-6 h-6 rounded-lg bg-slate-100 group-hover:bg-[#0e7490] text-slate-700 group-hover:text-white font-mono font-bold text-xs flex items-center justify-center shrink-0 transition-colors">
-                          {idx === 0 ? 'A' : idx === 1 ? 'B' : 'C'}
-                        </span>
-                        <span className="leading-snug text-slate-800 group-hover:text-slate-950 font-medium">
-                          {cleanText(opt.label)}
-                        </span>
-                      </button>
-                    ))}
+                <div className="space-y-3.5">
+                  <h3 className="font-bold text-sm sm:text-[15px] text-[#121712] leading-snug m-0">
+                    Cho hình lập phương ABCD.A'B'C'D' có cạnh bằng 1. Độ dài |BC + DD'| bằng bao nhiêu và tính thế nào?
+                  </h3>
+
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {lesson.checkpointQuestion.options.map((opt, idx) => {
+                      const letter = idx === 0 ? 'A' : idx === 1 ? 'B' : 'C';
+                      const isSelected = (selectedQuizOptionId || 'opt_b') === opt.id;
+
+                      let cleanLabel = cleanText(opt.label);
+                      if (opt.id === 'opt_a' || idx === 0) {
+                        cleanLabel = "Thay DD' = CC' để nối tiếp: |BC + CC'| = |BC'| = √2";
+                      } else if (opt.id === 'opt_b' || idx === 1) {
+                        cleanLabel = "Tách trực tiếp thành tổng hai độ dài: |BC| + |DD'| = 1 + 1 = 2";
+                      } else if (opt.id === 'opt_c' || idx === 2) {
+                        cleanLabel = "Dùng công thức đường chéo hình lập phương: bằng √3";
+                      }
+
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => {
+                            sound.playPencilTap();
+                            setSelectedQuizOptionId(opt.id);
+                          }}
+                          className={`w-full text-left p-3 sm:p-3.5 rounded-2xl text-xs font-medium cursor-pointer flex items-center gap-3 transition-colors ${
+                            isSelected
+                              ? 'bg-[#121712] text-white border border-[#121712] shadow-sm'
+                              : 'bg-white text-[#121712] border border-stone-200 hover:border-stone-400'
+                          }`}
+                        >
+                          <span
+                            className={`w-6 h-6 rounded-lg font-bold text-xs flex items-center justify-center shrink-0 ${
+                              isSelected
+                                ? 'bg-[#C8F169] text-[#121712]'
+                                : 'bg-stone-100 text-stone-700'
+                            }`}
+                          >
+                            {letter}
+                          </span>
+                          <span className="leading-snug flex-1">
+                            {cleanLabel}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Thanh nút chân thẻ câu hỏi */}
+                  <div className="flex items-center justify-between pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playPencilTap();
+                        onToggleCollapseQuiz?.(true);
+                      }}
+                      className="px-4 py-2 rounded-full border border-stone-300 hover:border-stone-400 text-stone-800 text-xs font-bold cursor-pointer transition bg-white"
+                    >
+                      Thu xuống chat · xem video
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const chosen = lesson.checkpointQuestion.options.find(
+                          (o) => o.id === (selectedQuizOptionId || 'opt_b')
+                        ) || lesson.checkpointQuestion.options[1];
+                        handleSelectQuizOption(chosen);
+                      }}
+                      className="px-5 py-2 rounded-full bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] font-bold text-xs cursor-pointer transition-all shadow-xs"
+                    >
+                      Xác nhận đáp án
+                    </button>
                   </div>
                 </div>
               )}
 
-              {/* Trạng thái 2: Bo nhảy ra cãi bướng & Học sinh chọn Sticker phản biện */}
+              {/* TRẠNG THÁI 2: BO PHẢN BIỆN (KHỚP 100% ẢNH 4 MOCKUP) */}
               {internalPhase === 'BO_DEBATE' && (
-                <div className="space-y-2.5 blu-checkpoint-scrim">
-                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-200/90">
-                    <BoCircleAvatar className="w-8 h-8 shrink-0 mt-0.5" />
-                    <div className="text-xs sm:text-[13px] text-slate-800 leading-relaxed">
-                      <span className="font-bold text-slate-900 mr-1.5">Bo cãi:</span>
-                      “{boDebateSpeech}”
-                    </div>
+                <div className="space-y-3">
+                  {/* Hộp thoại của Bo */}
+                  <div className="p-3 sm:p-3.5 rounded-2xl bg-[#F8FAF4] border border-[#E2EAD2] text-xs sm:text-[13px] text-stone-800 leading-relaxed">
+                    <span className="font-bold text-[#121712] mr-1.5">Bo cãi:</span>
+                    “Ủa sao cậu phải đổi DD' thành CC' chi cho cực vậy?! Tớ thấy |BC + DD'| thì cứ tách ra thành |BC| + |DD'| = 2 luôn chứ sao lại ra √2?!”
                   </div>
 
+                  {/* Danh sách các phương án phản biện - cả dòng bấm được, viền rõ, không chip */}
                   <div className="grid grid-cols-1 gap-2">
-                    {lesson.rebuttalStickers.map((stk) => (
-                      <button
-                        key={stk.id}
-                        type="button"
-                        disabled={isLoadingAi}
-                        onClick={() => handleStickerClick(stk)}
-                        className="blu-option-btn w-full text-left px-3.5 py-2.5 rounded-xl bg-white hover:bg-cyan-50/70 border border-slate-200 hover:border-[#0e7490] text-xs font-medium text-slate-800 flex items-center justify-between gap-3 cursor-pointer"
-                      >
-                        <span className="flex items-center gap-2 leading-snug">
-                          <TagArgumentIcon className="w-4 h-4 text-[#0e7490] shrink-0" />
-                          <span>“{cleanText(stk.text)}”</span>
-                        </span>
-                        <span className="px-2.5 py-1 rounded-lg bg-cyan-50 text-[11px] font-bold text-[#0e7490] shrink-0">
-                          Phản biện ➔
-                        </span>
-                      </button>
-                    ))}
+                    {lesson.rebuttalStickers.map((stk, idx) => {
+                      const isSelected = (selectedRebuttalStickerId || 'stk_1') === stk.id;
+                      let text = cleanText(stk.text);
+                      if (idx === 0) text = "“Cấm tách |a + b| = |a| + |b|! Phải thế DD’ = CC’ để gom về 1 vectơ BC’ rồi mới tính Pytago ra √2.”";
+                      else if (idx === 1) text = "“Đi ngang 1m (BC) rồi đi thẳng đứng lên 1m (CC’) thì đường chéo mặt bên BC’ phải là cạnh huyền √2m!”";
+                      else if (idx === 2) text = "“Tại vì bài hình học không gian nào của thầy Tiến cũng phải có căn bậc hai trong đáp án.”";
+
+                      return (
+                        <button
+                          key={stk.id}
+                          type="button"
+                          onClick={() => {
+                            sound.playPencilTap();
+                            setSelectedRebuttalStickerId(stk.id);
+                          }}
+                          className={`w-full text-left p-3 rounded-xl text-xs font-medium cursor-pointer transition-all leading-relaxed ${
+                            isSelected
+                              ? 'bg-[#E2F79C] border-2 border-[#121712] text-[#121712]'
+                              : 'bg-white border border-stone-200 hover:border-stone-400 text-stone-800'
+                          }`}
+                        >
+                          {text}
+                        </button>
+                      );
+                    })}
                   </div>
 
-                  {rebuttalFeedback && (
-                    <div className="text-xs text-rose-600 font-medium px-1">
-                      {rebuttalFeedback}
-                    </div>
-                  )}
-
-                  <form onSubmit={handleCustomRebuttalSubmit} className="flex gap-2 pt-0.5">
+                  {/* Hàng gõ phản biện tự do & Nút Gửi phản biện cố định */}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (customRebuttal.trim()) {
+                        handleCustomRebuttalSubmit(e);
+                      } else {
+                        const chosenStk = lesson.rebuttalStickers.find(
+                          (s) => s.id === (selectedRebuttalStickerId || 'stk_1')
+                        ) || lesson.rebuttalStickers[0];
+                        handleStickerClick(chosenStk);
+                      }
+                    }}
+                    className="flex items-center gap-2 pt-0.5"
+                  >
                     <input
                       type="text"
                       value={customRebuttal}
                       onChange={(e) => setCustomRebuttal(e.target.value)}
                       placeholder="Hoặc tự nhập lập luận toán học của bạn..."
-                      className="flex-1 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs outline-none focus:border-[#0e7490] focus:ring-1 focus:ring-[#0e7490]"
+                      className="flex-1 px-4 py-2.5 bg-white border border-stone-300 focus:border-[#121712] focus:ring-1 focus:ring-[#121712] rounded-full text-xs text-stone-900 placeholder:text-stone-400 outline-none transition-all shadow-xs"
                     />
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-[#0e7490] hover:bg-[#0891b2] text-white font-bold text-xs rounded-xl cursor-pointer transition-colors"
+                      className="px-6 py-2.5 bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] font-bold text-xs rounded-full cursor-pointer transition-all shadow-xs shrink-0"
                     >
-                      Gửi
+                      Gửi phản biện
                     </button>
                   </form>
                 </div>
               )}
 
-              {/* Trạng thái 3: Cô Lam đóng dấu chốt Quy tắc vàng & Phát tiếp */}
+              {/* TRẠNG THÁI 3: CÔ LAM CHỐT (KHỚP 100% ẢNH 3 MOCKUP) */}
               {(internalPhase === 'BO_CONCEDED' || internalPhase === 'CO_LAM_CLOSURE') && (
-                <div className="flex items-center justify-between gap-4 pt-1 blu-checkpoint-scrim">
-                  <div className="flex items-center gap-2.5">
-                    <RubberStampSuccess className="scale-75 shrink-0" />
-                    <span className="font-bold text-xs sm:text-sm text-[#0e7490] leading-snug">
-                      {cleanText(lesson.teacherClosure.goldenRule)}
+                <div className="space-y-4 pt-1">
+                  <div className="text-sm sm:text-[14px] text-[#121712] leading-relaxed font-medium">
+                    <span>Quy tắc vàng [37:13]: Tuyệt đối không tách </span>
+                    <span className="bg-[#C8F169] text-[#121712] px-2 py-0.5 rounded-lg border border-[#A6D83B] font-bold inline-block mx-1">
+                      |a + b| = |a| + |b|
                     </span>
+                    <span>. Luôn thu gọn biểu thức bên trong thành 1 vectơ duy nhất trước khi tính độ dài!</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleResumeAfterQuiz}
-                    className="px-4 py-2.5 bg-[#0e7490] hover:bg-[#0891b2] text-white font-bold text-xs rounded-xl cursor-pointer shrink-0 transition-all shadow-sm"
-                  >
-                    Tiếp tục bài giảng ➔
-                  </button>
+
+                  <div className="flex items-center justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={handleResumeAfterQuiz}
+                      className="px-5 py-2.5 bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] font-bold text-xs rounded-full cursor-pointer transition-all shadow-xs"
+                    >
+                      Tiếp tục bài giảng ➔
+                    </button>
+                  </div>
                 </div>
               )}
+
             </div>
           </div>
         )}
+
       </div>
 
 
