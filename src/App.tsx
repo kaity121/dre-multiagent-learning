@@ -20,7 +20,7 @@ import { TimelineEditor } from './components/timeline/TimelineEditor';
 import {
   InspectorDrawer,
 } from './components/inspector/InspectorDrawer';
-import { ChevronDown, SlidersHorizontal, Activity, Clock, ArrowLeft, MoreHorizontal } from 'lucide-react';
+import { ChevronDown, SlidersHorizontal, Activity, Clock, ArrowLeft, MoreHorizontal, Eye } from 'lucide-react';
 import { 
   DREState, 
   LearnerLevel, 
@@ -1169,6 +1169,27 @@ export default function App() {
                       Tạm dừng
                     </button>
 
+                    {/* Nút Soi não tác nhân (Alt + I) cho người demo */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playBubblePop();
+                        setIsInspectorDrawerOpen((prev) => !prev);
+                      }}
+                      className={`h-8 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer transition shadow-2xs ${
+                        isInspectorDrawerOpen
+                          ? 'bg-[#121712] text-[#C8F169] border border-[#121712] ring-1 ring-[#C8F169]'
+                          : 'bg-[#121712] hover:bg-black text-white border border-[#121712]'
+                      }`}
+                      title="Soi não tác nhân (Phím tắt: Alt + I)"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-[#C8F169]" />
+                      <span>Soi não</span>
+                      <span className="px-1.5 py-0.5 bg-[#232B23] text-[#C8F169] text-xs font-semibold rounded-md border border-[#3A453A]">
+                        Alt + I
+                      </span>
+                    </button>
+
                     {/* Menu 3 chấm góc dành cho Công cụ Giáo viên & Kỹ thuật nội bộ */}
                     <div className="relative">
                       <button
@@ -1343,12 +1364,12 @@ export default function App() {
 
         {/* VIEW 3: CLASSROOM 4 STATIONS (TRẠM 1 ĐẾN 4) */}
         {activeStudioView === 'classroom' && (
-          <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-5 flex flex-col">
-            {/* TRẠM 1: VIDEO BÀI GIẢNG & THẢO LUẬN LỚP HỌC (2 CỘT CÂN ĐỐI KHÔNG KHUNG TRẮNG NGOÀI) */}
+          <main className={`flex-1 w-full ${isInspectorDrawerOpen ? 'max-w-[1920px]' : 'max-w-7xl'} mx-auto px-4 sm:px-6 py-5 flex flex-col transition-all duration-300`}>
+            {/* TRẠM 1: VIDEO BÀI GIẢNG & THẢO LUẬN LỚP HỌC (2 hoặc 3 CỘT CÂN ĐỐI) */}
             {currentMode === 'video_clash' && (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start flex-1 min-h-0 w-full">
-                {/* CỘT TRÁI: VIDEO PLAYER & THANH ĐIỀU KHIỂN (8/12 hoặc 6/12 khi mở rộng chat) */}
-                <div className={`${isChatExpanded ? 'lg:col-span-6' : 'lg:col-span-8'} flex flex-col space-y-4 transition-all duration-300`}>
+              <div className="flex flex-col lg:flex-row gap-4 xl:gap-5 items-start flex-1 min-h-0 w-full">
+                {/* CỘT TRÁI: VIDEO PLAYER & THANH ĐIỀU KHIỂN (co giãn tự nhiên) */}
+                <div className="flex-1 min-w-0 flex flex-col space-y-4 transition-all duration-300">
                   <VideoPlayerSheet
                     lesson={currentVideoLesson}
                     phase={videoPhase}
@@ -1580,10 +1601,14 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* CỘT PHẢI: THẢO LUẬN LỚP HỌC (4/12 hoặc 6/12 khi mở rộng chat) */}
+                {/* CỘT GIỮA: THẢO LUẬN LỚP HỌC */}
                 <div 
                   style={{ height: 'calc(100vh - 85px)', minHeight: '560px' }}
-                  className={`${isChatExpanded ? 'lg:col-span-6' : 'lg:col-span-4'} bg-white rounded-3xl border border-[#E2EAD2] overflow-visible flex flex-col shadow-xs transition-all duration-300 relative group/chatcol`}
+                  className={`${
+                    isInspectorDrawerOpen
+                      ? 'w-full lg:w-[350px] xl:w-[380px] shrink-0'
+                      : (isChatExpanded ? 'w-full lg:w-[48%] shrink-0' : 'w-full lg:w-[380px] xl:w-[420px] shrink-0')
+                  } bg-white rounded-3xl border border-[#E2EAD2] overflow-visible flex flex-col shadow-xs transition-all duration-300 relative group/chatcol`}
                 >
                   {/* Thanh mở rộng / thu hẹp chat ở mép trái (Interactive Expand Handle Bar) */}
                   <button
@@ -1649,6 +1674,18 @@ export default function App() {
                   />
                 </div>
               </div>
+
+              {/* CỘT PHẢI: SOI NÃO TÁC NHÂN (INSPECTOR DRAWER) - CỘT RIÊNG BÊN PHẢI CẠNH CHAT, KHÔNG CHE VIDEO/CHAT */}
+              {isInspectorDrawerOpen && (
+                <div className="w-full lg:w-[440px] xl:w-[480px] shrink-0 transition-all duration-300 animate-in fade-in slide-in-from-right-4">
+                  <InspectorDrawer
+                    isOpen={isInspectorDrawerOpen}
+                    onClose={() => setIsInspectorDrawerOpen(false)}
+                    turns={DEMO_INSPECTOR_TURNS}
+                    activeTurnIndex={3}
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -1744,12 +1781,17 @@ export default function App() {
         onSelectLesson={handleSwitchLesson}
       />
 
-      {/* Turn Inspector Drawer (#16) - Duy nhất 1 điểm vào trên Header & phím tắt Alt+I */}
-      <InspectorDrawer
-        isOpen={isInspectorDrawerOpen}
-        onClose={() => setIsInspectorDrawerOpen(false)}
-        turns={DEMO_INSPECTOR_TURNS}
-      />
+      {/* Turn Inspector Drawer (#16) nếu mở ở các góc nhìn khác ngoài Trạm 1 */}
+      {isInspectorDrawerOpen && (activeStudioView !== 'classroom' || currentMode !== 'video_clash') && (
+        <div className="fixed top-20 right-4 z-50 w-full max-w-md shadow-2xl animate-in fade-in slide-in-from-right-4">
+          <InspectorDrawer
+            isOpen={isInspectorDrawerOpen}
+            onClose={() => setIsInspectorDrawerOpen(false)}
+            turns={DEMO_INSPECTOR_TURNS}
+            activeTurnIndex={3}
+          />
+        </div>
+      )}
     </>
   );
 }

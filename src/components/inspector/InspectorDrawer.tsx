@@ -1,29 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Compass,
   Eye,
-  MessageSquare,
-  Award,
   Check,
   X,
-  ChevronDown,
-  ChevronUp,
   ArrowRight,
-  AlertCircle,
-  Brain,
-  SlidersHorizontal,
-  ShieldCheck,
-  Sparkles
+  Lock,
 } from 'lucide-react';
 import { InspectorTurn } from '../../types/reasoning';
-import { normalizeTurn } from './normalizeTurn';
 import { DEMO_INSPECTOR_TURNS } from '../../demo/demoLesson';
-import {
-  BoCircleAvatar,
-  TriDeepThinkerAvatar,
-  LinhChiNoteTakerAvatar,
-  TutorLamCircleAvatar,
-} from '../HandmadeArtwork';
 import { sound } from '../../utils/soundEffects';
 
 export const API_BASE_URL =
@@ -38,57 +22,29 @@ interface InspectorDrawerProps {
   activeTurnIndex?: number;
 }
 
-const AgentAvatarBadge: React.FC<{ agentName: string; size?: string }> = ({
-  agentName,
-  size = 'w-6 h-6',
-}) => {
-  const norm = (agentName || '').toLowerCase();
-  if (norm.includes('bo')) {
-    return <BoCircleAvatar className={`${size} shrink-0 ring-1 ring-stone-300 rounded-full`} />;
-  }
-  if (norm.includes('trí') || norm.includes('tri')) {
-    return <TriDeepThinkerAvatar className={`${size} shrink-0 ring-1 ring-stone-300 rounded-full`} />;
-  }
-  if (norm.includes('chi')) {
-    return <LinhChiNoteTakerAvatar className={`${size} shrink-0 ring-1 ring-stone-300 rounded-full`} />;
-  }
-  return <TutorLamCircleAvatar className={`${size} shrink-0 ring-1 ring-stone-300 rounded-full`} />;
-};
-
 export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
   isOpen,
   onClose,
   turns: propTurns,
   activeTurnIndex: propActiveIndex,
 }) => {
-  const [turns, setTurns] = useState<InspectorTurn[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
-
-  // Accordion open/close states (mặc định mở cả 4 để hiển thị đầy đủ thông tin)
-  const [openSections, setOpenSections] = useState({
-    dispatcher: true,
-    context: true,
-    thought: true,
-    assessor: true,
-  });
-
-  const toggleSection = (section: keyof typeof openSections) => {
-    sound.playPencilTap();
-    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
-  };
+  const [turns, setTurns] = useState<InspectorTurn[]>(DEMO_INSPECTOR_TURNS);
+  // Mặc định chọn Lượt 4: Bo phản biện sắc bén ở 37:13 (index 3)
+  const [selectedIndex, setSelectedIndex] = useState<number>(3);
 
   useEffect(() => {
     if (propTurns && propTurns.length > 0) {
       setTurns(propTurns);
-      if (propActiveIndex !== undefined) {
+      if (propActiveIndex !== undefined && propActiveIndex >= 0 && propActiveIndex < propTurns.length) {
         setSelectedIndex(propActiveIndex);
       } else {
-        setSelectedIndex(propTurns.length - 1);
+        // Mặc định luôn tìm lượt Bo 37:13 hoặc lượt cuối
+        const boTurnIdx = propTurns.findIndex((t) => t.turnId === 'turn-04' || (t.agent === 'Bo' && t.timestampStr === '37:13'));
+        setSelectedIndex(boTurnIdx >= 0 ? boTurnIdx : propTurns.length - 1);
       }
     } else {
-      // Dữ liệu mẫu lượt thoại tác tử (Toán 12 - Vectơ trong không gian) từ fixture demoLesson
       setTurns(DEMO_INSPECTOR_TURNS);
-      setSelectedIndex(0);
+      setSelectedIndex(3); // Lượt 4 trong DEMO_INSPECTOR_TURNS
     }
   }, [propTurns, propActiveIndex]);
 
@@ -107,390 +63,299 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
 
   if (!isOpen) return null;
 
-  const currentTurn = turns[selectedIndex] || turns[0];
-  const confidence = currentTurn?.dispatcher?.confidence ?? 0.85;
-  const hesitation = currentTurn?.assessor?.hesitationScore ?? 0.2;
+  const currentTurn = turns[selectedIndex] || turns[3] || turns[0];
+  const dispatcher = currentTurn.dispatcher || {
+    intent: 'Phản biện sắc bén',
+    selectedAgent: 'Bo',
+    confidence: 0.91,
+    reason: "Học sinh chỉ ra DD' = CC', tức là vectơ đang bị cộng sai hướng.",
+  };
+  const contextView = currentTurn.contextView || {
+    boardSnippet: "| BC + DD' |",
+    teacherSpeech: 'Đã chép lời',
+    ragKnowledge: 'Không dùng',
+    hiddenItem: 'Lời giải chuẩn của bài',
+    visibleContext: [],
+    hiddenContext: [],
+  };
+  const assessor = currentTurn.assessor || {
+    matchedSummary: 'Đạt 3/3 ý cần có',
+    matchedPoints: ['Chỉ ra giả định sai', 'Dùng bằng chứng trên bảng', 'Khắc phục ngộ nhận độ dài'],
+    missingPoints: [],
+    verdictLabel: 'Phản biện sắc bén',
+    bloomBefore: 'Bậc 3 Vận dụng',
+    bloomAfter: 'Bậc 4 Phân tích',
+    bloomLevel: 4,
+    hesitationScore: 0.15,
+    hesitationLabel: 'thấp',
+  };
+
+  const confidenceNum = dispatcher.confidence ?? 0.91;
+  const confidencePercent = Math.round(confidenceNum * 100);
+  const confidenceFormatted = (confidenceNum).toFixed(2).replace('.', ',');
 
   return (
-    <div id="inspector-drawer" className="fixed inset-0 z-50 flex justify-end animate-in fade-in duration-150">
-      {/* Backdrop mờ nhẹ */}
-      <div
-        className="fixed inset-0 bg-black/30 backdrop-blur-xs transition-opacity"
-        onClick={onClose}
-      />
-
-      {/* Drawer Container: Nền trắng sáng hoàn toàn, viền chuẩn #E2EAD2 */}
-      <div
-        className="relative w-full max-w-xl md:max-w-2xl bg-white border-l border-[#E2EAD2] shadow-2xl flex flex-col z-10 transition-transform duration-200"
-        role="dialog"
-        aria-labelledby="inspector-drawer-title"
-      >
-        {/* Header Drawer Sáng Chuẩn Lime Soft */}
-        <div className="flex items-center justify-between px-5 sm:px-6 py-4 bg-white border-b border-[#E2EAD2] shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#F3F8E8] border border-[#E2EAD2] flex items-center justify-center text-[#121712]">
-              <SlidersHorizontal className="w-5 h-5 text-[#121712]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 id="inspector-drawer-title" className="text-base font-bold text-[#121712] tracking-tight">
-                  Thanh tra lượt thoại tác tử (Inspector)
-                </h3>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#121712] text-[#C8F169] tracking-wide">
-                  Trực tiếp
-                </span>
-              </div>
-              <p className="text-xs text-stone-700 font-medium mt-0.5">
-                <span className="font-mono bg-stone-100 px-1.5 py-0.5 rounded border border-stone-200 text-stone-800 font-semibold">Phím tắt: Alt+I</span>
-                <span className="ml-2">Giám sát điều phối, ngữ cảnh & đánh giá sư phạm</span>
-              </p>
-            </div>
+    <aside
+      id="inspector-drawer-panel"
+      className="w-full bg-white border border-[#E2EAD2] rounded-3xl shadow-sm flex flex-col overflow-hidden max-h-[calc(100vh-95px)] min-h-[560px] sticky top-20 text-[#121712]"
+      role="complementary"
+      aria-label="Soi não tác nhân"
+    >
+      {/* 1. Header: Biểu tượng mắt lime + Tiêu đề + Dòng phụ + Nút đóng */}
+      <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 bg-white border-b border-[#E2EAD2] shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-2xl bg-[#C8F169] border border-[#A6D83B] flex items-center justify-center text-[#121712] shrink-0">
+            <Eye className="w-5 h-5 text-[#121712]" />
           </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition cursor-pointer"
-            title="Đóng Inspector (Alt+I)"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div>
+            <h2 className="text-base font-extrabold text-[#121712] leading-tight m-0">
+              Soi não tác nhân
+            </h2>
+            <p className="text-xs text-stone-500 font-medium m-0 mt-0.5">
+              Lượt #{currentTurn.turnNumber || selectedIndex + 1} · {currentTurn.timestampStr || '37:13'} · cập nhật 0,6 giây trước
+            </p>
+          </div>
         </div>
 
-        {/* Turn Selector Strip: Hàng chọn lượt thoại trung tính */}
-        <div className="flex items-center gap-2 px-5 sm:px-6 py-3 bg-[#F8FAF4] border-b border-[#E2EAD2] shrink-0 overflow-x-auto no-scrollbar">
-          <span className="text-xs font-bold text-stone-700 uppercase tracking-wide whitespace-nowrap mr-1">
-            Lượt thoại:
-          </span>
-          {turns.map((turn, idx) => {
-            const isSelected = selectedIndex === idx;
-            const timeTag = idx === 0 ? '+1.2s' : idx === 1 ? '+2.8s' : '+4.0s';
-            return (
-              <button
-                key={turn.turnId || idx}
-                type="button"
-                onClick={() => {
-                  sound.playTabSwitch();
-                  setSelectedIndex(idx);
-                }}
-                className={`h-8 px-3.5 rounded-full text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer ${
-                  isSelected
-                    ? 'bg-[#121712] text-white shadow-2xs'
-                    : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-200'
-                }`}
-              >
-                <AgentAvatarBadge agentName={turn.agent} size="w-4 h-4" />
-                <span>
-                  #{idx + 1} {turn.agent}
-                </span>
-                <span className={`text-[11px] font-mono ${isSelected ? 'text-[#C8F169]' : 'text-stone-500'}`}>
-                  {timeTag}
-                </span>
-              </button>
-            );
-          })}
+        <button
+          type="button"
+          onClick={onClose}
+          className="w-8 h-8 rounded-full border border-stone-200 hover:bg-stone-100 text-stone-600 flex items-center justify-center transition cursor-pointer shrink-0"
+          title="Đóng khung soi não (Alt+I)"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* 2. Dải chọn lượt thoại: Tua lại + Các chip Lượt 1 -> Lượt 4 */}
+      <div className="flex items-center gap-1.5 px-4 sm:px-5 py-2.5 bg-[#F8FAF4] border-b border-[#E2EAD2] shrink-0 overflow-x-auto no-scrollbar">
+        <span className="text-xs font-bold text-stone-700 whitespace-nowrap mr-1">
+          Tua lại
+        </span>
+        {turns.map((turn, idx) => {
+          const isSelected = selectedIndex === idx;
+          const label = `Lượt ${turn.turnNumber || idx + 1}`;
+          return (
+            <button
+              key={turn.turnId || idx}
+              type="button"
+              onClick={() => {
+                sound.playTabSwitch();
+                setSelectedIndex(idx);
+              }}
+              className={`h-7 px-3 rounded-full text-xs font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                isSelected
+                  ? 'bg-[#121712] text-white shadow-2xs'
+                  : 'bg-white hover:bg-stone-50 text-stone-700 border border-stone-200'
+              }`}
+            >
+              <span>{label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 3. Vùng thân cuộn: 4 khối đánh số 1 đến 4 */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5">
+        {/* =========================================================================
+            KHỐI 1: ĐIỀU PHỐI
+            ========================================================================= */}
+        <div className="bg-white border border-[#E2EAD2] rounded-2xl p-3.5 sm:p-4 shadow-2xs space-y-2.5">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded-full bg-[#121712] text-[#C8F169] text-xs flex items-center justify-center font-bold shrink-0">
+              1
+            </span>
+            <span className="font-bold text-xs text-[#121712] uppercase tracking-wider">
+              ĐIỀU PHỐI
+            </span>
+          </div>
+
+          {/* Hàng chip: Ý định -> Tác nhân được chọn */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-3 py-1 rounded-full bg-[#F3F8E8] border border-[#E2EAD2] text-xs font-bold text-[#121712]">
+              {dispatcher.intent}
+            </span>
+            <ArrowRight className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+            <span className="px-2.5 py-1 rounded-full bg-[#F3F8E8] border border-[#E2EAD2] text-xs font-bold text-[#121712] flex items-center gap-1.5">
+              <span className="w-4 h-4 rounded-full bg-amber-500 text-white text-xs font-bold flex items-center justify-center shrink-0">
+                {dispatcher.selectedAgent?.[0] || 'B'}
+              </span>
+              <span>{dispatcher.selectedAgent || 'Bo'} được chọn</span>
+            </span>
+          </div>
+
+          {/* Thanh độ tin cậy + Số */}
+          <div className="flex items-center gap-2.5">
+            <div className="h-2 flex-1 bg-stone-100 rounded-full overflow-hidden border border-stone-200">
+              <div
+                className="h-full bg-[#C8F169] rounded-full transition-all duration-300"
+                style={{ width: `${confidencePercent}%` }}
+              />
+            </div>
+            <span className="text-xs font-bold text-[#121712] shrink-0">
+              {confidenceFormatted}
+            </span>
+          </div>
+
+          {/* Lý do điều phối cụ thể */}
+          <p className="text-xs text-stone-700 leading-relaxed m-0">
+            <strong className="text-[#121712]">Lý do:</strong> {dispatcher.reason}
+          </p>
         </div>
 
-        {/* 4 Accordion Sections: Nền trắng sáng đồng nhất, không nền pastel riêng */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
-          {/* =========================================================================
-              PHẦN 1: DISPATCHER (ĐIỀU PHỐI LƯỢT)
-              ========================================================================= */}
-          <div className="bg-white border border-[#E2EAD2] rounded-2xl overflow-hidden shadow-2xs">
-            <button
-              type="button"
-              onClick={() => toggleSection('dispatcher')}
-              className="w-full flex items-center justify-between p-4 bg-[#FDFEFA] hover:bg-stone-50 transition cursor-pointer text-left border-b border-stone-100"
-            >
-              <div className="flex items-center gap-2.5">
-                <Compass className="w-5 h-5 text-stone-800 shrink-0" />
-                <span className="text-sm font-bold text-[#121712]">
-                  1. Điều phối lượt thoại (Dispatcher)
-                </span>
+        {/* =========================================================================
+            KHỐI 2: BO NHÌN THẤY GÌ
+            ========================================================================= */}
+        <div className="bg-white border border-[#E2EAD2] rounded-2xl p-3.5 sm:p-4 shadow-2xs space-y-2.5">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded-full bg-[#121712] text-[#C8F169] text-xs flex items-center justify-center font-bold shrink-0">
+              2
+            </span>
+            <span className="font-bold text-xs text-[#121712] uppercase tracking-wider">
+              {currentTurn.agent.toUpperCase()} NHÌN THẤY GÌ
+            </span>
+          </div>
+
+          {/* 3 ô nhỏ thông tin */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="p-2.5 rounded-xl bg-[#F8FAF4] border border-[#E2EAD2] flex flex-col justify-between">
+              <span className="text-xs text-stone-500 font-medium leading-tight mb-1 block">
+                Bảng phấn {currentTurn.timestampStr || '37:13'}
+              </span>
+              <span className="text-xs font-bold text-[#121712] italic block">
+                {contextView.boardSnippet || "| BC + DD' |"}
+              </span>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-[#F8FAF4] border border-[#E2EAD2] flex flex-col justify-between">
+              <span className="text-xs text-stone-500 font-medium leading-tight mb-1 block">
+                Lời thầy, 30 giây gần nhất
+              </span>
+              <span className="text-xs font-bold text-[#121712] block">
+                {contextView.teacherSpeech || 'Đã chép lời'}
+              </span>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-[#F8FAF4] border border-[#E2EAD2] flex flex-col justify-between">
+              <span className="text-xs text-stone-500 font-medium leading-tight mb-1 block">
+                Tri thức tra cứu
+              </span>
+              <span className="text-xs font-bold text-[#121712] block">
+                {contextView.ragKnowledge || 'Không dùng'}
+              </span>
+            </div>
+          </div>
+
+          {/* Dòng viền đứt bảo vệ cách ly */}
+          <div className="flex items-center justify-between p-2.5 px-3 rounded-xl border border-dashed border-[#E2EAD2] bg-white">
+            <div className="flex items-center gap-2 text-xs text-stone-500">
+              <Lock className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+              <span className="line-through">{contextView.hiddenItem || 'Lời giải chuẩn của bài'}</span>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full bg-[#121712] text-white text-xs font-bold shrink-0">
+              Ẩn với {currentTurn.agent || 'Bo'}
+            </span>
+          </div>
+        </div>
+
+        {/* =========================================================================
+            KHỐI 3: SUY NGHĨ NGẦM CỦA BO (NỀN LIME NHẠT)
+            ========================================================================= */}
+        <div className="bg-[#F3F8E8] border border-[#E2EAD2] rounded-2xl p-3.5 sm:p-4 shadow-2xs space-y-2.5">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded-full bg-[#121712] text-[#C8F169] text-xs flex items-center justify-center font-bold shrink-0">
+              3
+            </span>
+            <span className="font-bold text-xs text-[#121712] uppercase tracking-wider">
+              SUY NGHĨ NGẦM CỦA {currentTurn.agent.toUpperCase()}
+            </span>
+          </div>
+
+          <p className="text-xs sm:text-sm text-stone-800 leading-relaxed font-sans italic m-0">
+            “{currentTurn.thought}”
+          </p>
+
+          <div className="border-t border-[#E2EAD2]" />
+
+          <p className="text-xs text-stone-700 leading-relaxed m-0">
+            <strong className="text-[#121712]">Câu thoại cuối:</strong> “{currentTurn.speech}”
+          </p>
+        </div>
+
+        {/* =========================================================================
+            KHỐI 4: CHẤM NGẦM (KHỐI NỀN ĐEN DUY NHẤT)
+            ========================================================================= */}
+        <div className="bg-[#121712] border border-[#121712] rounded-2xl p-4 shadow-sm text-white space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-[#C8F169] text-[#121712] text-xs flex items-center justify-center font-bold shrink-0">
+                4
+              </span>
+              <span className="font-bold text-xs text-white uppercase tracking-wider">
+                CHẤM NGẦM
+              </span>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full bg-[#C8F169] text-[#121712] text-xs font-bold">
+              {assessor.verdictLabel || 'Phản biện sắc bén'}
+            </span>
+          </div>
+
+          {/* Hai cột: Ý đạt được & Tháp Bloom */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div className="space-y-1.5">
+              <span className="text-xs font-bold text-white block">
+                {assessor.matchedSummary || 'Đạt 3/3 ý cần có'}
+              </span>
+              <div className="space-y-1 text-xs text-stone-300">
+                {(assessor.matchedPoints || []).map((pt, pIdx) => (
+                  <div key={pIdx} className="flex items-center gap-1.5 leading-snug">
+                    <Check className="w-3.5 h-3.5 text-[#C8F169] shrink-0" />
+                    <span>{pt}</span>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-stone-700 bg-stone-100 px-2.5 py-0.5 rounded-full">
-                  {(confidence * 100).toFixed(0)}% tin cậy
-                </span>
-                {openSections.dispatcher ? (
-                  <ChevronUp className="w-4 h-4 text-stone-500" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-stone-500" />
-                )}
-              </div>
-            </button>
+            </div>
 
-            {openSections.dispatcher && (
-              <div className="p-4 space-y-3.5 text-sm">
-                <div>
-                  <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1">
-                    Ý định người học (Intent)
-                  </div>
-                  <div className="text-sm font-bold text-[#121712]">
-                    {currentTurn?.dispatcher?.intent || 'Chưa định tuyến ý định'}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between py-2 border-y border-stone-100">
-                  <span className="text-xs font-semibold text-stone-500">Tác tử được chỉ định:</span>
-                  <div className="flex items-center gap-2 font-bold text-[#121712]">
-                    <AgentAvatarBadge
-                      agentName={currentTurn?.dispatcher?.selectedAgent || currentTurn?.agent}
-                      size="w-5 h-5"
-                    />
-                    <span>{currentTurn?.dispatcher?.selectedAgent || currentTurn?.agent}</span>
-                  </div>
-                </div>
-
-                {/* Thanh tiến độ độ tin cậy (Confidence Progress Bar) */}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-xs">
-                    <span className="font-semibold text-stone-600">Độ tin cậy điều phối:</span>
-                    <span className="font-mono font-bold text-[#121712]">
-                      {(confidence * 100).toFixed(0)}%
-                    </span>
-                  </div>
-                  <div className="h-2.5 w-full bg-stone-100 rounded-full overflow-hidden border border-stone-200">
+            <div className="space-y-1.5">
+              <span className="text-xs text-stone-400 block font-medium">
+                Tháp Bloom
+              </span>
+              <span className="text-xs font-bold text-white block leading-snug">
+                {assessor.bloomBefore} → {assessor.bloomAfter}
+              </span>
+              {/* 6 vạch Tháp Bloom */}
+              <div className="flex items-center gap-1 pt-1.5">
+                {[1, 2, 3, 4, 5, 6].map((lvl) => {
+                  const targetLevel = assessor.bloomLevel ?? 4;
+                  const isReached = lvl <= targetLevel;
+                  return (
                     <div
-                      className="h-full bg-[#121712] rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(100, Math.max(5, confidence * 100))}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-700 leading-relaxed">
-                  <strong className="text-stone-900 block mb-0.5">Lý do điều phối:</strong>
-                  {currentTurn?.dispatcher?.reason ||
-                    'Tác tử được phân công dựa trên độ khớp chuyên môn sư phạm và bối cảnh học tập.'}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* =========================================================================
-              PHẦN 2: CONTEXT VIEW (NGỮ CẢNH ĐƯỢC THẤY / BỊ CHE)
-              ========================================================================= */}
-          <div className="bg-white border border-[#E2EAD2] rounded-2xl overflow-hidden shadow-2xs">
-            <button
-              type="button"
-              onClick={() => toggleSection('context')}
-              className="w-full flex items-center justify-between p-4 bg-[#FDFEFA] hover:bg-stone-50 transition cursor-pointer text-left border-b border-stone-100"
-            >
-              <div className="flex items-center gap-2.5">
-                <Eye className="w-5 h-5 text-stone-800 shrink-0" />
-                <span className="text-sm font-bold text-[#121712]">
-                  2. Ngữ cảnh quan sát (Context View)
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-semibold text-stone-600 bg-stone-100 px-2.5 py-0.5 rounded-full">
-                  Bộ lọc an toàn
-                </span>
-                {openSections.context ? (
-                  <ChevronUp className="w-4 h-4 text-stone-500" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-stone-500" />
-                )}
-              </div>
-            </button>
-
-            {openSections.context && (
-              <div className="p-4 space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  {/* Cột 1: Phần Agent được thấy (Check xanh lá ngữ nghĩa trên nền trung tính) */}
-                  <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200 space-y-2">
-                    <div className="flex items-center gap-2 font-bold text-xs text-[#16A34A] uppercase tracking-wide">
-                      <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <Check className="w-3.5 h-3.5 text-[#16A34A]" />
-                      </div>
-                      <span>Phần tác tử được thấy</span>
-                    </div>
-                    <ul className="space-y-1.5 text-xs text-stone-700 pl-1">
-                      {(currentTurn?.contextView?.visibleContext || []).map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
-                          <span className="text-[#16A34A] font-bold mt-0.5">•</span>
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Cột 2: Phần bị che / ẩn (X đỏ ngữ nghĩa trên nền trung tính) */}
-                  <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200 space-y-2">
-                    <div className="flex items-center gap-2 font-bold text-xs text-[#DC2626] uppercase tracking-wide">
-                      <div className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center">
-                        <X className="w-3.5 h-3.5 text-[#DC2626]" />
-                      </div>
-                      <span>Phần bị che / ẩn (Shield)</span>
-                    </div>
-                    <ul className="space-y-1.5 text-xs text-stone-700 pl-1">
-                      {(currentTurn?.contextView?.hiddenContext || []).map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
-                          <span className="text-[#DC2626] font-bold mt-0.5">•</span>
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* =========================================================================
-              PHẦN 3: THOUGHT & SPEECH (SUY NGHĨ NỘI TÂM & PHÁT NGÔN)
-              ========================================================================= */}
-          <div className="bg-white border border-[#E2EAD2] rounded-2xl overflow-hidden shadow-2xs">
-            <button
-              type="button"
-              onClick={() => toggleSection('thought')}
-              className="w-full flex items-center justify-between p-4 bg-[#FDFEFA] hover:bg-stone-50 transition cursor-pointer text-left border-b border-stone-100"
-            >
-              <div className="flex items-center gap-2.5">
-                <Brain className="w-5 h-5 text-stone-800 shrink-0" />
-                <span className="text-sm font-bold text-[#121712]">
-                  3. Suy nghĩ nội tâm & Thoại (Thought & Speech)
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-semibold text-stone-600 bg-stone-100 px-2.5 py-0.5 rounded-full">
-                  2 tầng tư duy
-                </span>
-                {openSections.thought ? (
-                  <ChevronUp className="w-4 h-4 text-stone-500" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-stone-500" />
-                )}
-              </div>
-            </button>
-
-            {openSections.thought && (
-              <div className="p-4 space-y-3.5 text-sm">
-                {/* Độc thoại suy nghĩ nội bộ */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-stone-600 uppercase tracking-wide">
-                    <Sparkles className="w-3.5 h-3.5 text-stone-500" />
-                    <span>Độc thoại nội tâm (Internal Monologue):</span>
-                  </div>
-                  <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-700 italic text-sm leading-relaxed font-sans">
-                    {currentTurn?.thought}
-                  </div>
-                </div>
-
-                {/* Phát ngôn công khai */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#121712] uppercase tracking-wide">
-                    <MessageSquare className="w-3.5 h-3.5 text-[#121712]" />
-                    <span>Phát ngôn ra ngoài cho học sinh (Spoken Dialogue):</span>
-                  </div>
-                  <div className="p-3.5 rounded-xl bg-[#F3F8E8] border border-[#E2EAD2] text-sm font-bold text-[#121712] leading-relaxed font-sans">
-                    "{currentTurn?.speech}"
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* =========================================================================
-              PHẦN 4: ASSESSOR (ĐÁNH GIÁ SƯ PHẠM & THÁP BLOOM)
-              ========================================================================= */}
-          <div className="bg-white border border-[#E2EAD2] rounded-2xl overflow-hidden shadow-2xs">
-            <button
-              type="button"
-              onClick={() => toggleSection('assessor')}
-              className="w-full flex items-center justify-between p-4 bg-[#FDFEFA] hover:bg-stone-50 transition cursor-pointer text-left border-b border-stone-100"
-            >
-              <div className="flex items-center gap-2.5">
-                <Award className="w-5 h-5 text-stone-800 shrink-0" />
-                <span className="text-sm font-bold text-[#121712]">
-                  4. Đánh giá sư phạm (Assessor)
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-stone-700 bg-stone-100 px-2.5 py-0.5 rounded-full">
-                  Hesitation: {hesitation}
-                </span>
-                {openSections.assessor ? (
-                  <ChevronUp className="w-4 h-4 text-stone-500" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-stone-500" />
-                )}
-              </div>
-            </button>
-
-            {openSections.assessor && (
-              <div className="p-4 space-y-4 text-sm">
-                {/* Dịch chuyển Bloom: 2 chip nối bằng mũi tên */}
-                <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200 space-y-2">
-                  <div className="text-xs font-semibold text-stone-600 uppercase tracking-wide">
-                    Dịch chuyển mức nhận thức Bloom
-                  </div>
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <span className="px-3.5 py-1.5 rounded-full bg-white border border-stone-300 text-xs font-bold text-stone-800 shadow-2xs">
-                      {currentTurn?.assessor?.bloomBefore || 'Nhớ (L1)'}
-                    </span>
-                    <ArrowRight className="w-4 h-4 text-stone-400" />
-                    <span className="px-3.5 py-1.5 rounded-full bg-[#121712] text-white text-xs font-bold shadow-2xs ring-2 ring-[#C8F169]">
-                      {currentTurn?.assessor?.bloomAfter || 'Hiểu & Vận dụng (L2-L3)'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Hesitation Score Progress Bar */}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-xs">
-                    <span className="font-semibold text-stone-600">Độ do dự của người học (Hesitation Score):</span>
-                    <span className="font-mono font-bold text-stone-800">
-                      {hesitation} / 1.0
-                    </span>
-                  </div>
-                  <div className="h-2.5 w-full bg-stone-100 rounded-full overflow-hidden border border-stone-200">
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${
-                        hesitation > 0.6 ? 'bg-amber-500' : 'bg-[#121712]'
+                      key={lvl}
+                      className={`h-1.5 flex-1 rounded-full ${
+                        isReached ? 'bg-[#C8F169]' : 'bg-stone-700'
                       }`}
-                      style={{ width: `${Math.min(100, Math.max(5, hesitation * 100))}%` }}
+                      title={`Bậc ${lvl}`}
                     />
-                  </div>
-                </div>
-
-                {/* Điểm đạt & Điểm còn thiếu */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                  <div className="p-3 rounded-xl bg-stone-50 border border-stone-200 space-y-1.5">
-                    <div className="flex items-center gap-1.5 font-bold text-[#16A34A] uppercase tracking-wide">
-                      <Check className="w-3.5 h-3.5 text-[#16A34A]" />
-                      <span>Điểm đạt được:</span>
-                    </div>
-                    <ul className="space-y-1 text-stone-700 pl-1">
-                      {(currentTurn?.assessor?.matchedPoints || []).map((p, i) => (
-                        <li key={i} className="flex items-start gap-1 leading-relaxed">
-                          <span className="text-[#16A34A] font-bold">•</span>
-                          <span>{p}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-stone-50 border border-stone-200 space-y-1.5">
-                    <div className="flex items-center gap-1.5 font-bold text-amber-700 uppercase tracking-wide">
-                      <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-                      <span>Điểm còn thiếu:</span>
-                    </div>
-                    <ul className="space-y-1 text-stone-700 pl-1">
-                      {(currentTurn?.assessor?.missingPoints || []).map((p, i) => (
-                        <li key={i} className="flex items-start gap-1 leading-relaxed">
-                          <span className="text-amber-600 font-bold">•</span>
-                          <span>{p}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
+                  );
+                })}
               </div>
-            )}
+            </div>
+          </div>
+
+          {/* Dòng độ do dự */}
+          <div className="flex items-center justify-between text-xs pt-2 border-t border-stone-800">
+            <span className="text-stone-300">
+              Do dự: <strong className="text-white">{assessor.hesitationLabel || 'thấp'}</strong>
+            </span>
+            <div className="w-24 h-1.5 bg-stone-800 rounded-full overflow-hidden border border-stone-700">
+              <div
+                className="h-full bg-[#C8F169] rounded-full"
+                style={{ width: `${Math.round((assessor.hesitationScore ?? 0.15) * 100)}%` }}
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </aside>
   );
 };

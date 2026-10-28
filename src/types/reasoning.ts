@@ -57,6 +57,10 @@ export interface DispatcherInfo {
 export interface ContextViewInfo {
   visibleContext: string[];
   hiddenContext: string[];
+  boardSnippet?: string;
+  teacherSpeech?: string;
+  ragKnowledge?: string;
+  hiddenItem?: string;
 }
 
 export interface AssessorInfo {
@@ -65,11 +69,17 @@ export interface AssessorInfo {
   bloomBefore: string;
   bloomAfter: string;
   hesitationScore: number;
+  verdictLabel?: string;
+  matchedSummary?: string;
+  bloomLevel?: number;
+  hesitationLabel?: string;
 }
 
 export interface InspectorTurn {
   turnId: string;
   timestamp: number;
+  turnNumber?: number;
+  timestampStr?: string;
   agent: string;
   dispatcher?: DispatcherInfo;
   contextView?: ContextViewInfo;

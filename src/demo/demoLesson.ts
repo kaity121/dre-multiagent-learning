@@ -258,85 +258,171 @@ export const DEMO_LESSON_SCHEMA: DRELessonSchema = {
 
 // =========================================================================
 // 4. DỮ LIỆU LƯỢT THOẠI TÁC TỬ MẪU CHO INSPECTOR DRAWER
-// Đồng bộ 100% nội dung Vectơ, phân tích bẫy 37:13 và quy tắc hiệu
+// 4 lượt liên hoàn, đồng bộ 100% Vectơ 12 mốc 37:13 (Lượt 4 là mặc định)
 // =========================================================================
 export const DEMO_INSPECTOR_TURNS: InspectorTurn[] = [
   {
     turnId: 'turn-01',
+    turnNumber: 1,
+    timestamp: 1729000000000,
+    timestampStr: '00:00',
     agent: 'Trí',
-    routing: {
-      intent: 'Giải thích vì sao |a+b| ≠ |a|+|b| khi hai vectơ không cùng hướng',
+    dispatcher: {
+      intent: 'Nhận diện định nghĩa vectơ',
       selectedAgent: 'Trí',
-      confidence: 0.96,
-      reason: 'Câu hỏi của học sinh yêu cầu giải thích bẫy trực giác độ dài vectơ tại mốc 37:13.'
+      confidence: 0.95,
+      reason: 'Học sinh bắt đầu bài giảng, cần Trí hỗ trợ phân biệt khái niệm phương và hướng của vectơ.'
     },
-    context: {
-      observedSegment: 'Phân đoạn bài giảng (37:13, bẫy độ dài |BC + DD\'|)',
-      problemEntities: ['Hình lập phương ABCD.A\'B\'C\'D\' cạnh 1', 'Vectơ BC', 'Vectơ DD\' vuông góc BC', 'Đường chéo BC\' = √2'],
-      misconceptionDetected: 'Đồng nhất độ dài vectơ tổng với tổng độ dài đại số (|a + b| = |a| + |b| = 1 + 1 = 2)'
+    contextView: {
+      boardSnippet: 'Vectơ trong không gian',
+      teacherSpeech: 'Đã chép lời',
+      ragKnowledge: 'SGK Toán 12',
+      hiddenItem: 'Lời giải bài tập cuối giờ',
+      visibleContext: [
+        'Bảng phấn: Khái niệm vectơ & phương hướng',
+        'Lời thầy: Nhắc lại kiến thức lớp 10',
+        'Tri thức tra cứu: SGK Toán 12 Mới'
+      ],
+      hiddenContext: ['Lời giải bài tập cuối giờ (Ẩn với Trí)']
     },
     thought:
-      'Học sinh và Bo đang có phản xạ cộng độ dài đại số trực tiếp: |BC + DD\'| = 1 + 1 = 2. Cần phân tích bản chất hình học: BC và DD\' vuông góc nhau trong không gian, do đó phải thay DD\' = CC\' để nối tiếp thành BC + CC\' = BC\'. Độ dài là cạnh huyền tam giác vuông BCC\', bằng √2 ≈ 1.414.',
+      'Học sinh đã nắm chắc định nghĩa phương và hướng. Cần hướng dẫn chú ý giá của vectơ trong không gian.',
     speech:
-      'Chào bạn! Ở mốc 37:13, vectơ BC và DD\' vuông góc nhau trong không gian. Khi dời vectơ DD\' thành vectơ bằng nó là CC\', ta có BC + CC\' = BC\'. Độ dài đường chéo là √2 chứ không thể bằng 1 + 1 = 2 đâu nhé!',
+      'Chào bạn! Trong không gian, hai vectơ cùng phương khi giá của chúng song song hoặc trùng nhau.',
     assessor: {
-      bloomBefore: 'Hiểu (Understand · L2)',
-      bloomAfter: 'Phân tích (Analyze · L4)',
-      hesitationScore: 0.18,
-      matchedPoints: ['Phát hiện hai vectơ vuông góc', 'Áp dụng phép tịnh tiến vectơ thế DD\' = CC\'', 'Tính đúng độ dài đường chéo √2'],
-      missingPoints: ['Chưa giải thích dấu bằng của bất đẳng thức tam giác']
+      matchedSummary: 'Đạt 3/3 ý cần có',
+      matchedPoints: ['Nhận biết định nghĩa vectơ', 'Xác định đúng phương của vectơ', 'Phân biệt hướng và độ dài'],
+      missingPoints: [],
+      verdictLabel: 'Đạt chuẩn nhận diện',
+      bloomBefore: 'Bậc 1 Nhớ',
+      bloomAfter: 'Bậc 1 Nhớ',
+      bloomLevel: 1,
+      hesitationScore: 0.1,
+      hesitationLabel: 'thấp'
     }
   },
   {
     turnId: 'turn-02',
-    agent: 'Bo',
-    routing: {
-      intent: 'Đặt câu hỏi thắc mắc về quy tắc hiệu chung gốc (OA - OB)',
-      selectedAgent: 'Bo',
-      confidence: 0.89,
-      reason: 'Bo bộc lộ ngộ nhận kinh điển về thứ tự điểm đầu/cuối trong phép trừ vectơ.'
+    turnNumber: 2,
+    timestamp: 1729000001000,
+    timestampStr: '21:00',
+    agent: 'Minh Khang',
+    dispatcher: {
+      intent: 'Quy tắc 3 điểm nối tiếp',
+      selectedAgent: 'Minh Khang',
+      confidence: 0.92,
+      reason: 'Học sinh thắc mắc về cách cộng nối tiếp nhiều vectơ trong hình lập phương.'
     },
-    context: {
-      observedSegment: 'Sổ tay bắt lỗi (Bước 2: Quy tắc hiệu)',
-      problemEntities: ['Phép trừ chung gốc: OA - OB', 'Ngộ nhận viết thành AB thay vì BA'],
-      misconceptionDetected: 'Nhầm lẫn thứ tự điểm ngọn khi thực hiện phép trừ hai vectơ chung gốc'
+    contextView: {
+      boardSnippet: 'AB + BC = AC',
+      teacherSpeech: 'Đã chép lời',
+      ragKnowledge: 'Không dùng',
+      hiddenItem: 'Lời giải chuẩn của bài',
+      visibleContext: [
+        'Bảng phấn 21:00: Quy tắc 3 điểm nối tiếp',
+        'Lời thầy: Điểm cuối của vectơ này là điểm đầu của vectơ kia',
+        'Tri thức tra cứu: Không dùng'
+      ],
+      hiddenContext: ['Lời giải chuẩn của bài (Ẩn với Minh Khang)']
     },
     thought:
-      'Mình nhìn thấy chữ A đứng trước chữ B trong biểu thức OA - OB nên quen tay viết luôn thành AB. Tại sao cô Lam lại bảo phải lộn ngược điểm B lên trước thành BA nhỉ?',
+      'Ví von đi từ A đến B rồi từ B đến C giống như bắt xe buýt liên tỉnh nối chuyến.',
     speech:
-      'Khoan đã Trí ơi! Nếu lấy OA trừ OB thì mình thấy chữ A đứng trước chữ B mà, sao công thức lại bắt đảo ngược điểm B lên trước thành vectơ BA vậy?',
+      'Cậu cứ tưởng tượng đi từ Hà Nội đến Đà Nẵng rồi từ Đà Nẵng vào Sài Gòn, tổng quãng đường chính là từ Hà Nội vào Sài Gòn luôn!',
     assessor: {
-      bloomBefore: 'Nhớ (Remember · L1)',
-      bloomAfter: 'Hiểu (Understand · L2)',
-      hesitationScore: 0.22,
-      matchedPoints: ['Nhận biết biểu thức chung gốc O', 'Thẳng thắn đặt nghi vấn về quy ước thứ tự'],
-      missingPoints: ['Chưa chứng minh lại bằng quy tắc cộng nối tiếp OB + BA = OA']
+      matchedSummary: 'Đạt 3/3 ý cần có',
+      matchedPoints: ['Hiểu bản chất nối tiếp', 'Áp dụng vào hình hộp', 'Rút gọn chính xác'],
+      missingPoints: [],
+      verdictLabel: 'Thấu hiểu nguyên lý',
+      bloomBefore: 'Bậc 1 Nhớ',
+      bloomAfter: 'Bậc 2 Hiểu',
+      bloomLevel: 2,
+      hesitationScore: 0.12,
+      hesitationLabel: 'thấp'
     }
   },
   {
     turnId: 'turn-03',
-    agent: 'Cô Lam',
-    routing: {
-      intent: 'Tổng kết đánh giá sư phạm & Khẩu quyết nhớ quy tắc hiệu',
-      selectedAgent: 'Cô Lam',
-      confidence: 0.99,
-      reason: 'Giải tỏa thắc mắc của Bo, chốt khẩu quyết tư duy và khen ngợi năng lực tự ra đề.'
+    turnNumber: 3,
+    timestamp: 1729000002000,
+    timestampStr: '37:10',
+    agent: 'Bo',
+    dispatcher: {
+      intent: 'Bộc lộ bẫy trực giác tách độ dài',
+      selectedAgent: 'Bo',
+      confidence: 0.88,
+      reason: 'Bo đưa ra dự đoán ban đầu dựa trên trực giác số học 1 + 1 = 2.'
     },
-    context: {
-      observedSegment: 'Gia sư nhí & Hội đồng thẩm định (Trạm 4)',
-      problemEntities: ['Khẩu quyết quy tắc trừ', 'Đẳng thức hình hộp AB + AD + AA\' = AC\'', 'Đạt Bậc 6 Sáng tạo'],
-      misconceptionDetected: 'Đã khắc phục hoàn toàn mọi ngộ nhận nền tảng'
+    contextView: {
+      boardSnippet: '|BC + DD\'|',
+      teacherSpeech: 'Đã chép lời',
+      ragKnowledge: 'Không dùng',
+      hiddenItem: 'Lời giải chuẩn của bài',
+      visibleContext: [
+        'Bảng phấn 37:10: |BC + DD\'| trong hình lập phương cạnh 1',
+        'Lời thầy: Câu hỏi dừng tương tác 37:13',
+        'Tri thức tra cứu: Không dùng'
+      ],
+      hiddenContext: ['Lời giải chuẩn của bài (Ẩn với Bo)']
     },
     thought:
-      'Bo đã chạm đúng vào bản chất: OA - OB = OA + (-OB) = OA + BO = BO + OA = BA. Khẩu quyết "Phép trừ chung gốc: Điểm sau lên trước" của Linh Chi sẽ giúp các em nhớ suốt đời. Đồng thời ở Trạm 4 học sinh đã tự ra đề xuất sắc đạt chuẩn Hội đồng.',
+      'BC = 1, DD\' = 1 thì tổng phải là 2 chứ. Cứ cộng thẳng hai số độ dài là xong mà.',
     speech:
-      'Cô Lam khen câu hỏi của Bo rất thực tế! Hãy nhớ khẩu quyết: "Phép trừ chung gốc, lộn ngược sau lên trước", vì OB + BA = OA. Và ở Trạm 4, bạn gia sư nhí đã tự thiết kế đề toán AB + AD + AA\' = AC\' xuất sắc đạt chuẩn Hội đồng!',
+      'Tớ nghĩ độ dài |BC + DD\'| bằng 1 + 1 = 2 chứ, vì cạnh hình lập phương đều bằng 1 mà!',
     assessor: {
-      bloomBefore: 'Đánh giá (Evaluate · L5)',
-      bloomAfter: 'Sáng tạo (Create · L6)',
-      hesitationScore: 0.05,
-      matchedPoints: ['Đúc kết khẩu quyết sư phạm', 'Khắc phục triệt để bẫy ngộ nhận trừ vectơ', 'Phê duyệt đẳng thức hình hộp tự ra đề'],
-      missingPoints: []
+      matchedSummary: 'Đạt 1/3 ý cần có',
+      matchedPoints: ['Nhận biết độ dài mỗi cạnh'],
+      missingPoints: ['Chưa xét hướng của hai vectơ', 'Nhầm lẫn độ dài tổng với tổng độ dài'],
+      verdictLabel: 'Mắc bẫy trực giác',
+      bloomBefore: 'Bậc 2 Hiểu',
+      bloomAfter: 'Bậc 3 Vận dụng',
+      bloomLevel: 3,
+      hesitationScore: 0.45,
+      hesitationLabel: 'trung bình'
+    }
+  },
+  {
+    turnId: 'turn-04',
+    turnNumber: 4,
+    timestamp: 1729000003000,
+    timestampStr: '37:13',
+    agent: 'Bo',
+    dispatcher: {
+      intent: 'Phản biện sắc bén',
+      selectedAgent: 'Bo',
+      confidence: 0.91,
+      reason: 'Học sinh chỉ ra DD\' = CC\', tức là vectơ đang bị cộng sai hướng.'
+    },
+    contextView: {
+      boardSnippet: '| BC + DD\' |',
+      teacherSpeech: 'Đã chép lời',
+      ragKnowledge: 'Không dùng',
+      hiddenItem: 'Lời giải chuẩn của bài',
+      visibleContext: [
+        'Bảng phấn 37:13: | BC + DD\' |',
+        'Lời thầy, 30 giây gần nhất: Đã chép lời',
+        'Tri thức tra cứu: Không dùng'
+      ],
+      hiddenContext: ['Lời giải chuẩn của bài (Ẩn với Bo)']
+    },
+    thought:
+      'Ờ ha… dời DD\' về C thì thành BC\'. Mình cộng độ dài chứ không cộng hướng. Chịu thua.',
+    speech:
+      'Ờ ha… tớ cộng nhầm hướng rồi. Chịu thua, cậu đúng.',
+    assessor: {
+      matchedSummary: 'Đạt 3/3 ý cần có',
+      matchedPoints: [
+        'Chỉ ra giả định sai',
+        'Dùng bằng chứng trên bảng',
+        'Khắc phục ngộ nhận độ dài'
+      ],
+      missingPoints: [],
+      verdictLabel: 'Phản biện sắc bén',
+      bloomBefore: 'Bậc 3 Vận dụng',
+      bloomAfter: 'Bậc 4 Phân tích',
+      bloomLevel: 4,
+      hesitationScore: 0.15,
+      hesitationLabel: 'thấp'
     }
   }
 ];
