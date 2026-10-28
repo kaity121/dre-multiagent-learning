@@ -192,6 +192,33 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   const [internalPhase, setInternalPhase] = useState<VideoCheckpointPhase>('WATCHING');
   const [rebuttalFeedback, setRebuttalFeedback] = useState<string | null>(null);
   const [customRebuttal, setCustomRebuttal] = useState<string>('');
+  const [selectedQuizOptionId, setSelectedQuizOptionId] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search).get('checkpoint_option');
+      if (p) return p;
+    }
+    return 'opt_a'; // Mặc định chọn opt_a để thấy rõ trạng thái nền đen chữ trắng
+  });
+  const [selectedRebuttalStickerId, setSelectedRebuttalStickerId] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search).get('rebuttal_sticker');
+      if (p) return p;
+    }
+    return 'stk_1'; // Mặc định chọn stk_1 để thấy trạng thái chọn rõ
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const cp = new URLSearchParams(window.location.search).get('checkpoint_phase');
+      if (cp === 'question') {
+        setInternalPhase('CHECKPOINT_REACHED');
+      } else if (cp === 'bo_debate') {
+        setInternalPhase('BO_DEBATE');
+      } else if (cp === 'co_lam') {
+        setInternalPhase('CO_LAM_CLOSURE');
+      }
+    }
+  }, []);
 
   const [localOverlayDrawerOpen, setLocalOverlayDrawerOpen] = useState<boolean>(false);
   const isOverlayDrawerOpen = propIsOverlayDrawerOpen !== undefined ? propIsOverlayDrawerOpen : localOverlayDrawerOpen;
@@ -632,12 +659,12 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
           </div>
         )}
 
-        {/* PILL NỔI KHI THU GỌN CÂU HỎI XUỐNG CHAT (GIỮ NGUYÊN ĐỂ HỌC SINH MỞ LẠI HOẶC LÙI 30S) */}
+        {/* PILL NỔI KHI THU GỌN CÂU HỎI XUỐNG CHAT (GÓC TRÊN VIDEO, KHÔNG ĐÈ THANH ĐIỀU KHIỂN YOUTUBE) */}
         {(isQuizCollapsedToChat || isQuizSkipped) && !showFullQuizOverlay && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 bg-white/95 backdrop-blur-md text-stone-800 border border-amber-300 px-4 py-2 rounded-full shadow-2xl flex items-center gap-3 text-xs animate-in fade-in slide-in-from-bottom-2 duration-200 whitespace-nowrap ring-2 ring-amber-400/20">
-            <span className="flex items-center gap-1.5 font-bold text-[#1B4338]">
-              <ClockWaitSvg className="w-3.5 h-3.5 text-[#1B4338]" />
-              <span>Câu hỏi đang chờ ({formatTime(lesson.checkpointTimestamp)})</span>
+          <div className="absolute top-3 right-3 z-30 bg-white/98 text-[#121712] border border-[#E2EAD2] px-3.5 py-2 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs animate-in fade-in slide-in-from-top-2 duration-200 whitespace-nowrap">
+            <span className="flex items-center gap-1.5 font-bold text-[#121712]">
+              <ClockWaitSvg className="w-3.5 h-3.5 text-amber-600" />
+              <span>Câu hỏi đang chờ (37:13)</span>
             </span>
 
             <span className="text-stone-300">|</span>
@@ -649,13 +676,11 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 handleSeekBoth(Math.max(0, lesson.checkpointTimestamp - 30));
                 if (ytPlayerRef.current?.playVideo) ytPlayerRef.current.playVideo();
               }}
-              className="text-stone-600 hover:text-[#1B4338] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+              className="text-stone-600 hover:text-[#121712] font-semibold flex items-center gap-1 cursor-pointer transition-colors text-xs"
             >
               <Rewind30sSvg className="w-3.5 h-3.5" />
               <span>Lùi 30 giây</span>
             </button>
-
-            <span className="text-stone-300">|</span>
 
             <button
               type="button"
@@ -666,9 +691,9 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 onToggleCollapseQuiz?.(false);
                 onJumpToCheckpoint?.();
               }}
-              className="px-3 py-1 rounded-full bg-[#1B4338] hover:bg-[#285E4F] text-white font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
+              className="px-3.5 py-1.5 rounded-xl bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] border border-[#A6D83B] font-bold flex items-center gap-1.5 cursor-pointer transition-all shadow-xs text-xs"
             >
-              <SearchMagnifierIcon className="w-3 h-3 text-white" />
+              <SearchMagnifierIcon className="w-3 h-3 text-[#121712]" />
               <span>Mở lại câu hỏi</span>
             </button>
           </div>
