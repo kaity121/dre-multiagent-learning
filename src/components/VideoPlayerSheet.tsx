@@ -660,7 +660,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
 
         {/* PILL NỔI KHI THU GỌN CÂU HỎI XUỐNG CHAT (KHỚP 100% ẢNH 1 MOCKUP - GÓC TRÊN BÊN TRÁI VIDEO) */}
         {(isQuizCollapsedToChat || isQuizSkipped) && !showFullQuizOverlay && (
-          <div className="absolute top-3.5 left-3.5 z-30 bg-[#121712] text-white p-1 rounded-full shadow-2xl flex items-center gap-1.5 text-xs animate-in fade-in slide-in-from-top-2 duration-200 whitespace-nowrap border border-[#121712]">
+          <div className="absolute top-3.5 left-3.5 z-30 bg-[#121712] p-1 rounded-full shadow-2xl flex items-center gap-1.5 text-xs animate-in fade-in slide-in-from-top-2 duration-200 whitespace-nowrap border border-[#121712]">
             <div className="flex items-center gap-2 px-3 py-1 font-bold text-white">
               <span className="w-2.5 h-2.5 rounded-full bg-[#C8F169] animate-pulse" />
               <span>Câu hỏi đang chờ · 37:13</span>
@@ -673,9 +673,10 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 handleSeekBoth(Math.max(0, lesson.checkpointTimestamp - 30));
                 if (ytPlayerRef.current?.playVideo) ytPlayerRef.current.playVideo();
               }}
+              style={{ color: "#121712", backgroundColor: "#FFFFFF" }}
               className="px-4 py-1.5 rounded-full bg-white hover:bg-stone-100 text-[#121712] font-bold text-xs cursor-pointer transition-colors shadow-xs"
             >
-              <span>Lùi 30 giây</span>
+              <span style={{ color: "#121712" }}>Lùi 30 giây</span>
             </button>
 
             <button
@@ -687,9 +688,10 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 onToggleCollapseQuiz?.(false);
                 onJumpToCheckpoint?.();
               }}
+              style={{ color: "#121712", backgroundColor: "#C8F169" }}
               className="px-4 py-1.5 rounded-full bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] font-bold text-xs cursor-pointer transition-all shadow-xs"
             >
-              <span>Mở lại câu hỏi</span>
+              <span style={{ color: "#121712" }}>Mở lại câu hỏi</span>
             </button>
           </div>
         )}

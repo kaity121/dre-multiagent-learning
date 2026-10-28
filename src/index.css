@@ -663,12 +663,9 @@ body {
    ========================================================================== */
 
 /* Dark buttons & badges MUST always have crisp, bright white text */
-.room button[class*="text-white"],
 .room button.text-white,
-.room [class*="text-white"],
-button.text-white,
-.text-white {
-  color: #ffffff !important;
+button.text-white {
+  color: #ffffff;
 }
 
 /* Checkpoint button in bottom bar: bright white text and icon */
