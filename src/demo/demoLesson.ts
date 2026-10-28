@@ -88,11 +88,11 @@ export const BLOOM_TAXONOMY = [
     level: 'Bậc 6',
     code: 'create',
     skill: 'Sáng tạo',
-    skillSub: 'Tự ra đề Trạm 4',
+    skillSub: 'Tự ra đề Trạm\u00A04',
     short: 'Sáng tạo',
     fullLabel: 'Sáng tạo (Create · L6)',
     desc: 'Thiết lập đề toán thách đấu hình hộp mới đạt chuẩn',
-    stationActivity: 'Tự ra đề ở Trạm 4'
+    stationActivity: 'Tự ra đề ở Trạm\u00A04'
   }
 ];
 

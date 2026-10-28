@@ -212,7 +212,7 @@ RAG được tích hợp ở cả 2 giai đoạn vòng đời của bài giảng
 * **Assignee:** `@kaity121`
 * **Mục đích (Why):** Giúp người xem "soi não" Agent trong lúc học sinh đang học ở phòng 4 Trạm, chứng minh AI đang xử lý thời gian thực.
 * **Outcome mong đợi (What Done Looks Like):**
-  - Người demo có thể bật tab/modal "Agent Inspector" (hoặc nhấn phím tắt) để xem suy nghĩ nội tâm (`<thought>`) của Bo khi học sinh đưa ra câu trả lời, thấy Assessor chấm điểm và cập nhật thang Bloom trực tiếp.
+  - Người demo có thể bật tab/modal "Agent Inspector" (hoặc nhấn phím tắt) để xem suy nghĩ nội tâm (`<thought>`) của Bo khi học sinh đưa ra câu trả lời, thấy Assessor chấm điểm và cập nhật Tháp Bloom trực tiếp.
 * **Tiêu chí nghiệm thu (DoD):** Hiển thị tức thời suy nghĩ ngầm của Agent ngay khi học sinh gửi phản biện.
 
 ---
