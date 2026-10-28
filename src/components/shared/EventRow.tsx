@@ -187,7 +187,7 @@ export const EventRow: React.FC<EventRowProps> = ({ event, isLast = false, baseT
                   Hoàn thành phiên suy luận đa tác tử
                 </div>
                 <div className="text-xs text-stone-600">
-                  Tất cả các tác tử đã đạt được đồng thuận sư phạm và xếp hạng thang Bloom
+                  Tất cả các tác tử đã đạt được đồng thuận sư phạm và xếp hạng Tháp Bloom
                 </div>
               </div>
             </div>

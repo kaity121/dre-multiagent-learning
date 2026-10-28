@@ -79,7 +79,7 @@ export class ReasoningPipeline {
         agent: 'Assessor',
         eventType: 'speaking',
         phase: 'bloom',
-        content: 'Đã hoàn tất gắn thẻ thang Bloom cho câu hỏi dừng.',
+        content: 'Đã hoàn tất gắn thẻ Tháp Bloom cho câu hỏi dừng.',
       });
 
       this.dispatch({

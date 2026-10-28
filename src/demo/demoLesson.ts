@@ -25,7 +25,7 @@ export const DEMO_LESSON_INFO = {
 // =========================================================================
 // 2. HẰNG SỐ THÁP BLOOM 6 BẬC DÙNG CHUNG TOÀN ỨNG DỤNG
 // Chuẩn hóa tên: Nhớ, Hiểu, Vận dụng, Phân tích, Đánh giá, Sáng tạo
-// Dòng phụ: Ghi nhớ, Thấu hiểu, Vận dụng, Bắt lỗi sai ở Trạm 2, Phản biện bẫy |a+b| tại 37:13, Tự ra đề ở Trạm 4
+// Dòng phụ là hoạt động ở trạm: Khởi động & Nhận diện, Quy tắc 3 điểm, Quy tắc hình hộp, Bắt lỗi ở Trạm 2, Phản biện mốc 37:13, Tự ra đề Trạm 4
 // =========================================================================
 export const BLOOM_TAXONOMY = [
   {
@@ -33,43 +33,43 @@ export const BLOOM_TAXONOMY = [
     level: 'Bậc 1',
     code: 'remember',
     skill: 'Nhớ',
-    skillSub: 'Ghi nhớ',
+    skillSub: 'Khởi động & Nhận diện',
     short: 'Nhớ',
     fullLabel: 'Nhớ (Remember · L1)',
-    desc: 'Nắm vững định nghĩa vectơ, phương vectơ, hướng và quy ước độ dài trong không gian',
-    stationActivity: 'Khởi động định nghĩa & Giá vectơ'
+    desc: 'Nắm chắc định nghĩa vectơ và giá vectơ trong không gian',
+    stationActivity: 'Khởi động & Nhận diện'
   },
   {
     index: 2,
     level: 'Bậc 2',
     code: 'understand',
     skill: 'Hiểu',
-    skillSub: 'Thấu hiểu',
+    skillSub: 'Quy tắc 3 điểm',
     short: 'Hiểu',
     fullLabel: 'Hiểu (Understand · L2)',
-    desc: 'Phân biệt phương, hướng & dấu hệ số tỉ lệ khi nhân vectơ với một số',
-    stationActivity: 'Quy tắc 3 điểm & Hình bình hành'
+    desc: 'Thấu hiểu bản chất phương, hướng và phép cộng nối tiếp',
+    stationActivity: 'Quy tắc 3 điểm & Nối tiếp'
   },
   {
     index: 3,
     level: 'Bậc 3',
     code: 'apply',
     skill: 'Vận dụng',
-    skillSub: 'Vận dụng',
+    skillSub: 'Quy tắc hình hộp',
     short: 'Vận dụng',
     fullLabel: 'Vận dụng (Apply · L3)',
-    desc: 'Áp dụng quy tắc hình bình hành đáy & quy tắc hình hộp để rút gọn biểu thức',
-    stationActivity: 'Rút gọn đẳng thức vectơ không gian'
+    desc: 'Áp dụng hình bình hành đáy và hình hộp để rút gọn biểu thức',
+    stationActivity: 'Quy tắc hình hộp & Rút gọn'
   },
   {
     index: 4,
     level: 'Bậc 4',
     code: 'analyze',
     skill: 'Phân tích',
-    skillSub: 'Bắt lỗi sai ở Trạm 2',
+    skillSub: 'Bắt lỗi ở Trạm 2',
     short: 'Phân tích',
     fullLabel: 'Phân tích (Analyze · L4)',
-    desc: 'Phát hiện lỗi sai đảo điểm ở quy tắc hiệu chung gốc (OA - OB = BA) trong bài giải của Bo',
+    desc: 'Vạch rõ sai lầm đảo điểm ở quy tắc hiệu OA - OB = BA',
     stationActivity: 'Bắt lỗi sai ở Trạm 2'
   },
   {
@@ -77,10 +77,10 @@ export const BLOOM_TAXONOMY = [
     level: 'Bậc 5',
     code: 'evaluate',
     skill: 'Đánh giá',
-    skillSub: 'Phản biện bẫy |a+b| tại 37:13',
+    skillSub: 'Phản biện mốc 37:13',
     short: 'Đánh giá',
     fullLabel: 'Đánh giá (Evaluate · L5)',
-    desc: 'Bẻ gãy bẫy trực giác tách độ dài tổng |a+b| = |a|+|b| tại mốc 37:13 và bảo vệ lập luận',
+    desc: 'Bẻ gãy bẫy tách độ dài |a+b| và bảo vệ vững lập luận',
     stationActivity: 'Phản biện bẫy |a+b| tại 37:13'
   },
   {
@@ -88,10 +88,10 @@ export const BLOOM_TAXONOMY = [
     level: 'Bậc 6',
     code: 'create',
     skill: 'Sáng tạo',
-    skillSub: 'Tự ra đề ở Trạm 4',
+    skillSub: 'Tự ra đề Trạm 4',
     short: 'Sáng tạo',
     fullLabel: 'Sáng tạo (Create · L6)',
-    desc: "Tự thiết kế đề toán thách đấu AB + AD + AA' = AC' chuẩn xác, được Hội đồng thẩm định phê duyệt",
+    desc: 'Thiết lập đề toán thách đấu hình hộp mới đạt chuẩn',
     stationActivity: 'Tự ra đề ở Trạm 4'
   }
 ];
@@ -460,7 +460,7 @@ export const DEMO_TEACHER_SUMMARY = {
   rebuttalRate: '100%',
   rebuttalNote: 'Bẻ gãy trọn vẹn 2 ngộ nhận điển hình',
 
-  tableTitle: 'Kết quả chẩn đoán nhận thức (Thang Bloom)',
+  tableTitle: 'Kết quả chẩn đoán nhận thức (Tháp Bloom)',
   evaluationScope: 'Toàn diện 6 cấp độ',
   colStepTitle: 'Bậc',
   colSkillTitle: 'Năng lực',
@@ -471,42 +471,42 @@ export const DEMO_TEACHER_SUMMARY = {
     {
       step: 'Bậc 1',
       skill: 'Nhớ',
-      skillSub: 'Ghi nhớ',
+      skillSub: 'Khởi động & Nhận diện',
       evidence: 'Nắm vững định nghĩa vectơ, giá vectơ và quy ước độ dài trong không gian.',
       status: 'Làm chủ'
     },
     {
       step: 'Bậc 2',
       skill: 'Hiểu',
-      skillSub: 'Thấu hiểu',
+      skillSub: 'Quy tắc 3 điểm',
       evidence: 'Phân biệt rõ ràng giữa hai vectơ cùng hướng và ngược hướng khi xác định dấu hệ số tỉ lệ.',
       status: 'Làm chủ'
     },
     {
       step: 'Bậc 3',
       skill: 'Vận dụng',
-      skillSub: 'Vận dụng',
+      skillSub: 'Quy tắc hình hộp',
       evidence: 'Áp dụng chính xác quy tắc 3 điểm, hình bình hành và hình hộp để tính toán tổng vectơ.',
       status: 'Đạt'
     },
     {
       step: 'Bậc 4',
       skill: 'Phân tích',
-      skillSub: 'Bắt lỗi sai ở Trạm 2',
+      skillSub: 'Bắt lỗi ở Trạm 2',
       evidence: 'Phát hiện và chỉ ra chính xác lỗi sai đảo điểm ở quy tắc hiệu chung gốc (OA - OB = BA) trong bài giải của Bo.',
       status: 'Đạt'
     },
     {
       step: 'Bậc 5',
       skill: 'Đánh giá',
-      skillSub: 'Phản biện bẫy |a+b| tại 37:13',
+      skillSub: 'Phản biện mốc 37:13',
       evidence: 'Bẻ gãy bẫy trực giác tách độ dài tổng |a + b| = |a| + |b| tại mốc video 37:13 và bảo vệ lập luận trước Bo.',
       status: 'Đạt'
     },
     {
       step: 'Bậc 6',
       skill: 'Sáng tạo',
-      skillSub: 'Tự ra đề ở Trạm 4',
+      skillSub: 'Tự ra đề Trạm 4',
       evidence: "Tự thiết kế đề toán thách đấu AB + AD + AA' = AC' chuẩn xác, được Hội đồng thẩm định phê duyệt.",
       status: 'Xuất sắc'
     }

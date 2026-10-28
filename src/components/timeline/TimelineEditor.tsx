@@ -59,7 +59,7 @@ function getBloomInfo(bloomStr?: string) {
 const BloomPipMeter: React.FC<{ bloomStr?: string }> = ({ bloomStr }) => {
   const info = getBloomInfo(bloomStr);
   return (
-    <div className="flex items-center gap-1.5" title={`Thang Bloom: Cấp độ ${info.index}/6 - ${info.label}`}>
+    <div className="flex items-center gap-1.5" title={`Tháp Bloom: Cấp độ ${info.index}/6 - ${info.label}`}>
       <div className="flex items-center gap-1">
         {[1, 2, 3, 4, 5, 6].map((lvl) => {
           const isFilled = lvl <= info.index;
@@ -536,14 +536,14 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
           </div>
         </div>
 
-        {/* Bento 4: Thang Bloom cao nhất */}
+        {/* Bento 4: Tháp Bloom cao nhất */}
         <div className="bg-white border border-[#E2EAD2] rounded-[24px] p-5 shadow-xs flex items-center gap-4 hover:border-stone-300 transition">
           <div className="w-12 h-12 rounded-2xl bg-stone-100 border border-stone-200 flex items-center justify-center shrink-0 text-stone-700">
             <BarChart3 className="w-6 h-6 text-stone-700" />
           </div>
           <div className="min-w-0">
             <div className="text-xs font-semibold text-stone-700 uppercase tracking-wider">
-              Thang Bloom
+              Tháp Bloom
             </div>
             <div className="text-xl sm:text-2xl font-bold text-[#121712] font-mono">
               {bloomCoverage}/6 <span className="text-xs font-normal text-stone-600">cấp độ</span>
@@ -871,7 +871,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                 <th className="py-3.5 px-4 font-mono w-28 whitespace-nowrap">Thời gian</th>
                 <th className="py-3.5 px-4 w-44 whitespace-nowrap">Chủ thể</th>
                 <th className="py-3.5 px-4">Nội dung câu hỏi / kịch bản thoại</th>
-                <th className="py-3.5 px-4 w-44 whitespace-nowrap">Thang Bloom</th>
+                <th className="py-3.5 px-4 w-44 whitespace-nowrap">Tháp Bloom</th>
                 <th className="py-3.5 px-3 text-center w-20 whitespace-nowrap">Kích hoạt</th>
                 <th className="py-3.5 px-3 text-center w-24 whitespace-nowrap">Thao tác</th>
               </tr>
@@ -1459,7 +1459,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                 <span className="font-bold text-[#121712] font-mono">{totalActiveScenarios} lượt thoại</span>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-stone-200">
-                <span className="text-stone-800 font-bold">Thang Bloom cao nhất:</span>
+                <span className="text-stone-800 font-bold">Tháp Bloom cao nhất:</span>
                 <span className="font-bold text-stone-900 font-mono">
                   {highestBloom.short} (L{highestBloom.index} · {bloomCoverage}/6 cấp độ)
                 </span>

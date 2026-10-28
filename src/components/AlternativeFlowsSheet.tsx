@@ -894,7 +894,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                       <div className="bg-[#121712] text-white rounded-2xl sm:rounded-[22px] p-3.5 sm:p-4 flex items-stretch justify-between gap-3">
                         <div className="flex flex-col justify-between py-0.5">
                           <span className="text-xs font-semibold tracking-wider text-[#B9C4A8] uppercase">
-                            MỨC NHẬN THỨC CAO NHẤT
+                            MỨC BLOOM CAO NHẤT
                           </span>
                           <div className="text-[44px] sm:text-[52px] lg:text-[60px] font-extrabold text-[#C8F169] leading-none my-0.5 tracking-tight">
                             L6
@@ -917,119 +917,66 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                         </div>
                       </div>
 
-                      {/* Thang bậc nhận thức (6 Cột nhất quán, chiều cao tối ưu để thấy trọn vẹn ở 1280x720) */}
-                      <div className="bg-[#F3F8E8] border border-[#E2EAD2] rounded-2xl sm:rounded-[22px] p-3 sm:p-3.5 flex flex-col gap-2 flex-1">
+                      {/* Tháp Bloom (6 Cột nhất quán, chiều cao tối ưu để thấy trọn vẹn ở 1280x720) */}
+                      <div className="bg-[#F3F8E8] border border-[#E2EAD2] rounded-2xl sm:rounded-[22px] p-3.5 sm:p-4 pb-4 sm:pb-5 flex flex-col gap-2.5 flex-1">
                         <div className="flex items-center justify-between gap-2">
                           <h2 className="m-0 text-sm sm:text-base font-extrabold text-[#121712]">
-                            Thang bậc nhận thức
+                            Tháp Bloom
                           </h2>
                           <span className="text-xs font-bold bg-[#C8F169] text-[#121712] rounded-full px-2.5 py-0.5 border border-[#A6D83B]">
                             Đạt 6/6 bậc
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-6 gap-1 sm:gap-1.5 items-end flex-1 pt-0">
-                          {/* Bậc 1 */}
-                          <div className="flex flex-col gap-1 justify-end h-full">
-                            <div className="h-[20px] sm:h-[24px] bg-[#C8F169] rounded-lg p-1 px-1.5 flex items-center justify-between">
-                              <span className="text-xs font-bold text-[#121712]">Bậc 1</span>
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#121712" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                <path d="M20 6 9 17l-5-5" />
-                              </svg>
-                            </div>
-                            <div className="text-xs font-bold text-[#121712]">Nhớ</div>
-                            <div className="text-[11px] font-semibold text-[#4A5540] leading-tight">
-                              Ghi nhớ
-                            </div>
-                            <div className="text-xs leading-snug text-[#3F4A36] min-h-[32px] line-clamp-2">
-                              Nắm vững định nghĩa &amp; quy ước
-                            </div>
-                          </div>
-
-                          {/* Bậc 2 */}
-                          <div className="flex flex-col gap-1 justify-end h-full">
-                            <div className="h-[34px] sm:h-[40px] bg-[#C8F169] rounded-lg p-1 px-1.5 flex items-center justify-between">
-                              <span className="text-xs font-bold text-[#121712]">Bậc 2</span>
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#121712" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                <path d="M20 6 9 17l-5-5" />
-                              </svg>
-                            </div>
-                            <div className="text-xs font-bold text-[#121712]">Hiểu</div>
-                            <div className="text-[11px] font-semibold text-[#4A5540] leading-tight">
-                              Thấu hiểu
-                            </div>
-                            <div className="text-xs leading-snug text-[#3F4A36] min-h-[32px] line-clamp-2">
-                              Phân biệt phương, hướng &amp; độ dài
-                            </div>
-                          </div>
-
-                          {/* Bậc 3 */}
-                          <div className="flex flex-col gap-1 justify-end h-full">
-                            <div className="h-[48px] sm:h-[56px] bg-[#C8F169] rounded-lg p-1 px-1.5 flex items-center justify-between">
-                              <span className="text-xs font-bold text-[#121712]">Bậc 3</span>
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#121712" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                <path d="M20 6 9 17l-5-5" />
-                              </svg>
-                            </div>
-                            <div className="text-xs font-bold text-[#121712]">Vận dụng</div>
-                            <div className="text-[11px] font-semibold text-[#4A5540] leading-tight">
-                              Vận dụng
-                            </div>
-                            <div className="text-xs leading-snug text-[#3F4A36] min-h-[32px] line-clamp-2">
-                              Áp dụng quy tắc hình bình hành &amp; hình hộp
-                            </div>
-                          </div>
-
-                          {/* Bậc 4 */}
-                          <div className="flex flex-col gap-1 justify-end h-full">
-                            <div className="h-[62px] sm:h-[72px] bg-[#C8F169] rounded-lg p-1 px-1.5 flex items-center justify-between">
-                              <span className="text-xs font-bold text-[#121712]">Bậc 4</span>
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#121712" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                <path d="M20 6 9 17l-5-5" />
-                              </svg>
-                            </div>
-                            <div className="text-xs font-bold text-[#121712]">Phân tích</div>
-                            <div className="text-[11px] font-semibold text-[#4A5540] leading-tight">
-                              Bắt lỗi sai ở Trạm 2
-                            </div>
-                            <div className="text-xs leading-snug text-[#3F4A36] min-h-[32px] line-clamp-2">
-                              Soi ra lỗi hiệu vectơ ở Trạm 2
-                            </div>
-                          </div>
-
-                          {/* Bậc 5 */}
-                          <div className="flex flex-col gap-1 justify-end h-full">
-                            <div className="h-[76px] sm:h-[88px] bg-[#C8F169] rounded-lg p-1 px-1.5 flex items-center justify-between">
-                              <span className="text-xs font-bold text-[#121712]">Bậc 5</span>
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#121712" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                <path d="M20 6 9 17l-5-5" />
-                              </svg>
-                            </div>
-                            <div className="text-xs font-bold text-[#121712]">Đánh giá</div>
-                            <div className="text-[11px] font-semibold text-[#4A5540] leading-tight">
-                              Phản biện bẫy |a+b| tại 37:13
-                            </div>
-                            <div className="text-xs leading-snug text-[#3F4A36] min-h-[32px] line-clamp-2">
-                              Bẻ gãy bẫy độ dài tại 37:13
-                            </div>
-                          </div>
-
-                          {/* Bậc 6 (Giảm chiều cao để thấy trọn vẹn thang bậc ngay khi mở) */}
-                          <div className="flex flex-col gap-1 justify-end h-full">
-                            <div className="h-[90px] sm:h-[102px] bg-[#121712] text-[#C8F169] rounded-lg p-1 px-1.5 flex items-center justify-between">
-                              <span className="text-xs font-bold">Bậc 6</span>
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C8F169" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                <path d="M20 6 9 17l-5-5" />
-                              </svg>
-                            </div>
-                            <div className="text-xs font-bold text-[#121712]">Sáng tạo</div>
-                            <div className="text-[11px] font-semibold text-[#8C9C7B] leading-tight">
-                              Tự ra đề ở Trạm 4
-                            </div>
-                            <div className="text-xs leading-snug text-[#3F4A36] min-h-[32px] line-clamp-2">
-                              Tự ra đề toán đạt chuẩn Hội đồng
-                            </div>
-                          </div>
+                        <div className="grid grid-cols-6 gap-1 sm:gap-1.5 items-end flex-1 pt-1">
+                          {BLOOM_TAXONOMY.map((item, idx) => {
+                            const barHeights = [
+                              'h-[28px] sm:h-[34px]',
+                              'h-[44px] sm:h-[52px]',
+                              'h-[60px] sm:h-[70px]',
+                              'h-[76px] sm:h-[88px]',
+                              'h-[92px] sm:h-[106px]',
+                              'h-[108px] sm:h-[124px]',
+                            ];
+                            const isL6 = item.index === 6;
+                            return (
+                              <div key={item.index} className="flex flex-col gap-1 justify-end h-full">
+                                <div
+                                  className={`${barHeights[idx]} rounded-lg p-1 px-1.5 flex items-center justify-between ${
+                                    isL6
+                                      ? 'bg-[#121712] text-[#C8F169]'
+                                      : 'bg-[#C8F169] text-[#121712]'
+                                  }`}
+                                >
+                                  <span className="text-xs font-bold whitespace-nowrap">{item.level}</span>
+                                  <svg
+                                    width="12"
+                                    height="12"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke={isL6 ? '#C8F169' : '#121712'}
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    aria-hidden="true"
+                                  >
+                                    <path d="M20 6 9 17l-5-5" />
+                                  </svg>
+                                </div>
+                                <div className="text-xs font-bold text-[#121712] mt-0.5">{item.skill}</div>
+                                <div
+                                  className={`text-[11px] font-semibold leading-tight ${
+                                    isL6 ? 'text-[#68765A]' : 'text-[#4A5540]'
+                                  }`}
+                                >
+                                  {item.skillSub}
+                                </div>
+                                <div className="text-[11px] sm:text-xs leading-snug text-[#3F4A36] pt-0.5 min-h-[30px]">
+                                  {item.desc}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>

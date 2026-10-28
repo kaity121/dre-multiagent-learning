@@ -11,7 +11,7 @@ const phasesConfig: { id: PhaseType; stepNum: number; label: string; description
   { id: 'extract', stepNum: 1, label: 'Trích xuất đề bài', description: 'Phân tích thực thể hình học' },
   { id: 'rag', stepNum: 2, label: 'Truy hồi kiến thức', description: 'Truy cứu SGK & định lý' },
   { id: 'roundtable', stepNum: 3, label: 'Bàn tròn phản biện', description: 'Tranh luận đa tác nhân' },
-  { id: 'bloom', stepNum: 4, label: 'Đánh giá nhận thức', description: 'Xếp mức thang Bloom L1–L6' },
+  { id: 'bloom', stepNum: 4, label: 'Đánh giá nhận thức', description: 'Xếp mức Tháp Bloom L1–L6' },
 ];
 
 export const PhaseStepper: React.FC<PhaseStepperProps> = ({ currentPhase, phaseStatuses }) => {

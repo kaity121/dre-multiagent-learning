@@ -392,7 +392,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
           </div>
 
           {/* =========================================================================
-              PHẦN 4: ASSESSOR (ĐÁNH GIÁ SƯ PHẠM & THANG BLOOM)
+              PHẦN 4: ASSESSOR (ĐÁNH GIÁ SƯ PHẠM & THÁP BLOOM)
               ========================================================================= */}
           <div className="bg-white border border-[#E2EAD2] rounded-2xl overflow-hidden shadow-2xs">
             <button
