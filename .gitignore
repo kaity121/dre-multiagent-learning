@@ -22,3 +22,5 @@ backend/.env*
 Thumbs.db
 screenshots_real/
 *.py
+__pycache__/
+*.pyc

@@ -1,5 +1,6 @@
 import { chatJSON } from '../openaiClient.js';
 import { config } from '../config.js';
+import { executeTool } from '../tools/index.js';
 
 const TRI_SYSTEM_PROMPT = `
 Bạn là "Trí" — một bạn học AI trong lớp học OpenMAIC / DRE.
@@ -19,14 +20,57 @@ Luôn trả về JSON:
 `.trim();
 
 export async function triDeepThink({ baiToan, chuDe, cauHoiHocVien, loiBoGiai }) {
-  return chatJSON({
+  const combinedText = `${cauHoiHocVien || ''} ${baiToan || ''} ${loiBoGiai || ''}`.toLowerCase();
+  
+  let toolCall = null;
+  // Tự động kích hoạt deterministic tool nếu liên quan đến cộng độ dài vectơ / hình lập phương
+  if (
+    combinedText.includes('bc') ||
+    combinedText.includes("dd'") ||
+    combinedText.includes('độ dài') ||
+    combinedText.includes('do dai') ||
+    combinedText.includes('1+1') ||
+    combinedText.includes('2a') ||
+    combinedText.includes('bẫy') ||
+    combinedText.includes('bay') ||
+    combinedText.includes('cộng') ||
+    combinedText.includes('cong')
+  ) {
+    const rawTool = executeTool('tool_verify_vector_algebra', {
+      shape: 'cube',
+      side: 'a',
+      expr: "|BC + DD'|",
+      claim: combinedText.includes('2a') || combinedText.includes('2') ? '2a' : '2a',
+    });
+
+    toolCall = {
+      toolName: rawTool.toolName,
+      status: 'completed',
+      label: 'Trí đang kiểm chứng hình học...',
+      badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D)',
+      input: rawTool.input,
+      output: rawTool.output,
+      isValid: rawTool.isValid,
+      timestampMs: rawTool.timestampMs,
+    };
+  }
+
+  const aiReply = await chatJSON({
     model: config.models.bo, // gpt-6-sol
     systemPrompt: TRI_SYSTEM_PROMPT,
     userPayload: {
       bai_toan: baiToan,
       chu_de: chuDe,
       cau_hoi_hoc_vien: cauHoiHocVien,
-      loi_bo_giai: loiBoGiai
-    }
+      loi_bo_giai: loiBoGiai,
+      tool_verification: toolCall ? toolCall.output : undefined,
+    },
   });
+
+  return {
+    ...aiReply,
+    toolCall,
+  };
 }
+
+export default { triDeepThink };

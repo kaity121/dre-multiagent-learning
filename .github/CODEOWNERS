@@ -1,0 +1,59 @@
+# ==============================================================================
+# DRE Multi-Agent Interactive Learning - GitHub CODEOWNERS
+# ==============================================================================
+# Syntax reference: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Core Team:
+# - Lead & Reviewer: Blu (@blu1606) - Giao việc, điều phối kiến trúc & Final Reviewer toàn dự án
+# - Khuê (@kaity121): Lead Frontend / UIUX / Interaction Architecture
+# - Hiếu (@aprlx21): Agent Lead - Video Scriptwriting & Multi-Agent Dialogue Generation from Video Context
+# - An (@presentisperfect): Agent Lead - Real-time Online Response, Context Management & Session Memory
+# ==============================================================================
+
+# Global owner & reviewer: @blu1606 review toàn bộ PR, kết hợp cùng các thành viên phụ trách
+* @blu1606
+
+# ------------------------------------------------------------------------------
+# 1. UI/UX, DESIGN SYSTEM & FRONTEND INTERACTION (Owner: @kaity121, Reviewer: @blu1606)
+# ------------------------------------------------------------------------------
+/src/components/             @kaity121 @blu1606
+/src/assets/                 @kaity121 @blu1606
+/src/index.css               @kaity121 @blu1606
+/src/App.tsx                 @kaity121 @blu1606
+/src/main.tsx                @kaity121 @blu1606
+/public/                     @kaity121 @blu1606
+/docs/WIREFRAME*             @kaity121 @blu1606
+/docs/PITCH_DECK*            @kaity121 @blu1606
+/docs/PHAN_TICH_HANH_VI*     @kaity121 @blu1606
+
+# ------------------------------------------------------------------------------
+# 2. AGENT DIALOGUE & VIDEO SCRIPTWRITING PIPELINE (Owner: @aprlx21, Reviewer: @blu1606)
+# (Trích xuất kịch bản bài giảng, ngộ nhận học sinh, lời thoại 4 bạn học AI)
+# ------------------------------------------------------------------------------
+/src/data/                   @aprlx21 @blu1606
+/src/data/videoLessons.ts    @aprlx21 @blu1606
+/src/data/misconceptions.ts  @aprlx21 @blu1606
+/docs/KICH_BAN*              @aprlx21 @blu1606
+/docs/TC_API*                @aprlx21 @blu1606
+
+# ------------------------------------------------------------------------------
+# 3. ONLINE RESPONSE, CONTEXT STREAM & SESSION MEMORY (Owner: @presentisperfect, Reviewer: @blu1606)
+# (API kết nối Backend, streaming chat real-time, đánh giá tương tác thời gian thực)
+# ------------------------------------------------------------------------------
+/src/services/               @presentisperfect @blu1606
+/src/services/dreBackendApi.ts @presentisperfect @blu1606
+/src/utils/                  @presentisperfect @blu1606
+/src/utils/evaluator.ts      @presentisperfect @blu1606
+/src/utils/soundEffects.ts   @presentisperfect @blu1606
+/src/types/                  @presentisperfect @blu1606
+/src/types/dre.ts            @presentisperfect @blu1606
+
+# ------------------------------------------------------------------------------
+# 4. PROJECT MANAGEMENT, ARCHITECTURE & ROADMAP (Owner & Reviewer: @blu1606)
+# ------------------------------------------------------------------------------
+/.github/                    @blu1606
+/docs/TEAM*                  @blu1606
+/docs/README.md              @blu1606
+/package.json                @blu1606
+/tsconfig*.json              @blu1606
+/vite.config.ts              @blu1606

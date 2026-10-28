@@ -99,6 +99,22 @@ export interface TimelineComment {
   role: 'classmate' | 'ta' | 'teacher';
   text: string;
   isPinned?: boolean;
+  toolCall?: {
+    toolName: string;
+    label: string;
+    badgeText: string;
+    category?: 'rag' | 'math_verify' | 'bloom' | 'timeline';
+    isValid?: boolean;
+    correct?: string;
+  } | null;
+  toolCalls?: Array<{
+    toolName: string;
+    label: string;
+    badgeText: string;
+    category?: 'rag' | 'math_verify' | 'bloom' | 'timeline';
+    isValid?: boolean;
+    correct?: string;
+  }> | null;
 }
 
 export interface PeerContextData {

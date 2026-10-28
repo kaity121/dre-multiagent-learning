@@ -1,0 +1,51 @@
+{
+  "clipId": "CLIP_DEMO_60S_TIEN_EX3",
+  "clipTitle": "Trích đoạn 60s: Ví dụ 3 - Bẫy tính độ dài vectơ trong hình lập phương",
+  "teacherName": "Thầy Nguyễn Phan Tiến",
+  "sourceVideoTimestamp": "36:44 -> 37:44",
+  "durationSeconds": 60,
+  "processedBy": {
+    "sttModel": "Whisper-Large-v3",
+    "ocrVisionModel": "Gemini-2.5-Flash-Vision",
+    "processingLatencyMs": 4820
+  },
+  "segments": [
+    {
+      "id": "clip_seg_01",
+      "second": 0,
+      "timeFormatted": "00:00",
+      "audioTranscript": "Các bạn nhìn lên bảng, chúng ta qua Ví dụ 3 câu a.",
+      "speaker": "Thầy Tiến",
+      "blackboardText": "Ví dụ 3: Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1.",
+      "blackboardLatex": [],
+      "spatialGeometry": {
+        "shapeType": "cube",
+        "vertices": ["A", "B", "C", "D", "A'", "B'", "C'", "D'"],
+        "highlightedVectors": [],
+        "actionDescription": "Bảng phấn hiện hình vẽ hình lập phương cạnh 1"
+      },
+      "trapRiskLevel": "none",
+      "pedagogicalTags": ["problem_statement"]
+    },
+    {
+      "id": "clip_seg_02",
+      "second": 29,
+      "timeFormatted": "00:29",
+      "audioTranscript": "Câu a yêu cầu tính độ dài tổng vectơ BC cộng DD'. Chú ý chỗ này rất nhiều bạn làm ẩu lấy 1 cộng 1 bằng 2 là sai ngay lập tức!",
+      "speaker": "Thầy Tiến",
+      "blackboardText": "a) Tính |\\vec{BC} + \\vec{DD'}|\nLưu ý: Không được tách thành |BC| + |DD'|",
+      "blackboardLatex": [
+        "|\\vec{BC} + \\vec{DD'}|",
+        "|\\vec{BC}| + |\\vec{DD'}| = 1 + 1 = 2 \\quad (\\text{SAI})"
+      ],
+      "spatialGeometry": {
+        "shapeType": "cube",
+        "vertices": ["A", "B", "C", "D", "A'", "B'", "C'", "D'"],
+        "highlightedVectors": ["BC", "DD'"],
+        "actionDescription": "Thầy đánh dấu hai vectơ màu vàng: BC trên đáy dưới, DD' cạnh bên đứng"
+      },
+      "trapRiskLevel": "high",
+      "pedagogicalTags": ["checkpoint_candidate", "length_addition_fallacy"]
+    }
+  ]
+}

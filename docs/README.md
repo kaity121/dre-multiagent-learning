@@ -23,6 +23,17 @@
 * **[PITCH_DECK_DRE_LEARNING_10_20_30.md](./PITCH_DECK_DRE_LEARNING_10_20_30.md)**
   * Kịch bản Pitch Deck 10 slides chuẩn Guy Kawasaki (10/20/30 Rule) trình bày bài toán ngộ nhận toán học và mô hình xã hội học tập đa tác nhân (Multi-Agent Classroom).
 
+### 4. 👥 Phân công Trách nhiệm & Quyền sở hữu Mã nguồn (Codeowners)
+* **[TEAM_RESPONSIBILITIES_AND_OWNERSHIP.md](./TEAM_RESPONSIBILITIES_AND_OWNERSHIP.md)**
+  * Phân định module và luồng làm việc giữa 4 thành viên: Blu (`@blu1606` - Lead & Reviewer), Khuê (`@kaity121` - UI/UX Lead), Hiếu (`@aprlx21` - Video Scriptwriting) và An (`@presentisperfect` - Online Response & Context).
+  * Quy tắc review PR tự động thông qua [`.github/CODEOWNERS`](../.github/CODEOWNERS).
+
+### 5. 🏗️ Kiến trúc Hệ thống AISDLC & Danh mục Epics (Vibe Coding Roadmap)
+* **[AISDLC_ARCHITECTURE_AND_EPICS.md](./AISDLC_ARCHITECTURE_AND_EPICS.md)**
+  * Đặc tả hệ thống Tools & Skills (Factual Grounding & Vector Math Verifier).
+  * Luồng hoạt động End-to-End 4 giai đoạn từ Ingestion đến Classroom.
+  * Danh mục 14 Sub-issues phân rã theo 6 Epics sẵn sàng cho song song hóa vibe coding.
+
 ---
 
 ## 🧭 Quy định Quản lý Tài liệu

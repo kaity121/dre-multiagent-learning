@@ -992,7 +992,7 @@ export default function App() {
           }}
           onReset={handleRetryLesson}
           activeScenario={activeScenario}
-          idleTimerSeconds={idleSeconds}
+          idleTimerSeconds={0}
           isAutoWalking={isAutoWalking}
           autoWalkStep={autoWalkStep}
           onToggleAutoWalk={handleToggleAutoWalk}
