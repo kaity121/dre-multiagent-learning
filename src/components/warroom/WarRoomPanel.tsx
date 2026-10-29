@@ -27,11 +27,13 @@ import { sound } from '../../utils/soundEffects';
 interface WarRoomPanelProps {
   source: ReasoningSource;
   defaultCollapsed?: boolean;
+  onTransferDraftToTimeline?: (draftLesson?: any) => void;
 }
 
 export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
   source,
   defaultCollapsed = false,
+  onTransferDraftToTimeline,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [events, setEvents] = useState<ReasoningEvent[]>(() => {
@@ -123,11 +125,12 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
 
   const inferPhaseFromEvent = (evt: ReasoningEvent): PhaseType | null => {
     if (evt.phase) return evt.phase;
-    const toolName = (evt.toolCall?.toolName || evt.toolResult?.toolName || '').toLowerCase();
-    if (toolName.includes('extract') || toolName.includes('parse')) return 'extract';
-    if (toolName.includes('rag') || toolName.includes('search') || toolName.includes('retrieve')) return 'rag';
-    if (toolName.includes('roundtable') || evt.eventType === 'cross_check_verdict') return 'roundtable';
-    if (toolName.includes('bloom') || toolName.includes('assess')) return 'bloom';
+    const toolName = (evt.toolCall?.toolName || (evt.toolCall as any)?.name || evt.toolResult?.toolName || '').toLowerCase();
+    const evtType = (evt.eventType || '').toLowerCase();
+    if (toolName.includes('extract') || toolName.includes('parse') || evtType.includes('extract')) return 'extract';
+    if (toolName.includes('rag') || toolName.includes('search') || toolName.includes('retrieve') || evtType.includes('rag')) return 'rag';
+    if (toolName.includes('roundtable') || evtType === 'cross_check_verdict' || evtType === 'debate_turn') return 'roundtable';
+    if (toolName.includes('bloom') || toolName.includes('assess') || evtType === 'checkpoint_created') return 'bloom';
     return null;
   };
 
@@ -137,14 +140,29 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
       setSpeed(status.speed);
     });
 
-    const unsubscribe = source.subscribe((evt) => {
+    const unsubscribe = source.subscribe((rawEvt) => {
+      const evt = { ...rawEvt };
+      // Normalize timestamp if ISO string
+      if (typeof evt.timestamp === 'string') {
+        const parsed = new Date(evt.timestamp).getTime();
+        if (!isNaN(parsed)) evt.timestamp = parsed;
+      }
+      // Normalize toolCall input to params
+      if (evt.toolCall && (evt.toolCall as any).input && !evt.toolCall.params) {
+        evt.toolCall.params = (evt.toolCall as any).input;
+      }
+      // Normalize eventType aliases from producer
+      const normType = (evt.eventType || '').toLowerCase();
+      if (normType === 'thought') evt.eventType = 'thinking';
+      else if (normType === 'debate_turn') evt.eventType = 'speaking';
+
       setEvents((prev) => [...prev, evt]);
 
       if (evt.agent) {
         let nextState: AgentState = 'idle';
-        if (evt.eventType === 'thinking') nextState = 'thinking';
-        else if (evt.eventType === 'tool_call') nextState = 'tool_calling';
-        else if (evt.eventType === 'speaking' || evt.eventType === 'cross_check_verdict') nextState = 'speaking';
+        if (normType === 'thinking' || normType === 'thought') nextState = 'thinking';
+        else if (normType === 'tool_call' || normType === 'tool_calling') nextState = 'tool_calling';
+        else if (normType === 'speaking' || normType === 'debate_turn' || normType === 'cross_check_verdict') nextState = 'speaking';
 
         setAgentStates((prev) => ({
           ...prev,

@@ -30,6 +30,7 @@ import { sound } from '../../utils/soundEffects';
 interface TimelineEditorProps {
   initialLesson: DRELessonSchema;
   onApproveSuccess?: (approvedLesson: DRELessonSchema) => void;
+  onSeekVideo?: (seconds: number) => void;
 }
 
 // Tháp Bloom chuẩn 6 cấp độ nhận thức
@@ -101,8 +102,24 @@ const AgentAvatarBadge: React.FC<{ agentName: string; size?: string }> = ({ agen
 export const TimelineEditor: React.FC<TimelineEditorProps> = ({
   initialLesson,
   onApproveSuccess,
+  onSeekVideo,
 }) => {
+  const DRAFT_STORAGE_KEY = `dre_timeline_draft_${initialLesson.lesson_id || 'VID_VECTO_12'}`;
+
   const [draftLesson, setDraftLesson] = useState<DRELessonSchema>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && (parsed.lesson_id === initialLesson.lesson_id || !parsed.lesson_id)) {
+            return parsed;
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load draft from localStorage', err);
+      }
+    }
     // If collision simulation requested via URL (?collision=1), inject a collision (180s and 183s)
     if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('collision') === '1') {
       const cloned = JSON.parse(JSON.stringify(initialLesson)) as DRELessonSchema;
@@ -137,6 +154,30 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     id: string;
     isQuestion: boolean;
   }>({ id: 'pq-01', isQuestion: true });
+
+  // Lưu draftLesson vào localStorage khi có chỉnh sửa (P2 Fix)
+  useEffect(() => {
+    if (isDirty && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draftLesson));
+      } catch (err) {
+        console.warn('Failed to save draft to localStorage', err);
+      }
+    }
+  }, [draftLesson, isDirty]);
+
+  // Cảnh báo trước khi rời trang nếu chưa lưu kịch bản
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
 
   // Detail panel as a dedicated side-over drawer (so the table keeps 100% full width)
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(() => {
@@ -1124,6 +1165,55 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
               >
                 <X className="w-4 h-4" />
               </button>
+            </div>
+
+            {/* VIDEO CONTEXT PREVIEW CARD (P2 FIX: KHỚP MỐC VIDEO THẦY TIẾN & BẢNG PHẤN) */}
+            <div className="bg-[#121712] border border-[#121712] rounded-2xl p-4 text-white space-y-3 shadow-md">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#C8F169] animate-pulse" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    Ngữ cảnh video tại mốc {formatTime(playheadSec)}
+                  </span>
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full bg-white/15 text-[#C8F169] font-mono text-[11px] font-bold">
+                  {playheadSec}s
+                </span>
+              </div>
+
+              {/* Khung mô phỏng bảng phấn 16:9 với công thức toán KaTeX */}
+              <div className="relative aspect-video rounded-xl bg-stone-900 border border-stone-800 overflow-hidden flex flex-col justify-between p-3.5 shadow-inner">
+                <div className="flex items-center justify-between text-[11px] text-stone-400">
+                  <span className="font-medium text-stone-300">Bảng phấn Thầy Tiến</span>
+                  <span className="font-mono text-[#C8F169] bg-stone-800 px-1.5 py-0.5 rounded">1080p HD</span>
+                </div>
+                <div className="text-center py-2 space-y-1">
+                  <div className="text-base font-serif font-bold text-emerald-300">
+                    {focusedQuestion?.question || "|BC + DD'| = ?"}
+                  </div>
+                  <div className="text-xs text-stone-300 italic">
+                    "Thầy Tiến: Cộng độ dài DD' đấy bằng là 1 + 1 bằng..."
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-stone-400 pt-1 border-t border-stone-800">
+                  <span>Chương 1: Vectơ không gian</span>
+                  <span>Ví dụ 3: Hình lập phương ABCD.A'B'C'D'</span>
+                </div>
+              </div>
+
+              {onSeekVideo && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playPencilTap();
+                    onSeekVideo(playheadSec);
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-[#C8F169] hover:bg-[#bbf055] text-[#121712] font-black text-xs flex items-center justify-center gap-2 cursor-pointer transition shadow-xs"
+                >
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>Xem trước mốc này trên Video Player ({formatTime(playheadSec)})</span>
+                </button>
+              )}
             </div>
 
             {/* Chi tiết câu hỏi dừng */}

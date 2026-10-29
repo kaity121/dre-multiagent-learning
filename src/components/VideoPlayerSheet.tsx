@@ -663,12 +663,12 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
           </div>
         )}
 
-        {/* PILL NỔI KHI THU GỌN CÂU HỎI XUỐNG CHAT (KHỚP 100% ẢNH 1 MOCKUP - GÓC TRÊN BÊN TRÁI VIDEO) */}
+        {/* PILL NỔI KHI THU GỌN CÂU HỎI XUỐNG CHAT (KHÔNG ĐÈ THANH ĐIỀU KHIỂN YOUTUBE, CHỮ ĐẬM TƯƠNG PHẢN CAO) */}
         {(isQuizCollapsedToChat || isQuizSkipped) && !showFullQuizOverlay && (
-          <div className="absolute top-3.5 left-3.5 z-30 bg-[#121712] p-1 rounded-full shadow-2xl flex items-center gap-1.5 text-xs animate-in fade-in slide-in-from-top-2 duration-200 whitespace-nowrap border border-[#121712]">
+          <div className="absolute top-14 left-4 z-30 bg-[#121712] p-1.5 rounded-full shadow-2xl flex items-center gap-2 text-xs animate-in fade-in slide-in-from-top-2 duration-200 whitespace-nowrap border border-black/40">
             <div className="flex items-center gap-2 px-3 py-1 font-bold text-white">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#C8F169] animate-pulse" />
-              <span>Câu hỏi đang chờ · 37:13</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#C8F169] animate-pulse shrink-0" />
+              <span className="text-[#F3F8E8] font-bold text-xs">Câu hỏi đang chờ · 37:13</span>
             </div>
 
             <button
@@ -679,9 +679,9 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 if (ytPlayerRef.current?.playVideo) ytPlayerRef.current.playVideo();
               }}
               style={{ color: "#121712", backgroundColor: "#FFFFFF" }}
-              className="px-4 py-1.5 rounded-full bg-white hover:bg-stone-100 text-[#121712] font-bold text-xs cursor-pointer transition-colors shadow-xs"
+              className="px-3.5 py-1.5 rounded-full bg-white hover:bg-stone-100 text-[#121712] font-black text-xs cursor-pointer transition-colors shadow-sm border border-stone-300"
             >
-              <span style={{ color: "#121712" }}>Lùi 30 giây</span>
+              <span className="text-[#121712] font-black">Lùi 30 giây</span>
             </button>
 
             <button
@@ -694,9 +694,9 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 onJumpToCheckpoint?.();
               }}
               style={{ color: "#121712", backgroundColor: "#C8F169" }}
-              className="px-4 py-1.5 rounded-full bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] font-bold text-xs cursor-pointer transition-all shadow-xs"
+              className="px-4 py-1.5 rounded-full bg-[#C8F169] hover:bg-[#bbf055] text-[#121712] font-black text-xs cursor-pointer transition-all shadow-sm"
             >
-              <span style={{ color: "#121712" }}>Mở lại câu hỏi</span>
+              <span className="text-[#121712] font-black">Mở lại câu hỏi</span>
             </button>
           </div>
         )}

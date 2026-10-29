@@ -587,6 +587,5 @@ app.post('/api/chat/classroom', async (req, res) => {
 });
 
 app.listen(config.port, () => {
-    console.log(`DRE backend đang chạy ở http://localhost:${config.port}`);
-  });
-}
+    console.log(`DRE backend dang chay o http://localhost:${config.port}`);
+});

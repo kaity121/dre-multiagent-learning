@@ -13,6 +13,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { DEMO_LESSON_SCHEMA, DEMO_REASONING_EVENTS, DEMO_INSPECTOR_TURNS } from './demo/demoLesson';
+import { InspectorTurn } from './types/reasoning';
 import { DRELessonSchema } from './types/lesson';
 import { ReplaySource } from './services/reasoningSource';
 import { WarRoomPanel } from './components/warroom/WarRoomPanel';
@@ -38,6 +39,7 @@ import { VideoPlayerSheet } from './components/VideoPlayerSheet';
 import { VideoDebateSheet } from './components/VideoDebateSheet';
 import { AlternativeFlowsSheet } from './components/AlternativeFlowsSheet';
 import { PauseModal } from './components/PauseModal';
+import { adaptLessonToPlayer } from './utils/lessonAdapter';
 import { LessonSelectorDrawer } from './components/LessonSelectorDrawer';
 import { ScenarioPlayerBar } from './components/ScenarioPlayerBar';
 import { LearningFlowGuideModal } from './components/LearningFlowGuideModal';
@@ -187,6 +189,7 @@ export default function App() {
   const replaySource = useMemo(() => {
     return new ReplaySource(DEMO_REASONING_EVENTS as any, 1.0);
   }, []);
+  const [inspectorTurns, setInspectorTurns] = useState<InspectorTurn[]>(() => DEMO_INSPECTOR_TURNS);
   const [isInspectorDrawerOpen, setIsInspectorDrawerOpen] = useState(() => {
     if (typeof window !== 'undefined') {
       return new URLSearchParams(window.location.search).get('inspector') === '1';
@@ -738,6 +741,56 @@ export default function App() {
       'opt_a';
     setSavedSelectedOptionId(resolvedId);
 
+    // Cập nhật lượt Soi não tác nhân tương ứng với câu trả lời thực tế của học sinh (P1 Fix)
+    const turnNumber = inspectorTurns.length + 1;
+    const isOptionB = optionLabel.includes('B') || optionLabel.includes('1 + 1 = 2') || optionLabel.includes('Tách trực tiếp');
+    const newAnswerTurn: InspectorTurn = {
+      turnId: `live-ans-${Date.now()}`,
+      timestamp: Date.now(),
+      turnNumber,
+      timestampStr: '37:13',
+      agent: 'Bo',
+      dispatcher: {
+        intent: 'Phản biện lỗi nhận thức vectơ',
+        selectedAgent: 'Bo',
+        confidence: 0.94,
+        reason: `Học sinh đã chọn phương án "${optionLabel}". Kích hoạt phản biện trực tiếp để kiểm tra độ vững kiến thức.`,
+      },
+      contextView: {
+        visibleContext: [
+          `Câu trả lời của học sinh: ${optionLabel}`,
+          'Phân đoạn bài giảng: Ví dụ 3 - Hình lập phương ABCD.A\'B\'C\'D\'',
+          'Độ dài các cạnh bằng 1',
+        ],
+        hiddenContext: [
+          'Công thức chuẩn Cô Lam chuẩn bị chốt: Tuyệt đối không tách |a + b| = |a| + |b|',
+          'Đáp án bài kiểm tra định kỳ liên quan',
+        ],
+        boardSnippet: "|BC + DD'| = ?",
+        teacherSpeech: 'Cộng độ dài DD\' đấy bằng là 1 + 1 bằng...',
+        ragKnowledge: 'Quy tắc hình hộp & cộng vectơ trong không gian',
+      },
+      thought: `Học sinh đã chọn "${optionLabel}". Mình cần phản biện ngay lập luận này xem bạn có nắm chắc bản chất vectơ hay không!`,
+      speech: currentVideoLesson.boArgument?.speech || 'Ủa sao cậu phải đổi DD\' thành CC\' chi cho cực vậy?! Tớ thấy cứ tách ra là xong!',
+      assessor: {
+        matchedPoints: [
+          'Tương tác kịp thời tại điểm dừng 37:13',
+          'Đưa ra câu trả lời rõ ràng dứt khoát',
+        ],
+        missingPoints: isOptionB
+          ? ['Đang ngộ nhận tách độ dài |a + b| = |a| + |b|']
+          : ['Cần giải thích lý do thế vectơ DD\' = CC\''],
+        bloomBefore: 'Nhớ (L1)',
+        bloomAfter: 'Phân tích & Phản biện (L4)',
+        bloomLevel: 4,
+        hesitationScore: 0.12,
+        hesitationLabel: 'thấp',
+        verdictLabel: 'Kích hoạt tranh luận',
+        matchedSummary: isOptionB ? 'Phát hiện ngộ nhận tách độ dài' : 'Khớp phương án đúng, kích hoạt phản biện kiểm chứng',
+      },
+    };
+    setInspectorTurns((prev) => [...prev, newAnswerTurn]);
+
     // Đối với bài 1.1 Thầy Tiến (VID_VECTO_12): Luồng phản biện sư phạm đã được đóng gói chuẩn xác 100%
     if (currentVideoLesson.id === 'VID_VECTO_12') {
       sound.playStampThud();
@@ -781,6 +834,55 @@ export default function App() {
 
   const handleSubmitRebuttal = async (rebuttalText: string, isEffective: boolean) => {
     recordUserActivity();
+
+    // Ghi nhận lượt Soi não tác nhân khi học sinh phản biện thành công (P1 Fix)
+    if (isEffective) {
+      const rebuttalTurnNumber = inspectorTurns.length + 1;
+      const newRebuttalTurn: InspectorTurn = {
+        turnId: `live-reb-${Date.now()}`,
+        timestamp: Date.now(),
+        turnNumber: rebuttalTurnNumber,
+        timestampStr: '37:13',
+        agent: 'Cô Lam',
+        dispatcher: {
+          intent: 'Chốt quy tắc vàng & Tổng kết sư phạm',
+          selectedAgent: 'Cô Lam',
+          confidence: 0.98,
+          reason: 'Học sinh đã phản biện thành công lập luận sai của Bo. Cô Lam xuất hiện để chuẩn hóa kiến thức.',
+        },
+        contextView: {
+          visibleContext: [
+            `Lập luận phản biện của học sinh: "${rebuttalText}"`,
+            'Bo đã thừa nhận sai sót',
+            'Quy tắc thế vectơ nối tiếp BC + CC\' = BC\'',
+          ],
+          hiddenContext: [
+            'Nội dung phân đoạn tiếp theo: Quy tắc hình hộp chữ nhật',
+          ],
+          boardSnippet: "|BC + CC'| = |BC'| = √2",
+          teacherSpeech: 'Tuyệt đối không tách độ dài tổng thành tổng độ dài!',
+          ragKnowledge: 'Định lý Pytago tam giác vuông và quy tắc cộng vectơ',
+        },
+        thought: 'Học sinh nắm rất vững bản chất hình học và không bị Bo làm lung lay. Cần khen ngợi và chốt ngay quy tắc vàng!',
+        speech: currentVideoLesson.teacherClosure?.goldenRule || 'Quy tắc vàng: Tuyệt đối không tách |a + b| = |a| + |b|.',
+        assessor: {
+          matchedPoints: [
+            'Giải thích được việc thế DD\' = CC\' để nối tiếp',
+            'Tính đúng độ dài đường chéo bằng căn bậc hai của 2',
+            'Bác bỏ hoàn toàn ngộ nhận tách độ dài của Bo',
+          ],
+          missingPoints: [],
+          bloomBefore: 'Hiểu (L2)',
+          bloomAfter: 'Đánh giá & Sáng tạo (L5-L6)',
+          bloomLevel: 5,
+          hesitationScore: 0.05,
+          hesitationLabel: 'rất thấp',
+          verdictLabel: 'Phản biện sắc bén',
+          matchedSummary: 'Đạt 3/3 ý cần có',
+        },
+      };
+      setInspectorTurns((prev) => [...prev, newRebuttalTurn]);
+    }
 
     // Đối với bài 1.1 Thầy Tiến (VID_VECTO_12): Chốt quy tắc vàng ngay khi phản biện đúng
     if (currentVideoLesson.id === 'VID_VECTO_12') {
@@ -1348,7 +1450,14 @@ export default function App() {
         {/* VIEW 1: WAR ROOM VIEW */}
         {activeStudioView === 'warroom' && (
           <main className="flex-1 w-full px-3 sm:px-6 py-6 max-w-7xl mx-auto flex flex-col space-y-4">
-            <WarRoomPanel source={replaySource} defaultCollapsed={false} />
+            <WarRoomPanel
+              source={replaySource}
+              defaultCollapsed={false}
+              onTransferDraftToTimeline={() => {
+                sound.playTabSwitch();
+                setActiveStudioView('editor');
+              }}
+            />
           </main>
         )}
 
@@ -1357,9 +1466,27 @@ export default function App() {
           <main className="flex-1 w-full px-3 sm:px-6 py-6 max-w-7xl mx-auto flex flex-col space-y-6">
             <TimelineEditor
               initialLesson={currentLessonSchema}
+              onSeekVideo={(s) => {
+                sound.playPencilTap();
+                setActiveStudioView('classroom');
+                setCurrentMode('video_clash');
+                handleSeekVideo(s);
+              }}
               onApproveSuccess={(approved) => {
                 sound.playSuccessChime();
                 setCurrentLessonSchema(approved);
+                // Dong bo ngay lap tuc sang Classroom Video Player (P1 Fix)
+                const updatedVideoLesson = adaptLessonToPlayer(approved);
+                setCurrentVideoLesson((prev) => ({
+                  ...prev,
+                  title: approved.title || prev.title,
+                  duration: approved.video_duration_s || prev.duration,
+                  checkpointTimestamp: updatedVideoLesson.checkpointTimestamp || prev.checkpointTimestamp,
+                  checkpointQuestion: updatedVideoLesson.checkpointQuestion || prev.checkpointQuestion,
+                  boArgument: updatedVideoLesson.boArgument || prev.boArgument,
+                  rebuttalStickers: updatedVideoLesson.rebuttalStickers || prev.rebuttalStickers,
+                  teacherClosure: updatedVideoLesson.teacherClosure || prev.teacherClosure,
+                }));
               }}
             />
           </main>
@@ -1682,7 +1809,7 @@ export default function App() {
                   <InspectorDrawer
                     isOpen={isInspectorDrawerOpen}
                     onClose={() => setIsInspectorDrawerOpen(false)}
-                    turns={DEMO_INSPECTOR_TURNS}
+                    turns={inspectorTurns}
                     activeTurnIndex={3}
                   />
                 </div>
@@ -1788,7 +1915,7 @@ export default function App() {
           <InspectorDrawer
             isOpen={isInspectorDrawerOpen}
             onClose={() => setIsInspectorDrawerOpen(false)}
-            turns={DEMO_INSPECTOR_TURNS}
+            turns={inspectorTurns}
             activeTurnIndex={3}
           />
         </div>

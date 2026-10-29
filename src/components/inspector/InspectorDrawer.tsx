@@ -112,7 +112,13 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
               Soi não tác nhân
             </h2>
             <p className="text-xs text-stone-500 font-medium m-0 mt-0.5">
-              Lượt #{currentTurn.turnNumber || selectedIndex + 1} · {currentTurn.timestampStr || '37:13'} · cập nhật 0,6 giây trước
+              Lượt #{currentTurn.turnNumber || selectedIndex + 1} · {currentTurn.timestampStr || '37:13'} · {
+                selectedIndex === turns.length - 1 && currentTurn.timestamp > Date.now() - 300000
+                  ? 'Vừa cập nhật theo tương tác học sinh'
+                  : currentTurn.turnId?.startsWith('live-')
+                  ? 'Vừa cập nhật theo câu trả lời'
+                  : 'Bản ghi lưu trữ (Replay)'
+              }
             </p>
           </div>
         </div>
@@ -246,15 +252,48 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
             </div>
           </div>
 
-          {/* Dòng viền đứt bảo vệ cách ly */}
-          <div className="flex items-center justify-between p-2.5 px-3 rounded-xl border border-dashed border-[#E2EAD2] bg-white">
-            <div className="flex items-center gap-2 text-xs text-stone-500">
-              <Lock className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-              <span className="line-through">{contextView.hiddenItem || 'Lời giải chuẩn của bài'}</span>
+          {/* Danh sách ngữ cảnh được nhìn thấy (Visible Context) */}
+          {contextView.visibleContext && contextView.visibleContext.length > 0 && (
+            <div className="space-y-1.5 pt-1">
+              <span className="text-[11px] font-bold text-stone-600 block uppercase tracking-wider">
+                Ngữ cảnh được cấp quyền nhìn thấy:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {contextView.visibleContext.map((item, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2.5 py-1 rounded-lg bg-[#F8FAF4] border border-[#E2EAD2] text-xs text-stone-800 font-medium flex items-center gap-1.5"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#121712]" />
+                    <span>{item}</span>
+                  </span>
+                ))}
+              </div>
             </div>
-            <span className="px-2.5 py-0.5 rounded-full bg-[#121712] text-white text-xs font-bold shrink-0">
-              Ẩn với {currentTurn.agent || 'Bo'}
+          )}
+
+          {/* Danh sách ngữ cảnh cách ly bảo vệ (Hidden Context Arrays) */}
+          <div className="space-y-1.5 pt-1">
+            <span className="text-[11px] font-bold text-stone-600 block uppercase tracking-wider">
+              Ngữ cảnh cách ly bảo vệ (Không rò rỉ lời giải):
             </span>
+            {(contextView.hiddenContext && contextView.hiddenContext.length > 0
+              ? contextView.hiddenContext
+              : [contextView.hiddenItem || 'Lời giải chuẩn của bài']
+            ).map((item, idx) => (
+              <div
+                key={idx}
+                className="flex items-center justify-between p-2 px-3 rounded-xl border border-dashed border-[#E2EAD2] bg-white"
+              >
+                <div className="flex items-center gap-2 text-xs text-stone-500">
+                  <Lock className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                  <span className="line-through">{item}</span>
+                </div>
+                <span className="px-2 py-0.5 rounded-full bg-[#121712] text-white text-[10px] font-bold shrink-0">
+                  Ẩn với {currentTurn.agent || 'Bo'}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -304,13 +343,25 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <div className="space-y-1.5">
               <span className="text-xs font-bold text-white block">
-                {assessor.matchedSummary || 'Đạt 3/3 ý cần có'}
+                {assessor.matchedSummary ||
+                  `Đạt ${assessor.matchedPoints?.length || 0}/${
+                    (assessor.matchedPoints?.length || 0) + (assessor.missingPoints?.length || 0)
+                  } ý cần có`}
               </span>
               <div className="space-y-1 text-xs text-stone-300">
                 {(assessor.matchedPoints || []).map((pt, pIdx) => (
                   <div key={pIdx} className="flex items-center gap-1.5 leading-snug">
                     <Check className="w-3.5 h-3.5 text-[#C8F169] shrink-0" />
                     <span>{pt}</span>
+                  </div>
+                ))}
+                {(assessor.missingPoints || []).map((pt, pIdx) => (
+                  <div
+                    key={`miss-${pIdx}`}
+                    className="flex items-center gap-1.5 leading-snug text-amber-300 bg-amber-950/40 px-2 py-1 rounded-lg border border-amber-500/30"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                    <span className="text-xs">Thiếu: {pt}</span>
                   </div>
                 ))}
               </div>
