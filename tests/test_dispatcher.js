@@ -151,6 +151,68 @@ const BENCHMARK_CASES = [
     expectedIntent: 'general_classroom_chitchat',
     expectedAgent: 'minhkhang',
   },
+
+  // 7. Benchmark bổ sung: Các ca kiểm thử mở rộng theo yêu cầu PR Review (36 cases)
+  {
+    query: 'Bo sai rồi, không bằng 2 đâu',
+    expectedIntent: 'challenge_shortcut_fallacy',
+    expectedAgent: 'bo',
+  },
+  {
+    query: 'em không bằng bạn Trí đâu',
+    expectedIntent: 'general_classroom_chitchat',
+    expectedAgent: 'minhkhang',
+  },
+  {
+    query: 'thầy Tiến giảng nhanh quá em không theo kịp',
+    expectedIntent: 'ask_scaffolding_help',
+    expectedAgent: 'an',
+  },
+  {
+    query: 'chào Bo nha',
+    expectedIntent: 'challenge_shortcut_fallacy',
+    expectedAgent: 'bo',
+  },
+  {
+    query: "Hình lập phương cạnh bằng 2, |BC + DD'| bằng bao nhiêu?",
+    expectedIntent: 'ask_deep_concept',
+    expectedAgent: 'tri',
+  },
+  {
+    query: "Hình lập phương cạnh bằng 2, |BC + DD'| bằng 2√2 có đúng không?",
+    expectedIntent: 'ask_deep_concept',
+    expectedAgent: 'tri',
+  },
+  {
+    query: 'Quy tắc hiệu chung đầu lộn ngược là gì vậy Linh Chi?',
+    expectedIntent: 'ask_formula_mnemonic',
+    expectedAgent: 'linhchi',
+  },
+  {
+    query: 'Tại sao hai đường thẳng chéo nhau lại không cùng phương vậy Trí?',
+    expectedIntent: 'ask_deep_concept',
+    expectedAgent: 'tri',
+  },
+  {
+    query: 'Cứ lấy cạnh cộng cạnh là xong, cần gì vẽ thêm điểm',
+    expectedIntent: 'challenge_shortcut_fallacy',
+    expectedAgent: 'bo',
+  },
+  {
+    query: 'Cô Lam ơi cho em hỏi bài tập về nhà với ạ',
+    expectedIntent: 'ask_deep_concept',
+    expectedAgent: 'colam',
+  },
+  {
+    query: 'Trợ giảng An ơi bài này em chưa hiểu bước 2',
+    expectedIntent: 'ask_scaffolding_help',
+    expectedAgent: 'an',
+  },
+  {
+    query: 'Hôm nay ai vừa giành quả bóng vàng 2026 vậy?',
+    expectedIntent: 'encourage_study_focus',
+    expectedAgent: 'minhkhang',
+  },
 ];
 
 async function runBenchmark() {

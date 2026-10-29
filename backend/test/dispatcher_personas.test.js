@@ -459,7 +459,87 @@ async function runTests() {
   assert.ok(llmRes.dispatchedAgent, 'Must return a dispatchedAgent');
   console.log(`✅ PASS Test 28: LLM Classifier/Fallback trả về intent=${llmRes.detectedIntent}, agent=${llmRes.dispatchedAgent}.\n`);
 
-  console.log('🎉 TẤT CẢ 28 BÀI TEST ĐÃ VƯỢT QUA XUẤT SẮC!');
+  // TEST 29: Phát biểu toán học sai không được kích hoạt Bo nhận thua
+  console.log('--- Test 29: "Bo sai rồi vì hai vectơ cùng hướng thì độ dài tổng luôn bằng 0" ---');
+  const d29 = await dispatchMessage({
+    message: 'Bo sai rồi vì hai vectơ cùng hướng thì độ dài tổng luôn bằng 0',
+    sessionId: `test_false_math_${Date.now()}`,
+    useLLM: false,
+  });
+  assert.equal(d29.primaryResponse.author, 'Bo');
+  assert.equal(d29.primaryResponse.mode, 'skeptic_pushback', 'Bo must push back, false math reason must NOT concede');
+  assert.notEqual(d29.sessionState?.done, true, 'Must not mark session as done');
+  console.log('✅ PASS Test 29: Phát biểu toán học sai không làm Bo nhận thua, Bo phản bác chính xác.\n');
+
+  // TEST 30: Luồng xin gợi ý thuần túy (Help-only progression: L1 -> L2 -> Cô Lam)
+  console.log('--- Test 30: Scaffolding Help Progression (Turn 1 -> Turn 2 -> Turn 3) ---');
+  const helpSessionId = `test_help_progression_${Date.now()}`;
+  const helpTurn1 = await dispatchMessage({
+    message: 'Em bí quá, cho em gợi ý với',
+    sessionId: helpSessionId,
+    useLLM: false,
+  });
+  assert.equal(helpTurn1.primaryResponse.author, 'Trợ giảng An');
+  assert.equal(helpTurn1.primaryResponse.hintLevel, 1);
+  assert.equal(helpTurn1.followUpResponse, null);
+
+  const helpTurn2 = await dispatchMessage({
+    message: 'Vẫn chưa hiểu ạ, cho em thêm gợi ý nữa với',
+    sessionId: helpSessionId,
+    useLLM: false,
+  });
+  assert.equal(helpTurn2.primaryResponse.author, 'Trợ giảng An');
+  assert.equal(helpTurn2.primaryResponse.hintLevel, 2);
+  assert.equal(helpTurn2.followUpResponse, null);
+
+  const helpTurn3 = await dispatchMessage({
+    message: 'Em vẫn bí quá chưa làm được, cứu em với',
+    sessionId: helpSessionId,
+    useLLM: false,
+  });
+  assert.equal(helpTurn3.primaryResponse.author, 'Trợ giảng An');
+  assert.notEqual(helpTurn3.followUpResponse, null);
+  assert.equal(helpTurn3.followUpResponse.author, 'Cô Lam');
+  assert.equal(helpTurn3.sessionState.done, true);
+  console.log('✅ PASS Test 30: Luồng xin gợi ý thuần túy tăng cấp bền bỉ: Cấp 1 -> Cấp 2 -> Cô Lam chốt.\n');
+
+  // TEST 31: Tính toán hình lập phương cạnh bằng 2 có claim
+  console.log('--- Test 31: Hình lập phương cạnh bằng 2 có claim 2√2 ---');
+  const { extractSideFromText, extractClaimFromText } = await import('../src/tools/tool_verify_vector_algebra.js');
+  const q31 = "Hình lập phương cạnh bằng 2, |BC + DD'| bằng 2√2 có đúng không?";
+  const side31 = extractSideFromText(q31);
+  const claim31 = extractClaimFromText(q31);
+  assert.equal(side31, 2, 'Side must be parsed as 2');
+  assert.match(claim31, /2.*sqrt.*2|2.*√.*2/i, 'Claim must be parsed as 2√2');
+  const { executeTool } = await import('../src/tools/index.js');
+  const t31 = executeTool('tool_verify_vector_algebra', {
+    shape: 'cube',
+    side: side31,
+    expr: "|BC + DD'|",
+    claim: claim31,
+  });
+  assert.equal(t31.isValid, true, '2√2 must be marked valid for cube side 2');
+  assert.equal(t31.output.correct, '2\\sqrt{2}');
+  console.log('✅ PASS Test 31: Nhận diện cạnh bằng 2 và kiểm chứng 2√2 khớp chuẩn 100%.\n');
+
+  // TEST 32: Tính toán thuần túy không có claim (Calculation only)
+  console.log('--- Test 32: Tính toán thuần túy "bằng bao nhiêu", không có claim ---');
+  const q32 = "Hình lập phương cạnh bằng 2, |BC + DD'| bằng bao nhiêu?";
+  const side32 = extractSideFromText(q32);
+  const claim32 = extractClaimFromText(q32);
+  assert.equal(side32, 2);
+  assert.equal(claim32, null, 'bằng bao nhiêu must NOT be parsed as claim answer');
+  const t32 = executeTool('tool_verify_vector_algebra', {
+    shape: 'cube',
+    side: side32,
+    expr: "|BC + DD'|",
+    claim: claim32,
+  });
+  assert.equal(t32.isValid, null, 'Calculation-only must have isValid: null');
+  assert.equal(t32.output.calculatedValue, 2.828);
+  console.log('✅ PASS Test 32: Tính toán thuần túy bảo toàn isValid: null, không gán bừa true/false.\n');
+
+  console.log('🎉 TẤT CẢ 32 BÀI TEST ĐÃ VƯỢT QUA XUẤT SẮC!');
 }
 
 runTests().catch((err) => {
