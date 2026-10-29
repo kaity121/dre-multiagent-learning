@@ -230,6 +230,125 @@ app.post(['/api/roundtable/run', '/api/roundtable/generate'], async (req, res) =
   }
 });
 
+// GET & POST /api/roundtable/stream — Real-time Server-Sent Events (SSE) Stream for War Room Demo (< 30-60s) (#302)
+const handleRoundtableStream = async (req, res) => {
+  try {
+    const isPost = req.method === 'POST';
+    const params = isPost ? (req.body || {}) : (req.query || {});
+    const {
+      videoId = 'VID_VECTO_12_TIEN',
+      partNumber,
+      streamDelayMs = 20,
+      useLLM = false,
+      cognitiveStream: customStream,
+    } = params;
+
+    // Thiết lập SSE Headers chuẩn
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('X-Accel-Buffering', 'no');
+    if (typeof res.flushHeaders === 'function') {
+      res.flushHeaders();
+    }
+
+    let isAborted = false;
+    req.on('close', () => {
+      isAborted = true;
+    });
+
+    const sendSSE = (eventName, data) => {
+      if (isAborted || res.writableEnded) return;
+      if (eventName && eventName !== 'message') {
+        res.write(`event: ${eventName}\n`);
+      }
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+      if (typeof res.flush === 'function') {
+        res.flush();
+      }
+    };
+
+    // Chuẩn bị cognitiveStream
+    const { runRoundtableForPart, runFullLessonRoundtable, partitionTimelineIntoParts } =
+      await import('./src/services/roundtableOrchestrator.js');
+
+    let stream = customStream;
+    if (!stream) {
+      const fs = await import('fs');
+      const path = await import('path');
+      const fixturePath = path.resolve(process.cwd(), 'mock/mock_cognitive_stream_vecto12.json');
+      if (fs.existsSync(fixturePath)) {
+        stream = JSON.parse(fs.readFileSync(fixturePath, 'utf-8'));
+      } else {
+        stream = {
+          videoId,
+          videoTitle: 'Bài 1.1: Vectơ Trong Không Gian - Thầy Nguyễn Phan Tiến',
+          teacherName: 'Thầy Nguyễn Phan Tiến',
+          durationSeconds: 3480,
+          segments: [],
+        };
+      }
+    }
+
+    sendSSE('session_start', {
+      videoId,
+      partNumber: partNumber ? Number(partNumber) : 'all',
+      timestamp: new Date().toISOString(),
+    });
+
+    const onEvent = async (event) => {
+      if (isAborted) return;
+      // Phát sự kiện chuẩn reasoning_event và message cho EventSource
+      sendSSE('reasoning_event', event);
+      sendSSE('message', event);
+    };
+
+    if (partNumber) {
+      const parts = partitionTimelineIntoParts(stream);
+      const targetPart = parts.find(p => p.partNumber === Number(partNumber)) || parts[0];
+      const partResult = await runRoundtableForPart(targetPart, {
+        useLLM: String(useLLM) === 'true',
+        onEvent,
+        streamDelayMs: Number(streamDelayMs) || 0,
+      });
+
+      sendSSE('complete', {
+        ok: true,
+        mode: 'part',
+        part: partResult,
+        timestamp: new Date().toISOString(),
+      });
+      return res.end();
+    }
+
+    const fullDraft = await runFullLessonRoundtable(stream, {
+      useLLM: String(useLLM) === 'true',
+      onEvent,
+      streamDelayMs: Number(streamDelayMs) || 0,
+    });
+
+    sendSSE('complete', {
+      ok: true,
+      mode: 'full_lesson',
+      draft: fullDraft,
+      timestamp: new Date().toISOString(),
+    });
+    res.end();
+  } catch (err) {
+    console.error('[SSE Roundtable] Lỗi stream:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ ok: false, error: err.message });
+    } else {
+      res.write(`event: error\ndata: ${JSON.stringify({ error: err.message })}\n\n`);
+      res.end();
+    }
+  }
+};
+
+app.get('/api/roundtable/stream', handleRoundtableStream);
+app.post('/api/roundtable/stream', handleRoundtableStream);
+
 // GET /api/roundtable/drafts/:videoId — Lấy kịch bản draft cho Teacher Studio Timeline (#15)
 app.get('/api/roundtable/drafts/:videoId', async (req, res) => {
   try {
@@ -524,6 +643,12 @@ Quy tắc ứng xử:
   }
 });
 
-app.listen(config.port, () => {
-  console.log(`DRE backend đang chạy ở http://localhost:${config.port}`);
-});
+export { app };
+export default app;
+
+const isMainModule = Boolean(process.argv[1] && (process.argv[1].endsWith('server.js') || process.argv[1].endsWith('server')));
+if (isMainModule) {
+  app.listen(config.port, () => {
+    console.log(`DRE backend đang chạy ở http://localhost:${config.port}`);
+  });
+}

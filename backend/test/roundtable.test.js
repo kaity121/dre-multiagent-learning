@@ -156,4 +156,85 @@ describe('A2A Scriptwriting Roundtable Orchestrator - Unit Tests (#302)', () => 
     assert.strictEqual(draft.durationSeconds, 65);
     assert.ok(draft.checkpoints.length >= 1);
   });
+
+  it('6. Hỗ trợ tham số callback onEvent phát ra các AgentReasoningEvent theo đúng thời gian thực và thứ tự', async () => {
+    const part3 = partitionTimelineIntoParts(cognitiveStream)[2];
+    const emittedEvents = [];
+
+    const result = await runRoundtableForPart(part3, {
+      useLLM: false,
+      onEvent: (evt) => {
+        emittedEvents.push(evt);
+      },
+      streamDelayMs: 2,
+    });
+
+    assert.ok(emittedEvents.length >= 10, 'Callback onEvent phải nhận được đầy đủ events');
+    assert.strictEqual(emittedEvents.length, result.reasoning_events.length);
+
+    // Kiểm tra thứ tự xuất hiện các event types chính: thought -> tool_call -> tool_result -> debate_turn -> cross_check_verdict -> checkpoint_created
+    const eventTypes = emittedEvents.map(e => e.eventType);
+    assert.strictEqual(eventTypes[0], 'thought', 'Event đầu tiên phải là thought của Cô Lam');
+    assert.ok(eventTypes.includes('tool_call'), 'Phải có tool_call');
+    assert.ok(eventTypes.includes('tool_result'), 'Phải có tool_result');
+    assert.ok(eventTypes.includes('debate_turn'), 'Phải có debate_turn');
+    assert.ok(eventTypes.includes('cross_check_verdict'), 'Phải có cross_check_verdict');
+    assert.strictEqual(eventTypes[eventTypes.length - 1], 'checkpoint_created', 'Event cuối cùng phải là checkpoint_created của Cô Lam');
+  });
+
+  it('7. Ràng buộc sư phạm Warmup: Không chèn checkpoint vào 15s - 30s đầu bài giảng hoặc phân đoạn', async () => {
+    const earlyStream = {
+      videoId: 'VID_EARLY_WARMUP',
+      videoTitle: 'Test Warmup Barrier',
+      teacherName: 'Thầy Tiến',
+      subject: 'Toán 12',
+      durationSeconds: 120,
+      segments: [
+        {
+          id: 'seg_warmup_5',
+          second: 5, // Quá sớm (< 15s/30s)
+          timeFormatted: '00:05',
+          audioTranscript: 'Chào các em...',
+          speaker: 'Thầy Tiến',
+          blackboardText: 'Mở đầu',
+          blackboardLatex: [],
+          trapRiskLevel: 'high',
+          pedagogicalTags: ['warmup'],
+        },
+        {
+          id: 'seg_valid_45',
+          second: 45, // Hợp lệ (>= 30s)
+          timeFormatted: '00:45',
+          audioTranscript: 'Bắt đầu nội dung trọng tâm...',
+          speaker: 'Thầy Tiến',
+          blackboardText: 'Vectơ',
+          blackboardLatex: ['|\\vec{BC}|'],
+          trapRiskLevel: 'high',
+          pedagogicalTags: ['valid_moment'],
+        },
+      ],
+    };
+
+    const parts = partitionTimelineIntoParts(earlyStream);
+    assert.ok(parts[0].chosenSegment.second >= 30, 'Segment được chọn không được rơi vào 30s warmup');
+
+    // Chạy part để xác thực checkpointSecond
+    const partResult = await runRoundtableForPart(parts[0], { useLLM: false });
+    assert.ok(partResult.checkpointSecond >= 30, `Checkpoint second (${partResult.checkpointSecond}) phải >= 30s`);
+  });
+
+  it('8. Kiểm tra endpoint SSE Stream trong server.js', async () => {
+    process.env.NODE_ENV = 'test';
+    const { app } = await import('../server.js');
+    assert.ok(app, 'app Express phải được export từ server.js');
+    // Kiểm tra các route SSE stream đã được đăng ký
+    const routes = app._router.stack
+      .filter(r => r.route)
+      .map(r => ({ path: r.route.path, methods: Object.keys(r.route.methods) }));
+
+    const streamGetRoute = routes.find(r => r.path === '/api/roundtable/stream' && r.methods.includes('get'));
+    const streamPostRoute = routes.find(r => r.path === '/api/roundtable/stream' && r.methods.includes('post'));
+    assert.ok(streamGetRoute, 'Phải có route GET /api/roundtable/stream');
+    assert.ok(streamPostRoute, 'Phải có route POST /api/roundtable/stream');
+  });
 });
