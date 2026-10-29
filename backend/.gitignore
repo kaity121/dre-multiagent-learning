@@ -1,2 +1,7 @@
 node_modules/
 .env
+
+# Demo clips are fetched locally (scripts/fetch-demo-clip.sh); keep only their metadata in git
+assets/clips/*.mp4
+assets/clips/.cache/
+assets/clips/.work-*/

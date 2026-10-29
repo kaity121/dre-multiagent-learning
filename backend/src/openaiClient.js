@@ -2,7 +2,9 @@ import OpenAI from 'openai';
 import { config } from './config.js';
 import { executeTool, OPENAI_TOOL_DEFINITIONS } from './tools/index.js';
 
-const client = new OpenAI({ apiKey: config.openaiApiKey });
+// A placeholder key lets the server boot without OPENAI_API_KEY; calls then fail per request
+// and each route falls back instead of the whole server crashing at startup.
+const client = new OpenAI({ apiKey: config.openaiApiKey || 'missing-openai-api-key' });
 
 /**
  * Gọi Chat Completions với response_format ép JSON, trả về object đã parse.
