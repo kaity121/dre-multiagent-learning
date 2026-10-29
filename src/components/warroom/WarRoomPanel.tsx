@@ -20,7 +20,8 @@ import {
   Activity,
   Sparkles,
   Layers,
-  ArrowRight
+  ArrowRight,
+  CheckCircle2
 } from 'lucide-react';
 import { sound } from '../../utils/soundEffects';
 
@@ -124,6 +125,31 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
     }
     return false;
   });
+
+  const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
+
+  useEffect(() => {
+    let timer: any = null;
+    if (isDone && isPlaying) {
+      setAutoCountdown(4);
+      timer = setInterval(() => {
+        setAutoCountdown((prev) => {
+          if (prev === null || prev <= 1) {
+            clearInterval(timer);
+            sound.playSuccessChime();
+            onTransferDraftToTimeline?.();
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else if (!isDone) {
+      setAutoCountdown(null);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isDone, isPlaying, onTransferDraftToTimeline]);
 
   const feedBottomRef = useRef<HTMLDivElement>(null);
 
@@ -441,7 +467,57 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
               </div>
             </div>
 
-            {/* Vùng hiển thị sự kiện theo Timeline dọc */}
+            {/* BANNER THÔNG BÁO HOÀN TẤT & CHUYỂN CẢNH SANG TIMELINE EDITOR */}
+          {isDone && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-[#121712] text-white border-2 border-[#C8F169] flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-md animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#C8F169] text-[#121712] flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-6 h-6 stroke-[2.5]" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                    <span>Hoàn tất trích xuất kịch bản bài giảng</span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#C8F169] text-[#121712] text-[11px] font-black">
+                      Sẵn sàng kiểm duyệt
+                    </span>
+                  </h4>
+                  <p className="text-xs text-stone-300 mt-0.5">
+                    Tất cả các tác tử đã đạt được đồng thuận sư phạm và phân loại Tháp Bloom. Kịch bản bài học đã sẵn sàng để chuyển sang Trạm 3.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {autoCountdown !== null && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playPencilTap();
+                      setAutoCountdown(null);
+                    }}
+                    className="px-3 py-2 rounded-full border border-stone-600 hover:bg-stone-800 text-stone-300 text-xs font-semibold cursor-pointer transition"
+                    title="Hủy tự động chuyển màn hình"
+                  >
+                    Dừng đếm ({autoCountdown}s)
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playSuccessChime();
+                    setAutoCountdown(null);
+                    onTransferDraftToTimeline?.();
+                  }}
+                  className="px-4 py-2.5 rounded-full bg-[#C8F169] hover:bg-[#bbf055] text-[#121712] font-black text-xs flex items-center gap-2 cursor-pointer transition shadow-xs"
+                >
+                  <span>Chuyển sang Timeline Editor (Trạm 3)</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Vùng hiển thị sự kiện theo Timeline dọc */}
             <div className="space-y-1 select-text">
               {events.length === 0 ? (
                 /* TRẠNG THÁI CHƯA PHÁT: NÚT PHÁT LỚN Ở TRUNG TÂM + LỜI HƯỚNG DẪN TRỰC QUAN */

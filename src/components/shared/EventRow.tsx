@@ -39,45 +39,45 @@ export const EventRow: React.FC<EventRowProps> = ({ event, isLast = false, baseT
             <Scale className="w-4 h-4 text-[#EA580C]" />,
             'bg-[#FFF7ED] border-2 border-[#FED7AA]'
           )}
-          <div className="flex-1 bg-white border border-[#FED7AA] rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-amber-100">
+          <div className="flex-1 bg-white border-2 border-[#EA580C] border-l-4 border-l-[#EA580C] rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-amber-200">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-xs uppercase tracking-wider text-[#9A3412]">
+                <span className="font-extrabold text-xs uppercase tracking-wider text-[#9A3412]">
                   Phán quyết phản biện chéo (Cross-check)
                 </span>
                 <span
-                  className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wide border ${
+                  className={`text-xs px-3 py-1 rounded-full font-black uppercase tracking-wide border-2 shadow-xs ${
                     isDisagree
-                      ? 'bg-rose-50 text-rose-800 border-rose-200'
-                      : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                      ? 'bg-[#991B1B] text-white border-[#7F1D1D]'
+                      : 'bg-[#065F46] text-white border-[#064E3B]'
                   }`}
                 >
-                  {isDisagree ? 'Bác bỏ / Chưa đồng thuận' : 'Đồng ý'}
+                  {isDisagree ? 'Bác bỏ / Chưa đồng thuận' : 'Đồng thuận'}
                 </span>
               </div>
-              <span className="text-xs font-mono font-medium text-stone-500">{timeFormatted}</span>
+              <span className="text-xs font-mono font-bold text-stone-700">{timeFormatted}</span>
             </div>
 
             <div className="flex items-start gap-3">
               <AgentAvatar name={event.agent} state="speaking" size="sm" showLabel={false} />
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-1.5 text-xs">
-                  <span className="font-bold text-[#121712]">{event.agent}</span>
-                  <span className="text-stone-500">phản biện ý kiến của</span>
-                  <span className="font-bold text-[#121712]">{cc?.targetAgent || 'Tác tử'}</span>
+                  <span className="font-extrabold text-[#121712]">{event.agent}</span>
+                  <span className="text-stone-600 font-medium">phản biện ý kiến của</span>
+                  <span className="font-extrabold text-[#121712]">{cc?.targetAgent || 'Tác tử'}</span>
                   {cc?.confidence && (
-                    <span className="text-stone-500 font-mono ml-auto">
+                    <span className="text-stone-700 font-mono font-bold ml-auto bg-stone-100 px-2.5 py-0.5 rounded-full border border-stone-200">
                       Độ tin cậy: {(cc.confidence * 100).toFixed(0)}%
                     </span>
                   )}
                 </div>
 
-                <div className="p-3.5 bg-[#FFFBEB] rounded-xl border border-[#FED7AA] text-sm text-stone-900 leading-relaxed font-sans">
+                <div className="p-3.5 bg-[#FFFBEB] rounded-xl border border-[#FED7AA] text-sm text-stone-950 font-bold leading-relaxed font-sans shadow-2xs">
                   "{cc?.critique || event.content}"
                 </div>
 
                 {cc?.counterProposal && (
-                  <div className="text-xs text-stone-800 bg-[#F8FAF4] p-3 rounded-xl border border-[#E2EAD2]">
+                  <div className="text-xs text-stone-900 bg-[#F8FAF4] p-3 rounded-xl border border-[#E2EAD2]">
                     <span className="font-bold text-[#121712]">Đề xuất phương án:</span>{' '}
                     {cc.counterProposal}
                   </div>

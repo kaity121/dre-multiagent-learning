@@ -54,6 +54,14 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isInput = target && (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
+      );
+      if (isInput) return;
+
       if (e.altKey && (e.key === 'i' || e.key === 'I')) {
         e.preventDefault();
         if (isOpen) {
