@@ -11,6 +11,7 @@ import { chamPhanBien } from '../agents/assessor.js';
 import { getOrCreateSession, logActivityEvent } from '../sessionStore.js';
 import { executeTool } from '../tools/index.js';
 import { extractVectorExpr, extractClaimFromText, extractSideFromText } from '../tools/tool_verify_vector_algebra.js';
+import { buildRuntimeContext } from './contextSnapshot.js';
 
 /**
  * ============================================================================
@@ -941,6 +942,16 @@ export async function dispatchMessage({
   const mathProblem = kbMatch?.misconception?.title || lessonTitle;
   const targetAgent = verdict.dispatchedAgent;
 
+  // Đóng gói Context Isolation Snapshot bám sát bảng phấn tại giây hiện tại (Issue #402)
+  const contextSnapshot = buildRuntimeContext({
+    agentId: targetAgent,
+    second: currentTime,
+    sessionId: activeSessionId,
+    userMessage: message,
+    videoId: 'VID_VECTO_12_TIEN',
+  });
+  const citations = contextSnapshot?.citations || [];
+
   let primaryResponse = null;
   let followUpResponse = null;
 
@@ -1529,9 +1540,15 @@ export async function dispatchMessage({
 
   if (primaryResponse?.text) {
     primaryResponse.text = sanitizeText(primaryResponse.text);
+    if (!primaryResponse.citations) {
+      primaryResponse.citations = citations;
+    }
   }
   if (followUpResponse?.text) {
     followUpResponse.text = sanitizeText(followUpResponse.text);
+    if (!followUpResponse.citations) {
+      followUpResponse.citations = citations;
+    }
   }
 
   const latencyMs = Date.now() - t0;
@@ -1541,6 +1558,8 @@ export async function dispatchMessage({
     verdict,
     primaryResponse,
     followUpResponse,
+    contextSnapshot,
+    citations,
     ragContextUsed: kbMatch
       ? {
           misconceptionId: kbMatch.misconception.id,

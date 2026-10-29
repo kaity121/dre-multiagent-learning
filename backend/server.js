@@ -233,6 +233,50 @@ app.post('/api/runtime/dispatch', async (req, res) => {
   }
 });
 
+
+// GET /api/runtime/context-snapshot — AISDLC Issue #402: Lấy Context Isolation Snapshot bám sát bảng phấn
+app.get('/api/runtime/context-snapshot', async (req, res) => {
+  try {
+    const { agentId = 'tri', second = 2233, sessionId = 'session_001', videoId = 'VID_VECTO_12_TIEN' } = req.query;
+    const { buildRuntimeContext } = await import('./src/services/contextSnapshot.js');
+    const snapshot = buildRuntimeContext({
+      agentId: String(agentId),
+      second: Number(second) || 2233,
+      sessionId: String(sessionId),
+      videoId: String(videoId),
+    });
+    res.json({ ok: true, snapshot });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/runtime/context-snapshot — AISDLC Issue #402: Đóng gói Context Isolation Snapshot theo yêu cầu
+app.post('/api/runtime/context-snapshot', async (req, res) => {
+  try {
+    const {
+      agentId = 'tri',
+      second = 2233,
+      sessionId = 'session_001',
+      videoId = 'VID_VECTO_12_TIEN',
+      userMessage = '',
+      chatHistory = [],
+    } = req.body || {};
+    const { buildRuntimeContext } = await import('./src/services/contextSnapshot.js');
+    const snapshot = buildRuntimeContext({
+      agentId: String(agentId),
+      second: Number(second) || 2233,
+      sessionId: String(sessionId),
+      videoId: String(videoId),
+      userMessage: String(userMessage),
+      chatHistory: Array.isArray(chatHistory) ? chatHistory : [],
+    });
+    res.json({ ok: true, snapshot });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 // POST /api/chat/classroom — OpenMAIC: Khung chat lớp học tích hợp Dispatcher, RAG & Multi-Agent Chaining
 app.post('/api/chat/classroom', async (req, res) => {
   try {
@@ -358,6 +402,8 @@ app.post('/api/chat/classroom', async (req, res) => {
       kbMatchedId: dispatchResult.ragContextUsed?.misconceptionId || kbMatch?.misconception?.id || null,
       toolCall: toolCalls[0] || null,
       toolCalls,
+      citations: dispatchResult.citations || (dispatchResult.primaryResponse?.citations) || null,
+      contextSnapshot: dispatchResult.contextSnapshot || null,
       timeStr: dispatchResult.currentTimeStr,
       latencyMs: dispatchResult.latencyMs,
     });
