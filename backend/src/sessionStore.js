@@ -8,19 +8,42 @@ import { randomUUID } from 'node:crypto';
  */
 const sessions = new Map();
 
-export function createSession({ misconceptionId }) {
-  const id = randomUUID();
+export function createSession({ misconceptionId = 'MISC_VEC_005', id = null } = {}) {
+  const sessionId = id || randomUUID();
   const session = {
-    id,
+    id: sessionId,
+    session_id: sessionId,
+    learner_id: 'learner_001',
+    lesson_id: 'math_12_vecto_01',
+    lesson_version: '1.1',
+    status: 'in_progress',
+    video_time_s: 2233,
+    station_progress: 'station_1_video',
     misconceptionId,
     hintLevel: 0, // 0 = chưa dùng gợi ý, 1 = đã dùng gợi ý cấp 1, 2 = đã dùng cấp 2
     cauTraLoiGoc: null,
     danhGiaGoc: null, // "dung" | "sai"
     loaiBay: null,
     done: false,
+    activity_log: [], // Issue #11, #403 & PR #21 Activity Log Events
+    memory: {
+      summary: '',
+      open_questions: [],
+      misconceptions_triggered: [misconceptionId],
+      rebuttal_mastery_rate: 0,
+    },
+    assessment: {
+      goals: [],
+    },
+    part_reviews: [],
+    overall_review: {
+      result: 'developing',
+      summary: '',
+      reviewed_part_ids: [],
+    },
     createdAt: Date.now(),
   };
-  sessions.set(id, session);
+  sessions.set(sessionId, session);
   return session;
 }
 
@@ -38,3 +61,44 @@ export function updateSession(id, patch) {
   sessions.set(id, session);
   return session;
 }
+
+export function getOrCreateSession(id, defaultProps = {}) {
+  if (id && sessions.has(id)) {
+    return sessions.get(id);
+  }
+  return createSession({ ...defaultProps, id: id || undefined });
+}
+
+/**
+ * Ghi nhận sự kiện ActivityLogEvent vào session (Issue #11 & PR #21)
+ *
+ * @param {string} sessionId
+ * @param {Object} event
+ * @param {string} event.type - 'intent_routed' | 'learner_answer' | 'bo_conceded' | 'scaffolding_hint' | etc.
+ * @param {Object} [event.payload]
+ * @returns {Object} event entry vừa ghi nhận
+ */
+export function logActivityEvent(sessionId, event) {
+  const session = getOrCreateSession(sessionId);
+  if (!Array.isArray(session.activity_log)) {
+    session.activity_log = [];
+  }
+  const entry = {
+    id: event.id || randomUUID(),
+    timestamp: event.timestamp || Date.now(),
+    type: event.type || 'activity_event',
+    ...event,
+  };
+  session.activity_log.push(entry);
+  return entry;
+}
+
+export const sessionStore = {
+  createSession,
+  getSession,
+  updateSession,
+  getOrCreateSession,
+  logActivityEvent,
+};
+
+export default sessionStore;

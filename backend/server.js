@@ -209,21 +209,45 @@ app.post('/api/tools/execute', async (req, res) => {
   }
 });
 
-// POST /api/chat/classroom — OpenMAIC: Khung chat lớp học tích hợp RAG Knowledge Base & 4 AI Peers
-app.post('/api/chat/classroom', async (req, res) => {
+// POST /api/runtime/dispatch — OpenMAIC Issue #401: Runtime Intent Classifier & Dynamic Routing Dispatcher
+app.post('/api/runtime/dispatch', async (req, res) => {
   try {
-    const { message, currentTime = 2233, recipient = 'all', lessonTitle = 'Toán 12 — Vectơ trong không gian' } = req.body || {};
+    const { message, currentTime = 2233, lessonTitle = 'Toán 12 — Vectơ trong không gian', sessionId = null, recipient = 'all', useLLM = true } = req.body || {};
     if (!message) {
       return res.status(400).json({ error: 'Thiếu message' });
     }
 
-    // 0. Khởi tạo & chuẩn hóa chuỗi ngay từ đầu (TRÁNH TDZ CRASH)
+    const { dispatchMessage } = await import('./src/services/dispatcher.js');
+    const result = await dispatchMessage({
+      message,
+      currentTime,
+      lessonTitle,
+      sessionId,
+      recipient,
+      useLLM,
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/chat/classroom — OpenMAIC: Khung chat lớp học tích hợp Dispatcher, RAG & Multi-Agent Chaining
+app.post('/api/chat/classroom', async (req, res) => {
+  try {
+    const { message, currentTime = 2233, recipient = 'all', lessonTitle = 'Toán 12 — Vectơ trong không gian', useLLM = true, sessionId = null } = req.body || {};
+    if (!message) {
+      return res.status(400).json({ error: 'Thiếu message' });
+    }
+
     const lower = String(message).toLowerCase().trim();
-
     const { search, getById } = await import('./src/services/knowledgeBase.js');
-    const { chatJSON } = await import('./src/openaiClient.js');
+    const { executeTool } = await import('./src/tools/index.js');
+    const { extractVectorExpr, extractClaimFromText, extractSideFromText } = await import('./src/tools/tool_verify_vector_algebra.js');
+    const toolCalls = [];
 
-    // 1. RAG Search trên Knowledge Base DRE — chỉ thực hiện khi câu hỏi liên quan kiến thức toán
+    // 1. RAG Search trên Knowledge Base DRE
     let kbMatch = null;
     if (isMathKnowledgeQuery(message)) {
       const searchHits = search(message, 1);
@@ -235,27 +259,6 @@ app.post('/api/chat/classroom', async (req, res) => {
       }
     }
 
-    // 2. Xác định vai trả lời (Routing)
-    let targetPeer = recipient;
-    if (targetPeer === 'all') {
-      if (lower.includes('@bo') || lower.includes(' bo ') || lower.endsWith(' bo') || lower.startsWith('bo ')) {
-        targetPeer = 'bo';
-      } else if (lower.includes('@linhchi') || lower.includes('linh chi') || lower.includes('công thức') || lower.includes('quy tắc')) {
-        targetPeer = 'linhchi';
-      } else if (lower.includes('@minhkhang') || lower.includes('minh khang') || lower.includes('đời sống') || lower.includes('hình dung')) {
-        targetPeer = 'minhkhang';
-      } else if (lower.includes('@colam') || lower.includes('cô lam') || lower.includes('thưa cô')) {
-        targetPeer = 'colam';
-      } else {
-        targetPeer = 'tri'; // Default deep thinker
-      }
-    }
-
-    // 3. Thực thi Deterministic Tools TRƯỚC KHI gọi model để model có số liệu thực tế
-    const { executeTool } = await import('./src/tools/index.js');
-    const toolCalls = [];
-
-    // 3.1 Tool RAG Knowledge Base Retrieval
     if (kbMatch) {
       const ragTool = executeTool('tool_query_misconception_kb', {
         misconceptionId: kbMatch.misconception.id,
@@ -273,43 +276,52 @@ app.post('/api/chat/classroom', async (req, res) => {
       });
     }
 
-    // 3.2 Tool kiểm chứng đại số hình học (CHỈ CHẠY KHI câu hỏi hoặc checkpoint thực sự liên quan đến phép toán hình lập phương / độ dài)
-    let vectorAlgebraTool = null;
-    const hasAlgebraClaim = lower.includes('bc') || lower.includes('dd') || lower.includes('2a') ||
+    // 2. Vector Algebra Tool (Dynamic Parsing)
+    const detectedExpr = extractVectorExpr(message);
+    const detectedClaim = extractClaimFromText(message);
+    const detectedSide = extractSideFromText(message);
+    const hasAlgebraClaim = detectedExpr || lower.includes('bc') || lower.includes('dd') || lower.includes('2a') ||
       lower.includes('a√2') || lower.includes('√2') || lower.includes('căn 2') || lower.includes('1+1') ||
       (kbMatch?.misconception?.id === 'MISC_VEC_005' && (lower.includes('độ dài') || lower.includes('do dai')));
 
+    let vectorAlgebraTool = null;
     if (hasAlgebraClaim) {
-      let detectedClaim = '2a';
-      if (lower.includes('a√2') || lower.includes('√2') || lower.includes('căn 2')) {
-        detectedClaim = 'a√2';
-      } else if (lower.includes("bc'")) {
-        detectedClaim = "BC'";
-      } else if (lower.includes('2a')) {
-        detectedClaim = '2a';
-      } else if (lower.includes('1+1')) {
-        detectedClaim = '2';
+      const exprToVerify = detectedExpr || "|BC + DD'|";
+      let finalClaim = detectedClaim;
+      if (!finalClaim) {
+        if (lower.includes('a√2') || lower.includes('√2') || lower.includes('căn 2')) {
+          finalClaim = detectedSide !== 'a' ? `${detectedSide}√2` : 'a√2';
+        } else if (lower.includes("bc'")) {
+          finalClaim = "BC'";
+        } else if (lower.includes('2a')) {
+          finalClaim = '2a';
+        } else if (lower.includes('1+1')) {
+          finalClaim = '2';
+        }
       }
 
       vectorAlgebraTool = executeTool('tool_verify_vector_algebra', {
         shape: 'cube',
-        side: 'a',
-        expr: "|BC + DD'|",
-        claim: detectedClaim,
+        side: detectedSide,
+        expr: exprToVerify,
+        claim: finalClaim,
       });
 
-      const badgeText = vectorAlgebraTool.isValid === true
-        ? `Đã kiểm chứng hình học: Khớp chuẩn (${vectorAlgebraTool.output.correct || 'a√2'})`
-        : vectorAlgebraTool.isValid === false
-          ? `Đã kiểm chứng hình học: Sai lệch (${vectorAlgebraTool.input.claim} ≠ ${vectorAlgebraTool.output.correct || 'a√2'})`
-          : `Đã kiểm chứng hình học: ${vectorAlgebraTool.output.correct || 'a√2'}`;
+      const isCalcOnly = vectorAlgebraTool.output?.isValid === null;
+      const badgeText = isCalcOnly
+        ? `Đã tính toán: ${vectorAlgebraTool.output?.correct || ''}`
+        : (vectorAlgebraTool.isValid === true
+            ? `Đã kiểm chứng hình học: Khớp chuẩn (${vectorAlgebraTool.output?.correct || 'a√2'})`
+            : vectorAlgebraTool.isValid === false
+              ? `Đã kiểm chứng hình học: Sai lệch (${vectorAlgebraTool.input.claim} ≠ ${vectorAlgebraTool.output?.correct || 'a√2'})`
+              : `Đã kiểm chứng hình học: ${vectorAlgebraTool.output?.correct || 'a√2'}`);
 
       toolCalls.push({
         toolName: vectorAlgebraTool.toolName,
         status: 'completed',
-        label: 'Trí đang kiểm chứng hình học...',
+        label: isCalcOnly ? 'Trí đang tính toán độ dài vectơ...' : 'Trí đang kiểm chứng hình học...',
         badgeText,
-        category: 'math_verify',
+        category: isCalcOnly ? 'math_calc' : 'math_verify',
         input: vectorAlgebraTool.input,
         output: vectorAlgebraTool.output,
         isValid: vectorAlgebraTool.isValid,
@@ -317,87 +329,37 @@ app.post('/api/chat/classroom', async (req, res) => {
       });
     }
 
-    // 3.3 Tool thẩm định Bloom (Cô Lam)
-    let bloomTool = null;
-    if (targetPeer === 'colam') {
-      bloomTool = executeTool('tool_evaluate_bloom_level', {
-        question: message,
-        expected_points: kbMatch?.misconception?.resolution_criteria || [],
-      });
-      toolCalls.push({
-        toolName: 'tool_evaluate_bloom_level',
-        status: 'completed',
-        label: 'Cô Lam đang thẩm định chuẩn Bloom...',
-        badgeText: `Chuẩn Bloom: ${bloomTool.output.level} (${bloomTool.output.score}/6)`,
-        category: 'bloom',
-        input: bloomTool.input,
-        output: bloomTool.output,
-        isValid: bloomTool.isValid,
-        timestampMs: bloomTool.timestampMs,
-      });
-    }
-
-    const m = Math.floor(currentTime / 60);
-    const s = Math.floor(currentTime % 60);
-    const timeStr = `${m}:${s.toString().padStart(2, '0')}`;
-
-    const systemPrompt = `Bạn là bạn học "${targetPeer.toUpperCase()}" trong lớp học thông minh DRE Toán 12 (Bài giảng Thầy Nguyễn Phan Tiến).
-Thời điểm video hiện tại: [${timeStr}].
-Chủ đề: ${lessonTitle}.
-${kbMatch ? `
-Tri thức nền tảng (KB RAG):
-- Ngộ nhận liên quan: ${kbMatch.misconception.title} (${kbMatch.misconception.incorrect_claim})
-- Kiến thức đúng: ${kbMatch.misconception.correction}
-- Phản ví dụ: ${kbMatch.misconception.counterexample?.setup} -> ${kbMatch.misconception.counterexample?.result}
-- Gợi ý phân tầng: 
-  + Mức 1: ${kbMatch.misconception.scaffolding[0]?.question || ''}
-  + Mức 2: ${kbMatch.misconception.scaffolding[1]?.question || ''}
-` : ''}
-${vectorAlgebraTool ? `
-Dữ liệu kiểm chứng từ Deterministic Tool (Toạ độ 3D):
-- Biểu thức: ${vectorAlgebraTool.input.expr}
-- Phát biểu kiểm tra: ${vectorAlgebraTool.input.claim}
-- Kết quả kiểm chứng (isValid): ${vectorAlgebraTool.isValid}
-- Giá trị đúng chuẩn: ${vectorAlgebraTool.output.correct}
-- Căn cứ hình học: ${vectorAlgebraTool.output.reason}
-` : ''}
-
-Quy tắc ứng xử:
-1. Giữ đúng persona của ${targetPeer} (Bo: lém lỉnh; Trí: trầm tĩnh, đào sâu bản chất; Linh Chi: cẩn thận, tóm tắt công thức; Minh Khang: ví dụ trực quan đời thực; Cô Lam: ấm áp, dẫn dắt Socratic "nudges, not answers").
-2. Khi học sinh hỏi về bẫy tổng 1+1=2 hoặc cộng độ dài: Trí giải thích bản chất bất đẳng thức tam giác và Pytago ra a√2, không bằng 2a.
-3. Không xả ngay đáp án chi tiết nếu học sinh đang hỏi gợi ý; gợi ý từng nấc nhẹ nhàng (1-2 câu).
-4. Luôn trả về JSON:
-{
-  "author": "${targetPeer === 'bo' ? 'Bo' : targetPeer === 'tri' ? 'Trí' : targetPeer === 'linhchi' ? 'Linh Chi' : targetPeer === 'minhkhang' ? 'Minh Khang' : 'Cô Lam'}",
-  "text": "Câu trả lời của bạn",
-  "followUpBoText": "Nếu câu hỏi liên quan đến bẫy của Bo mà Trí trả lời, Bo nói thêm 1 câu đồng tình/sáng tỏ (hoặc rỗng nếu không cần)"
-}`;
-
-    const modelToUse = targetPeer === 'colam' 
-      ? config.models.coLam 
-      : targetPeer === 'tri' 
-        ? (config.models.tri || config.models.bo)
-        : config.models.bo;
-
-    const reply = await chatJSON({
-      model: modelToUse,
-      systemPrompt,
-      userPayload: {
-        student_question: message,
-        currentTime: timeStr,
-      },
+    // 3. Dispatch qua Dynamic Dispatcher (Issue #401)
+    const { dispatchMessage } = await import('./src/services/dispatcher.js');
+    const activeSessionId = sessionId || `classroom_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const dispatchResult = await dispatchMessage({
+      message,
+      currentTime,
+      lessonTitle,
+      sessionId: activeSessionId,
+      recipient,
+      useLLM,
+      toolCalls,
+      vectorAlgebraTool,
+      kbMatch,
     });
 
     res.json({
       ok: true,
-      author: reply.author,
-      text: reply.text,
-      followUpBoText: reply.followUpBoText || null,
-      peerId: targetPeer,
-      kbMatchedId: kbMatch?.misconception?.id || null,
+      author: dispatchResult.primaryResponse.author,
+      text: dispatchResult.primaryResponse.text,
+      avatarId: dispatchResult.primaryResponse.avatarId,
+      followUpBoText: dispatchResult.followUpResponse?.text || null,
+      followUpResponse: dispatchResult.followUpResponse || null,
+      peerId: dispatchResult.verdict.dispatchedAgent,
+      verdict: dispatchResult.verdict,
+      sessionId: activeSessionId,
+      sessionState: dispatchResult.sessionState || null,
+      kbMatchedId: dispatchResult.ragContextUsed?.misconceptionId || kbMatch?.misconception?.id || null,
       toolCall: toolCalls[0] || null,
       toolCalls,
-      timeStr,
+      timeStr: dispatchResult.currentTimeStr,
+      latencyMs: dispatchResult.latencyMs,
     });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });

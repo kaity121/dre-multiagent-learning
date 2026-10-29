@@ -4,6 +4,10 @@
  * Powered by OpenAI GPT-6 (Bo, Assessor & TA An on gpt-6-sol, Cô Lam on gpt-6.1-sol).
  */
 
+import type { AgentCitation } from '../types/pipeline';
+
+export type { AgentCitation };
+
 const API_BASE_URL = (import.meta as any).env?.VITE_DRE_API_URL || 'http://localhost:3001';
 
 export interface StartSessionResponse {
@@ -132,7 +136,11 @@ export interface ClassroomChatResponse {
   kbMatchedId?: string | null;
   toolCall?: DeterministicToolCallInfo | null;
   toolCalls?: DeterministicToolCallInfo[] | null;
+  citations?: AgentCitation[] | null;
+  contextSnapshot?: any | null;
   timeStr: string;
+  sessionId?: string;
+  sessionState?: any;
 }
 
 /**
@@ -141,7 +149,8 @@ export interface ClassroomChatResponse {
 export async function sendClassroomChat(
   message: string,
   currentTime: number,
-  recipient: string = 'all'
+  recipient: string = 'all',
+  sessionId?: string
 ): Promise<ClassroomChatResponse | null> {
   try {
     const controller = new AbortController();
@@ -149,7 +158,7 @@ export async function sendClassroomChat(
     const res = await fetch(`${API_BASE_URL}/api/chat/classroom`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, currentTime, recipient }),
+      body: JSON.stringify({ message, currentTime, recipient, sessionId }),
       signal: controller.signal,
     });
     clearTimeout(timeoutId);
@@ -206,3 +215,102 @@ export async function sendPeerChat(
   }
 }
 
+
+/**
+ * AISDLC Issue #402: Fetch Context Isolation Snapshot for an agent at second T
+ */
+export async function fetchContextSnapshot(
+  agentId: string = 'tri',
+  second: number = 2233,
+  sessionId: string = 'session_001'
+): Promise<any | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/runtime/context-snapshot?agentId=${agentId}&second=${second}&sessionId=${sessionId}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.snapshot || null;
+  } catch (err) {
+    console.warn('[DRE API] fetchContextSnapshot error:', err);
+    return null;
+  }
+}
+
+/**
+ * ============================================================================
+ * AISDLC Issue #403: Cognitive Evaluator & Bloom Certification Client APIs
+ * ============================================================================
+ */
+
+export async function evaluateCognitiveResponse(payload: {
+  answer: string;
+  expectedPoints?: string[];
+  currentTime?: number;
+  misconceptionId?: string;
+  deltaSeconds?: number;
+  characterCount?: number;
+  backspaceCount?: number;
+}): Promise<any | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/evaluator/assess`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.warn('[DRE API] evaluateCognitiveResponse error:', err);
+    return null;
+  }
+}
+
+export async function sendEvaluatorAction(payload: {
+  sessionId: string;
+  action: 'create_learning_record' | 'update_mastery_state' | 'create_review_task';
+  payload: Record<string, any>;
+}): Promise<any | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/evaluator/action`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.warn('[DRE API] sendEvaluatorAction error:', err);
+    return null;
+  }
+}
+
+export async function certifyStation4Bloom(payload: {
+  sessionId: string;
+  teachingAnswer: string;
+  createdProblem?: any;
+  videoTimeS?: number;
+}): Promise<any | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/evaluator/certify-station4`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.warn('[DRE API] certifyStation4Bloom error:', err);
+    return null;
+  }
+}
+
+export async function exportSessionSchema(sessionId: string): Promise<any | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/session/${sessionId}/export`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.session || null;
+  } catch (err) {
+    console.warn('[DRE API] exportSessionSchema error:', err);
+    return null;
+  }
+}
