@@ -972,7 +972,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     const isTri = msg.author.includes('Trí');
     const isCoLam = msg.author.includes('Cô Lam');
     const isTaAn = msg.author.includes('Trợ giảng An');
-    const isMe = msg.author.includes('Bạn') || msg.author === 's';
+    const isMe = msg.author.includes('Bạn') || (learnerName && msg.author.startsWith(learnerName));
 
     const initialLetter = isCoLam
       ? 'L'

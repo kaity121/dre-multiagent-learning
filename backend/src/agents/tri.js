@@ -11,6 +11,7 @@ Nhiệm vụ theo Bloom:
 - Analyze: Đào sâu vào điều kiện xác định (ĐKXĐ), điều kiện biên (nếu mẫu số = 0, nếu nhân số âm thì sao).
 - Evaluate: Đặt câu hỏi phản biện để học sinh tự nhận ra lỗ hổng tư duy, KHÔNG giải hộ.
 Tối đa 2-3 câu mỗi phản hồi. Luôn chuẩn mực, khơi gợi tư duy.
+Nếu có "tool_verification" từ Deterministic Tool (Toạ độ số 3D), hãy chủ động trích dẫn căn cứ hình học và giá trị độ dài chuẩn xác từ tool để giải thích rõ ràng cho học sinh.
 QUY TẮC KÝ HIỆU VECTƠ: Luôn viết chữ 'vectơ AB' hoặc dùng '\\vec{AB}'. TUYỆT ĐỐI KHÔNG dùng mã ký tự lạ như 'd6c2AB' hay 'd6c2'.
 
 Luôn trả về JSON:
@@ -20,31 +21,33 @@ Luôn trả về JSON:
 }
 `.trim();
 
-export async function triDeepThink({ baiToan, chuDe, cauHoiHocVien, loiBoGiai }) {
+export async function triDeepThink({ baiToan, chuDe, cauHoiHocVien, loiBoGiai, vectorAlgebraTool }) {
   const combinedText = `${cauHoiHocVien || ''} ${baiToan || ''} ${loiBoGiai || ''}`.toLowerCase();
   
-  let toolCall = null;
-  if (
-    (combinedText.includes('bc') || combinedText.includes("dd'") || combinedText.includes('1+1') || combinedText.includes('hinh lap phuong')) &&
-    (combinedText.includes('độ dài') || combinedText.includes('do dai') || combinedText.includes('2a') || combinedText.includes('bẫy') || combinedText.includes('cộng'))
-  ) {
-    const rawTool = executeTool('tool_verify_vector_algebra', {
-      shape: 'cube',
-      side: 'a',
-      expr: "|BC + DD'|",
-      claim: combinedText.includes('2a') || combinedText.includes('2') ? '2a' : '2a',
-    });
+  let toolCall = vectorAlgebraTool || null;
+  if (!toolCall) {
+    if (
+      (combinedText.includes('bc') || combinedText.includes("dd'") || combinedText.includes('1+1') || combinedText.includes('hinh lap phuong')) &&
+      (combinedText.includes('độ dài') || combinedText.includes('do dai') || combinedText.includes('2a') || combinedText.includes('bẫy') || combinedText.includes('cộng'))
+    ) {
+      const rawTool = executeTool('tool_verify_vector_algebra', {
+        shape: 'cube',
+        side: 'a',
+        expr: "|BC + DD'|",
+        claim: combinedText.includes('2a') || combinedText.includes('2') ? '2a' : '2a',
+      });
 
-    toolCall = {
-      toolName: rawTool.toolName,
-      status: 'completed',
-      label: 'Trí đang kiểm chứng hình học...',
-      badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D)',
-      input: rawTool.input,
-      output: rawTool.output,
-      isValid: rawTool.isValid,
-      timestampMs: rawTool.timestampMs,
-    };
+      toolCall = {
+        toolName: rawTool.toolName,
+        status: 'completed',
+        label: 'Trí đang kiểm chứng hình học...',
+        badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D)',
+        input: rawTool.input,
+        output: rawTool.output,
+        isValid: rawTool.isValid,
+        timestampMs: rawTool.timestampMs,
+      };
+    }
   }
 
   const aiReply = await chatJSON({
@@ -55,7 +58,7 @@ export async function triDeepThink({ baiToan, chuDe, cauHoiHocVien, loiBoGiai })
       chu_de: chuDe,
       cau_hoi_hoc_vien: cauHoiHocVien,
       loi_bo_giai: loiBoGiai,
-      tool_verification: toolCall ? toolCall.output : undefined,
+      tool_verification: toolCall?.output || toolCall,
     },
   });
 

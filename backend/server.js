@@ -236,7 +236,7 @@ app.post('/api/runtime/dispatch', async (req, res) => {
 // POST /api/chat/classroom — OpenMAIC: Khung chat lớp học tích hợp Dispatcher, RAG & Multi-Agent Chaining
 app.post('/api/chat/classroom', async (req, res) => {
   try {
-    const { message, currentTime = 2233, recipient = 'all', lessonTitle = 'Toán 12 — Vectơ trong không gian', useLLM = true } = req.body || {};
+    const { message, currentTime = 2233, recipient = 'all', lessonTitle = 'Toán 12 — Vectơ trong không gian', useLLM = true, sessionId = null } = req.body || {};
     if (!message) {
       return res.status(400).json({ error: 'Thiếu message' });
     }
@@ -244,6 +244,7 @@ app.post('/api/chat/classroom', async (req, res) => {
     const lower = String(message).toLowerCase().trim();
     const { search, getById } = await import('./src/services/knowledgeBase.js');
     const { executeTool } = await import('./src/tools/index.js');
+    const { extractVectorExpr, extractClaimFromText } = await import('./src/tools/tool_verify_vector_algebra.js');
     const toolCalls = [];
 
     // 1. RAG Search trên Knowledge Base DRE
@@ -275,28 +276,34 @@ app.post('/api/chat/classroom', async (req, res) => {
       });
     }
 
-    // 2. Vector Algebra Tool
-    const hasAlgebraClaim = lower.includes('bc') || lower.includes('dd') || lower.includes('2a') ||
+    // 2. Vector Algebra Tool (Dynamic Parsing)
+    const detectedExpr = extractVectorExpr(message);
+    const detectedClaim = extractClaimFromText(message);
+    const hasAlgebraClaim = detectedExpr || lower.includes('bc') || lower.includes('dd') || lower.includes('2a') ||
       lower.includes('a√2') || lower.includes('√2') || lower.includes('căn 2') || lower.includes('1+1') ||
       (kbMatch?.misconception?.id === 'MISC_VEC_005' && (lower.includes('độ dài') || lower.includes('do dai')));
 
+    let vectorAlgebraTool = null;
     if (hasAlgebraClaim) {
-      let detectedClaim = '2a';
-      if (lower.includes('a√2') || lower.includes('√2') || lower.includes('căn 2')) {
-        detectedClaim = 'a√2';
-      } else if (lower.includes("bc'")) {
-        detectedClaim = "BC'";
-      } else if (lower.includes('2a')) {
-        detectedClaim = '2a';
-      } else if (lower.includes('1+1')) {
-        detectedClaim = '2';
+      const exprToVerify = detectedExpr || "|BC + DD'|";
+      let finalClaim = detectedClaim;
+      if (!finalClaim) {
+        if (lower.includes('a√2') || lower.includes('√2') || lower.includes('căn 2')) {
+          finalClaim = 'a√2';
+        } else if (lower.includes("bc'")) {
+          finalClaim = "BC'";
+        } else if (lower.includes('2a')) {
+          finalClaim = '2a';
+        } else if (lower.includes('1+1')) {
+          finalClaim = '2';
+        }
       }
 
-      const vectorAlgebraTool = executeTool('tool_verify_vector_algebra', {
+      vectorAlgebraTool = executeTool('tool_verify_vector_algebra', {
         shape: 'cube',
         side: 'a',
-        expr: "|BC + DD'|",
-        claim: detectedClaim,
+        expr: exprToVerify,
+        claim: finalClaim,
       });
 
       const badgeText = vectorAlgebraTool.isValid === true
@@ -324,8 +331,12 @@ app.post('/api/chat/classroom', async (req, res) => {
       message,
       currentTime,
       lessonTitle,
+      sessionId,
       recipient,
       useLLM,
+      toolCalls,
+      vectorAlgebraTool,
+      kbMatch,
     });
 
     res.json({

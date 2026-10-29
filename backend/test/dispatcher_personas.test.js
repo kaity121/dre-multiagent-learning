@@ -31,9 +31,10 @@ async function runTests() {
     useLLM: false,
   });
   assert.equal(d2.primaryResponse.author, 'Bo');
-  assert.match(d2.primaryResponse.text, /Ủa, tớ sai chỗ nào|chưa phục/i, 'Bo must push back for reasons');
-  assert.equal(d2.followUpResponse, null, 'Cô Lam must NOT close prematurely');
-  console.log('✅ PASS Test 2: Bo phản bác lại đòi chứng minh, Cô Lam không vào cắt ngang.\n');
+  assert.notEqual(d2.followUpResponse, null, 'TA An must step in with progressive scaffolding');
+  assert.equal(d2.followUpResponse.author, 'Trợ giảng An', 'Cô Lam must NOT close prematurely, TA An provides hint');
+  assert.equal(d2.followUpResponse.hintLevel, 1, 'Hint must be level 1');
+  console.log('✅ PASS Test 2: Bo phản bác lại đòi chứng minh + Trợ giảng An gợi ý cấp 1, Cô Lam không vào cắt ngang.\n');
 
   // TEST 3: Học sinh hỏi so sánh "vậy thì bo đúng hay bo sai vậy"
   console.log('--- Test 3: "vậy thì bo đúng hay bo sai vậy" (Comparison Inquiry) ---');
@@ -300,7 +301,165 @@ async function runTests() {
   assert.match(d18.followUpResponse.text, /đường thẳng vô hạn|giá đỡ/i);
   console.log('✅ PASS Test 18: Bo hưởng ứng hóm hỉnh + Linh Chi giải nghĩa từ nguyên học của "Giá của vectơ".\n');
 
-  console.log('🎉 TẤT CẢ 18 BÀI TEST ĐÃ VƯỢT QUA XUẤT SẮC!');
+  // TEST 19: Học sinh nói "Bo sai rồi, không bằng 2 đâu" (Không có lý lẽ toán học)
+  console.log('--- Test 19: "Bo sai rồi, không bằng 2 đâu" (Unsubstantiated Math Rebuttal) ---');
+  const h19 = classifyHeuristic('Bo sai rồi, không bằng 2 đâu');
+  assert.notEqual(h19.detectedIntent, 'sharp_rebuttal', 'Must NOT be sharp_rebuttal without valid math argument');
+  assert.equal(h19.dispatchedAgent, 'bo');
+  assert.equal(h19.unsubstantiatedRebuttal, true);
+
+  const d19 = await dispatchMessage({
+    message: 'Bo sai rồi, không bằng 2 đâu',
+    useLLM: false,
+  });
+  assert.equal(d19.primaryResponse.author, 'Bo');
+  assert.equal(d19.primaryResponse.mode, 'skeptic_pushback', 'Bo must push back, NOT concede');
+  assert.match(d19.primaryResponse.text, /Ủa, tớ sai chỗ nào|chưa phục/i);
+  assert.notEqual(d19.followUpResponse, null, 'TA An must step in with scaffolding hint');
+  assert.equal(d19.followUpResponse.author, 'Trợ giảng An');
+  assert.equal(d19.followUpResponse.hintLevel, 1, 'Hint must be level 1');
+  console.log('✅ PASS Test 19: Bo KHÔNG nhận thua, Bo phản bác + Trợ giảng An gợi ý cấp 1 chuẩn xác.\n');
+
+  // TEST 20: Học sinh nói câu đời sống "em không bằng bạn Trí đâu"
+  console.log('--- Test 20: "em không bằng bạn Trí đâu" (Non-math Comparison) ---');
+  const h20 = classifyHeuristic('em không bằng bạn Trí đâu');
+  assert.notEqual(h20.detectedIntent, 'sharp_rebuttal', 'Must NOT be sharp_rebuttal');
+  assert.equal(h20.dispatchedAgent, 'minhkhang');
+
+  const d20 = await dispatchMessage({
+    message: 'em không bằng bạn Trí đâu',
+    useLLM: false,
+  });
+  assert.equal(d20.primaryResponse.author, 'Minh Khang');
+  assert.match(d20.primaryResponse.text, /Đừng tự ti|thế mạnh riêng|tiến bộ/i);
+  assert.equal(d20.followUpResponse, null);
+  console.log('✅ PASS Test 20: "em không bằng bạn Trí đâu" định tuyến về Minh Khang khích lệ, Bo không bị nhận thua oan.\n');
+
+  // TEST 21: Học sinh kêu "thầy Tiến giảng nhanh quá em không theo kịp"
+  console.log('--- Test 21: "thầy Tiến giảng nhanh quá em không theo kịp" (Pacing Help) ---');
+  const h21 = classifyHeuristic('thầy Tiến giảng nhanh quá em không theo kịp');
+  assert.equal(h21.dispatchedAgent, 'an', 'Must route to Trợ giảng An');
+  assert.equal(h21.detectedIntent, 'ask_scaffolding_help');
+
+  const d21 = await dispatchMessage({
+    message: 'thầy Tiến giảng nhanh quá em không theo kịp',
+    useLLM: false,
+  });
+  assert.equal(d21.primaryResponse.author, 'Trợ giảng An');
+  assert.match(d21.primaryResponse.text, /Trợ giảng An|tạm dừng video|hỗ trợ từng bước/i);
+  console.log('✅ PASS Test 21: "thầy Tiến giảng nhanh quá..." về đúng Trợ giảng An hỗ trợ điều phối.\n');
+
+  // TEST 22: Học sinh chào bạn "chào Bo nha" (Không dấu / có dấu)
+  console.log('--- Test 22: "chào Bo nha" (Accentless Persona Matching) ---');
+  const h22 = classifyHeuristic('chào Bo nha');
+  assert.equal(h22.dispatchedAgent, 'bo', 'Must route to Bo');
+  assert.equal(h22.detectedIntent, 'challenge_shortcut_fallacy');
+
+  const d22 = await dispatchMessage({
+    message: 'chào Bo nha',
+    useLLM: false,
+  });
+  assert.equal(d22.primaryResponse.author, 'Bo');
+  assert.match(d22.primaryResponse.text, /Chào cậu nha|tớ là Bo/i);
+  console.log('✅ PASS Test 22: "chào Bo nha" khớp chính xác bạn học Bo.\n');
+
+  // TEST 23: Phân tầng gợi ý Scaffolding Progression theo session (Level 1 -> Level 2 -> Cô Lam chốt)
+  console.log('--- Test 23: Scaffolding Progression (Level 1 -> Level 2 -> Cô Lam) ---');
+  const testSessionId = `test_session_${Date.now()}`;
+
+  // Lần 1: Học sinh cãi chưa rõ
+  const turn1 = await dispatchMessage({
+    message: 'Bo sai rồi, không bằng 2 đâu',
+    sessionId: testSessionId,
+    useLLM: false,
+  });
+  assert.equal(turn1.primaryResponse.author, 'Bo');
+  assert.equal(turn1.followUpResponse.author, 'Trợ giảng An');
+  assert.equal(turn1.followUpResponse.hintLevel, 1, 'Turn 1 must provide hint level 1');
+  assert.equal(turn1.sessionState.hintLevel, 1);
+
+  // Lần 2: Học sinh tiếp tục cãi chưa rõ
+  const turn2 = await dispatchMessage({
+    message: 'sai rồi bo',
+    sessionId: testSessionId,
+    useLLM: false,
+  });
+  assert.equal(turn2.primaryResponse.author, 'Bo');
+  assert.equal(turn2.followUpResponse.author, 'Trợ giảng An');
+  assert.equal(turn2.followUpResponse.hintLevel, 2, 'Turn 2 must provide hint level 2');
+  assert.equal(turn2.sessionState.hintLevel, 2);
+
+  // Lần 3: Học sinh vẫn bế tắc -> Cô Lam can thiệp chốt lời giải mẫu
+  const turn3 = await dispatchMessage({
+    message: 'chưa hiểu, cứu em với',
+    sessionId: testSessionId,
+    useLLM: false,
+  });
+  assert.equal(turn3.followUpResponse.author, 'Cô Lam');
+  assert.equal(turn3.followUpResponse.concluded, true, 'Cô Lam concludes on turn 3');
+  assert.equal(turn3.sessionState.done, true);
+  console.log('✅ PASS Test 23: Phân tầng gợi ý hoạt động hoàn hảo: Level 1 -> Level 2 -> Cô Lam chốt kiến thức.\n');
+
+  // TEST 24: Ghi nhận ActivityLogEvent vào SessionStore (Issue #11 & PR #21)
+  console.log('--- Test 24: Session Activity Log Events (Issue #11 & PR #21) ---');
+  const { getSession } = await import('../src/sessionStore.js');
+  const loggedSession = getSession(testSessionId);
+  assert.ok(Array.isArray(loggedSession.activity_log), 'activity_log must be an array');
+  assert.ok(loggedSession.activity_log.length >= 3, 'Must have at least 3 logged events');
+  const eventTypes = loggedSession.activity_log.map(e => e.type);
+  assert.ok(eventTypes.includes('intent_routed'), 'Must log intent_routed');
+  assert.ok(eventTypes.includes('learner_answer'), 'Must log learner_answer');
+  assert.ok(eventTypes.includes('colam_concluded'), 'Must log colam_concluded');
+  console.log('✅ PASS Test 24: Toàn bộ sự kiện sư phạm được ghi nhận đúng chuẩn ActivityLogEvent.\n');
+
+  // TEST 25: Nhúng dữ liệu Deterministic Tool vào suy luận của Trí
+  console.log('--- Test 25: Deterministic Tool Injection into Trí Reasoning ---');
+  const d25 = await dispatchMessage({
+    message: "|BC + DD'| bằng bao nhiêu vậy Trí",
+    recipient: 'tri',
+    useLLM: false,
+  });
+  assert.equal(d25.primaryResponse.author, 'Trí');
+  assert.ok(d25.primaryResponse.toolCall, 'Primary response must attach toolCall');
+  assert.match(d25.primaryResponse.text, /kiểm chứng toạ độ 3D|a\\sqrt\{2\}|chuẩn xác/i, 'Trí must cite coordinate tool verification');
+  console.log('✅ PASS Test 25: Dữ liệu tính toán từ Deterministic Tool được đưa trực tiếp vào lời thoại của Trí.\n');
+
+  // TEST 26: Ràng buộc fastPath (chỉ true khi có @mention hoặc recipient !== "all")
+  console.log('--- Test 26: Fast-path constraint verification ---');
+  const freeMsg = classifyHeuristic('hôm nay trời đẹp ghê ha các bạn');
+  assert.equal(freeMsg.fastPath, false, 'Free message must have fastPath: false');
+  const mentionMsg = classifyHeuristic('@bo hôm nay học gì');
+  assert.equal(mentionMsg.fastPath, true, 'Message with @bo must have fastPath: true');
+  const recipientMsg = classifyHeuristic('hôm nay học gì', 'bo');
+  assert.equal(recipientMsg.fastPath, true, 'Explicit recipient must have fastPath: true');
+  console.log('✅ PASS Test 26: fastPath chỉ kích hoạt khi có chỉ định đích danh @mention hoặc recipient.\n');
+
+  // TEST 27: Phản biện sắc bén với đầy đủ căn cứ hình học Pytago
+  console.log('--- Test 27: Phản biện sắc bén có căn cứ Pytago và góc vuông ---');
+  const sharpSessionId = `test_sharp_${Date.now()}`;
+  const d27 = await dispatchMessage({
+    message: 'Bo sai rồi, vì BC và DD\' vuông góc nhau nên phải tính theo Pytago ra a căn 2 chứ không thể bằng 2 được!',
+    sessionId: sharpSessionId,
+    useLLM: false,
+  });
+  assert.equal(d27.primaryResponse.author, 'Bo');
+  assert.equal(d27.primaryResponse.mode, 'concede', 'Bo must concede on sharp rebuttal');
+  assert.equal(d27.followUpResponse.author, 'Cô Lam');
+  assert.equal(d27.sessionState.done, true);
+  console.log('✅ PASS Test 27: Phản biện có căn cứ Pytago/vuông góc kích hoạt Bo nhận thua và Cô Lam chốt.\n');
+
+  // TEST 28: LLM classification / Graceful fallback verification
+  console.log('--- Test 28: LLM Intent Classifier Graceful Execution ---');
+  const { classifyLearnerIntent } = await import('../src/services/dispatcher.js');
+  const llmRes = await classifyLearnerIntent({
+    message: 'Linh Chi cho mình xin công thức quy tắc hình bình hành với',
+    useLLM: true,
+  });
+  assert.ok(llmRes.detectedIntent, 'Must return a detectedIntent');
+  assert.ok(llmRes.dispatchedAgent, 'Must return a dispatchedAgent');
+  console.log(`✅ PASS Test 28: LLM Classifier/Fallback trả về intent=${llmRes.detectedIntent}, agent=${llmRes.dispatchedAgent}.\n`);
+
+  console.log('🎉 TẤT CẢ 28 BÀI TEST ĐÃ VƯỢT QUA XUẤT SẮC!');
 }
 
 runTests().catch((err) => {
