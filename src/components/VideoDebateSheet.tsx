@@ -259,8 +259,138 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
   const allStreamComments = useMemo(() => {
     const combined = [...visibleTimelineComments, ...liveChatMessages];
-    // Sắp xếp tin nhắn theo tiến trình thời gian video: mốc giây nhỏ hơn nằm trên
-    return combined.slice().sort((a, b) => a.second - b.second);
+    // Sắp xếp tin nhắn theo tiến trình thời gian video: mốc giây nhỏ hơn nằm trên, mốc giây lớn hơn nằm dưới
+    return combined.slice().sort((a, b) => {
+      if (a.second !== b.second) {
+        return a.second - b.second;
+      }
+      return 0; // Giữ nguyên thứ tự nếu cùng mốc giây (tin nhắn của Bạn trước, AI trả lời sau)
+    });
+  }, [visibleTimelineComments, liveChatMessages]);
+  const pinnedComment = defaultComments.find((c) => c.isPinned);
+
+  // Mốc giây kết thúc bài học được cấu hình trong JSON (lesson.lectureEndSecond, mặc định 9503 = 2:38:23)
+  const endSecond = lesson.lectureEndSecond ?? 9503;
+
+  // Xác định khi nào hết video bài giảng theo đúng mốc giây cấu hình trong JSON:
+  // - Tuyệt đối không bật khi mới tải trang hoặc chưa phát video (currentTime <= 0)
+  // - Tuyệt đối không bật trước mốc kết thúc 2:38:23 (9503 giây)
+  // - Chỉ bật khi video thực sự chạy tới đúng mốc giây kết thúc bài quy định trong JSON (currentTime >= endSecond)
+  const isLectureEnded = useMemo(() => {
+    if (!currentTime || currentTime <= 0) return false;
+    return currentTime >= endSecond;
+  }, [currentTime, endSecond]);
+
+  const [autoRedirectCountdown, setAutoRedirectCountdown] = useState<number | null>(null);
+  const redirectedOnceRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (isLectureEnded && !redirectedOnceRef.current) {
+      setTimeout(() => {
+        chatStreamEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+
+      setAutoRedirectCountdown(3);
+      const timer = setInterval(() => {
+        setAutoRedirectCountdown((prev) => {
+          if (prev === null || prev <= 1) {
+            clearInterval(timer);
+            redirectedOnceRef.current = true;
+            sound.playPageFlip();
+            onSwitchToStation2?.();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    } else if (!isLectureEnded) {
+      redirectedOnceRef.current = false;
+      setAutoRedirectCountdown(null);
+    }
+  }, [isLectureEnded, onSwitchToStation2]);
+
+  useEffect(() => {
+    if (allStreamComments.length > prevCommentsCountRef.current || isLectureEnded || typingAgent) {
+      chatStreamEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+    prevCommentsCountRef.current = allStreamComments.length;
+  }, [allStreamComments.length, isLectureEnded, typingAgent]);
+
+  // Nhận câu hỏi từ Modal Giơ tay bên Video gửi sang
+  useEffect(() => {
+    if (externalQuestionTrigger && externalQuestionTrigger.text) {
+      handleSendUserChatMessage(externalQuestionTrigger.text, 'all');
+    }
+  }, [externalQuestionTrigger?.id]);
+
+  // Luồng Giơ tay hợp nhất: Tự động focus vào ô chat và điền tiền tố ngữ cảnh [Tại mm:ss]
+  useEffect(() => {
+    if (chatFocusRequest) {
+      setActiveTab('chat');
+      setUserChatInput((prev) => {
+        if (!prev) return chatFocusRequest.prefix;
+        if (prev.startsWith('[Tại')) {
+          return prev.replace(/^\[Tại\s+[^\]]+\]\s*/, chatFocusRequest.prefix);
+        }
+        return `${chatFocusRequest.prefix}${prev}`;
+      });
+      setIsComposerHighlighted(true);
+      setTimeout(() => {
+        chatInputRef.current?.focus();
+        const len = chatInputRef.current?.value.length || 0;
+        chatInputRef.current?.setSelectionRange(len, len);
+      }, 60);
+      const timer = setTimeout(() => setIsComposerHighlighted(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [chatFocusRequest?.id]);
+
+  // Tự động cuộn theo tiến độ bài giảng khi mở tab Bản chép lời
+  useEffect(() => {
+    if (activeTab === 'transcript') {
+      activeTranscriptCueRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [currentTime, activeTab]);
+
+  const formatSec = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  };
+
+  const handleSendUserChatMessage = (overrideText?: string, overrideRecipient?: RecipientTarget) => {
+    const text = (overrideText ?? userChatInput).trim();
+    if (!text) return;
+
+    const target = overrideRecipient ?? recipient;
+    const recipientLabel =
+      target === 'bo'
+        ? ' (tới Bo)'
+        : target === 'tri'
+        ? ' (tới Trí)'
+        : target === 'linhchi'
+        ? ' (tới Linh Chi)'
+        : target === 'minhkhang'
+        ? ' (tới Minh Khang)'
+        : '';
+
+    const currentReplyTo = replyingToComment
+      ? {
+          id: replyingToComment.id,
+          author: replyingToComment.author,
+          text: replyingToComment.text,
+        }
+      : null;
+
+    // Xác định mốc thời gian thảo luận thực tế: phản ánh trung thực currentTime hoặc tiền tố tường minh ^[(?:Tại\s+)?(\d{1,2}):(\d{2})]
+    const timePrefixMatch = text.match(/^\[(?:Tại\s+)?(\d{1,2}):(\d{2})\]/i);
+    let effectiveSecond = Math.max(0, Math.floor(currentTime || 0));
+    if (timePrefixMatch) {
+      effectiveSecond = parseInt(timePrefixMatch[1], 10) * 60 + parseInt(timePrefixMatch[2], 10);
+    }
+
     const newMsg: TimelineComment = {
       id: `user_${Date.now()}`,
       second: effectiveSecond,
@@ -585,8 +715,348 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D: a√2)',
           }] : []);
 
-    // Sắp xếp tin nhắn theo tiến trình thời gian video: mốc giây nhỏ hơn nằm trên
-    return combined.slice().sort((a, b) => a.second - b.second);
+          const isPrimaryTeacher = aiRes.author.includes('Cô Lam');
+          const isPrimaryTa = aiRes.author.includes('Trợ giảng');
+          const primaryRole = isPrimaryTeacher ? 'teacher' : isPrimaryTa ? 'ta' : 'classmate';
+
+          const replySecond = typeof (aiRes as any)?.second === 'number' ? (aiRes as any).second : effectiveSecond;
+          setLiveChatMessages((prev) => [
+            ...prev,
+            {
+              id: `reply_${Date.now()}`,
+              second: replySecond,
+              author: aiRes.author,
+              role: primaryRole,
+              text: aiRes.text,
+              toolCall: attachedToolCalls[0],
+              toolCalls: attachedToolCalls,
+              replyTo: {
+                id: newMsg.id,
+                author: newMsg.author,
+                text: newMsg.text,
+              },
+            },
+          ]);
+
+          const followUp = (aiRes as any)?.followUpResponse;
+          const followUpText = followUp?.text || aiRes.followUpBoText;
+          if (followUpText) {
+            const followUpAuthor = followUp?.author || 'Cô Lam';
+            setTypingAgent(getAgentMeta(followUpAuthor));
+            const isFollowUpTeacher = followUpAuthor.includes('Cô Lam');
+            const isFollowUpTa = followUpAuthor.includes('Trợ giảng');
+            const followUpRole = isFollowUpTeacher ? 'teacher' : isFollowUpTa ? 'ta' : 'classmate';
+            setTimeout(() => {
+              sound.playBubblePop();
+              setTypingAgent(null);
+              setLiveChatMessages((prev) => [
+                ...prev,
+                {
+                  id: `reply_followup_${Date.now()}`,
+                  second: currentTime,
+                  author: followUpAuthor,
+                  role: followUpRole,
+                  text: followUpText,
+                  replyTo: {
+                    id: newMsg.id,
+                    author: newMsg.author,
+                    text: newMsg.text,
+                  },
+                },
+              ]);
+            }, 800);
+          } else {
+            setTypingAgent(null);
+          }
+          return;
+        }
+        // Fallback sang phản hồi định tuyến nội bộ nếu backend không phản hồi
+        runLocalReplySimulation();
+      })
+      .catch(() => {
+        setToolCallThinking([]);
+        runLocalReplySimulation();
+      });
+
+    function runLocalReplySimulation() {
+      // Xác định bạn học kế tiếp sẽ tiếp lời
+      let localFollowAuthor = '';
+      let localFollowText = '';
+
+      if (isOffTopic) {
+        localFollowAuthor = 'Cô Lam';
+        localFollowText = 'Cô thấy lớp mình bàn luận rất rôm rả! Tuy nhiên hình học không gian đòi hỏi trí tưởng tượng và sự tập trung cao độ. Cả lớp cùng hướng mắt lên màn hình tiếp tục theo dõi bài giảng của Thầy Tiến nhé!';
+      } else if (isSumTrap) {
+        if (target === 'bo' || lower.includes('@bo')) {
+          localFollowAuthor = 'Trí';
+          localFollowText = 'Trong số học thông thường thì 1 + 1 = 2 đúng là chân lý! Nhưng trong VECTƠ, Thầy Tiến gạch bỏ biểu thức |BC + DD\'| = 1 + 1 = 2 vì độ dài của tổng KHÔNG ĐƯỢC tách tuỳ tiện thành tổng hai độ dài:\nTheo bất đẳng thức tam giác: |a + b| ≤ |a| + |b|, dấu bằng "chân lý" đó CHỈ XẢY RA KHI hai vectơ a và b CÙNG HƯỚNG!\nTrong Ví dụ 3, BC và DD\' vuông góc nhau trong không gian. Muốn tính độ dài, bắt buộc phải thay DD\' = CC\' để nối tiếp thành BC + CC\' = BC\', sau đó áp dụng định lý Pytago tính đường chéo mặt bên: |BC\'| = √(1² + 1²) = √2 (khoảng 1.41) chứ tuyệt đối không thể bằng 2 được bạn nhé!';
+        } else {
+          localFollowAuthor = 'Cô Lam';
+          localFollowText = 'Trí giải thích rất chuẩn xác! Các em cần ghi nhớ thật kỹ: Tuyệt đối không được nhầm lẫn giữa phép cộng đại số thông thường và độ dài của tổng vectơ. Dấu bằng |a + b| = |a| + |b| chỉ đúng khi hai vectơ cùng hướng thôi nhé!';
+        }
+      } else if (isLineOfVector) {
+        if (lower.includes('giá đỗ') || lower.includes('gia do')) {
+          localFollowAuthor = 'Linh Chi';
+          localFollowText = 'Giá của vectơ AB là đường thẳng vô hạn đi qua hai điểm A và B nhé các bạn. Từ Hán-Việt "giá" ở đây có nghĩa là cái giá đỡ, đường thẳng mang vectơ nằm trên đó!';
+        } else {
+          localFollowAuthor = 'Minh Khang';
+          localFollowText = 'Tớ lấy ví dụ cho dễ nhớ nè: Tưởng tượng con tàu chạy từ ga A đến ga B là vectơ AB (có hướng đi và độ dài hành trình). Còn hai thanh ray kéo dài tít tắp trên mặt đất chính là GIÁ của vectơ đó! Con tàu chỉ chạy trên thanh ray ấy thôi!';
+        }
+      } else if (isWhyNeedVectors) {
+        localFollowAuthor = 'Minh Khang';
+        localFollowText = 'Chuẩn luôn! Giống như bạn mở Google Maps ấy, nếu bản đồ chỉ hiện đoạn thẳng thì bạn đâu biết phải quẹo hướng nào. Mũi tên vectơ màu xanh chỉ đường mới giúp bạn đi đúng hướng đến đích được chứ!';
+      } else if (isZeroVector) {
+        localFollowAuthor = 'Minh Khang';
+        localFollowText = 'Chuẩn luôn Trí ơi! Giống như bạn chạy bộ trên máy tập gym 5km: mồ hôi nhễ nhại, tiêu hao 300 calo (quãng đường 5km), nhưng bước xuống máy thì vị trí bạn vẫn đứng yên trong phòng tập (vectơ độ dời = 0)! Vectơ chỉ nhìn điểm đầu và điểm cuối thôi bạn ơi!';
+      } else if (isDistracted) {
+        localFollowAuthor = 'Cô Lam';
+        localFollowText = 'Cô nghe thấy có bạn rủ nhau đi chơi đấy nhé! Kiến thức vectơ không gian lớp 12 này ban đầu có vẻ hơi trừu tượng, nhưng chỉ cần kiên nhẫn nắm chắc các quy tắc là các em sẽ thấy rất thú vị và tự tin. Cố gắng lên nào, cả lớp cùng tập trung theo dõi tiếp bài giảng của Thầy Tiến nhé!';
+      } else if (isVectorEquality) {
+        localFollowAuthor = target === 'bo' || lower.includes('@bo') ? 'Trí' : 'Minh Khang';
+        localFollowText = target === 'bo' || lower.includes('@bo')
+          ? 'Đoạn thẳng không phân biệt thứ tự nên độ dài |AB| = |BA|. Nhưng VECTƠ có điểm đầu và điểm cuối: vectơ AB đi từ A đến B, còn vectơ BA đi từ B về A. Hai vectơ này ngược hướng nhau (vectơ AB = - vectơ BA) nên không thể bằng nhau được bạn nhé!'
+          : 'Chuẩn đó Trí! Cứ liên tưởng vé máy bay từ Đà Nẵng (A) ra Hà Nội (B) thì đưa bạn ra Thủ đô, còn bay từ Hà Nội (B) về Đà Nẵng (A) là về ngắm biển. Quãng đường bằng nhau nhưng bay ngược hướng là tới hai nơi hoàn toàn khác nhau liền!';
+      } else if (isTrivializingOrBored) {
+        localFollowAuthor = 'Cô Lam';
+        localFollowText = 'Cô rất thích sự tự tin của em! Nhưng không gian 3 chiều mở ra một thế giới hình học hoàn toàn mới và rất nhiều điều kỳ thú. Cùng kiên nhẫn theo dõi tiếp bài giảng của Thầy Tiến để khám phá nhé!';
+      }
+
+      setTimeout(() => {
+        sound.playBubblePop();
+        const attachedToolCall = isMathVerificationNeeded ? {
+          toolName: 'tool_verify_vector_algebra',
+          label: 'Trí đang kiểm chứng hình học...',
+          badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D: a√2)',
+        } : null;
+
+        const isPrimaryTeacher = replyAuthor.includes('Cô Lam');
+        const isPrimaryTa = replyAuthor.includes('Trợ giảng');
+        const primaryRole = isPrimaryTeacher ? 'teacher' : isPrimaryTa ? 'ta' : 'classmate';
+
+        setLiveChatMessages((prev) => [
+          ...prev,
+          {
+            id: `reply_${Date.now()}`,
+            second: currentTime,
+            author: replyAuthor,
+            role: primaryRole,
+            text: replyText,
+            toolCall: attachedToolCall,
+            replyTo: {
+              id: newMsg.id,
+              author: newMsg.author,
+              text: newMsg.text,
+            },
+          },
+        ]);
+
+        if (localFollowAuthor && localFollowText) {
+          setTypingAgent(getAgentMeta(localFollowAuthor));
+        } else {
+          setTypingAgent(null);
+        }
+      }, 350);
+
+      if (localFollowAuthor && localFollowText) {
+        setTimeout(() => {
+          sound.playBubblePop();
+          setTypingAgent(null);
+          const isFollowUpTeacher = localFollowAuthor.includes('Cô Lam');
+          const isFollowUpTa = localFollowAuthor.includes('Trợ giảng');
+          const followRole = isFollowUpTeacher ? 'teacher' : isFollowUpTa ? 'ta' : 'classmate';
+
+          setLiveChatMessages((prev) => [
+            ...prev,
+            {
+              id: `reply_local_follow_${Date.now()}`,
+              second: currentTime,
+              author: localFollowAuthor,
+              role: followRole,
+              text: localFollowText,
+              replyTo: {
+                id: newMsg.id,
+                author: newMsg.author,
+                text: newMsg.text,
+              },
+            },
+          ]);
+        }, 850);
+      }
+    }
+  };
+
+
+
+  const [hoveredPeer, setHoveredPeer] = useState<'bo' | 'tri' | 'linhchi' | 'minhkhang' | null>(null);
+
+  const activeCue =
+    lesson.transcriptCues?.find((c) => currentTime >= c.start && currentTime <= c.end) ||
+    [...(lesson.transcriptCues || [])].reverse().find((c) => currentTime >= c.start) ||
+    lesson.transcriptCues?.[0];
+
+  const peopleRoster = [
+    {
+      id: 'bo' as const,
+      name: 'Bo',
+      initial: 'B',
+      avClass: 'av--na',
+      status: currentTime >= 2200 ? 'nghi vấn 1+1=2' : 'gật gù',
+      tagline: 'Hay nhầm lẫn & Bẫy ngộ nhận',
+      speech: '“Mình hay nhầm chỗ này lắm, bạn xem hộ mình với!”',
+      power: 'Bo sai trước để bạn mạnh dạn sửa bài và không sợ sai.',
+      color: '#b4531a',
+    },
+    {
+      id: 'tri' as const,
+      name: 'Trí',
+      initial: 'T',
+      avClass: 'av--khoa',
+      status: 'đào sâu',
+      tagline: 'Đào sâu bản chất & Điều kiện',
+      speech: '“Tại sao lại có công thức này nhỉ? Cùng mình đào sâu nhé!”',
+      power: 'Xoáy sâu vào điều kiện biên & hiểu sâu nguyên lý gốc rễ.',
+      color: '#2563eb',
+    },
+    {
+      id: 'linhchi' as const,
+      name: 'Linh Chi',
+      initial: 'C',
+      avClass: 'av--thu',
+      status: 'ghi sổ tay',
+      tagline: 'Ghi sổ tay & Cheat Sheet',
+      speech: '“Mình đã tóm tắt công thức trọng tâm rồi, cần tra cứu cứ bảo mình!”',
+      power: 'Lập bảng quy tắc chuẩn mực & cấu trúc lại các bước giải.',
+      color: '#db2777',
+    },
+    {
+      id: 'minhkhang' as const,
+      name: 'Minh Khang',
+      initial: 'K',
+      avClass: 'av--me',
+      status: 'trực quan',
+      tagline: 'Trực quan & Đời sống',
+      speech: '“Tưởng tượng như bước đi ngoài đời thực, hình dung sẽ dễ hơn nhiều!”',
+      power: 'Biến các công thức khô khan thành hình ảnh thực tế sống động.',
+      color: '#0891b2',
+    },
+  ];
+
+  // Điều kiện hiển thị và lưu Thẻ Câu Hỏi vĩnh viễn trong luồng chat:
+  // (Chỉ xuất hiện khi bật xem toàn bộ HOẶC video đã chạy qua mốc câu hỏi 37:13)
+  const shouldShowSavedQuizInChat =
+    showAllTimeline ||
+    (currentTime > 0 &&
+      (currentTime >= lesson.checkpointTimestamp ||
+        isQuizCollapsedToChat ||
+        isQuizSkipped ||
+        Boolean(savedSelectedOptionId) ||
+        phase === 'BO_DEBATE' ||
+        phase === 'BO_CONCEDED' ||
+        phase === 'CO_LAM_CLOSURE'));
+
+  const quizStatus: 'PENDING' | 'SKIPPED' | 'ANSWERED' = isQuizSkipped
+    ? 'SKIPPED'
+    : (savedSelectedOptionId || phase === 'BO_DEBATE' || phase === 'BO_CONCEDED' || phase === 'CO_LAM_CLOSURE')
+    ? 'ANSWERED'
+    : 'PENDING';
+
+  // Tách tin nhắn thành 2 phần: Trước 37:13 (trước câu hỏi) và Sau 37:13 (sau câu hỏi)
+  const preCheckpointComments = useMemo(() => {
+    return allStreamComments.filter((c) => c.second < lesson.checkpointTimestamp);
+  }, [allStreamComments, lesson.checkpointTimestamp]);
+
+  const postCheckpointComments = useMemo(() => {
+    return allStreamComments.filter((c) => c.second >= lesson.checkpointTimestamp);
+  }, [allStreamComments, lesson.checkpointTimestamp]);
+
+  const renderPeerAvatar = (author: string, className = 'w-8 h-8') => {
+    return <AgentAvatar role={author} size={className} />;
+  };
+
+  const getRosterAvatar = (id: string, className = 'w-9 h-9') => {
+    return <AgentAvatar role={id} size={className} />;
+  };
+
+  const renderChatMessage = (msg: TimelineComment) => {
+    const isBo = msg.author.trim() === 'Bo' || msg.author.includes('Bo');
+    const isChi = msg.author.includes('Linh Chi');
+    const isKhang = msg.author.includes('Khang');
+    const isTri = msg.author.includes('Trí');
+    const isCoLam = msg.author.includes('Cô Lam');
+    const isTaAn = msg.author.includes('Trợ giảng An');
+    const isMe = msg.author.includes('Bạn') || (learnerName && msg.author.startsWith(learnerName));
+    return (
+      <div
+        key={msg.id}
+        className="flex items-start gap-2.5 transition-colors group"
+      >
+        {renderPeerAvatar(msg.author, 'w-8 h-8 shrink-0 mt-0.5')}
+
+        {/* Nội dung tin nhắn: Hàng 1 Tên + Giờ, Hàng 2 Khung Bubble */}
+        <div className="flex-1 min-w-0 space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-xs text-[#121712] truncate">
+              {msg.author}
+            </span>
+            {isCoLam && (
+              <span className="px-1.5 py-0.2 rounded bg-red-100 text-[10px] font-semibold text-red-800">
+                Giáo viên
+              </span>
+            )}
+            {isTaAn && (
+              <span className="px-1.5 py-0.2 rounded bg-teal-100 text-[10px] font-semibold text-teal-800">
+                Trợ giảng
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => onSeekVideo?.(msg.second)}
+              className="px-1.5 py-0.5 rounded-md bg-[#F3F8E8] hover:bg-[#E2EAD2] text-[11px] font-mono font-medium text-[#121712] border border-[#E2EAD2] cursor-pointer transition-colors"
+              title={`Tua video tới ${formatSec(msg.second)}`}
+            >
+              {formatSec(msg.second)}
+            </button>
+            {/* Nút Trả lời nhanh khi hover tin nhắn */}
+            <button
+              type="button"
+              onClick={() => {
+                sound.playPencilTap();
+                setReplyingToComment(msg);
+                const matchedOpt = RECIPIENT_OPTIONS.find(
+                  (o) => o.id !== 'all' && msg.author.toLowerCase().includes(o.label.toLowerCase())
+                );
+                if (matchedOpt) setRecipient(matchedOpt.id);
+                chatInputRef.current?.focus();
+              }}
+              className="opacity-0 group-hover:opacity-100 transition-opacity px-1.5 py-0.2 rounded text-[10px] font-semibold text-stone-500 hover:text-[#1B4338] hover:bg-stone-200/60 cursor-pointer flex items-center gap-0.5 ml-auto"
+              title={`Trả lời tin nhắn của ${msg.author}`}
+            >
+              <span>↩ Trả lời</span>
+            </button>
+          </div>
+          <div className="p-3 rounded-2xl bg-white border border-[#E2EAD2] text-xs text-[#121712] leading-relaxed font-normal shadow-2xs select-text">
+            {/* Trích dẫn tin nhắn đang được phản hồi (Quote chip) */}
+            {msg.replyTo && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 mb-2 rounded-lg bg-[#F3F8E8] border border-[#E2EAD2] text-[10.5px] text-[#121712] font-medium max-w-full overflow-hidden">
+                <span className="text-[#121712] font-mono text-xs font-bold">↩</span>
+                <span className="font-bold text-[#121712] shrink-0">@{msg.replyTo.author}:</span>
+                <span className="truncate italic text-stone-600">"{cleanText(msg.replyTo.text)}"</span>
+              </div>
+            )}
+            {renderToolBadges(
+              (msg as any).toolCalls || (((msg.author?.toLowerCase().includes("trí") || msg.author?.toLowerCase().includes("tri"))) && (msg.second >= 2200 && msg.second <= 2260) ? [
+                {
+                  toolName: 'tool_query_misconception_kb',
+                  category: 'rag',
+                  badgeText: 'RAG: MISC_VEC_005 (Cộng độ dài thay cho độ dài tổng)',
+                },
+                {
+                  toolName: 'tool_verify_vector_algebra',
+                  category: 'math_verify',
+                  badgeText: 'Đã kiểm chứng hình học (Tọa độ 3D: a√2)',
+                }
+              ] : null),
+              msg.toolCall
             )}
             <div>
               <FormattedMathText text={cleanText(msg.text)} />
