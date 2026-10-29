@@ -539,7 +539,58 @@ async function runTests() {
   assert.equal(t32.output.calculatedValue, 2.828);
   console.log('✅ PASS Test 32: Tính toán thuần túy bảo toàn isValid: null, không gán bừa true/false.\n');
 
-  console.log('🎉 TẤT CẢ 32 BÀI TEST ĐÃ VƯỢT QUA XUẤT SẮC!');
+  // TEST 33: Two independent omitted-ID requests at 37:13 do NOT collide
+  console.log('--- Test 33: Two independent omitted-ID requests at 37:13 do NOT collide ---');
+  const d33a = await dispatchMessage({
+    message: 'Em bí quá, cho em gợi ý với',
+    currentTime: 2233, // 37:13
+    sessionId: null, // omitted
+    useLLM: false,
+  });
+  const d33b = await dispatchMessage({
+    message: 'Em bí quá, cho em gợi ý với',
+    currentTime: 2233, // 37:13
+    sessionId: null, // omitted
+    useLLM: false,
+  });
+  assert.notEqual(d33a.sessionState?.id, d33b.sessionState?.id, 'Omitted-ID requests must have distinct session IDs');
+  assert.equal(d33a.primaryResponse.hintLevel, 1, 'First omitted-ID request gets Level 1');
+  assert.equal(d33b.primaryResponse.hintLevel, 1, 'Independent second omitted-ID request must NOT be polluted by first request (stays Level 1)');
+  console.log('✅ PASS Test 33: Hai request omitted-ID độc lập tại 37:13 sinh session riêng biệt, không bị ô nhiễm chéo cấp độ gợi ý.\n');
+
+  // TEST 34: Switching lessons after using hints resets session namespace and progression
+  console.log('--- Test 34: Switching lessons resets session progression ---');
+  const lesson1SessionId = `session_lesson1_${Date.now()}`;
+  const l1_turn1 = await dispatchMessage({
+    message: 'Em bí quá, cho em gợi ý với',
+    sessionId: lesson1SessionId,
+    useLLM: false,
+  });
+  const l1_turn2 = await dispatchMessage({
+    message: 'Vẫn chưa hiểu, gợi ý thêm với ạ',
+    sessionId: lesson1SessionId,
+    useLLM: false,
+  });
+  assert.equal(l1_turn2.primaryResponse.hintLevel, 2, 'Lesson 1 turn 2 reached level 2');
+
+  // Now student switches to lesson 2 (new session ID bound to lesson.id)
+  const lesson2SessionId = `session_lesson2_${Date.now()}`;
+  const l2_turn1 = await dispatchMessage({
+    message: 'Em bí quá, cho em gợi ý với',
+    sessionId: lesson2SessionId,
+    useLLM: false,
+  });
+  assert.equal(l2_turn1.primaryResponse.hintLevel, 1, 'Lesson 2 turn 1 must start fresh at Level 1, not Level 3 / conclusion');
+  console.log('✅ PASS Test 34: Chuyển đổi bài học tách biệt session hoàn toàn, bài mới bắt đầu từ Gợi ý cấp 1 chuẩn xác.\n');
+
+  // TEST 35: Parameterless health check on Knowledge Base / Content Library
+  console.log('--- Test 35: Parameterless health check verification ---');
+  const { listMisconceptionIds } = await import('../src/contentLibrary.js');
+  const ids = listMisconceptionIds();
+  assert.ok(Array.isArray(ids) && ids.length > 0, 'Misconceptions must be available for parameterless health check');
+  console.log(`✅ PASS Test 35: Endpoint tra cứu/health check /api/misconceptions sẵn sàng (${ids.length} misconceptions: ${ids.join(', ')}).\n`);
+
+  console.log('🎉 TẤT CẢ 35 BÀI TEST ĐÃ VƯỢT QUA XUẤT SẮC!');
 }
 
 runTests().catch((err) => {

@@ -331,7 +331,7 @@ app.post('/api/chat/classroom', async (req, res) => {
 
     // 3. Dispatch qua Dynamic Dispatcher (Issue #401)
     const { dispatchMessage } = await import('./src/services/dispatcher.js');
-    const activeSessionId = sessionId || `classroom_${Math.floor(currentTime / 60)}`;
+    const activeSessionId = sessionId || `classroom_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const dispatchResult = await dispatchMessage({
       message,
       currentTime,

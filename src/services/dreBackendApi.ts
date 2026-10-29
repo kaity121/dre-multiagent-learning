@@ -4,6 +4,10 @@
  * Powered by OpenAI GPT-6 (Bo, Assessor & TA An on gpt-6-sol, Cô Lam on gpt-6.1-sol).
  */
 
+import type { AgentCitation } from '../types/pipeline';
+
+export type { AgentCitation };
+
 const API_BASE_URL = (import.meta as any).env?.VITE_DRE_API_URL || 'http://localhost:3001';
 
 export interface StartSessionResponse {
@@ -36,8 +40,9 @@ export async function checkBackendHealth(): Promise<boolean> {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
-    const url = `${API_BASE_URL}/api/runtime/context-snapshot?agentId=${encodeURIComponent(agentId)}&second=${encodeURIComponent(second)}&sessionId=${encodeURIComponent(sessionId)}`;
-    const res = await fetch(url);
+    const res = await fetch(`${API_BASE_URL}/api/misconceptions`, {
+      signal: controller.signal,
+    });
     clearTimeout(timeoutId);
     return res.ok;
   } catch {

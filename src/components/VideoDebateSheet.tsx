@@ -219,7 +219,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
   const chatStreamEndRef = useRef<HTMLDivElement | null>(null);
   const prevCommentsCountRef = useRef<number>(0);
-  const classroomSessionIdRef = useRef<string>('session_' + Date.now());
+  const classroomSessionIdRef = useRef<string>(`session_${lesson.id}_${Date.now()}`);
 
   // Close custom recipient dropdown when clicking outside
   useEffect(() => {
@@ -233,6 +233,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   }, []);
 
   useEffect(() => {
+    classroomSessionIdRef.current = `session_${lesson.id}_${Date.now()}`;
     setLiveChatMessages([]);
     setTaHintTier(0);
     setActivePeerNote(null);
@@ -700,10 +701,12 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     }
     setToolCallThinking(thinkingSteps);
 
+    const requestLessonId = lesson.id;
     // Thử gọi live Multi-Agent AI Backend (Knowledge Base RAG & GPT-6)
     sendClassroomChat(text, currentTime, target, classroomSessionIdRef.current)
       .then((aiRes) => {
         setToolCallThinking([]);
+        if (lesson.id !== requestLessonId) return;
         if (aiRes && aiRes.ok && aiRes.text) {
           if (aiRes.sessionId) {
             classroomSessionIdRef.current = aiRes.sessionId;
@@ -747,6 +750,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             const isFollowUpTa = followUpAuthor.includes('Trợ giảng');
             const followUpRole = isFollowUpTeacher ? 'teacher' : isFollowUpTa ? 'ta' : 'classmate';
             setTimeout(() => {
+              if (lesson.id !== requestLessonId) return;
               sound.playBubblePop();
               setTypingAgent(null);
               setLiveChatMessages((prev) => [
@@ -822,6 +826,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       }
 
       setTimeout(() => {
+        if (lesson.id !== requestLessonId) return;
         sound.playBubblePop();
         const attachedToolCall = isMathVerificationNeeded ? {
           toolName: 'tool_verify_vector_algebra',
@@ -859,6 +864,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
       if (localFollowAuthor && localFollowText) {
         setTimeout(() => {
+          if (lesson.id !== requestLessonId) return;
           sound.playBubblePop();
           setTypingAgent(null);
           const isFollowUpTeacher = localFollowAuthor.includes('Cô Lam');
