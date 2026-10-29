@@ -529,7 +529,7 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
 
   // Câu hỏi dừng đột ngột tại mốc 37:13 (Ví dụ 3 câu a)
   checkpointQuestion: {
-    prompt: "Tại [36:44], cho hình lập phương ABCD.A'B'C'D' có cạnh bằng 1. Độ dài của tổng hai vectơ |BC + DD'| bằng bao nhiêu và tính thế nào?",
+    prompt: "Cho hình lập phương ABCD.A'B'C'D' có cạnh bằng 1. Độ dài của tổng hai vectơ |BC + DD'| bằng bao nhiêu và tính thế nào?",
     options: [
       {
         id: 'opt_a',
