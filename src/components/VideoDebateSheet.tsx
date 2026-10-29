@@ -219,6 +219,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
   const chatStreamEndRef = useRef<HTMLDivElement | null>(null);
   const prevCommentsCountRef = useRef<number>(0);
+  const classroomSessionIdRef = useRef<string>('session_' + Date.now());
 
   // Close custom recipient dropdown when clicking outside
   useEffect(() => {
@@ -700,10 +701,13 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     setToolCallThinking(thinkingSteps);
 
     // Thử gọi live Multi-Agent AI Backend (Knowledge Base RAG & GPT-6)
-    sendClassroomChat(text, currentTime, target)
+    sendClassroomChat(text, currentTime, target, classroomSessionIdRef.current)
       .then((aiRes) => {
         setToolCallThinking([]);
         if (aiRes && aiRes.ok && aiRes.text) {
+          if (aiRes.sessionId) {
+            classroomSessionIdRef.current = aiRes.sessionId;
+          }
           sound.playBubblePop();
           const attachedToolCalls = (aiRes as any)?.toolCalls || (isMathVerificationNeeded ? [{
             toolName: 'tool_verify_vector_algebra',

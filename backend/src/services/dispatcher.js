@@ -10,7 +10,8 @@ import { taScaffoldSupport } from '../agents/ta.js';
 import { chamPhanBien } from '../agents/assessor.js';
 import { getOrCreateSession, logActivityEvent } from '../sessionStore.js';
 import { executeTool } from '../tools/index.js';
-import { extractVectorExpr, extractClaimFromText } from '../tools/tool_verify_vector_algebra.js';
+import { extractVectorExpr, extractClaimFromText, extractSideFromText } from '../tools/tool_verify_vector_algebra.js';
+import { buildRuntimeContext } from './contextSnapshot.js';
 
 /**
  * ============================================================================
@@ -53,19 +54,29 @@ export function normalizeText(text) {
 /**
  * Kiểm tra xem phản biện của học sinh có lý lẽ / căn cứ toán học thực sự hay không.
  * ĐÃ LOẠI BỎ /khong bang/ và /khong bang 2/ để tránh Bo nhận thua tùy tiện.
+ * ĐÃ THÊM kiểm tra an toàn loại trừ các phát biểu toán sai (vd: "cùng hướng thì độ dài tổng luôn bằng 0").
  */
 export function hasSubstantiatedMathReason(normText) {
   const norm = String(normText || '').toLowerCase();
+
+  // Kiểm tra an toàn: các phát biểu toán sai không được chứng nhận là sắc bén
+  if (/cung huong.*(bang 0|luon bang 0)/.test(norm)) return false;
+  if (/tong luon bang 0/.test(norm) && !/vecto doi/.test(norm)) return false;
+
   const mathReasonPatterns = [
-    /cung huong/,
-    /nguoc huong/,
-    /nguoc chieu/,
+    /cung huong moi bang/,
+    /chi.*cung huong/,
+    /khi.*cung huong.*(moi|thi).*bang/,
+    /cung huong.*moi.*cong/,
     /bat dang thuc tam giac/,
+    /tong hai canh phai lon hon/,
     /tong hai canh/,
     /can 2/,
     /a\s*can\s*2/,
     /a\s*sqrt\s*2/,
     /sqrt\s*2/,
+    /2\s*sqrt\s*2/,
+    /2\s*can\s*2/,
     /goc giua/,
     /vecto doi/,
     /duong cheo/,
@@ -89,6 +100,7 @@ export function hasSubstantiatedMathReason(normText) {
     /dd'.*=.*cc'/,
     /noi tiep/,
     /chieu mat ben/,
+    /bang vecto 0/,
   ];
   return mathReasonPatterns.some((pattern) => pattern.test(norm));
 }
@@ -220,8 +232,152 @@ export function classifyHeuristic(message, recipient = 'all') {
     };
   }
 
+  // Direct agent targeting ưu tiên cao khi học sinh gọi đích danh tên bạn học hoặc @mention
+  const isTargetLinhChi = recipient === 'linhchi' || rawLower.includes('@linhchi') || /\b(linh chi|chi oi|hoi linh chi|chao linh chi)\b/.test(norm);
+  if (isTargetLinhChi) {
+    return {
+      detectedIntent: 'ask_formula_mnemonic',
+      dispatchedAgent: 'linhchi',
+      confidence: 0.99,
+      reasoning: 'Học sinh yêu cầu sổ tay ghi chép hoặc hỏi trực tiếp Linh Chi (@linhchi).',
+      fastPath: hasExplicitMention,
+    };
+  }
+  const isTargetMinhKhang = recipient === 'minhkhang' || rawLower.includes('@minhkhang') || /\b(minh khang|khang oi|chao khang|chao minh khang)\b/.test(norm);
+  if (isTargetMinhKhang) {
+    return {
+      detectedIntent: 'general_classroom_chitchat',
+      dispatchedAgent: 'minhkhang',
+      confidence: 0.99,
+      reasoning: 'Học sinh hỏi trực tiếp Minh Khang (@minhkhang) về ví dụ đời sống.',
+      fastPath: hasExplicitMention,
+    };
+  }
+  const isTargetAn = recipient === 'an' || rawLower.includes('@an') || /\b(tro giang|ta an|an oi|chao an|chao tro giang)\b/.test(norm);
+  if (isTargetAn) {
+    return {
+      detectedIntent: 'ask_scaffolding_help',
+      dispatchedAgent: 'an',
+      confidence: 0.99,
+      reasoning: 'Học sinh gọi Trợ giảng An (@an) xin định hướng/gợi ý.',
+      fastPath: hasExplicitMention,
+    };
+  }
+  const isTargetCoLam = recipient === 'colam' || rawLower.includes('@colam') || /\b(co lam|thua co|co oi|chao co)\b/.test(norm);
+  if (isTargetCoLam) {
+    return {
+      detectedIntent: 'ask_deep_concept',
+      dispatchedAgent: 'colam',
+      confidence: 0.95,
+      reasoning: 'Học sinh hỏi Cô Lam (@colam) chốt bài.',
+      fastPath: hasExplicitMention,
+    };
+  }
 
-  // 4. Nhận diện ngộ nhận về "1 + 1 = 2 là chân lý" / "sao thầy gạch bỏ" / "tách ra bình thường mà" trong cộng vectơ
+  // 3. Quy tắc / Sổ tay / Công thức -> Ưu tiên Linh Chi trước khi rơi vào các câu hỏi nghi vấn chung
+  const formulaPatternsEarly = [
+    /cong thuc/,
+    /so tay/,
+    /meo nho/,
+    /ghi nho/,
+    /quy tac 3 diem/,
+    /quy tac hinh hop/,
+    /quy tac hinh binh hanh/,
+    /quy tac tru/,
+    /checklist/,
+    /dieu kien xac dinh/,
+    /dkxd/,
+    /tich vo huong bang gi/,
+  ];
+  if (formulaPatternsEarly.some((pattern) => pattern.test(norm))) {
+    return {
+      detectedIntent: 'ask_formula_mnemonic',
+      dispatchedAgent: 'linhchi',
+      confidence: 0.92,
+      reasoning: 'Học sinh hỏi công thức chuẩn, quy tắc hoặc cần mở sổ tay ghi nhớ của Linh Chi.',
+      fastPath: hasExplicitMention,
+    };
+  }
+
+  // 4. Nhận diện câu hỏi nghi vấn bản chất (khi nào, tại sao, vì sao) -> chuyển cho Trí
+  const isQuestionWhyOrWhen = /\b(khi nao|tai sao|vi sao|sao lai|la gi)\b/.test(norm) && !norm.includes('sai') && !norm.includes('khong dung') && !norm.includes('khong bang');
+  if (isQuestionWhyOrWhen) {
+    return {
+      detectedIntent: 'ask_deep_concept',
+      dispatchedAgent: 'tri',
+      confidence: 0.96,
+      reasoning: 'Học sinh đặt câu hỏi nghi vấn tại sao/khi nào để đào sâu bản chất toán học.',
+      fastPath: hasExplicitMention,
+    };
+  }
+
+  // 5. Nhận diện phản biện bẻ gãy bẫy Bo (sharp_rebuttal)
+  const rebuttalPatternsEarly = [
+    /\b(bo sai roi|bo sai bet|bo nham|ban sai roi|cau sai roi)\b/,
+    /\b(sai roi bo|sai roi ban|sai roi cau)\b/,
+    /\b(khang dinh cua bo|bo khong dung|khong dung dau bo)\b/,
+    /\b(khong phai 2a|khong the bang 2a|khong bang 2a|khong bang 2|khong the bang 2)\b/,
+    /\b(sao lai bang 2a|sao lai la 2a|dau bang 2a duoc|dau bang 2 duoc)\b/,
+    /nguoc huong/,
+    /cung huong moi bang/,
+    /sau tru truoc/,
+    /nguoc chieu/,
+    /lon nguoc/,
+    /bat dang thuc tam giac/,
+    /tong hai canh phai lon hon/,
+    /vecto doi/,
+    /be gay/,
+    /bang vecto 0/,
+  ];
+  if (!isQuestionWhyOrWhen && (rebuttalPatternsEarly.some((pattern) => pattern.test(norm)) || (norm.includes('khong bang 2') && hasSubstantiatedMathReason(norm)))) {
+    if (hasSubstantiatedMathReason(norm)) {
+      return {
+        detectedIntent: 'sharp_rebuttal',
+        dispatchedAgent: 'bo',
+        confidence: 0.95,
+        reasoning: 'Học sinh đưa ra lý lẽ phản biện sắc bén có dẫn chứng toán học chỉ rõ lỗi sai hoặc điều kiện biên của bẫy.',
+        fastPath: hasExplicitMention,
+      };
+    } else {
+      return {
+        detectedIntent: 'challenge_shortcut_fallacy',
+        dispatchedAgent: 'bo',
+        confidence: 0.95,
+        reasoning: 'Học sinh bảo Bo sai nhưng chưa nêu lý do/chứng minh toán học, chuyển Bo phản biện lại.',
+        fastPath: hasExplicitMention,
+        unsubstantiatedRebuttal: true,
+      };
+    }
+  }
+
+  // 5. Làm tắt, ngộ nhận tắt đón đầu (challenge_shortcut_fallacy) -> Gán cho Bo
+  const shortcutKeywords = [
+    /cong dai/,
+    /lay luon/,
+    /the so/,
+    /bam may/,
+    /casio/,
+    /ve hinh chi/,
+    /cho le/,
+    /lam tat/,
+    /do met/,
+    /khoi can/,
+    /can gi/,
+    /la xong/,
+    /canh cong canh/,
+    /cu lay/,
+  ];
+  if (shortcutKeywords.some((pattern) => pattern.test(norm))) {
+    return {
+      detectedIntent: 'challenge_shortcut_fallacy',
+      dispatchedAgent: 'bo',
+      confidence: 0.92,
+      reasoning: 'Học sinh đưa ra cách làm tắt hoặc rơi vào ngộ nhận; chuyển cho Bo làm đồng minh ngộ nhận.',
+      fastPath: hasExplicitMention,
+    };
+  }
+
+  // 6. Nhận diện ngộ nhận về "1 + 1 = 2 là chân lý" / "sao thầy gạch bỏ" / "tách ra bình thường mà" trong cộng vectơ
   const sumOnePlusOnePatterns = [
     /1\s*\+\s*1\s*=\s*2/,
     /1\s*\+\s*1/,
@@ -233,12 +389,14 @@ export function classifyHeuristic(message, recipient = 'all') {
     sumOnePlusOnePatterns.some((pattern) => pattern.test(norm)) &&
     (norm.includes('1 + 1') || norm.includes('1+1') || norm.includes('chan ly') || norm.includes('gach') || norm.includes('tach'));
   if (isSumOnePlusOneTopic) {
-    const isTargetingBo = recipient === 'bo' || rawLower.includes('@bo');
+    const isTargetingBo = recipient === 'bo' || rawLower.includes('@bo') || norm.includes('dung khong bo') || norm.includes('bo oi');
     return {
-      detectedIntent: 'ask_deep_concept',
+      detectedIntent: isTargetingBo ? 'challenge_shortcut_fallacy' : 'ask_deep_concept',
       dispatchedAgent: isTargetingBo ? 'bo' : 'tri',
       confidence: 0.98,
-      reasoning: 'Học sinh thắc mắc tại sao 1+1=2 là chân lý mà Thầy Tiến lại gạch bỏ phép tách độ dài |BC + DD\'|; Trí phân tích rạch ròi giữa số học vô hướng và bất đẳng thức tam giác trong vectơ.',
+      reasoning: isTargetingBo
+        ? 'Học sinh đưa ra cách làm tắt hoặc trao đổi với Bo về phép tính 1+1=2; chuyển Bo thách thức bẫy.'
+        : 'Học sinh thắc mắc tại sao 1+1=2 là chân lý mà Thầy Tiến lại gạch bỏ phép tách độ dài |BC + DD\'|; Trí phân tích rạch ròi giữa số học vô hướng và bất đẳng thức tam giác trong vectơ.',
       fastPath: hasExplicitMention,
       isSumOnePlusOneTopic: true,
     };
@@ -348,23 +506,13 @@ export function classifyHeuristic(message, recipient = 'all') {
   }
 
   // Direct agent targeting (bắt trên norm không dấu để nhận diện chính xác "chào Bo nha", "chào Cô Lam")
-  const isTargetBo = recipient === 'bo' || rawLower.includes('@bo') || /\b(chao bo|hoi bo|bo oi|gap bo|voi bo)\b/.test(norm) || (/\bbo\b/.test(norm) && !norm.includes('sai') && !norm.includes('dung') && !norm.includes('khong bang'));
+  const isTargetBo = recipient === 'bo' || rawLower.includes('@bo') || /\b(chao bo|hoi bo|bo oi|gap bo|voi bo)\b/.test(norm) || (/\bbo\b/.test(norm) && !norm.includes('sai') && !norm.includes('dung') && !norm.includes('khong bang') && !norm.includes('khong the bang'));
   if (isTargetBo) {
     return {
       detectedIntent: 'challenge_shortcut_fallacy',
       dispatchedAgent: 'bo',
       confidence: 0.99,
       reasoning: 'Học sinh chủ động gọi tên hoặc chọn trao đổi với Bo (@bo).',
-      fastPath: hasExplicitMention,
-    };
-  }
-  const isTargetLinhChi = recipient === 'linhchi' || rawLower.includes('@linhchi') || /\b(linh chi|chi oi|hoi linh chi|chao linh chi)\b/.test(norm);
-  if (isTargetLinhChi) {
-    return {
-      detectedIntent: 'ask_formula_mnemonic',
-      dispatchedAgent: 'linhchi',
-      confidence: 0.99,
-      reasoning: 'Học sinh yêu cầu sổ tay ghi chép hoặc hỏi trực tiếp Linh Chi (@linhchi).',
       fastPath: hasExplicitMention,
     };
   }
@@ -375,36 +523,6 @@ export function classifyHeuristic(message, recipient = 'all') {
       dispatchedAgent: 'tri',
       confidence: 0.99,
       reasoning: 'Học sinh hỏi trực tiếp bạn học Trí (@tri) để đào sâu bản chất.',
-      fastPath: hasExplicitMention,
-    };
-  }
-  const isTargetMinhKhang = recipient === 'minhkhang' || rawLower.includes('@minhkhang') || /\b(minh khang|khang oi|chao khang|chao minh khang)\b/.test(norm);
-  if (isTargetMinhKhang) {
-    return {
-      detectedIntent: 'general_classroom_chitchat',
-      dispatchedAgent: 'minhkhang',
-      confidence: 0.99,
-      reasoning: 'Học sinh hỏi trực tiếp Minh Khang (@minhkhang) về ví dụ đời sống.',
-      fastPath: hasExplicitMention,
-    };
-  }
-  const isTargetAn = recipient === 'an' || rawLower.includes('@an') || /\b(tro giang|ta an|an oi|chao an|chao tro giang)\b/.test(norm);
-  if (isTargetAn) {
-    return {
-      detectedIntent: 'ask_scaffolding_help',
-      dispatchedAgent: 'an',
-      confidence: 0.99,
-      reasoning: 'Học sinh gọi Trợ giảng An (@an) xin định hướng/gợi ý.',
-      fastPath: hasExplicitMention,
-    };
-  }
-  const isTargetCoLam = recipient === 'colam' || rawLower.includes('@colam') || /\b(co lam|thua co|co oi|chao co)\b/.test(norm);
-  if (isTargetCoLam) {
-    return {
-      detectedIntent: 'ask_deep_concept',
-      dispatchedAgent: 'colam',
-      confidence: 0.95,
-      reasoning: 'Học sinh hỏi Cô Lam (@colam) chốt bài.',
       fastPath: hasExplicitMention,
     };
   }
@@ -768,26 +886,30 @@ export async function dispatchMessage({
   // 3. Trích xuất biểu thức và kiểm chứng Deterministic Tool (nếu có liên quan)
   const detectedExpr = extractVectorExpr(message);
   const detectedClaim = extractClaimFromText(message);
+  const detectedSide = extractSideFromText(message);
   let activeVectorAlgebraTool = vectorAlgebraTool || null;
 
   if (!activeVectorAlgebraTool && detectedExpr) {
     try {
       const rawTool = executeTool('tool_verify_vector_algebra', {
         shape: 'cube',
-        side: 'a',
+        side: detectedSide,
         expr: detectedExpr,
         claim: detectedClaim || undefined,
       });
+      const isCalcOnly = rawTool.output?.isValid === null;
       activeVectorAlgebraTool = {
         toolName: rawTool.toolName,
         status: 'completed',
-        label: 'Trí đang kiểm chứng hình học...',
-        badgeText: rawTool.isValid === true
-          ? `Đã kiểm chứng hình học: Khớp chuẩn (${rawTool.output.correct})`
-          : rawTool.isValid === false
-            ? `Đã kiểm chứng hình học: Sai lệch (${rawTool.input.claim} ≠ ${rawTool.output.correct})`
-            : `Đã kiểm chứng hình học: ${rawTool.output.correct}`,
-        category: 'math_verify',
+        label: isCalcOnly ? 'Trí đang tính toán độ dài vectơ...' : 'Trí đang kiểm chứng hình học...',
+        badgeText: isCalcOnly
+          ? `Đã tính toán: ${rawTool.output?.correct || ''}`
+          : (rawTool.isValid === true
+              ? `Đã kiểm chứng hình học: Khớp chuẩn (${rawTool.output?.correct})`
+              : rawTool.isValid === false
+                ? `Đã kiểm chứng hình học: Sai lệch (${rawTool.input?.claim} ≠ ${rawTool.output?.correct})`
+                : `Đã kiểm chứng hình học: ${rawTool.output?.correct}`),
+        category: isCalcOnly ? 'math_calc' : 'math_verify',
         input: rawTool.input,
         output: rawTool.output,
         isValid: rawTool.isValid,
@@ -799,7 +921,8 @@ export async function dispatchMessage({
   }
 
   // 4. Khởi tạo/Lấy session và ghi nhận ActivityLogEvent (Issue #11 & PR #21)
-  const session = sessionId ? getOrCreateSession(sessionId, { misconceptionId: kbMatch?.misconception?.id || 'MISC_VEC_005' }) : null;
+  const activeSessionId = sessionId || (`session_ephemeral_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`);
+  const session = getOrCreateSession(activeSessionId, { misconceptionId: kbMatch?.misconception?.id || 'MISC_VEC_005' });
   if (session) {
     logActivityEvent(session.id, {
       type: 'intent_routed',
@@ -818,6 +941,16 @@ export async function dispatchMessage({
 
   const mathProblem = kbMatch?.misconception?.title || lessonTitle;
   const targetAgent = verdict.dispatchedAgent;
+
+  // Đóng gói Context Isolation Snapshot bám sát bảng phấn tại giây hiện tại (Issue #402)
+  const contextSnapshot = buildRuntimeContext({
+    agentId: targetAgent,
+    second: currentTime,
+    sessionId: activeSessionId,
+    userMessage: message,
+    videoId: 'VID_VECTO_12_TIEN',
+  });
+  const citations = contextSnapshot?.citations || [];
 
   let primaryResponse = null;
   let followUpResponse = null;
@@ -844,8 +977,8 @@ export async function dispatchMessage({
         isSharp = assessResult?.danh_gia_phan_bien === 'sac_ben';
         assessorNote = assessResult?.ly_do_ngan || '';
       } catch (err) {
-        console.warn('[Dispatcher] Assessor chamPhanBien error, falling back:', err.message);
-        isSharp = hasSubstantiatedMathReason(normMessage) && !verdict.unsubstantiatedRebuttal;
+        console.warn('[Dispatcher] Assessor chamPhanBien error, failing safely as unclear:', err.message);
+        isSharp = false;
       }
     } else {
       // Deterministic fallback
@@ -1186,10 +1319,18 @@ export async function dispatchMessage({
       cheatSheetSteps: cheatSheet,
     };
   } else if (targetAgent === 'an' || verdict.detectedIntent === 'ask_scaffolding_help') {
-    let anText = normMessage.includes('giang nhanh') || normMessage.includes('khong theo kip')
+    const isPacingIssue = normMessage.includes('giang nhanh') || normMessage.includes('khong theo kip');
+    if (session && !isPacingIssue) {
+      session.hintLevel = (session.hintLevel || 0) + 1;
+    }
+    const currentHintLevel = session?.hintLevel || 1;
+
+    let anText = isPacingIssue
       ? 'Trợ giảng An đây! Thầy Tiến đang giảng các ví dụ nền tảng, bạn đừng quá lo lắng nhé. Bạn có thể tạm dừng video một chút, mở lại đoạn 1:15 để xem định nghĩa gốc hoặc đặt câu hỏi ở đây để mình và các bạn hỗ trợ từng bước nhé!'
-      : 'Đừng nản nhé! Gợi ý nhỏ cho bạn: Hãy thử vẽ phác hai vectơ chung gốc hoặc xem lại điều kiện cùng hướng xem sao!';
-    let step = 'Vẽ hình minh hoạ hai vectơ trên mặt phẳng nháp';
+      : (currentHintLevel === 2
+          ? (kbMatch?.misconception?.scaffolding?.[1]?.question || 'Gợi ý mức 2 cho bạn: Hai vectơ BC và DD\' vuông góc nhau trong không gian. Muốn tính độ dài đường chéo, hãy áp dụng định lý Pytago trong tam giác vuông nhé!')
+          : 'Đừng nản nhé! Gợi ý nhỏ cho bạn: Hãy thử vẽ phác hai vectơ chung gốc hoặc xem lại điều kiện cùng hướng xem sao!');
+    let step = currentHintLevel === 2 ? 'Áp dụng định lý Pytago tính độ dài đường chéo' : 'Vẽ hình minh hoạ hai vectơ trên mặt phẳng nháp';
 
     if (useLLM) {
       try {
@@ -1199,7 +1340,7 @@ export async function dispatchMessage({
           cauHoiHocVien: message,
           goiY1: kbMatch?.misconception?.scaffolding?.[0]?.question || 'Thử xem hai vectơ này có cùng hướng hay không?',
           goiY2: kbMatch?.misconception?.scaffolding?.[1]?.question || 'Quan sát tam giác tạo bởi hai vectơ.',
-          level: 1,
+          level: Math.min(currentHintLevel, 2),
         });
         if (taResult?.dialogue) anText = taResult.dialogue;
         if (taResult?.suggestedStep) step = taResult.suggestedStep;
@@ -1213,9 +1354,21 @@ export async function dispatchMessage({
       avatarId: 'an',
       text: anText,
       suggestedStep: step,
+      hintLevel: currentHintLevel,
     };
 
-    if (session && session.hintLevel >= 2) {
+    if (session && !isPacingIssue) {
+      logActivityEvent(session.id, {
+        type: 'learner_answer',
+        payload: {
+          message,
+          evaluation: 'chua_ro',
+          hintLevelGiven: Math.min(currentHintLevel, 2),
+        },
+      });
+    }
+
+    if (session && currentHintLevel >= 3) {
       let coLamText = kbMatch?.misconception?.correction ||
         'Cô thấy các em đã nỗ lực thảo luận rất nhiều! Cô chốt lại quy tắc vàng: |a + b| ≤ |a| + |b|, dấu bằng chỉ xảy ra khi hai vectơ cùng hướng. Ở đây BC vuông góc DD\' nên |BC + DD\'| = |BC\'| = a√2 nhé!';
       followUpResponse = {
@@ -1387,9 +1540,15 @@ export async function dispatchMessage({
 
   if (primaryResponse?.text) {
     primaryResponse.text = sanitizeText(primaryResponse.text);
+    if (!primaryResponse.citations) {
+      primaryResponse.citations = citations;
+    }
   }
   if (followUpResponse?.text) {
     followUpResponse.text = sanitizeText(followUpResponse.text);
+    if (!followUpResponse.citations) {
+      followUpResponse.citations = citations;
+    }
   }
 
   const latencyMs = Date.now() - t0;
@@ -1399,6 +1558,8 @@ export async function dispatchMessage({
     verdict,
     primaryResponse,
     followUpResponse,
+    contextSnapshot,
+    citations,
     ragContextUsed: kbMatch
       ? {
           misconceptionId: kbMatch.misconception.id,

@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-10-29T15:09:41.637Z",
-  "totalQueries": 24,
-  "correctQueries": 18,
-  "accuracyPercent": 75,
-  "meetsDoD": false,
+  "timestamp": "2026-10-29T15:20:28.412Z",
+  "totalQueries": 36,
+  "correctQueries": 36,
+  "accuracyPercent": 100,
+  "meetsDoD": true,
   "benchmarkResults": [
     {
       "index": 1,
@@ -21,11 +21,11 @@
       "query": "Quy tắc 3 điểm áp dụng như thế nào vậy bạn?",
       "expectedIntent": "ask_formula_mnemonic",
       "expectedAgent": "linhchi",
-      "actualIntent": "ask_deep_concept",
-      "actualAgent": "tri",
-      "confidence": 0.95,
-      "reasoning": "Học sinh hỏi phân xử đúng/sai giữa các quan điểm, chuyển cho Trí phân tích bản chất.",
-      "pass": false
+      "actualIntent": "ask_formula_mnemonic",
+      "actualAgent": "linhchi",
+      "confidence": 0.92,
+      "reasoning": "Học sinh hỏi công thức chuẩn, quy tắc hoặc cần mở sổ tay ghi nhớ của Linh Chi.",
+      "pass": true
     },
     {
       "index": 3,
@@ -120,22 +120,22 @@
       "query": "Lấy luôn 1 + 1 = 2 cho lẹ chứ phân tích làm gì",
       "expectedIntent": "challenge_shortcut_fallacy",
       "expectedAgent": "bo",
-      "actualIntent": "ask_deep_concept",
-      "actualAgent": "tri",
-      "confidence": 0.98,
-      "reasoning": "Học sinh thắc mắc tại sao 1+1=2 là chân lý mà Thầy Tiến lại gạch bỏ phép tách độ dài |BC + DD'|; Trí phân tích rạch ròi giữa số học vô hướng và bất đẳng thức tam giác trong vectơ.",
-      "pass": false
+      "actualIntent": "challenge_shortcut_fallacy",
+      "actualAgent": "bo",
+      "confidence": 0.92,
+      "reasoning": "Học sinh đưa ra cách làm tắt hoặc rơi vào ngộ nhận; chuyển cho Bo làm đồng minh ngộ nhận.",
+      "pass": true
     },
     {
       "index": 12,
       "query": "Làm tắt kiểu này đỡ mệt hơn nhiều, đúng không Bo?",
       "expectedIntent": "challenge_shortcut_fallacy",
       "expectedAgent": "bo",
-      "actualIntent": "ask_deep_concept",
-      "actualAgent": "tri",
-      "confidence": 0.95,
-      "reasoning": "Học sinh hỏi phân xử đúng/sai giữa các quan điểm, chuyển cho Trí phân tích bản chất.",
-      "pass": false
+      "actualIntent": "challenge_shortcut_fallacy",
+      "actualAgent": "bo",
+      "confidence": 0.92,
+      "reasoning": "Học sinh đưa ra cách làm tắt hoặc rơi vào ngộ nhận; chuyển cho Bo làm đồng minh ngộ nhận.",
+      "pass": true
     },
     {
       "index": 13,
@@ -208,22 +208,22 @@
       "query": "Không bằng 2 được đâu, vì hai vectơ này vuông góc nên đường chéo phải ra căn 2 theo Pytago chứ!",
       "expectedIntent": "sharp_rebuttal",
       "expectedAgent": "bo",
-      "actualIntent": "general_classroom_chitchat",
-      "actualAgent": "minhkhang",
-      "confidence": 0.65,
-      "reasoning": "Trao đổi lớp học thông thường.",
-      "pass": false
+      "actualIntent": "sharp_rebuttal",
+      "actualAgent": "bo",
+      "confidence": 0.95,
+      "reasoning": "Học sinh đưa ra lý lẽ phản biện sắc bén có dẫn chứng toán học chỉ rõ lỗi sai hoặc điều kiện biên của bẫy.",
+      "pass": true
     },
     {
       "index": 20,
       "query": "Khẳng định của Bo không đúng, hai vectơ đối nhau tổng bằng vectơ 0!",
       "expectedIntent": "sharp_rebuttal",
       "expectedAgent": "bo",
-      "actualIntent": "ask_deep_concept",
-      "actualAgent": "tri",
-      "confidence": 0.98,
-      "reasoning": "Học sinh thắc mắc tại sao hành trình khép kín lại có vectơ tổng bằng 0 dù quãng đường di chuyển khác 0; chuyển Trí phân tích rạch ròi giữa Quãng đường (đại số vô hướng) và Độ dời (vectơ).",
-      "pass": false
+      "actualIntent": "sharp_rebuttal",
+      "actualAgent": "bo",
+      "confidence": 0.95,
+      "reasoning": "Học sinh đưa ra lý lẽ phản biện sắc bén có dẫn chứng toán học chỉ rõ lỗi sai hoặc điều kiện biên của bẫy.",
+      "pass": true
     },
     {
       "index": 21,
@@ -263,11 +263,143 @@
       "query": "Minh Khang ơi có ví dụ đời sống thực tế nào dễ nhớ về vectơ không?",
       "expectedIntent": "general_classroom_chitchat",
       "expectedAgent": "minhkhang",
+      "actualIntent": "general_classroom_chitchat",
+      "actualAgent": "minhkhang",
+      "confidence": 0.99,
+      "reasoning": "Học sinh hỏi trực tiếp Minh Khang (@minhkhang) về ví dụ đời sống.",
+      "pass": true
+    },
+    {
+      "index": 25,
+      "query": "Bo sai rồi, không bằng 2 đâu",
+      "expectedIntent": "challenge_shortcut_fallacy",
+      "expectedAgent": "bo",
+      "actualIntent": "challenge_shortcut_fallacy",
+      "actualAgent": "bo",
+      "confidence": 0.95,
+      "reasoning": "Học sinh bảo Bo sai nhưng chưa nêu lý do/chứng minh toán học, chuyển Bo phản biện lại.",
+      "pass": true
+    },
+    {
+      "index": 26,
+      "query": "em không bằng bạn Trí đâu",
+      "expectedIntent": "general_classroom_chitchat",
+      "expectedAgent": "minhkhang",
+      "actualIntent": "general_classroom_chitchat",
+      "actualAgent": "minhkhang",
+      "confidence": 0.65,
+      "reasoning": "Trao đổi lớp học thông thường.",
+      "pass": true
+    },
+    {
+      "index": 27,
+      "query": "thầy Tiến giảng nhanh quá em không theo kịp",
+      "expectedIntent": "ask_scaffolding_help",
+      "expectedAgent": "an",
+      "actualIntent": "ask_scaffolding_help",
+      "actualAgent": "an",
+      "confidence": 0.93,
+      "reasoning": "Học sinh gặp khó khăn, xin gợi ý từng bước hoặc kêu bài giảng quá nhanh.",
+      "pass": true
+    },
+    {
+      "index": 28,
+      "query": "chào Bo nha",
+      "expectedIntent": "challenge_shortcut_fallacy",
+      "expectedAgent": "bo",
+      "actualIntent": "challenge_shortcut_fallacy",
+      "actualAgent": "bo",
+      "confidence": 0.99,
+      "reasoning": "Học sinh chủ động gọi tên hoặc chọn trao đổi với Bo (@bo).",
+      "pass": true
+    },
+    {
+      "index": 29,
+      "query": "Hình lập phương cạnh bằng 2, |BC + DD'| bằng bao nhiêu?",
+      "expectedIntent": "ask_deep_concept",
+      "expectedAgent": "tri",
       "actualIntent": "ask_deep_concept",
       "actualAgent": "tri",
+      "confidence": 0.7,
+      "reasoning": "Câu hỏi nghi vấn chưa phân loại rõ, mặc định định tuyến đến Trí để phân tích bản chất.",
+      "pass": true
+    },
+    {
+      "index": 30,
+      "query": "Hình lập phương cạnh bằng 2, |BC + DD'| bằng 2√2 có đúng không?",
+      "expectedIntent": "ask_deep_concept",
+      "expectedAgent": "tri",
+      "actualIntent": "ask_deep_concept",
+      "actualAgent": "tri",
+      "confidence": 0.95,
+      "reasoning": "Học sinh hỏi phân xử đúng/sai giữa các quan điểm, chuyển cho Trí phân tích bản chất.",
+      "pass": true
+    },
+    {
+      "index": 31,
+      "query": "Quy tắc hiệu chung đầu lộn ngược là gì vậy Linh Chi?",
+      "expectedIntent": "ask_formula_mnemonic",
+      "expectedAgent": "linhchi",
+      "actualIntent": "ask_formula_mnemonic",
+      "actualAgent": "linhchi",
+      "confidence": 0.99,
+      "reasoning": "Học sinh yêu cầu sổ tay ghi chép hoặc hỏi trực tiếp Linh Chi (@linhchi).",
+      "pass": true
+    },
+    {
+      "index": 32,
+      "query": "Tại sao hai đường thẳng chéo nhau lại không cùng phương vậy Trí?",
+      "expectedIntent": "ask_deep_concept",
+      "expectedAgent": "tri",
+      "actualIntent": "ask_deep_concept",
+      "actualAgent": "tri",
+      "confidence": 0.96,
+      "reasoning": "Học sinh đặt câu hỏi nghi vấn tại sao/khi nào để đào sâu bản chất toán học.",
+      "pass": true
+    },
+    {
+      "index": 33,
+      "query": "Cứ lấy cạnh cộng cạnh là xong, cần gì vẽ thêm điểm",
+      "expectedIntent": "challenge_shortcut_fallacy",
+      "expectedAgent": "bo",
+      "actualIntent": "challenge_shortcut_fallacy",
+      "actualAgent": "bo",
+      "confidence": 0.92,
+      "reasoning": "Học sinh đưa ra cách làm tắt hoặc rơi vào ngộ nhận; chuyển cho Bo làm đồng minh ngộ nhận.",
+      "pass": true
+    },
+    {
+      "index": 34,
+      "query": "Cô Lam ơi cho em hỏi bài tập về nhà với ạ",
+      "expectedIntent": "ask_deep_concept",
+      "expectedAgent": "colam",
+      "actualIntent": "ask_deep_concept",
+      "actualAgent": "colam",
+      "confidence": 0.95,
+      "reasoning": "Học sinh hỏi Cô Lam (@colam) chốt bài.",
+      "pass": true
+    },
+    {
+      "index": 35,
+      "query": "Trợ giảng An ơi bài này em chưa hiểu bước 2",
+      "expectedIntent": "ask_scaffolding_help",
+      "expectedAgent": "an",
+      "actualIntent": "ask_scaffolding_help",
+      "actualAgent": "an",
+      "confidence": 0.99,
+      "reasoning": "Học sinh gọi Trợ giảng An (@an) xin định hướng/gợi ý.",
+      "pass": true
+    },
+    {
+      "index": 36,
+      "query": "Hôm nay ai vừa giành quả bóng vàng 2026 vậy?",
+      "expectedIntent": "encourage_study_focus",
+      "expectedAgent": "minhkhang",
+      "actualIntent": "encourage_study_focus",
+      "actualAgent": "minhkhang",
       "confidence": 0.98,
-      "reasoning": "Học sinh thắc mắc tại sao hành trình khép kín lại có vectơ tổng bằng 0 dù quãng đường di chuyển khác 0; chuyển Trí phân tích rạch ròi giữa Quãng đường (đại số vô hướng) và Độ dời (vectơ).",
-      "pass": false
+      "reasoning": "Học sinh hỏi chủ đề ngoài lề (thể thao, đời sống, người nổi tiếng); Minh Khang giải đáp ngắn gọn và khéo léo kéo học sinh quay lại bài học.",
+      "pass": true
     }
   ],
   "checkpoint3713Test": {

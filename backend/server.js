@@ -233,6 +233,49 @@ app.post('/api/runtime/dispatch', async (req, res) => {
   }
 });
 
+// GET /api/runtime/context-snapshot — AISDLC Issue #402: Lấy Context Isolation Snapshot bám sát bảng phấn
+app.get('/api/runtime/context-snapshot', async (req, res) => {
+  try {
+    const { agentId = 'tri', second = 2233, sessionId = 'session_001', videoId = 'VID_VECTO_12_TIEN' } = req.query;
+    const { buildRuntimeContext } = await import('./src/services/contextSnapshot.js');
+    const snapshot = buildRuntimeContext({
+      agentId: String(agentId),
+      second: Number(second) || 2233,
+      sessionId: String(sessionId),
+      videoId: String(videoId),
+    });
+    res.json({ ok: true, snapshot });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/runtime/context-snapshot — AISDLC Issue #402: Đóng gói Context Isolation Snapshot theo yêu cầu
+app.post('/api/runtime/context-snapshot', async (req, res) => {
+  try {
+    const {
+      agentId = 'tri',
+      second = 2233,
+      sessionId = 'session_001',
+      videoId = 'VID_VECTO_12_TIEN',
+      userMessage = '',
+      chatHistory = [],
+    } = req.body || {};
+    const { buildRuntimeContext } = await import('./src/services/contextSnapshot.js');
+    const snapshot = buildRuntimeContext({
+      agentId: String(agentId),
+      second: Number(second) || 2233,
+      sessionId: String(sessionId),
+      videoId: String(videoId),
+      userMessage: String(userMessage),
+      chatHistory: Array.isArray(chatHistory) ? chatHistory : [],
+    });
+    res.json({ ok: true, snapshot });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 // POST /api/chat/classroom — OpenMAIC: Khung chat lớp học tích hợp Dispatcher, RAG & Multi-Agent Chaining
 app.post('/api/chat/classroom', async (req, res) => {
   try {
@@ -358,9 +401,100 @@ app.post('/api/chat/classroom', async (req, res) => {
       kbMatchedId: dispatchResult.ragContextUsed?.misconceptionId || kbMatch?.misconception?.id || null,
       toolCall: toolCalls[0] || null,
       toolCalls,
+      citations: dispatchResult.citations || (dispatchResult.primaryResponse?.citations) || null,
+      contextSnapshot: dispatchResult.contextSnapshot || null,
       timeStr: dispatchResult.currentTimeStr,
       latencyMs: dispatchResult.latencyMs,
     });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+
+// ============================================================================
+// AISDLC EPIC 4 - Issue #403: Cognitive Metrics & Bloom Certification Endpoints
+// ============================================================================
+
+// POST /api/evaluator/assess — Tính toán Hesitation Index & chấm chất lượng phản biện
+app.post('/api/evaluator/assess', async (req, res) => {
+  try {
+    const {
+      answer = '',
+      expectedPoints = [],
+      currentTime = 2233,
+      misconceptionId = null,
+      deltaSeconds = 0,
+      characterCount = 10,
+      backspaceCount = 0,
+    } = req.body || {};
+
+    const { calculateHesitationIndex, evaluateRebuttalQuality } = await import('./src/services/evaluator.js');
+    const hesitation = calculateHesitationIndex({ deltaSeconds, characterCount, backspaceCount });
+    const assessment = evaluateRebuttalQuality({
+      answer,
+      expectedPoints,
+      currentTime,
+      misconceptionId,
+    });
+
+    res.json({
+      ok: true,
+      hesitation,
+      assessment,
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/evaluator/action — Thực thi 3 Action sư phạm: create_learning_record, update_mastery_state, create_review_task
+app.post('/api/evaluator/action', async (req, res) => {
+  try {
+    const { sessionId = 'session_001', action, payload = {} } = req.body || {};
+    const evaluator = await import('./src/services/evaluator.js');
+
+    let result;
+    if (action === 'create_learning_record') {
+      result = evaluator.createLearningRecord(sessionId, payload);
+    } else if (action === 'update_mastery_state') {
+      result = evaluator.updateMasteryState(sessionId, payload);
+    } else if (action === 'create_review_task') {
+      result = evaluator.createReviewTask(sessionId, payload);
+    } else {
+      return res.status(400).json({ ok: false, error: `Action '${action}' không hợp lệ` });
+    }
+
+    res.json({ ok: true, action, result });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/evaluator/certify-station4 — Thẩm định chứng nhận Tháp Bloom ở Trạm 4
+app.post('/api/evaluator/certify-station4', async (req, res) => {
+  try {
+    const { sessionId = 'session_001', teachingAnswer = '', createdProblem = null, videoTimeS = 2300 } = req.body || {};
+    const { certifyBloomStation4 } = await import('./src/services/evaluator.js');
+
+    const result = certifyBloomStation4(sessionId, {
+      teachingAnswer,
+      createdProblem,
+      videoTimeS,
+    });
+
+    res.json({ ok: true, result });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// GET /api/session/:id/export — Xuất toàn bộ session document chuẩn DRESessionSchema
+app.get('/api/session/:id/export', async (req, res) => {
+  try {
+    const { exportSessionDocument } = await import('./src/services/evaluator.js');
+    const sessionDoc = exportSessionDocument(req.params.id);
+    res.json({ ok: true, session: sessionDoc });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }

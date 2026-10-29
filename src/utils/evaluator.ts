@@ -188,3 +188,99 @@ export function evaluateRebuttalOffline(
     tutorFeedback: lesson.hintLevel1
   };
 }
+
+
+/**
+ * ============================================================================
+ * AISDLC EPIC 4 - Issue #403: Cognitive Metrics & Bloom Certification Helpers
+ * ============================================================================
+ */
+
+export interface HesitationIndexResult {
+  hesitationIndex: number;
+  hesitationLevel: 'low' | 'medium' | 'high';
+  hesitationSeconds: number;
+  recommendation: 'trigger_scaffolding_nudge' | 'continue_flow';
+}
+
+/**
+ * Tính toán chỉ số ngập ngừng (Hesitation Index)
+ * HI = ΔT / ln(max(chars, 2))
+ */
+export function calculateHesitationIndex(
+  deltaSeconds: number = 0,
+  characterCount: number = 10,
+  backspaceCount: number = 0
+): HesitationIndexResult {
+  const chars = Math.max(characterCount || 1, 2);
+  const dt = Math.max(deltaSeconds || 0, 0.5);
+  const logChars = Math.log(chars);
+  const backspacePenalty = 1 + Math.min(backspaceCount || 0, 10) * 0.05;
+  const rawHI = (dt / logChars) * backspacePenalty;
+  const hesitationIndex = Math.round(rawHI * 100) / 100;
+
+  let hesitationLevel: 'low' | 'medium' | 'high' = 'low';
+  if (hesitationIndex > 4.0 || dt >= 45) {
+    hesitationLevel = 'high';
+  } else if (hesitationIndex >= 2.5 || dt >= 20) {
+    hesitationLevel = 'medium';
+  }
+
+  return {
+    hesitationIndex,
+    hesitationLevel,
+    hesitationSeconds: dt,
+    recommendation: hesitationLevel === 'high' ? 'trigger_scaffolding_nudge' : 'continue_flow',
+  };
+}
+
+/**
+ * Quy tắc Mastery chuẩn của Tháp Bloom (DoD Issue #403):
+ * Đúng trắc nghiệm + Không giải thích / giải thích sai => 'attempted', KHÔNG 'mastered'
+ */
+export function determineMasteryState(
+  isCorrectChoice: boolean,
+  explanationQuality: 'thorough' | 'partial' | 'off-track' | 'empty' | 'sharp_rebuttal'
+): {
+  result: 'mastered' | 'developing' | 'attempted' | 'not_started';
+  bloomLevel: 'Remember' | 'Understand' | 'Apply' | 'Analyze' | 'Evaluate' | 'Create';
+  comment: string;
+} {
+  if (isCorrectChoice && (explanationQuality === 'empty' || explanationQuality === 'off-track')) {
+    return {
+      result: 'attempted',
+      bloomLevel: 'Remember',
+      comment: 'Chọn đúng trắc nghiệm nhưng chưa giải thích hoặc giải thích sai, nên chỉ ghi nhận attempted, chưa cấp mastered.',
+    };
+  }
+
+  if (explanationQuality === 'sharp_rebuttal' || (isCorrectChoice && explanationQuality === 'thorough')) {
+    return {
+      result: 'mastered',
+      bloomLevel: 'Evaluate',
+      comment: 'Phản biện sắc bén bẻ gãy bẫy ngộ nhận và giải thích thấu đáo bản chất hình học.',
+    };
+  }
+
+  if (explanationQuality === 'partial') {
+    return {
+      result: 'developing',
+      bloomLevel: 'Analyze',
+      comment: 'Học sinh đang phát triển hiểu biết (developing), cần gợi ý củng cố thêm.',
+    };
+  }
+
+  if (!isCorrectChoice) {
+    return {
+      result: 'developing',
+      bloomLevel: 'Remember',
+      comment: 'Học sinh chọn sai đáp án, cần thực hiện tác vụ ôn tập.',
+    };
+  }
+
+  return {
+    result: 'attempted',
+    bloomLevel: 'Understand',
+    comment: 'Đã thử sức nhưng chưa hoàn tất tiêu chuẩn đánh giá sư phạm.',
+  };
+}

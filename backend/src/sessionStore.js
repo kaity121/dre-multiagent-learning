@@ -12,13 +12,35 @@ export function createSession({ misconceptionId = 'MISC_VEC_005', id = null } = 
   const sessionId = id || randomUUID();
   const session = {
     id: sessionId,
+    session_id: sessionId,
+    learner_id: 'learner_001',
+    lesson_id: 'math_12_vecto_01',
+    lesson_version: '1.1',
+    status: 'in_progress',
+    video_time_s: 2233,
+    station_progress: 'station_1_video',
     misconceptionId,
     hintLevel: 0, // 0 = chưa dùng gợi ý, 1 = đã dùng gợi ý cấp 1, 2 = đã dùng cấp 2
     cauTraLoiGoc: null,
     danhGiaGoc: null, // "dung" | "sai"
     loaiBay: null,
     done: false,
-    activity_log: [], // Issue #11 & PR #21 Activity Log Events
+    activity_log: [], // Issue #11, #403 & PR #21 Activity Log Events
+    memory: {
+      summary: '',
+      open_questions: [],
+      misconceptions_triggered: [misconceptionId],
+      rebuttal_mastery_rate: 0,
+    },
+    assessment: {
+      goals: [],
+    },
+    part_reviews: [],
+    overall_review: {
+      result: 'developing',
+      summary: '',
+      reviewed_part_ids: [],
+    },
     createdAt: Date.now(),
   };
   sessions.set(sessionId, session);
@@ -71,10 +93,12 @@ export function logActivityEvent(sessionId, event) {
   return entry;
 }
 
-export default {
+export const sessionStore = {
   createSession,
   getSession,
   updateSession,
   getOrCreateSession,
   logActivityEvent,
 };
+
+export default sessionStore;
