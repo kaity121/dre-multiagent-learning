@@ -1,0 +1,374 @@
+{
+  "lesson_id": "math_12_vecto_01",
+  "version": "1.1",
+  "status": "approved",
+  "title": "Bài 1.1: Vectơ Trong Không Gian - Định nghĩa, Tổng và Hiệu hai vectơ (Thầy Nguyễn Phan Tiến)",
+  "subject": "Toán 12 - Hình học không gian",
+  "video_url": "https://www.youtube.com/watch?v=phvpqxLNTUQ",
+  "video_duration_s": 9503,
+  "sources": [
+    {
+      "source_id": "transcript_p01",
+      "type": "transcript",
+      "start_s": 0,
+      "end_s": 1349,
+      "content": "Vectơ trong không gian là đoạn thẳng có hướng. Hai vectơ cùng phương khi giá song song hoặc trùng nhau; cùng phương mới xét cùng hướng hay ngược hướng. Hai vectơ bằng nhau khi cùng hướng và cùng độ dài."
+    },
+    {
+      "source_id": "transcript_p02",
+      "type": "transcript",
+      "start_s": 1350,
+      "end_s": 1812,
+      "content": "Quy tắc 3 điểm OA + AB = OB. Quy tắc hình bình hành AB + AD = AC."
+    },
+    {
+      "source_id": "blackboard_box_rule",
+      "type": "blackboard",
+      "start_s": 1813,
+      "end_s": 2200,
+      "content": "Quy tắc hình hộp: ba vectơ chung gốc A theo ba cạnh hình hộp có tổng bằng vectơ đường chéo.",
+      "latex": ["\\vec{AB} + \\vec{AD} + \\vec{AA'} = \\vec{AC'}"]
+    },
+    {
+      "source_id": "blackboard_ex3",
+      "type": "blackboard",
+      "start_s": 2201,
+      "end_s": 2300,
+      "content": "Ví dụ 3: Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính |BC + DD'|.",
+      "latex": ["|\\vec{BC} + \\vec{DD'}|", "|\\vec{BC} + \\vec{CC'}| = |\\vec{BC'}| = \\sqrt{2}"]
+    },
+    {
+      "source_id": "geometry_cube_3d",
+      "type": "geometry_3d",
+      "start_s": 2201,
+      "end_s": 2300,
+      "content": "Hình lập phương cạnh 1, tam giác BCC' vuông cân tại C, đường chéo BC' bằng căn 2.",
+      "geometry_meta": {
+        "shapeType": "cube",
+        "vertices": ["A", "B", "C", "D", "A'", "B'", "C'", "D'"],
+        "highlightedVectors": ["BC", "DD'", "CC'", "BC'"],
+        "actionDescription": "Tịnh tiến vectơ DD' thành CC' để cộng với BC ra đường chéo BC'"
+      }
+    },
+    {
+      "source_id": "blackboard_subtraction",
+      "type": "blackboard",
+      "start_s": 3134,
+      "end_s": 3989,
+      "content": "Quy tắc trừ: hai vectơ chung gốc thì hiệu là vectơ nối hai ngọn, hướng về vectơ bị trừ (chung đầu - lộn ngược).",
+      "latex": ["\\vec{OA} - \\vec{OB} = \\vec{BA}"]
+    }
+  ],
+  "parts": [
+    {
+      "part_id": "part_01_definition",
+      "start_s": 0,
+      "end_s": 1349,
+      "concept": "Định nghĩa vectơ, cùng phương và cùng hướng",
+      "context": "Thầy Tiến nhắc lại định nghĩa vectơ từ lớp 10 và mở rộng sang không gian 3D.",
+      "goals": [
+        {
+          "goal_id": "g01",
+          "description": "Phân biệt cùng phương với cùng hướng, nhận biết hai vectơ trên hai đường chéo nhau không cùng phương",
+          "bloom_target": "Understand"
+        }
+      ],
+      "source_refs": ["transcript_p01"],
+      "pause_questions": [
+        {
+          "question_id": "pq01",
+          "at_s": 282,
+          "purpose": "concept_check",
+          "question_type": "multiple_choice",
+          "question": "Nếu hai vectơ nằm trên hai đường thẳng chéo nhau trong không gian thì có cùng phương không?",
+          "options": [
+            { "option_id": "A", "text": "Không cùng phương vì giá của chúng không song song hay trùng nhau", "is_correct": true },
+            { "option_id": "B", "text": "Có cùng phương nếu cùng độ dài", "is_correct": false },
+            { "option_id": "C", "text": "Ngược hướng nhau", "is_correct": false, "misconception_linked": "MISC_VEC_003" },
+            { "option_id": "D", "text": "Cùng hướng nhau", "is_correct": false, "misconception_linked": "MISC_VEC_003" }
+          ],
+          "correct_option_ids": ["A"],
+          "explanation": "Hai vectơ chỉ cùng phương khi giá song song hoặc trùng nhau. Hai đường thẳng chéo nhau không cùng phương nên không xét cùng hay ngược hướng.",
+          "max_attempts": 1,
+          "allow_skip": true,
+          "on_correct": "confirm_and_resume",
+          "on_incorrect": "show_explanation_and_resume",
+          "on_skip": "resume",
+          "misconception_id": "MISC_VEC_003"
+        }
+      ],
+      "scenarios": [
+        {
+          "scenario_id": "sc_p01_minhkhang_rails",
+          "at_s": 150,
+          "actor_id": "minhkhang",
+          "interaction_type": "passive_comment",
+          "bloom_level": "Understand",
+          "question": "Tớ hình dung giá của vectơ như đường ray, còn vectơ là đoàn tàu chạy trên ray đó. Hai ray song song thì hai tàu cùng phương nè.",
+          "expected_points": [],
+          "pause_video": false,
+          "wait_timeout_s": 0,
+          "on_correct": "confirm_and_resume",
+          "on_incorrect": "hint_then_explain_and_resume",
+          "on_timeout": "offer_hint_or_skip"
+        },
+        {
+          "scenario_id": "sc_p01_tri_skew",
+          "at_s": 330,
+          "actor_id": "tri",
+          "interaction_type": "passive_comment",
+          "bloom_level": "Analyze",
+          "question": "Trong không gian có thêm trường hợp hai đường thẳng chéo nhau, cái mà mặt phẳng lớp 10 không có. Nên phải kiểm tra giá trước rồi mới nói cùng hướng hay không.",
+          "expected_points": [],
+          "pause_video": false,
+          "wait_timeout_s": 0,
+          "on_correct": "confirm_and_resume",
+          "on_incorrect": "hint_then_explain_and_resume",
+          "on_timeout": "offer_hint_or_skip"
+        },
+        {
+          "scenario_id": "sc_p01_linhchi_equal",
+          "at_s": 760,
+          "actor_id": "linhchi",
+          "interaction_type": "passive_comment",
+          "bloom_level": "Remember",
+          "question": "Note nhanh: hai vectơ bằng nhau = cùng hướng + cùng độ dài. Không cần chung điểm đầu.",
+          "expected_points": [],
+          "linhchi_cheat_sheet_ref": "rule_equal_vectors",
+          "pause_video": false,
+          "wait_timeout_s": 0,
+          "on_correct": "confirm_and_resume",
+          "on_incorrect": "hint_then_explain_and_resume",
+          "on_timeout": "offer_hint_or_skip"
+        }
+      ]
+    },
+    {
+      "part_id": "part_02_sum_rules",
+      "start_s": 1350,
+      "end_s": 1812,
+      "concept": "Tổng hai vectơ: quy tắc 3 điểm và quy tắc hình bình hành",
+      "context": "Thầy Tiến giải thích quy tắc 3 điểm và hình bình hành, áp dụng cho các mặt của hình hộp.",
+      "goals": [
+        {
+          "goal_id": "g02",
+          "description": "Vận dụng quy tắc 3 điểm và quy tắc hình bình hành để rút gọn tổng vectơ",
+          "bloom_target": "Apply"
+        }
+      ],
+      "source_refs": ["transcript_p02"],
+      "pause_questions": [],
+      "scenarios": [
+        {
+          "scenario_id": "sc_p02_tri_endpoint",
+          "at_s": 1440,
+          "actor_id": "tri",
+          "interaction_type": "passive_comment",
+          "bloom_level": "Understand",
+          "question": "Quy tắc 3 điểm chỉ đúng khi điểm cuối của vectơ đầu trùng điểm đầu của vectơ sau. OA + AB thì được, OA + BA thì không.",
+          "expected_points": [],
+          "misconception_target": "MISC_VEC_004",
+          "pause_video": false,
+          "wait_timeout_s": 0,
+          "on_correct": "confirm_and_resume",
+          "on_incorrect": "hint_then_explain_and_resume",
+          "on_timeout": "offer_hint_or_skip"
+        },
+        {
+          "scenario_id": "sc_p02_linhchi_ask",
+          "at_s": 1620,
+          "actor_id": "linhchi",
+          "interaction_type": "ask_learner",
+          "bloom_level": "Apply",
+          "question": "Cậu ơi, trong hình bình hành ABCD thì AB + AD bằng vectơ nào? Tớ đang ghi sổ tay mà quên mất.",
+          "expected_points": ["AB + AD = AC", "AC là đường chéo xuất phát từ đỉnh chung A"],
+          "linhchi_cheat_sheet_ref": "rule_parallelogram",
+          "pause_video": true,
+          "wait_timeout_s": 25,
+          "on_correct": "confirm_and_resume",
+          "on_incorrect": "hint_then_explain_and_resume",
+          "on_timeout": "offer_hint_or_skip"
+        }
+      ]
+    },
+    {
+      "part_id": "part_03_box_rule_example3",
+      "start_s": 1813,
+      "end_s": 3133,
+      "concept": "Quy tắc hình hộp và bẫy cộng độ dài (Ví dụ 3)",
+      "context": "Thầy Tiến giảng quy tắc hình hộp rồi giải Ví dụ 3 trên hình lập phương cạnh 1. Checkpoint ở 37:13.",
+      "goals": [
+        {
+          "goal_id": "g03",
+          "description": "Phát hiện và bẻ gãy ngộ nhận |u + v| = |u| + |v| bằng cách dựng vectơ tổng trước khi tính độ dài",
+          "bloom_target": "Evaluate"
+        }
+      ],
+      "source_refs": ["blackboard_box_rule", "blackboard_ex3", "geometry_cube_3d"],
+      "pause_questions": [
+        {
+          "question_id": "pq02_checkpoint_3713",
+          "at_s": 2233,
+          "purpose": "checkpoint_misconception_test",
+          "question_type": "multiple_choice",
+          "question": "Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính độ dài |BC + DD'|.",
+          "blackboard_formula": "|\\vec{BC} + \\vec{DD'}|",
+          "options": [
+            { "option_id": "A", "text": "√2", "is_correct": true },
+            { "option_id": "B", "text": "2", "is_correct": false, "misconception_linked": "MISC_VEC_005" },
+            { "option_id": "C", "text": "0", "is_correct": false },
+            { "option_id": "D", "text": "√3", "is_correct": false, "misconception_linked": "MISC_VEC_006" }
+          ],
+          "correct_option_ids": ["A"],
+          "explanation": "Không được tách độ dài trực tiếp. Tịnh tiến DD' thành CC' để có BC + CC' = BC'. Tam giác BCC' vuông cân cạnh 1 nên BC' = √2.",
+          "max_attempts": 2,
+          "allow_skip": false,
+          "on_correct": "trigger_bo_challenge",
+          "on_incorrect": "trigger_bo_ally_trap",
+          "on_skip": "flag_unmastered",
+          "misconception_id": "MISC_VEC_005"
+        }
+      ],
+      "scenarios": [
+        {
+          "scenario_id": "sc_p03_linhchi_box",
+          "at_s": 1900,
+          "actor_id": "linhchi",
+          "interaction_type": "passive_comment",
+          "bloom_level": "Remember",
+          "question": "Ghi chú quy tắc hình hộp: ba vectơ phải chung gốc A và đi theo ba cạnh, tổng mới là đường chéo AC'.",
+          "expected_points": [],
+          "misconception_target": "MISC_VEC_006",
+          "linhchi_cheat_sheet_ref": "rule_box",
+          "pause_video": false,
+          "wait_timeout_s": 0,
+          "on_correct": "confirm_and_resume",
+          "on_incorrect": "hint_then_explain_and_resume",
+          "on_timeout": "offer_hint_or_skip"
+        },
+        {
+          "scenario_id": "sc_bo_debate_3713",
+          "at_s": 2235,
+          "actor_id": "bo",
+          "interaction_type": "debate_challenge",
+          "bloom_level": "Evaluate",
+          "question": "Ủa sao cậu không lấy |BC| = 1 cộng |DD'| = 1 bằng 2 luôn cho lẹ? Cạnh hình lập phương bằng 1 hết mà, 1 + 1 = 2 sai chỗ nào đâu?",
+          "expected_points": [
+            "BC và DD' không cùng hướng nên không cộng độ dài trực tiếp được",
+            "Phải dựng một vectơ tổng (DD' = CC' nên BC + CC' = BC') trước khi lấy độ dài",
+            "Tam giác BCC' vuông tại C nên BC' = √2"
+          ],
+          "misconception_target": "MISC_VEC_005",
+          "bo_fallacy_statement": "|BC + DD'| = |BC| + |DD'| = 2",
+          "linhchi_cheat_sheet_ref": "rule_vector_addition_length",
+          "pause_video": true,
+          "wait_timeout_s": 30,
+          "on_correct": "bo_concedes",
+          "on_incorrect": "deepen_bo_challenge",
+          "on_timeout": "ta_nudge_resume"
+        },
+        {
+          "scenario_id": "sc_p03_colam_close",
+          "at_s": 2300,
+          "actor_id": "colam",
+          "interaction_type": "passive_comment",
+          "bloom_level": "Understand",
+          "question": "Cả lớp nhớ nhé: cộng vectơ trước, lấy độ dài sau. Độ dài tổng chỉ bằng tổng độ dài khi hai vectơ cùng hướng.",
+          "expected_points": [],
+          "misconception_target": "MISC_VEC_005",
+          "pause_video": false,
+          "wait_timeout_s": 0,
+          "on_correct": "confirm_and_resume",
+          "on_incorrect": "hint_then_explain_and_resume",
+          "on_timeout": "offer_hint_or_skip"
+        }
+      ]
+    },
+    {
+      "part_id": "part_04_subtraction",
+      "start_s": 3134,
+      "end_s": 3989,
+      "concept": "Hiệu hai vectơ: chung đầu - lộn ngược",
+      "context": "Thầy Tiến giảng quy tắc trừ hai vectơ chung gốc.",
+      "goals": [
+        {
+          "goal_id": "g04",
+          "description": "Áp dụng đúng chiều của quy tắc trừ hai vectơ chung gốc",
+          "bloom_target": "Apply"
+        }
+      ],
+      "source_refs": ["blackboard_subtraction"],
+      "pause_questions": [
+        {
+          "question_id": "pq03",
+          "at_s": 3330,
+          "purpose": "concept_check",
+          "question_type": "multiple_choice",
+          "question": "Với ba điểm O, A, B bất kỳ, OA - OB bằng vectơ nào?",
+          "blackboard_formula": "\\vec{OA} - \\vec{OB}",
+          "options": [
+            { "option_id": "A", "text": "BA", "is_correct": true },
+            { "option_id": "B", "text": "AB", "is_correct": false, "misconception_linked": "MISC_VEC_007" },
+            { "option_id": "C", "text": "OB - OA", "is_correct": false, "misconception_linked": "MISC_VEC_008" },
+            { "option_id": "D", "text": "Vectơ không", "is_correct": false }
+          ],
+          "correct_option_ids": ["A"],
+          "explanation": "Chung đầu O, lộn ngược: hiệu đi từ ngọn vectơ bị trừ (B) tới ngọn vectơ trừ (A), tức là BA.",
+          "max_attempts": 1,
+          "allow_skip": true,
+          "on_correct": "advance_station",
+          "on_incorrect": "offer_scaffolding",
+          "on_skip": "flag_unmastered",
+          "misconception_id": "MISC_VEC_007"
+        }
+      ],
+      "scenarios": [
+        {
+          "scenario_id": "sc_p04_an_mnemonic",
+          "at_s": 3220,
+          "actor_id": "an",
+          "interaction_type": "passive_comment",
+          "bloom_level": "Remember",
+          "question": "Mẹo của chị: chung đầu thì lộn ngược. OA - OB, đầu chung là O, kết quả đi từ B sang A.",
+          "expected_points": [],
+          "pause_video": false,
+          "wait_timeout_s": 0,
+          "on_correct": "confirm_and_resume",
+          "on_incorrect": "hint_then_explain_and_resume",
+          "on_timeout": "offer_hint_or_skip"
+        },
+        {
+          "scenario_id": "sc_p04_bo_bait",
+          "at_s": 3270,
+          "actor_id": "bo",
+          "interaction_type": "bo_trap_bait",
+          "bloom_level": "Analyze",
+          "question": "Trừ thì cũng như cộng thôi, OA - OB với OB - OA ra cùng một vectơ mà, đúng không?",
+          "expected_points": ["OA - OB = BA còn OB - OA = AB", "Hai kết quả là hai vectơ đối nhau"],
+          "misconception_target": "MISC_VEC_008",
+          "bo_fallacy_statement": "OA - OB = OB - OA",
+          "pause_video": false,
+          "wait_timeout_s": 0,
+          "on_correct": "bo_concedes",
+          "on_incorrect": "open_cheat_sheet",
+          "on_timeout": "offer_hint_or_skip"
+        },
+        {
+          "scenario_id": "sc_p04_tri_rebut",
+          "at_s": 3300,
+          "actor_id": "tri",
+          "interaction_type": "passive_comment",
+          "bloom_level": "Analyze",
+          "question": "Không đâu Bo, phép trừ vectơ không giao hoán. Đổi thứ tự là ra vectơ đối, cùng độ dài nhưng ngược hướng.",
+          "expected_points": [],
+          "misconception_target": "MISC_VEC_008",
+          "pause_video": false,
+          "wait_timeout_s": 0,
+          "on_correct": "confirm_and_resume",
+          "on_incorrect": "hint_then_explain_and_resume",
+          "on_timeout": "offer_hint_or_skip"
+        }
+      ]
+    }
+  ]
+}
