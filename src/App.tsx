@@ -693,6 +693,9 @@ export default function App() {
 
   const handleSeekVideo = (time: number) => {
     setVideoCurrentTime(time);
+    if (Math.abs(time - currentVideoLesson.checkpointTimestamp) <= 3 && videoPhase === 'WATCHING') {
+      handleJumpToCheckpoint();
+    }
   };
 
   const handleJumpToCheckpoint = () => {

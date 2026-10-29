@@ -176,13 +176,231 @@ app.post('/api/peer/:peerId/chat', async (req, res) => {
   }
 });
 
-// POST /api/roundtable/run  { misconceptionId } — OpenMAIC Issue #302: Buồng họp A2A Scriptwriting
-app.post('/api/roundtable/run', async (req, res) => {
+// POST /api/roundtable/run & /api/roundtable/generate — OpenMAIC Issue #302: Buồng họp A2A Scriptwriting Roundtable
+app.post(['/api/roundtable/run', '/api/roundtable/generate'], async (req, res) => {
   try {
-    const { runRoundtable } = await import('./src/services/roundtable.js');
-    const { misconceptionId = 'MISC_VEC_005' } = req.body || {};
-    const draft = await runRoundtable(misconceptionId);
-    res.json({ ok: true, draft });
+    const { videoId = 'VID_VECTO_12_TIEN', partNumber, misconceptionId, cognitiveStream: customStream, useLLM = false } = req.body || {};
+
+    // 1. Nếu yêu cầu chạy theo misconceptionId đơn lẻ (tương thích backward)
+    if (misconceptionId && !partNumber && !customStream) {
+      const { runRoundtable } = await import('./src/services/roundtable.js');
+      const draft = await runRoundtable(misconceptionId, { useLLM });
+      return res.json({ ok: true, draft });
+    }
+
+    // 2. Chạy Roundtable Orchestrator toàn diện cho Video / Part theo CognitiveEventStream (#302)
+    const { runRoundtableForPart, runFullLessonRoundtable, partitionTimelineIntoParts } = await import('./src/services/roundtableOrchestrator.js');
+
+    let stream = customStream;
+    if (!stream) {
+      const fs = await import('fs');
+      const path = await import('path');
+      const fixturePath = path.resolve(process.cwd(), 'mock/mock_cognitive_stream_vecto12.json');
+      if (fs.existsSync(fixturePath)) {
+        stream = JSON.parse(fs.readFileSync(fixturePath, 'utf-8'));
+      } else {
+        stream = {
+          videoId,
+          videoTitle: 'Bài 1.1: Vectơ Trong Không Gian - Thầy Nguyễn Phan Tiến',
+          teacherName: 'Thầy Nguyễn Phan Tiến',
+          durationSeconds: 3480,
+          segments: [],
+        };
+      }
+    }
+
+    if (partNumber) {
+      const parts = partitionTimelineIntoParts(stream);
+      const targetPart = parts.find(p => p.partNumber === Number(partNumber)) || parts[0];
+      const partResult = await runRoundtableForPart(targetPart, { useLLM });
+      return res.json({ ok: true, mode: 'part', part: partResult });
+    }
+
+    const fullDraft = await runFullLessonRoundtable(stream, { useLLM });
+    res.json({
+      ok: true,
+      mode: 'full_lesson',
+      draft: fullDraft,
+      stats: {
+        totalParts: fullDraft.parts.length,
+        totalCheckpoints: fullDraft.checkpoints.length,
+        crossCheckLogsCount: fullDraft.crossCheckLogs.length,
+        totalReasoningEvents: fullDraft.allReasoningEvents.length,
+      },
+    });
+  } catch (err) {
+    console.error('[API Roundtable] Lỗi thực thi Roundtable:', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// GET & POST /api/roundtable/stream — Real-time Server-Sent Events (SSE) Stream for War Room Demo (< 30-60s) (#302)
+const handleRoundtableStream = async (req, res) => {
+  try {
+    const isPost = req.method === 'POST';
+    const params = isPost ? (req.body || {}) : (req.query || {});
+    const {
+      videoId = 'VID_VECTO_12_TIEN',
+      partNumber,
+      streamDelayMs = 20,
+      useLLM = false,
+      cognitiveStream: customStream,
+    } = params;
+
+    // Thiết lập SSE Headers chuẩn
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('X-Accel-Buffering', 'no');
+    if (typeof res.flushHeaders === 'function') {
+      res.flushHeaders();
+    }
+
+    let isAborted = false;
+    req.on('close', () => {
+      isAborted = true;
+    });
+
+    const sendSSE = (eventName, data) => {
+      if (isAborted || res.writableEnded) return;
+      if (eventName && eventName !== 'message') {
+        res.write(`event: ${eventName}\n`);
+      }
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+      if (typeof res.flush === 'function') {
+        res.flush();
+      }
+    };
+
+    // Chuẩn bị cognitiveStream
+    const { runRoundtableForPart, runFullLessonRoundtable, partitionTimelineIntoParts } =
+      await import('./src/services/roundtableOrchestrator.js');
+
+    let stream = customStream;
+    if (!stream) {
+      const fs = await import('fs');
+      const path = await import('path');
+      const fixturePath = path.resolve(process.cwd(), 'mock/mock_cognitive_stream_vecto12.json');
+      if (fs.existsSync(fixturePath)) {
+        stream = JSON.parse(fs.readFileSync(fixturePath, 'utf-8'));
+      } else {
+        stream = {
+          videoId,
+          videoTitle: 'Bài 1.1: Vectơ Trong Không Gian - Thầy Nguyễn Phan Tiến',
+          teacherName: 'Thầy Nguyễn Phan Tiến',
+          durationSeconds: 3480,
+          segments: [],
+        };
+      }
+    }
+
+    sendSSE('session_start', {
+      videoId,
+      partNumber: partNumber ? Number(partNumber) : 'all',
+      timestamp: new Date().toISOString(),
+    });
+
+    const onEvent = async (event) => {
+      if (isAborted) return;
+      // Phát sự kiện chuẩn reasoning_event và message cho EventSource
+      sendSSE('reasoning_event', event);
+      sendSSE('message', event);
+    };
+
+    if (partNumber) {
+      const parts = partitionTimelineIntoParts(stream);
+      const targetPart = parts.find(p => p.partNumber === Number(partNumber)) || parts[0];
+      const partResult = await runRoundtableForPart(targetPart, {
+        useLLM: String(useLLM) === 'true',
+        onEvent,
+        streamDelayMs: Number(streamDelayMs) || 0,
+      });
+
+      sendSSE('complete', {
+        ok: true,
+        mode: 'part',
+        part: partResult,
+        timestamp: new Date().toISOString(),
+      });
+      return res.end();
+    }
+
+    const fullDraft = await runFullLessonRoundtable(stream, {
+      useLLM: String(useLLM) === 'true',
+      onEvent,
+      streamDelayMs: Number(streamDelayMs) || 0,
+    });
+
+    sendSSE('complete', {
+      ok: true,
+      mode: 'full_lesson',
+      draft: fullDraft,
+      timestamp: new Date().toISOString(),
+    });
+    res.end();
+  } catch (err) {
+    console.error('[SSE Roundtable] Lỗi stream:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ ok: false, error: err.message });
+    } else {
+      res.write(`event: error\ndata: ${JSON.stringify({ error: err.message })}\n\n`);
+      res.end();
+    }
+  }
+};
+
+app.get('/api/roundtable/stream', handleRoundtableStream);
+app.post('/api/roundtable/stream', handleRoundtableStream);
+
+// GET /api/roundtable/drafts/:videoId — Lấy kịch bản draft cho Teacher Studio Timeline (#15)
+app.get('/api/roundtable/drafts/:videoId', async (req, res) => {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const { videoId } = req.params;
+    const draftPath = path.resolve(process.cwd(), `backend/src/data/drafts/lesson_draft_${videoId}.json`);
+
+    if (!fs.existsSync(draftPath)) {
+      return res.status(404).json({ ok: false, error: `Không tìm thấy draft cho videoId: ${videoId}` });
+    }
+
+    const content = JSON.parse(fs.readFileSync(draftPath, 'utf-8'));
+    res.json({ ok: true, draft: content });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// GET /api/roundtable/drafts — Danh sách tất cả các draft đã sinh
+app.get('/api/roundtable/drafts', async (req, res) => {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const draftsDir = path.resolve(process.cwd(), 'backend/src/data/drafts');
+
+    if (!fs.existsSync(draftsDir)) {
+      return res.json({ ok: true, drafts: [] });
+    }
+
+    const files = fs.readdirSync(draftsDir).filter(f => f.endsWith('.json'));
+    const drafts = files.map(f => {
+      try {
+        const data = JSON.parse(fs.readFileSync(path.join(draftsDir, f), 'utf-8'));
+        return {
+          filename: f,
+          lessonId: data.lessonId,
+          title: data.title,
+          totalParts: data.parts?.length || 0,
+          totalCheckpoints: data.checkpoints?.length || 0,
+          generatedAt: data.pedagogicalSummary?.generatedAt,
+        };
+      } catch (_) {
+        return { filename: f };
+      }
+    });
+
+    res.json({ ok: true, drafts });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
@@ -246,6 +464,16 @@ app.post('/api/chat/classroom', async (req, res) => {
     }
 
     const lower = String(message).toLowerCase().trim();
+
+    // Xác định mốc thời gian bài giảng: ưu tiên tiền tố tường minh ^\[(?:Tại\s+)?(\d{1,2}):(\d{2})\] hoặc trung thực theo currentTime
+    const timePrefixMatch = String(message).trim().match(/^\[(?:Tại\s+)?(\d{1,2}):(\d{2})\]/i);
+    let effectiveTime = Number(currentTime);
+    if (timePrefixMatch) {
+      effectiveTime = parseInt(timePrefixMatch[1], 10) * 60 + parseInt(timePrefixMatch[2], 10);
+    } else if (isNaN(effectiveTime) || effectiveTime < 0) {
+      effectiveTime = 2233;
+    }
+
     const { search, getById } = await import('./src/services/knowledgeBase.js');
     const { executeTool } = await import('./src/tools/index.js');
     const { extractVectorExpr, extractClaimFromText } = await import('./src/tools/tool_verify_vector_algebra.js');
@@ -257,7 +485,7 @@ app.post('/api/chat/classroom', async (req, res) => {
       const searchHits = search(message, 1);
       if (searchHits && searchHits.length > 0 && searchHits[0].score >= 2) {
         kbMatch = searchHits[0];
-      } else if (currentTime >= 2100 && currentTime <= 2400 && 
+      } else if (effectiveTime >= 2100 && effectiveTime <= 2400 && 
                 (lower.includes('2a') || lower.includes('bc') || lower.includes('dd') || lower.includes('1+1') || lower.includes('bẫy') || lower.includes('độ dài') || lower.includes('do dai'))) {
         kbMatch = getById('MISC_VEC_005');
       }
@@ -310,17 +538,11 @@ app.post('/api/chat/classroom', async (req, res) => {
         claim: finalClaim,
       });
 
-      const badgeText = vectorAlgebraTool.isValid === true
-        ? `Đã kiểm chứng hình học: Khớp chuẩn (${vectorAlgebraTool.output.correct || 'a√2'})`
-        : vectorAlgebraTool.isValid === false
-          ? `Đã kiểm chứng hình học: Sai lệch (${vectorAlgebraTool.input.claim} ≠ ${vectorAlgebraTool.output.correct || 'a√2'})`
-          : `Đã kiểm chứng hình học: ${vectorAlgebraTool.output.correct || 'a√2'}`;
-
       toolCalls.push({
-        toolName: vectorAlgebraTool.toolName,
+        toolName: 'tool_verify_vector_algebra',
         status: 'completed',
-        label: 'Trí đang kiểm chứng hình học...',
-        badgeText,
+        label: 'Đang kiểm chứng đại số vectơ...',
+        badgeText: `Đã kiểm chứng hình học (Tọa độ 3D: ${vectorAlgebraTool.output.correct || 'a√2'})`,
         category: 'math_verify',
         input: vectorAlgebraTool.input,
         output: vectorAlgebraTool.output,
@@ -333,7 +555,7 @@ app.post('/api/chat/classroom', async (req, res) => {
     const { dispatchMessage } = await import('./src/services/dispatcher.js');
     const dispatchResult = await dispatchMessage({
       message,
-      currentTime,
+      currentTime: effectiveTime,
       lessonTitle,
       sessionId,
       recipient,
@@ -356,6 +578,7 @@ app.post('/api/chat/classroom', async (req, res) => {
       toolCall: toolCalls[0] || null,
       toolCalls,
       timeStr: dispatchResult.currentTimeStr,
+      second: effectiveTime,
       latencyMs: dispatchResult.latencyMs,
     });
   } catch (err) {
@@ -364,5 +587,6 @@ app.post('/api/chat/classroom', async (req, res) => {
 });
 
 app.listen(config.port, () => {
-  console.log(`DRE backend đang chạy ở http://localhost:${config.port}`);
-});
+    console.log(`DRE backend đang chạy ở http://localhost:${config.port}`);
+  });
+}
