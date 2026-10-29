@@ -5,6 +5,34 @@
 
 ---
 
+## Trai Nghiem Nhanh Demo 4 Tram (Phim Tat F2)
+
+He thong ho tro che do trinh dien tu dong 1-Click lien hoan qua 4 Tram (Thoi luong: 23 giay) giup ban danh gia nhanh toan bo luong hoat dong:
+
+1. **Khoi chay he thong**:
+   ```bash
+   # Terminal 1: Backend API Gateway
+   cd backend && npm start
+
+   # Terminal 2: Frontend Client
+   npm run dev
+   ```
+
+2. **Kich hoat Demo 1-Click**:
+   - Mo trinh duyet tai `http://localhost:3000/`.
+   - Nhan phim **F2** tren ban phim hoac nhan nut **Demo 1-Click (F2)** tren thanh Header.
+   - Hoac truy cap truc tiep link tu dong: `http://localhost:3000/?showcase=1`.
+
+3. **Cac phim dieu huong trong khi Demo**:
+   - `Space`: Tam dung hoac tiep tuc dong thoi gian.
+   - `Esc`: Thoat che do Demo ngay lap tuc.
+   - Nut `Tram ke tiep`: Nhay thang den tram tiep theo.
+
+Chi tiet kich ban thuyet trinh va loi thoai tung tram xem tai: [docs/DEMO_WALKTHROUGH.md](docs/DEMO_WALKTHROUGH.md).  
+Chi tiet mo hinh kien truc 4 tang xem tai: [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md).
+
+---
+
 ## 📁 Cấu trúc Dự án (Monorepo)
 
 ```
