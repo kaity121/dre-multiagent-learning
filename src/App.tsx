@@ -148,7 +148,17 @@ export default function App() {
 
   // Video Mode States
   const [currentVideoLesson, setCurrentVideoLesson] = useState<VideoLessonItem>(VIDEO_LESSON_LIBRARY[0]);
-  const [videoPhase, setVideoPhase] = useState<VideoCheckpointPhase>('WATCHING');
+  const [videoPhase, setVideoPhase] = useState<VideoCheckpointPhase>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      const cp = s.get('checkpoint_phase');
+      if (cp === 'question') return 'CHECKPOINT_REACHED';
+      if (cp === 'bo_debate') return 'BO_DEBATE';
+      if (cp === 'co_lam') return 'BO_CONCEDED';
+      if (s.get('banner') === '1' || s.get('collapsed') === '1') return 'CHECKPOINT_REACHED';
+    }
+    return 'WATCHING';
+  });
   const [videoCurrentTime, setVideoCurrentTime] = useState<number>(() => {
     if (typeof window !== 'undefined') {
       const t = new URLSearchParams(window.location.search).get('time');
@@ -369,12 +379,20 @@ export default function App() {
         if (!hasUrlStation && saved.currentMode) setCurrentMode(saved.currentMode);
         // Khi mới vào app hoặc tải lại trang: Luôn bắt đầu video ở mốc 0:00 chuẩn sư phạm (TC_01A)
         // để người học trải nghiệm bài giảng từ đầu, không bị nảy tin nhắn chat trước khi bấm phát video
-        setVideoCurrentTime(0);
-        setVideoPhase('WATCHING');
-        setIsVideoPlaying(false);
-        setIsQuizCollapsedToChat(false);
-        setIsQuizSkipped(false);
-        setSavedSelectedOptionId(null);
+        const hasUrlOverride = Boolean(
+          urlParams?.get('checkpoint_phase') ||
+          urlParams?.get('banner') ||
+          urlParams?.get('collapsed') ||
+          urlParams?.get('time')
+        );
+        if (!hasUrlOverride) {
+          setVideoCurrentTime(0);
+          setVideoPhase('WATCHING');
+          setIsVideoPlaying(false);
+          setIsQuizCollapsedToChat(false);
+          setIsQuizSkipped(false);
+          setSavedSelectedOptionId(null);
+        }
         if (saved.savedAt) setLastSavedTimestamp(saved.savedAt);
       }
     } catch (e) {

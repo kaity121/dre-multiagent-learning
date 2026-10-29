@@ -189,7 +189,15 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   const defaultYtId = lesson.youtubeId || extractYouTubeId(lesson.videoUrl) || 'phvpqxLNTUQ';
   const [activeYoutubeId, setActiveYoutubeId] = useState<string>(defaultYtId);
 
-  const [internalPhase, setInternalPhase] = useState<VideoCheckpointPhase>('WATCHING');
+  const [internalPhase, setInternalPhase] = useState<VideoCheckpointPhase>(() => {
+    if (typeof window !== 'undefined') {
+      const cp = new URLSearchParams(window.location.search).get('checkpoint_phase');
+      if (cp === 'question') return 'CHECKPOINT_REACHED';
+      if (cp === 'bo_debate') return 'BO_DEBATE';
+      if (cp === 'co_lam') return 'CO_LAM_CLOSURE';
+    }
+    return (phase as any) === 'BO_CONCEDED' ? 'CO_LAM_CLOSURE' : (phase || 'WATCHING');
+  });
   const [rebuttalFeedback, setRebuttalFeedback] = useState<string | null>(null);
   const [customRebuttal, setCustomRebuttal] = useState<string>('');
   const [selectedQuizOptionId, setSelectedQuizOptionId] = useState<string | null>(() => {
@@ -260,7 +268,13 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   const [inputUrl, setInputUrl] = useState<string>('https://www.youtube.com/watch?v=phvpqxLNTUQ');
 
   // Trạng thái poster/thumbnail khởi tạo video (tránh màn hình xám trống)
-  const [hasStartedPlayback, setHasStartedPlayback] = useState<boolean>(false);
+  const [hasStartedPlayback, setHasStartedPlayback] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      if (s.get('banner') === '1' || s.get('collapsed') === '1' || s.get('play') === '1') return true;
+    }
+    return false;
+  });
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -283,7 +297,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   // 1. Đồng bộ trạng thái Phase từ props (ví dụ khi bấm nút vàng [Câu hỏi dừng (37:13)] ở thanh công cụ hoặc Giơ tay)
   useEffect(() => {
     if (phase) {
-      setInternalPhase(phase);
+      setInternalPhase((phase as any) === 'BO_CONCEDED' ? 'CO_LAM_CLOSURE' : phase);
       if (phase === 'CHECKPOINT_REACHED') {
         hasAutoPausedAtCheckpointRef.current = true;
         setIsOverlayDrawerOpen(false);
@@ -579,6 +593,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
 
 
   const boDebateSpeech = cleanText(liveBoDialogue || lesson.boArgument.speech);
+  const effectivePhase = (internalPhase !== 'WATCHING' ? internalPhase : (phase as any) === 'BO_CONCEDED' ? 'CO_LAM_CLOSURE' : phase) || 'WATCHING';
   const isCheckpointActive =
     internalPhase === 'CHECKPOINT_REACHED' ||
     internalPhase === 'BO_DEBATE' ||
@@ -589,7 +604,11 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
     phase === 'BO_CONCEDED' ||
     phase === 'CO_LAM_CLOSURE';
 
-  const showFullQuizOverlay = isCheckpointActive && !isQuizCollapsedToChat;
+  const isQuizCollapsed =
+    isQuizCollapsedToChat ||
+    (typeof window !== 'undefined' && (new URLSearchParams(window.location.search).get('banner') === '1' || new URLSearchParams(window.location.search).get('collapsed') === '1'));
+
+  const showFullQuizOverlay = isCheckpointActive && !isQuizCollapsed;
 
   return (
     <div
@@ -664,7 +683,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
         )}
 
         {/* PILL NỔI KHI THU GỌN CÂU HỎI XUỐNG CHAT (KHÔNG ĐÈ THANH ĐIỀU KHIỂN YOUTUBE, CHỮ ĐẬM TƯƠNG PHẢN CAO) */}
-        {(isQuizCollapsedToChat || isQuizSkipped) && !showFullQuizOverlay && (
+        {(isQuizCollapsed || isQuizSkipped) && !showFullQuizOverlay && (
           <div className="absolute top-14 left-4 z-30 bg-[#121712] p-1.5 rounded-full shadow-2xl flex items-center gap-2 text-xs animate-in fade-in slide-in-from-top-2 duration-200 whitespace-nowrap border border-black/40">
             <div className="flex items-center gap-2 px-3 py-1 font-bold text-white">
               <span className="w-2.5 h-2.5 rounded-full bg-[#C8F169] animate-pulse shrink-0" />
@@ -954,9 +973,9 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 <div className="flex items-center gap-2.5">
                   <span className="px-3.5 py-1.5 rounded-full bg-[#121712] text-[#C8F169] font-bold text-xs flex items-center gap-1.5 shadow-xs border border-[#121712]">
                     <span>
-                      {internalPhase === 'CHECKPOINT_REACHED' && 'Điểm dừng tương tác · 37:13'}
-                      {internalPhase === 'BO_DEBATE' && 'Bo phản biện bạn'}
-                      {(internalPhase === 'BO_CONCEDED' || internalPhase === 'CO_LAM_CLOSURE') && 'Cô Lam chốt quy tắc trọng tâm'}
+                      {effectivePhase === 'CHECKPOINT_REACHED' && 'Điểm dừng tương tác · 37:13'}
+                      {effectivePhase === 'BO_DEBATE' && 'Bo phản biện bạn'}
+                      {(effectivePhase === 'BO_CONCEDED' || effectivePhase === 'CO_LAM_CLOSURE') && 'Cô Lam chốt quy tắc trọng tâm'}
                     </span>
                   </span>
                   <span className="text-xs font-medium text-stone-500">
@@ -965,7 +984,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 </div>
 
                 {/* Nút góc phải */}
-                {internalPhase === 'CHECKPOINT_REACHED' ? (
+                {effectivePhase === 'CHECKPOINT_REACHED' ? (
                   <button
                     type="button"
                     onClick={handleSkipToChat}
@@ -988,7 +1007,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
               </div>
 
               {/* TRẠNG THÁI 1: CÂU HỎI & 3 ĐÁP ÁN A, B, C (ĐỘNG THEO LESSON DATA) */}
-              {internalPhase === 'CHECKPOINT_REACHED' && (
+              {effectivePhase === 'CHECKPOINT_REACHED' && (
                 <div className="space-y-3.5">
                   <h3 className="font-bold text-sm sm:text-[15px] text-[#121712] leading-snug m-0">
                     <FormattedMathText text={cleanText(lesson.checkpointQuestion?.prompt || '')} />
@@ -1061,7 +1080,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
               )}
 
               {/* TRẠNG THÁI 2: BO PHẢN BIỆN (ĐỘNG THEO LIVE DIALOGUE & LESSON DATA) */}
-              {internalPhase === 'BO_DEBATE' && (
+              {effectivePhase === 'BO_DEBATE' && (
                 <div className="space-y-3">
                   {/* Hộp thoại của Bo */}
                   <div className="p-3 sm:p-3.5 rounded-2xl bg-[#F8FAF4] border border-[#E2EAD2] text-xs sm:text-[13px] text-stone-800 leading-relaxed">
@@ -1128,7 +1147,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
               )}
 
               {/* TRẠNG THÁI 3: CÔ LAM CHỐT (ĐỘNG THEO LESSON DATA) */}
-              {(internalPhase === 'BO_CONCEDED' || internalPhase === 'CO_LAM_CLOSURE') && (
+              {(effectivePhase === 'BO_CONCEDED' || effectivePhase === 'CO_LAM_CLOSURE') && (
                 <div className="space-y-4 pt-1">
                   <div className="text-sm sm:text-[14px] text-[#121712] leading-relaxed font-medium">
                     <FormattedMathText text={cleanText(lesson.teacherClosure?.goldenRule || "Quy tắc vàng: Luôn thu gọn biểu thức bên trong thành 1 vectơ duy nhất trước khi tính độ dài!")} />
