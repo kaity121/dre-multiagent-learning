@@ -1,2 +1,4 @@
 node_modules/
 .env
+src/data/runs/*.json
+!src/data/runs/.gitkeep

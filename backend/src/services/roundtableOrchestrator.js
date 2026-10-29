@@ -127,7 +127,7 @@ export function partitionTimelineIntoParts(cognitiveStream) {
  */
 export async function runRoundtableForPart(
   partInfo,
-  { useLLM = false, onEvent = null, streamDelayMs = 0 } = {}
+  { useLLM = false, onEvent = null, streamDelayMs = 0, isAborted = () => false } = {}
 ) {
   const events = [];
   const recordedToolCalls = [];
@@ -146,6 +146,8 @@ export async function runRoundtableForPart(
   const timeFormatted = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 
   async function record(eventType, agentId, agentDisplayName, content, toolCall = null) {
+    if (isAborted()) return null;
+
     const evt = createReasoningEvent({
       eventType,
       agentId,
@@ -165,8 +167,20 @@ export async function runRoundtableForPart(
       }
     }
 
-    if (streamDelayMs > 0) {
-      await new Promise(resolve => setTimeout(resolve, streamDelayMs));
+    if (streamDelayMs > 0 && !isAborted()) {
+      await new Promise(resolve => {
+        const timer = setTimeout(resolve, streamDelayMs);
+        if (typeof isAborted === 'function') {
+          const checkInterval = setInterval(() => {
+            if (isAborted()) {
+              clearTimeout(timer);
+              clearInterval(checkInterval);
+              resolve();
+            }
+          }, Math.min(streamDelayMs, 25));
+          setTimeout(() => clearInterval(checkInterval), streamDelayMs + 10);
+        }
+      });
     }
 
     return evt;
@@ -716,7 +730,7 @@ export async function runRoundtableForPart(
  */
 export async function runFullLessonRoundtable(
   cognitiveStream,
-  { useLLM = false, onEvent = null, streamDelayMs = 0 } = {}
+  { useLLM = false, onEvent = null, streamDelayMs = 0, isAborted = () => false } = {}
 ) {
   const partsConfig = partitionTimelineIntoParts(cognitiveStream);
   const generatedParts = [];
@@ -726,7 +740,9 @@ export async function runFullLessonRoundtable(
   const crossCheckLogs = [];
 
   for (const part of partsConfig) {
-    const partResult = await runRoundtableForPart(part, { useLLM, onEvent, streamDelayMs });
+    if (isAborted()) break;
+    const partResult = await runRoundtableForPart(part, { useLLM, onEvent, streamDelayMs, isAborted });
+    if (!partResult) continue;
     generatedParts.push(partResult);
 
     if (partResult.reasoning_events) {

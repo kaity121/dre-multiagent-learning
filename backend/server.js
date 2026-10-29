@@ -16,6 +16,12 @@ import { config } from './src/config.js';
 import { listMisconceptionIds } from './src/contentLibrary.js';
 import { startSession, submitAnswer, submitRebuttal } from './src/orchestrator.js';
 import { chatJSON } from './src/openaiClient.js';
+import { saveRun, getRun, listRuns, streamReplayEvents, sanitizeRunId } from './src/services/runRecorder.js';
+
+function sanitizeVideoId(videoId) {
+  if (!videoId || typeof videoId !== 'string') return 'VID_DEFAULT';
+  return videoId.trim().replace(/[^a-zA-Z0-9_-]/g, '') || 'VID_DEFAULT';
+}
 
 const app = express();
 app.use(cors());
@@ -232,34 +238,43 @@ app.post(['/api/roundtable/run', '/api/roundtable/generate'], async (req, res) =
 
 // GET & POST /api/roundtable/stream — Real-time Server-Sent Events (SSE) Stream for War Room Demo (< 30-60s) (#302)
 const handleRoundtableStream = async (req, res) => {
-  try {
-    const isPost = req.method === 'POST';
-    const params = isPost ? (req.body || {}) : (req.query || {});
-    const {
-      videoId = 'VID_VECTO_12_TIEN',
-      partNumber,
-      streamDelayMs = 20,
-      useLLM = false,
-      cognitiveStream: customStream,
-    } = params;
+  const isPost = req.method === 'POST';
+  const params = isPost ? (req.body || {}) : (req.query || {});
+  const {
+    videoId = 'VID_VECTO_12_TIEN',
+    partNumber,
+    streamDelayMs = 20,
+    useLLM = false,
+    cognitiveStream: customStream,
+    mode = 'live',
+    runId,
+    speed = 1,
+    fixture = false,
+  } = params;
 
-    // Thiết lập SSE Headers chuẩn
-    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-cache, no-transform');
-    res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('X-Accel-Buffering', 'no');
-    if (typeof res.flushHeaders === 'function') {
-      res.flushHeaders();
-    }
+  // Thiết lập SSE Headers chuẩn
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('X-Accel-Buffering', 'no');
+  if (typeof res.flushHeaders === 'function') {
+    res.flushHeaders();
+  }
 
-    let isAborted = false;
-    req.on('close', () => {
+  let isAborted = false;
+  req.on('aborted', () => {
+    isAborted = true;
+  });
+  res.on('close', () => {
+    if (!res.writableEnded) {
       isAborted = true;
-    });
+    }
+  });
 
-    const sendSSE = (eventName, data) => {
-      if (isAborted || res.writableEnded) return;
+  const sendSSE = (eventName, data) => {
+    if (isAborted || res.writableEnded) return;
+    try {
       if (eventName && eventName !== 'message') {
         res.write(`event: ${eventName}\n`);
       }
@@ -267,7 +282,40 @@ const handleRoundtableStream = async (req, res) => {
       if (typeof res.flush === 'function') {
         res.flush();
       }
-    };
+    } catch (sseErr) {
+      console.warn('[SSE Roundtable] Write error or serialization error:', sseErr);
+    }
+  };
+
+  const isReplayMode = String(fixture) === 'true' || fixture === true || mode === 'replay' || (runId && (runId === 'fixture' || runId === 'mock'));
+
+  try {
+    // -------------------------------------------------------------------------
+    // CHẾ ĐỘ REPLAY STREAM (Nạp từ run recorder hoặc fixture)
+    // -------------------------------------------------------------------------
+    if (isReplayMode) {
+      const targetRunId = runId || 'fixture';
+      const runData = getRun(targetRunId);
+      if (!runData) {
+        sendSSE('error', { error: `Không tìm thấy runId: ${targetRunId}`, runId: targetRunId });
+        return res.end();
+      }
+
+      await streamReplayEvents(runData, {
+        speed: Number(speed) || 1,
+        streamDelayMs: Number(streamDelayMs) || 40,
+        sendSSE,
+        isAborted: () => isAborted,
+      });
+
+      return res.end();
+    }
+
+    // -------------------------------------------------------------------------
+    // CHẾ ĐỘ LIVE STREAM (Tự động biên kịch và lưu vào run recorder)
+    // -------------------------------------------------------------------------
+    const activeRunId = runId || `run_${Date.now()}`;
+    const recordedEvents = [];
 
     // Chuẩn bị cognitiveStream
     const { runRoundtableForPart, runFullLessonRoundtable, partitionTimelineIntoParts } =
@@ -292,6 +340,8 @@ const handleRoundtableStream = async (req, res) => {
     }
 
     sendSSE('session_start', {
+      runId: activeRunId,
+      mode: 'live',
       videoId,
       partNumber: partNumber ? Number(partNumber) : 'all',
       timestamp: new Date().toISOString(),
@@ -299,8 +349,14 @@ const handleRoundtableStream = async (req, res) => {
 
     const onEvent = async (event) => {
       if (isAborted) return;
-      // Phát sự kiện chuẩn reasoning_event và message cho EventSource
+      recordedEvents.push(event);
+
+      // Phát đầy đủ các định dạng SSE event
+      sendSSE('reasoning', event);
       sendSSE('reasoning_event', event);
+      if (event.eventType) {
+        sendSSE(event.eventType, event);
+      }
       sendSSE('message', event);
     };
 
@@ -311,12 +367,71 @@ const handleRoundtableStream = async (req, res) => {
         useLLM: String(useLLM) === 'true',
         onEvent,
         streamDelayMs: Number(streamDelayMs) || 0,
+        isAborted: () => isAborted,
+      });
+
+      if (isAborted) return res.end();
+
+      // Tự động record live run vào run recorder
+      const lessonDraftPayload = {
+        lessonId: videoId,
+        title: stream.videoTitle || 'Bài 1.1: Vectơ Trong Không Gian',
+        videoUrl: stream.videoUrl || 'https://www.youtube.com/watch?v=sample_vecto12',
+        durationSeconds: stream.durationSeconds || 3480,
+        checkpoints: partResult.checkpoints || (partResult.checkpoint ? [partResult.checkpoint] : []),
+        timelineComments: partResult.timelineComments || (partResult.scriptScenario ? partResult.scriptScenario.map((sc, idx) => ({
+          id: `cmt_${partResult.checkpointSecond}_${sc.actor}_${idx}`,
+          second: (partResult.checkpointSecond || 0) + idx,
+          author: sc.actor === 'colam' ? 'Cô Lam' : sc.actor === 'bo' ? 'Bo' : sc.actor === 'tri' ? 'Trí' : sc.actor === 'linhchi' ? 'Linh Chi' : 'Minh Khang',
+          role: sc.actor === 'colam' ? 'teacher' : 'classmate',
+          avatarId: sc.actor,
+          text: sc.speech,
+          isPinned: sc.actor === 'colam' || sc.actor === 'tri',
+        })) : []),
+        pedagogicalSummary: {
+          totalTrapsIdentified: (partResult.checkpoints?.length || (partResult.checkpoint ? 1 : 0)),
+          bloomMasteryTarget: 'Analyze',
+          approvedByTeacher: true,
+          approvalTimestamp: new Date().toISOString(),
+        },
+      };
+
+      try {
+        saveRun({
+          runId: activeRunId,
+          videoId,
+          videoTitle: stream.videoTitle,
+          partNumber: Number(partNumber),
+          createdAt: new Date().toISOString(),
+          stats: {
+            totalEvents: recordedEvents.length,
+            crossCheckCorrectionOccurred: Boolean(partResult?.crossCheckCorrectionOccurred),
+            bloomLevel: 'Analyze',
+            partTitle: targetPart.title,
+          },
+          reasoning_events: recordedEvents,
+          lessonDraft: lessonDraftPayload,
+        });
+      } catch (recErr) {
+        console.warn('[Roundtable] Run recording warning:', recErr);
+      }
+
+      sendSSE('done', {
+        runId: activeRunId,
+        mode: 'live',
+        totalEvents: recordedEvents.length,
+        lesson: lessonDraftPayload,
+        lessonDraft: lessonDraftPayload,
+        timestamp: new Date().toISOString(),
       });
 
       sendSSE('complete', {
         ok: true,
         mode: 'part',
+        runId: activeRunId,
         part: partResult,
+        draft: lessonDraftPayload,
+        lesson: lessonDraftPayload,
         timestamp: new Date().toISOString(),
       });
       return res.end();
@@ -326,25 +441,107 @@ const handleRoundtableStream = async (req, res) => {
       useLLM: String(useLLM) === 'true',
       onEvent,
       streamDelayMs: Number(streamDelayMs) || 0,
+      isAborted: () => isAborted,
+    });
+
+    if (isAborted) return res.end();
+
+    // Tự động record full lesson run vào run recorder
+    try {
+      saveRun({
+        runId: activeRunId,
+        videoId,
+        videoTitle: stream.videoTitle,
+        partNumber: 'all',
+        createdAt: new Date().toISOString(),
+        stats: {
+          totalEvents: recordedEvents.length,
+          crossCheckCorrectionOccurred: Boolean(fullDraft.crossCheckLogs?.length > 0),
+          bloomLevel: 'Analyze',
+        },
+        reasoning_events: recordedEvents,
+        lessonDraft: fullDraft,
+      });
+    } catch (recErr) {
+      console.warn('[Roundtable] Run recording warning:', recErr);
+    }
+
+    sendSSE('done', {
+      runId: activeRunId,
+      mode: 'live',
+      totalEvents: recordedEvents.length,
+      lesson: fullDraft,
+      lessonDraft: fullDraft,
+      timestamp: new Date().toISOString(),
     });
 
     sendSSE('complete', {
       ok: true,
       mode: 'full_lesson',
+      runId: activeRunId,
       draft: fullDraft,
+      lesson: fullDraft,
       timestamp: new Date().toISOString(),
     });
     res.end();
   } catch (err) {
     console.error('[SSE Roundtable] Lỗi stream:', err);
+    const activeRunId = params.runId || 'unknown';
     if (!res.headersSent) {
-      res.status(500).json({ ok: false, error: err.message });
+      res.status(500).json({ ok: false, error: err.message, runId: activeRunId });
     } else {
-      res.write(`event: error\ndata: ${JSON.stringify({ error: err.message })}\n\n`);
+      sendSSE('error', { error: err.message, runId: activeRunId });
       res.end();
     }
   }
 };
+
+// GET /api/roundtable/runs — Danh sách tất cả các run đã lưu
+app.get('/api/roundtable/runs', (req, res) => {
+  try {
+    const runs = listRuns();
+    res.json({ ok: true, runs });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// GET /api/roundtable/runs/:runId — Chi tiết một run cụ thể
+app.get('/api/roundtable/runs/:runId', (req, res) => {
+  try {
+    const safeRunId = sanitizeRunId(req.params.runId);
+    if (!safeRunId && req.params.runId !== 'fixture' && req.params.runId !== 'mock') {
+      return res.status(400).json({ ok: false, error: 'runId không hợp lệ' });
+    }
+    const run = getRun(req.params.runId);
+    if (!run) {
+      return res.status(404).json({ ok: false, error: `Run không tồn tại: ${req.params.runId}` });
+    }
+    res.json({ ok: true, run });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/roundtable/runs — Lưu thủ công một run
+app.post('/api/roundtable/runs', (req, res) => {
+  try {
+    const result = saveRun(req.body);
+    res.json({ ok: true, ...result });
+  } catch (err) {
+    res.status(400).json({ ok: false, error: err.message });
+  }
+});
+
+// GET /api/roundtable/:runId/stream — Replay hoặc Live stream theo runId cụ thể
+app.get('/api/roundtable/:runId/stream', (req, res) => {
+  const safeRunId = sanitizeRunId(req.params.runId);
+  const runId = safeRunId || req.params.runId;
+  const existingRun = getRun(runId);
+  const defaultMode = (existingRun || runId === 'fixture' || runId === 'mock') ? 'replay' : 'live';
+  req.query = { ...req.query, runId, mode: req.query?.mode || defaultMode };
+  return handleRoundtableStream(req, res);
+});
 
 app.get('/api/roundtable/stream', handleRoundtableStream);
 app.post('/api/roundtable/stream', handleRoundtableStream);
@@ -354,11 +551,18 @@ app.get('/api/roundtable/drafts/:videoId', async (req, res) => {
   try {
     const fs = await import('fs');
     const path = await import('path');
-    const { videoId } = req.params;
-    const draftPath = path.resolve(process.cwd(), `backend/src/data/drafts/lesson_draft_${videoId}.json`);
+    const safeVideoId = sanitizeVideoId(req.params.videoId);
+    const draftsBase = path.resolve(process.cwd(), 'backend/src/data/drafts');
+    const draftPath = path.resolve(draftsBase, `lesson_draft_${safeVideoId}.json`);
+
+    // Path containment check
+    const rel = path.relative(draftsBase, draftPath);
+    if (rel.startsWith('..') || path.isAbsolute(rel)) {
+      return res.status(400).json({ ok: false, error: 'videoId không hợp lệ' });
+    }
 
     if (!fs.existsSync(draftPath)) {
-      return res.status(404).json({ ok: false, error: `Không tìm thấy draft cho videoId: ${videoId}` });
+      return res.status(404).json({ ok: false, error: `Không tìm thấy draft cho videoId: ${safeVideoId}` });
     }
 
     const content = JSON.parse(fs.readFileSync(draftPath, 'utf-8'));
