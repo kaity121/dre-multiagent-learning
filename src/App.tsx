@@ -158,7 +158,13 @@ export default function App() {
   });
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
   const [currentPoeTopic, setCurrentPoeTopic] = useState<string>('Toán 12 · Biến thể Vectơ trong không gian (Thầy Nguyễn Phan Tiến)');
-  const [isQuizCollapsedToChat, setIsQuizCollapsedToChat] = useState<boolean>(false);
+  const [isQuizCollapsedToChat, setIsQuizCollapsedToChat] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      if (s.get('collapsed') === '1' || s.get('banner') === '1') return true;
+    }
+    return false;
+  });
   const [isQuizSkipped, setIsQuizSkipped] = useState<boolean>(false);
   const [savedSelectedOptionId, setSavedSelectedOptionId] = useState<string | null>(null);
   const [isChatExpanded, setIsChatExpanded] = useState<boolean>(false);
