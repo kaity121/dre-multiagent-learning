@@ -194,6 +194,11 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
       author: 'Minh Khang',
       role: 'classmate',
       text: '@Bo Yên tâm đi! Hồi lớp 10 mình vẽ vectơ trên một mặt giấy phẳng 2D, còn lên lớp 12 là nhấc mũi tên đó ra không gian 3 chiều như căn phòng học của mình thôi.',
+      replyTo: {
+        id: 'c_00_2',
+        author: 'Bo',
+        text: 'Nghe tới "Hình không gian" kết hợp với "Vectơ" là thấy hơi hồi hộp rồi đó. Không biết có khác nhiều so với hồi lớp 10 không mọi người?',
+      },
     },
     {
       id: 'c_00_4',
@@ -226,6 +231,11 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
       author: 'Trí',
       role: 'classmate',
       text: '@Bo Khác hoàn toàn nhé! Đoạn thẳng thì không phân biệt chiều nên AB = BA. Nhưng vectơ có mũi tên chỉ hướng: AB là đi từ A đến B, còn BA là đi ngược từ B về A.',
+      replyTo: {
+        id: 'c_01_2',
+        author: 'Bo',
+        text: 'Khoan đã, nếu hai điểm A và B cố định trong không gian thì đoạn thẳng AB với BA là một, vậy vectơ AB với vectơ BA cũng bằng nhau luôn chứ nhỉ?',
+      },
     },
     {
       id: 'c_01_4',
@@ -233,6 +243,11 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
       author: 'Minh Khang',
       role: 'classmate',
       text: '@Bo Cứ liên tưởng vé máy bay từ Đà Nẵng (A) ra Hà Nội (B) khác hẳn chiều bay từ Hà Nội (B) về Đà Nẵng (A) là không bao giờ nhầm gốc với ngọn!',
+      replyTo: {
+        id: 'c_01_2',
+        author: 'Bo',
+        text: 'Khoan đã, nếu hai điểm A và B cố định trong không gian thì đoạn thẳng AB với BA là một, vậy vectơ AB với vectơ BA cũng bằng nhau luôn chứ nhỉ?',
+      },
     },
     {
       id: 'c_01_5',
@@ -329,6 +344,37 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
       author: 'Trí',
       role: 'classmate',
       text: 'Phút [06:20]: Điểm đặc biệt của vectơ-không (AA = BB = 0) là điểm đầu trùng điểm cuối nên độ dài bằng 0 và quy ước nó cùng phương, cùng hướng với MỌI vectơ.',
+    },
+    {
+      id: 'c_05_1b',
+      second: 435, // 7:15
+      author: 'Bo',
+      role: 'classmate',
+      text: 'Ủa, từ C về A thì vẫn là 1 đoạn dài mà, giống như tớ tới trường rồi về nhà cũng đi 1 đoạn dài mà, chứ đâu phải là 0?',
+    },
+    {
+      id: 'c_05_1c',
+      second: 455, // 7:35
+      author: 'Trí',
+      role: 'classmate',
+      text: '@Bo Phải phân biệt rạch ròi QUÃNG ĐƯỜNG với ĐỘ DỜI! Đi từ Nhà (A) đến Trường rồi về Nhà, đồng hồ xe vẫn đo quãng đường s > 0. Nhưng về VECTƠ ĐỘ DỜI: điểm đầu là A, điểm cuối là A, nên vectơ tổng bằng vectơ AA = vectơ 0!',
+      replyTo: {
+        id: 'c_05_1b',
+        author: 'Bo',
+        text: 'Ủa, từ C về A thì vẫn là 1 đoạn dài mà, giống như tớ tới trường rồi về nhà cũng đi 1 đoạn dài mà, chứ đâu phải là 0?',
+      },
+    },
+    {
+      id: 'c_05_1d',
+      second: 475, // 7:55
+      author: 'Minh Khang',
+      role: 'classmate',
+      text: '@Bo Chuẩn luôn Trí! Giống bạn chạy máy tập gym 5km mồ hôi nhễ nhại, nhưng bước xuống máy thì vị trí vẫn ở phòng tập (độ dời = 0)! Vectơ chỉ nhìn điểm đầu và điểm cuối thôi.',
+      replyTo: {
+        id: 'c_05_1b',
+        author: 'Bo',
+        text: 'Ủa, từ C về A thì vẫn là 1 đoạn dài mà, giống như tớ tới trường rồi về nhà cũng đi 1 đoạn dài mà, chứ đâu phải là 0?',
+      },
     },
     {
       id: 'c_05_2',

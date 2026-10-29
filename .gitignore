@@ -24,3 +24,6 @@ screenshots_real/
 *.py
 __pycache__/
 *.pyc
+.venv/
+*.zip
+_backup_local_teacher_portal/

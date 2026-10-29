@@ -1,0 +1,278 @@
+{
+  "timestamp": "2026-10-27T03:18:51.417Z",
+  "totalQueries": 24,
+  "correctQueries": 24,
+  "accuracyPercent": 100,
+  "meetsDoD": true,
+  "benchmarkResults": [
+    {
+      "index": 1,
+      "query": "Linh Chi ơi cho mình xin lại công thức cộng vectơ hình bình hành với",
+      "expectedIntent": "ask_formula_mnemonic",
+      "expectedAgent": "linhchi",
+      "actualIntent": "ask_formula_mnemonic",
+      "actualAgent": "linhchi",
+      "confidence": 0.99,
+      "reasoning": "Học sinh yêu cầu sổ tay ghi chép hoặc hỏi trực tiếp Linh Chi (@linhchi).",
+      "pass": true
+    },
+    {
+      "index": 2,
+      "query": "Quy tắc 3 điểm áp dụng như thế nào vậy bạn?",
+      "expectedIntent": "ask_formula_mnemonic",
+      "expectedAgent": "linhchi",
+      "actualIntent": "ask_formula_mnemonic",
+      "actualAgent": "linhchi",
+      "confidence": 0.92,
+      "reasoning": "Học sinh hỏi công thức chuẩn, quy tắc hoặc cần mở sổ tay ghi nhớ của Linh Chi.",
+      "pass": true
+    },
+    {
+      "index": 3,
+      "query": "Xem giúp mình sổ tay công thức tích vô hướng và điều kiện xác định",
+      "expectedIntent": "ask_formula_mnemonic",
+      "expectedAgent": "linhchi",
+      "actualIntent": "ask_formula_mnemonic",
+      "actualAgent": "linhchi",
+      "confidence": 0.92,
+      "reasoning": "Học sinh hỏi công thức chuẩn, quy tắc hoặc cần mở sổ tay ghi nhớ của Linh Chi.",
+      "pass": true
+    },
+    {
+      "index": 4,
+      "query": "Có mẹo nhớ nhanh quy tắc hình hộp không bạn?",
+      "expectedIntent": "ask_formula_mnemonic",
+      "expectedAgent": "linhchi",
+      "actualIntent": "ask_formula_mnemonic",
+      "actualAgent": "linhchi",
+      "confidence": 0.92,
+      "reasoning": "Học sinh hỏi công thức chuẩn, quy tắc hoặc cần mở sổ tay ghi nhớ của Linh Chi.",
+      "pass": true
+    },
+    {
+      "index": 5,
+      "query": "Tại sao độ dài vectơ tổng |a + b| lại không bằng tổng độ dài |a| + |b| vậy bạn?",
+      "expectedIntent": "ask_deep_concept",
+      "expectedAgent": "tri",
+      "actualIntent": "ask_deep_concept",
+      "actualAgent": "tri",
+      "confidence": 0.96,
+      "reasoning": "Học sinh đặt câu hỏi nghi vấn tại sao/khi nào để đào sâu bản chất toán học.",
+      "pass": true
+    },
+    {
+      "index": 6,
+      "query": "Bản chất hình học của phép trừ hai vectơ chung gốc là gì?",
+      "expectedIntent": "ask_deep_concept",
+      "expectedAgent": "tri",
+      "actualIntent": "ask_deep_concept",
+      "actualAgent": "tri",
+      "confidence": 0.96,
+      "reasoning": "Học sinh đặt câu hỏi nghi vấn tại sao/khi nào để đào sâu bản chất toán học.",
+      "pass": true
+    },
+    {
+      "index": 7,
+      "query": "Khi nào thì dấu bằng trong bất đẳng thức tam giác của vectơ xảy ra?",
+      "expectedIntent": "ask_deep_concept",
+      "expectedAgent": "tri",
+      "actualIntent": "ask_deep_concept",
+      "actualAgent": "tri",
+      "confidence": 0.96,
+      "reasoning": "Học sinh đặt câu hỏi nghi vấn tại sao/khi nào để đào sâu bản chất toán học.",
+      "pass": true
+    },
+    {
+      "index": 8,
+      "query": "Trí ơi giải thích giùm mình ý nghĩa của vectơ chỉ phương trong không gian",
+      "expectedIntent": "ask_deep_concept",
+      "expectedAgent": "tri",
+      "actualIntent": "ask_deep_concept",
+      "actualAgent": "tri",
+      "confidence": 0.96,
+      "reasoning": "Học sinh đặt câu hỏi nghi vấn tại sao/khi nào để đào sâu bản chất toán học.",
+      "pass": true
+    },
+    {
+      "index": 9,
+      "query": "Cứ lấy độ dài cộng đại vào nhau cho nhanh, vẽ hình chi cho mệt",
+      "expectedIntent": "challenge_shortcut_fallacy",
+      "expectedAgent": "bo",
+      "actualIntent": "challenge_shortcut_fallacy",
+      "actualAgent": "bo",
+      "confidence": 0.92,
+      "reasoning": "Học sinh đưa ra cách làm tắt hoặc rơi vào ngộ nhận; chuyển cho Bo làm đồng minh ngộ nhận.",
+      "pass": true
+    },
+    {
+      "index": 10,
+      "query": "Bài này bấm máy tính Casio thế số vào là ra liền khỏi cần suy nghĩ",
+      "expectedIntent": "challenge_shortcut_fallacy",
+      "expectedAgent": "bo",
+      "actualIntent": "challenge_shortcut_fallacy",
+      "actualAgent": "bo",
+      "confidence": 0.92,
+      "reasoning": "Học sinh đưa ra cách làm tắt hoặc rơi vào ngộ nhận; chuyển cho Bo làm đồng minh ngộ nhận.",
+      "pass": true
+    },
+    {
+      "index": 11,
+      "query": "Lấy luôn 1 + 1 = 2 cho lẹ chứ phân tích làm gì",
+      "expectedIntent": "challenge_shortcut_fallacy",
+      "expectedAgent": "bo",
+      "actualIntent": "challenge_shortcut_fallacy",
+      "actualAgent": "bo",
+      "confidence": 0.92,
+      "reasoning": "Học sinh đưa ra cách làm tắt hoặc rơi vào ngộ nhận; chuyển cho Bo làm đồng minh ngộ nhận.",
+      "pass": true
+    },
+    {
+      "index": 12,
+      "query": "Làm tắt kiểu này đỡ mệt hơn nhiều, đúng không Bo?",
+      "expectedIntent": "challenge_shortcut_fallacy",
+      "expectedAgent": "bo",
+      "actualIntent": "challenge_shortcut_fallacy",
+      "actualAgent": "bo",
+      "confidence": 0.92,
+      "reasoning": "Học sinh đưa ra cách làm tắt hoặc rơi vào ngộ nhận; chuyển cho Bo làm đồng minh ngộ nhận.",
+      "pass": true
+    },
+    {
+      "index": 13,
+      "query": "Em bí quá chưa hiểu đề bài nói gì, cho em xin gợi ý với",
+      "expectedIntent": "ask_scaffolding_help",
+      "expectedAgent": "an",
+      "actualIntent": "ask_scaffolding_help",
+      "actualAgent": "an",
+      "confidence": 0.93,
+      "reasoning": "Học sinh gặp khó khăn, xin gợi ý từng bước mà không muốn nhận đáp án trực tiếp.",
+      "pass": true
+    },
+    {
+      "index": 14,
+      "query": "Trợ giảng ơi bài này khó quá, nên bắt đầu từ bước 1 như thế nào ạ?",
+      "expectedIntent": "ask_scaffolding_help",
+      "expectedAgent": "an",
+      "actualIntent": "ask_scaffolding_help",
+      "actualAgent": "an",
+      "confidence": 0.93,
+      "reasoning": "Học sinh gặp khó khăn, xin gợi ý từng bước mà không muốn nhận đáp án trực tiếp.",
+      "pass": true
+    },
+    {
+      "index": 15,
+      "query": "Mình làm mãi không ra câu này, cứu em với",
+      "expectedIntent": "ask_scaffolding_help",
+      "expectedAgent": "an",
+      "actualIntent": "ask_scaffolding_help",
+      "actualAgent": "an",
+      "confidence": 0.93,
+      "reasoning": "Học sinh gặp khó khăn, xin gợi ý từng bước mà không muốn nhận đáp án trực tiếp.",
+      "pass": true
+    },
+    {
+      "index": 16,
+      "query": "Gợi ý giúp mình câu này với",
+      "expectedIntent": "ask_scaffolding_help",
+      "expectedAgent": "an",
+      "actualIntent": "ask_scaffolding_help",
+      "actualAgent": "an",
+      "confidence": 0.93,
+      "reasoning": "Học sinh gặp khó khăn, xin gợi ý từng bước mà không muốn nhận đáp án trực tiếp.",
+      "pass": true
+    },
+    {
+      "index": 17,
+      "query": "Bo sai rồi, độ dài tổng chỉ bằng tổng độ dài khi hai vectơ cùng hướng thôi!",
+      "expectedIntent": "sharp_rebuttal",
+      "expectedAgent": "bo",
+      "actualIntent": "sharp_rebuttal",
+      "actualAgent": "bo",
+      "confidence": 0.95,
+      "reasoning": "Học sinh đưa ra lý lẽ phản biện sắc bén chỉ rõ lỗi sai hoặc điều kiện biên của bẫy.",
+      "pass": true
+    },
+    {
+      "index": 18,
+      "query": "Bạn cộng trực tiếp độ dài là sai rồi, theo bất đẳng thức tam giác |a+b| <= |a|+|b|",
+      "expectedIntent": "sharp_rebuttal",
+      "expectedAgent": "bo",
+      "actualIntent": "sharp_rebuttal",
+      "actualAgent": "bo",
+      "confidence": 0.95,
+      "reasoning": "Học sinh đưa ra lý lẽ phản biện sắc bén chỉ rõ lỗi sai hoặc điều kiện biên của bẫy.",
+      "pass": true
+    },
+    {
+      "index": 19,
+      "query": "Không bằng 2 được đâu, vì hai vectơ này vuông góc nên đường chéo phải ra căn 2 theo Pytago chứ!",
+      "expectedIntent": "sharp_rebuttal",
+      "expectedAgent": "bo",
+      "actualIntent": "sharp_rebuttal",
+      "actualAgent": "bo",
+      "confidence": 0.95,
+      "reasoning": "Học sinh đưa ra lý lẽ phản biện sắc bén chỉ rõ lỗi sai hoặc điều kiện biên của bẫy.",
+      "pass": true
+    },
+    {
+      "index": 20,
+      "query": "Khẳng định của Bo không đúng, hai vectơ đối nhau tổng bằng vectơ 0!",
+      "expectedIntent": "sharp_rebuttal",
+      "expectedAgent": "bo",
+      "actualIntent": "sharp_rebuttal",
+      "actualAgent": "bo",
+      "confidence": 0.95,
+      "reasoning": "Học sinh đưa ra lý lẽ phản biện sắc bén chỉ rõ lỗi sai hoặc điều kiện biên của bẫy.",
+      "pass": true
+    },
+    {
+      "index": 21,
+      "query": "Hôm nay lớp học đông vui quá ha các bạn",
+      "expectedIntent": "general_classroom_chitchat",
+      "expectedAgent": "minhkhang",
+      "actualIntent": "general_classroom_chitchat",
+      "actualAgent": "minhkhang",
+      "confidence": 0.9,
+      "reasoning": "Học sinh trò chuyện giao lưu ngoài lề hoặc hỏi về ví dụ đời sống thực tế.",
+      "pass": true
+    },
+    {
+      "index": 22,
+      "query": "Mấy bạn ăn cơm chưa, học mệt quá",
+      "expectedIntent": "general_classroom_chitchat",
+      "expectedAgent": "minhkhang",
+      "actualIntent": "general_classroom_chitchat",
+      "actualAgent": "minhkhang",
+      "confidence": 0.9,
+      "reasoning": "Học sinh trò chuyện giao lưu ngoài lề hoặc hỏi về ví dụ đời sống thực tế.",
+      "pass": true
+    },
+    {
+      "index": 23,
+      "query": "Thầy Tiến giảng bài cuốn ghê",
+      "expectedIntent": "general_classroom_chitchat",
+      "expectedAgent": "minhkhang",
+      "actualIntent": "general_classroom_chitchat",
+      "actualAgent": "minhkhang",
+      "confidence": 0.9,
+      "reasoning": "Học sinh trò chuyện giao lưu ngoài lề hoặc hỏi về ví dụ đời sống thực tế.",
+      "pass": true
+    },
+    {
+      "index": 24,
+      "query": "Minh Khang ơi có ví dụ đời sống thực tế nào dễ nhớ về vectơ không?",
+      "expectedIntent": "general_classroom_chitchat",
+      "expectedAgent": "minhkhang",
+      "actualIntent": "general_classroom_chitchat",
+      "actualAgent": "minhkhang",
+      "confidence": 0.99,
+      "reasoning": "Học sinh hỏi trực tiếp Minh Khang (@minhkhang) về ví dụ đời sống.",
+      "pass": true
+    }
+  ],
+  "checkpoint3713Test": {
+    "passed": true,
+    "primaryAuthor": "Bo",
+    "followUpAuthor": "Cô Lam"
+  }
+}
