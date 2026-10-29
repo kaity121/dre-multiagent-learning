@@ -14,6 +14,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { DEMO_LESSON_SCHEMA, DEMO_REASONING_EVENTS, DEMO_INSPECTOR_TURNS } from './demo/demoLesson';
 import { InspectorTurn } from './types/reasoning';
+import { ResizableSplitter } from './components/layout/ResizableSplitter';
 import { DRELessonSchema } from './types/lesson';
 import { ReplaySource } from './services/reasoningSource';
 import { WarRoomPanel } from './components/warroom/WarRoomPanel';
@@ -206,6 +207,72 @@ export default function App() {
     return new ReplaySource(DEMO_REASONING_EVENTS as any, 1.0);
   }, []);
   const [inspectorTurns, setInspectorTurns] = useState<InspectorTurn[]>(() => DEMO_INSPECTOR_TURNS);
+
+  // Kích thước co giãn tự do cho Trạm 1 (Mục B Layout Elasticity)
+  const [chatWidth, setChatWidth] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      const l = s.get('layout');
+      if (l === 'video_wide') return 280;
+      if (l === 'chat_wide') return 520;
+      if (l === 'default') return 380;
+      try {
+        const saved = localStorage.getItem('dre_station1_chat_width');
+        if (saved) return Math.max(280, Math.min(700, Number(saved)));
+      } catch (e) {}
+    }
+    return 380;
+  });
+
+  const [inspectorWidth, setInspectorWidth] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      const l = s.get('layout');
+      if (l === 'inspector_wide') return 480;
+      try {
+        const saved = localStorage.getItem('dre_station1_inspector_width');
+        if (saved) return Math.max(360, Math.min(600, Number(saved)));
+      } catch (e) {}
+    }
+    return 380;
+  });
+
+  const handleChatSplitterDelta = (deltaX: number) => {
+    setChatWidth((prev) => {
+      const next = Math.max(280, Math.min(700, prev - deltaX));
+      try {
+        localStorage.setItem('dre_station1_chat_width', String(next));
+      } catch (e) {}
+      return next;
+    });
+  };
+
+  const handleResetChatWidth = () => {
+    sound.playPencilTap();
+    const defaultW = isInspectorDrawerOpen ? 320 : 380;
+    setChatWidth(defaultW);
+    try {
+      localStorage.setItem('dre_station1_chat_width', String(defaultW));
+    } catch (e) {}
+  };
+
+  const handleInspectorSplitterDelta = (deltaX: number) => {
+    setInspectorWidth((prev) => {
+      const next = Math.max(360, Math.min(600, prev - deltaX));
+      try {
+        localStorage.setItem('dre_station1_inspector_width', String(next));
+      } catch (e) {}
+      return next;
+    });
+  };
+
+  const handleResetInspectorWidth = () => {
+    sound.playPencilTap();
+    setInspectorWidth(380);
+    try {
+      localStorage.setItem('dre_station1_inspector_width', '380');
+    } catch (e) {}
+  };
   const [isInspectorDrawerOpen, setIsInspectorDrawerOpen] = useState(() => {
     if (typeof window !== 'undefined') {
       return new URLSearchParams(window.location.search).get('inspector') === '1';
@@ -1755,31 +1822,80 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* CỘT GIỮA: THẢO LUẬN LỚP HỌC */}
+                {/* THANH KÉO (SPLITTER 1) GIỮA VIDEO VÀ CHAT */}
+                <ResizableSplitter
+                  id="splitter-video-chat"
+                  label="Kéo đổi kích thước giữa Video và Thảo luận lớp"
+                  valueNow={chatWidth}
+                  valueMin={280}
+                  valueMax={700}
+                  onDelta={handleChatSplitterDelta}
+                  onReset={handleResetChatWidth}
+                  onStep={(step) => handleChatSplitterDelta(-step)}
+                />
+
+                {/* CỘT GIỮA: THẢO LUẬN LỚP HỌC (CO GIÃN TỰ DO & NÚT PRESET) */}
                 <div 
-                  style={{ height: 'calc(100vh - 120px)', minHeight: '480px', maxHeight: 'calc(100vh - 110px)' }}
-                  className={`${
-                    isInspectorDrawerOpen ? 'w-full lg:w-[280px] xl:w-[300px] 2xl:w-[360px] shrink-0' : (isChatExpanded ? 'w-full lg:w-[48%] shrink-0' : 'w-full lg:w-[380px] xl:w-[420px] shrink-0')
-                  } bg-white rounded-3xl border border-[#E2EAD2] overflow-visible flex flex-col shadow-xs transition-all duration-300 relative group/chatcol`}
+                  style={{
+                    height: 'calc(100vh - 120px)',
+                    minHeight: '480px',
+                    maxHeight: 'calc(100vh - 110px)',
+                    width: typeof window !== 'undefined' && window.innerWidth >= 1024 ? `${chatWidth}px` : undefined,
+                  }}
+                  className="w-full lg:w-auto shrink-0 bg-white rounded-3xl border border-[#E2EAD2] overflow-visible flex flex-col shadow-xs transition-all duration-150 relative group/chatcol"
                 >
-                  {/* Thanh mở rộng / thu hẹp chat ở mép trái (Interactive Expand Handle Bar) */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      sound.playPencilTap();
-                      setIsChatExpanded((prev) => !prev);
-                    }}
-                    className="hidden lg:flex absolute -left-3.5 top-1/2 -translate-y-1/2 z-30 w-7 h-16 bg-white hover:bg-[#F3F8E8] border border-[#E2EAD2] rounded-full shadow-md items-center justify-center text-[#121712] transition-all cursor-pointer hover:scale-105 group"
-                    title={isChatExpanded ? 'Thu hẹp khung chat (về 33%)' : 'Thanh mở rộng khung chat (lên 50%)'}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 transition-transform group-hover:scale-110">
-                      {isChatExpanded ? (
-                        <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                      ) : (
-                        <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                      )}
-                    </svg>
-                  </button>
+                  {/* NÚT PRESET KÍCH THƯỚC GỌN (VIDEO RỘNG / MẶC ĐỊNH / CHAT RỘNG) */}
+                  <div className="hidden lg:flex items-center justify-between px-3 py-1.5 bg-[#F8FAF4] border-b border-[#E2EAD2] rounded-t-3xl text-xs shrink-0 select-none">
+                    <span className="text-[11px] text-stone-500 font-bold uppercase tracking-wider">
+                      Bố cục cột ({chatWidth}px)
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          sound.playPencilTap();
+                          setChatWidth(280);
+                          try { localStorage.setItem('dre_station1_chat_width', '280'); } catch(e){}
+                        }}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition ${
+                          chatWidth <= 300
+                            ? 'bg-[#121712] text-[#C8F169]'
+                            : 'bg-white hover:bg-stone-200 text-stone-700 border border-stone-200'
+                        }`}
+                        title="Thu hẹp chat về tối thiểu (280px) để tối đa diện tích video"
+                      >
+                        Video rộng
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleResetChatWidth}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition ${
+                          chatWidth > 300 && chatWidth < 500
+                            ? 'bg-[#121712] text-[#C8F169]'
+                            : 'bg-white hover:bg-stone-200 text-stone-700 border border-stone-200'
+                        }`}
+                        title="Về kích thước mặc định (Nhấp đúp thanh kéo cũng có thể về mặc định)"
+                      >
+                        Mặc định
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          sound.playPencilTap();
+                          setChatWidth(520);
+                          try { localStorage.setItem('dre_station1_chat_width', '520'); } catch(e){}
+                        }}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition ${
+                          chatWidth >= 500
+                            ? 'bg-[#121712] text-[#C8F169]'
+                            : 'bg-white hover:bg-stone-200 text-stone-700 border border-stone-200'
+                        }`}
+                        title="Mở rộng khung chat (520px)"
+                      >
+                        Chat rộng
+                      </button>
+                    </div>
+                  </div>
 
                   <div className="w-full h-full rounded-3xl overflow-hidden flex flex-col">
                     <VideoDebateSheet
@@ -1827,9 +1943,28 @@ export default function App() {
                 </div>
               </div>
 
-              {/* CỘT PHẢI: SOI NÃO TÁC NHÂN (INSPECTOR DRAWER) - CỘT RIÊNG BÊN PHẢI CẠNH CHAT, KHÔNG CHE VIDEO/CHAT */}
+              {/* THANH KÉO (SPLITTER 2) GIỮA CHAT VÀ SOI NÃO (KHI SOI NÃO MỞ) */}
               {isInspectorDrawerOpen && (
-                <div className="w-full lg:w-[370px] xl:w-[390px] 2xl:w-[450px] shrink-0 transition-all duration-300 animate-in fade-in slide-in-from-right-4">
+                <ResizableSplitter
+                  id="splitter-chat-inspector"
+                  label="Kéo đổi kích thước giữa Thảo luận lớp và Soi não tác nhân"
+                  valueNow={inspectorWidth}
+                  valueMin={360}
+                  valueMax={600}
+                  onDelta={handleInspectorSplitterDelta}
+                  onReset={handleResetInspectorWidth}
+                  onStep={(step) => handleInspectorSplitterDelta(-step)}
+                />
+              )}
+
+              {/* CỘT PHẢI: SOI NÃO TÁC NHÂN (INSPECTOR DRAWER) */}
+              {isInspectorDrawerOpen && (
+                <div 
+                  style={{
+                    width: typeof window !== 'undefined' && window.innerWidth >= 1024 ? `${inspectorWidth}px` : undefined,
+                  }}
+                  className="w-full lg:w-auto shrink-0 transition-all duration-150 animate-in fade-in slide-in-from-right-4"
+                >
                   <InspectorDrawer
                     isOpen={isInspectorDrawerOpen}
                     onClose={() => setIsInspectorDrawerOpen(false)}
