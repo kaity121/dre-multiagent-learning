@@ -244,7 +244,7 @@ app.post('/api/chat/classroom', async (req, res) => {
     const lower = String(message).toLowerCase().trim();
     const { search, getById } = await import('./src/services/knowledgeBase.js');
     const { executeTool } = await import('./src/tools/index.js');
-    const { extractVectorExpr, extractClaimFromText } = await import('./src/tools/tool_verify_vector_algebra.js');
+    const { extractVectorExpr, extractClaimFromText, extractSideFromText } = await import('./src/tools/tool_verify_vector_algebra.js');
     const toolCalls = [];
 
     // 1. RAG Search trên Knowledge Base DRE
@@ -279,6 +279,7 @@ app.post('/api/chat/classroom', async (req, res) => {
     // 2. Vector Algebra Tool (Dynamic Parsing)
     const detectedExpr = extractVectorExpr(message);
     const detectedClaim = extractClaimFromText(message);
+    const detectedSide = extractSideFromText(message);
     const hasAlgebraClaim = detectedExpr || lower.includes('bc') || lower.includes('dd') || lower.includes('2a') ||
       lower.includes('a√2') || lower.includes('√2') || lower.includes('căn 2') || lower.includes('1+1') ||
       (kbMatch?.misconception?.id === 'MISC_VEC_005' && (lower.includes('độ dài') || lower.includes('do dai')));
@@ -301,23 +302,26 @@ app.post('/api/chat/classroom', async (req, res) => {
 
       vectorAlgebraTool = executeTool('tool_verify_vector_algebra', {
         shape: 'cube',
-        side: 'a',
+        side: detectedSide,
         expr: exprToVerify,
         claim: finalClaim,
       });
 
-      const badgeText = vectorAlgebraTool.isValid === true
-        ? `Đã kiểm chứng hình học: Khớp chuẩn (${vectorAlgebraTool.output.correct || 'a√2'})`
-        : vectorAlgebraTool.isValid === false
-          ? `Đã kiểm chứng hình học: Sai lệch (${vectorAlgebraTool.input.claim} ≠ ${vectorAlgebraTool.output.correct || 'a√2'})`
-          : `Đã kiểm chứng hình học: ${vectorAlgebraTool.output.correct || 'a√2'}`;
+      const isCalcOnly = vectorAlgebraTool.output?.isValid === null;
+      const badgeText = isCalcOnly
+        ? `Đã tính toán: ${vectorAlgebraTool.output?.correct || ''}`
+        : (vectorAlgebraTool.isValid === true
+            ? `Đã kiểm chứng hình học: Khớp chuẩn (${vectorAlgebraTool.output?.correct || 'a√2'})`
+            : vectorAlgebraTool.isValid === false
+              ? `Đã kiểm chứng hình học: Sai lệch (${vectorAlgebraTool.input.claim} ≠ ${vectorAlgebraTool.output?.correct || 'a√2'})`
+              : `Đã kiểm chứng hình học: ${vectorAlgebraTool.output?.correct || 'a√2'}`);
 
       toolCalls.push({
         toolName: vectorAlgebraTool.toolName,
         status: 'completed',
-        label: 'Trí đang kiểm chứng hình học...',
+        label: isCalcOnly ? 'Trí đang tính toán độ dài vectơ...' : 'Trí đang kiểm chứng hình học...',
         badgeText,
-        category: 'math_verify',
+        category: isCalcOnly ? 'math_calc' : 'math_verify',
         input: vectorAlgebraTool.input,
         output: vectorAlgebraTool.output,
         isValid: vectorAlgebraTool.isValid,
@@ -327,11 +331,12 @@ app.post('/api/chat/classroom', async (req, res) => {
 
     // 3. Dispatch qua Dynamic Dispatcher (Issue #401)
     const { dispatchMessage } = await import('./src/services/dispatcher.js');
+    const activeSessionId = sessionId || `classroom_${Math.floor(currentTime / 60)}`;
     const dispatchResult = await dispatchMessage({
       message,
       currentTime,
       lessonTitle,
-      sessionId,
+      sessionId: activeSessionId,
       recipient,
       useLLM,
       toolCalls,
@@ -348,6 +353,8 @@ app.post('/api/chat/classroom', async (req, res) => {
       followUpResponse: dispatchResult.followUpResponse || null,
       peerId: dispatchResult.verdict.dispatchedAgent,
       verdict: dispatchResult.verdict,
+      sessionId: activeSessionId,
+      sessionState: dispatchResult.sessionState || null,
       kbMatchedId: dispatchResult.ragContextUsed?.misconceptionId || kbMatch?.misconception?.id || null,
       toolCall: toolCalls[0] || null,
       toolCalls,

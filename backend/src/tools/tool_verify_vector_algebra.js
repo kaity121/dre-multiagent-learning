@@ -200,6 +200,19 @@ export function extractVectorExpr(text) {
 }
 
 /**
+ * Trích xuất độ dài cạnh nếu người dùng có nêu trong câu (vd: "cạnh bằng 2", "cạnh là 2", "cạnh 2")
+ */
+export function extractSideFromText(text) {
+  if (!text) return 'a';
+  const m = String(text).match(/\b(?:cạnh|canh|side)\s*(?:bằng|=|la|là)?\s*(\d+(?:\.\d+)?)/i);
+  if (m) {
+    const val = parseFloat(m[1]);
+    if (!isNaN(val) && val > 0) return val;
+  }
+  return 'a';
+}
+
+/**
  * Trích xuất phát biểu claim (đáp án) nếu người dùng có nêu ra trong câu
  */
 export function extractClaimFromText(text) {
@@ -207,15 +220,24 @@ export function extractClaimFromText(text) {
   // A value someone else said ("Bo nói ... bằng 2a") is being questioned, not claimed by the learner.
   if (/(?:^|\s)(?:bo|bạn ấy|cậu ấy|bạn)\s+(?:nói|bảo|ghi|viết|cho rằng)\b/i.test(text)) return null;
 
-  const lower = text.toLowerCase();
+  // Loại bỏ các mệnh đề khai báo cạnh như "cạnh bằng 2", "cạnh là 2", "cạnh 2", "side = 2"
+  // và từ để hỏi "bằng bao nhiêu", "bằng mấy" để không bị nhận diện nhầm thành đáp án claim
+  let cleanText = String(text)
+    .replace(/\b(?:cạnh|canh|side)\s*(?:bằng|=|la|là)?\s*\d+(?:\.\d+)?\b/gi, ' ')
+    .replace(/\b(?:bằng|la|là)\s*bao\s*nhiêu\b/gi, ' ')
+    .replace(/\b(?:bằng|la|là)\s*mấy\b/gi, ' ');
 
-  // Khớp các đáp số: 2a, a√2, 2√2, căn 2, căn 3 a, 2\sqrt{2}
+  const lower = cleanText.toLowerCase();
+
+  // Khớp các đáp số căn: 2a√2, 2√2, a√2, căn 2, 2 căn 2, 2\sqrt{2}
   const mSquare = lower.match(/(?:bằng|=|\blà\b)?\s*([0-9]*\.?[0-9]*\s*(?:a\s*)?(?:√|căn|\\sqrt)\s*\{?\d+\}?(?:\s*a\b)?)/i);
-  if (mSquare) return mSquare[1].replace(/\s+/g, '');
+  if (mSquare && mSquare[1] && (mSquare[1].includes('√') || mSquare[1].includes('căn') || mSquare[1].includes('sqrt'))) {
+    return mSquare[1].replace(/\s+/g, '');
+  }
 
-  // Vector names are always uppercase; matching case-sensitively on the original text keeps
+  // Vector names are always uppercase; matching case-sensitively on the clean text keeps
   // "bằng bao nhiêu" from being read as the vector BA.
-  const mVec = text.match(/(?:bằng|=|là)\s*([A-D][1'′]?[A-D][1'′]?)(?![A-Za-zÀ-ỹ])/);
+  const mVec = cleanText.match(/(?:bằng|=|là)\s*([A-D][1'′]?[A-D][1'′]?)(?![A-Za-zÀ-ỹ])/);
   if (mVec) return mVec[1].replace(/′/g, "'");
 
   const mA = lower.match(/(?:bằng|=|\blà\b)?\s*(\d+(?:\.\d+)?a)\b/i);

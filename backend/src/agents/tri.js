@@ -1,6 +1,7 @@
 import { chatJSON } from '../openaiClient.js';
 import { config } from '../config.js';
 import { executeTool } from '../tools/index.js';
+import { extractSideFromText, extractClaimFromText } from '../tools/tool_verify_vector_algebra.js';
 
 const TRI_SYSTEM_PROMPT = `
 Bạn là "Trí" — một bạn học AI trong lớp học OpenMAIC / DRE.
@@ -30,11 +31,13 @@ export async function triDeepThink({ baiToan, chuDe, cauHoiHocVien, loiBoGiai, v
       (combinedText.includes('bc') || combinedText.includes("dd'") || combinedText.includes('1+1') || combinedText.includes('hinh lap phuong')) &&
       (combinedText.includes('độ dài') || combinedText.includes('do dai') || combinedText.includes('2a') || combinedText.includes('bẫy') || combinedText.includes('cộng'))
     ) {
+      const detectedSide = extractSideFromText(cauHoiHocVien);
+      const detectedClaim = extractClaimFromText(cauHoiHocVien) || (combinedText.includes('2a') ? '2a' : null);
       const rawTool = executeTool('tool_verify_vector_algebra', {
         shape: 'cube',
-        side: 'a',
+        side: detectedSide,
         expr: "|BC + DD'|",
-        claim: combinedText.includes('2a') || combinedText.includes('2') ? '2a' : '2a',
+        claim: detectedClaim,
       });
 
       toolCall = {
