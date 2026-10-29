@@ -119,7 +119,7 @@ export interface DeterministicToolCallInfo {
   category?: 'rag' | 'math_verify' | 'bloom' | 'timeline';
   input?: Record<string, any>;
   output?: Record<string, any>;
-  isValid?: boolean;
+  isValid?: boolean | null;
   timestampMs?: number;
 }
 

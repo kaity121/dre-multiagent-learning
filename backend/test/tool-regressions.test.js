@@ -1,0 +1,208 @@
+// backend/test/tool-regressions.test.js
+// Regressions found while reviewing PR #24/#25 with real learner phrasing and candidate head 79c9cda.
+
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+
+import { 
+  verifyVectorAlgebra, 
+  extractVectorExpr, 
+  extractClaimFromText 
+} from '../src/tools/tool_verify_vector_algebra.js';
+import { calculateDotProduct } from '../src/tools/tool_calculate_dot_product.js';
+import { checkTimelineCollision } from '../src/tools/tool_timeline_collision_checker.js';
+import { executeTool } from '../src/tools/index.js';
+
+// The roundtable imports the OpenAI client, which needs a key to construct.
+process.env.OPENAI_API_KEY ||= 'test-key';
+const { runRoundtable } = await import('../src/services/roundtable.js');
+
+/**
+ * Caller-level badge simulation mirroring backend/server.js:280-325
+ */
+function simulateCallerBadge(message, currentTime = 2233) {
+  const lower = String(message).toLowerCase().trim();
+  let parsedExpr = extractVectorExpr(message);
+  if (!parsedExpr && currentTime >= 2100 && currentTime <= 2400 && (lower.includes('bc') || lower.includes('dd') || lower.includes('độ dài') || lower.includes('do dai'))) {
+    parsedExpr = "|BC + DD'|";
+  }
+
+  if (!parsedExpr) return null;
+
+  const parsedClaim = extractClaimFromText(message);
+  const sideMatch = lower.match(/(?:cạnh|side)\s*(?:bằng|=|là)?\s*(\d+(?:[.,]\d+)?)/i);
+  const detectedSide = sideMatch ? sideMatch[1].replace(',', '.') : (lower.includes('cạnh 2') ? '2' : 'a');
+
+  const vectorAlgebraTool = executeTool('tool_verify_vector_algebra', {
+    shape: 'cube',
+    side: detectedSide,
+    expr: parsedExpr,
+    claim: parsedClaim,
+  });
+
+  let badgeText = '';
+  if (vectorAlgebraTool.isValid === true) {
+    badgeText = `Đã kiểm chứng hình học: Khớp chuẩn (${vectorAlgebraTool.output.correct})`;
+  } else if (vectorAlgebraTool.isValid === false) {
+    badgeText = `Đã kiểm chứng hình học: Sai lệch (${vectorAlgebraTool.input.claim} ≠ ${vectorAlgebraTool.output.correct})`;
+  } else {
+    badgeText = `Đã tính toán hình học: ${vectorAlgebraTool.input.expr} = ${vectorAlgebraTool.output.correct}`;
+  }
+
+  return {
+    parsedExpr,
+    parsedClaim,
+    detectedSide,
+    toolCall: vectorAlgebraTool,
+    isValid: vectorAlgebraTool.isValid,
+    badgeText,
+  };
+}
+
+describe('P2 Review Fixes: Caller-level claim parsing & badge generation', () => {
+  it('[P2] cạnh bằng 2, BC + DD\' tính thế nào? separates side length from claim (calculation-only)', () => {
+    const q = "cạnh bằng 2, BC + DD' tính thế nào?";
+    assert.equal(extractClaimFromText(q), null, 'Side length 2 must not be treated as a claim');
+
+    const result = simulateCallerBadge(q);
+    assert.ok(result);
+    assert.equal(result.detectedSide, '2');
+    assert.equal(result.parsedClaim, null);
+    assert.equal(result.isValid, null, 'isValid must be null when learner only asks for calculation');
+    assert.match(result.badgeText, /Đã tính toán hình học: \|BC \+ DD'\| = 2\\sqrt\{2\}/);
+    assert.doesNotMatch(result.badgeText, /Sai lệch/, 'Must not grade the given side as an answer');
+    assert.doesNotMatch(result.badgeText, /Khớp chuẩn/);
+  });
+
+  it('[P2] "cạnh = 2, BC + DD\' tính thế nào?" parses side=2 and claim=null', () => {
+    const q = "cạnh = 2, BC + DD' tính thế nào?";
+    assert.equal(extractClaimFromText(q), null);
+    const result = simulateCallerBadge(q);
+    assert.equal(result.detectedSide, '2');
+    assert.equal(result.isValid, null);
+  });
+
+  it('[P2] BC + DD\' bằng bao nhiêu ạ? returns isValid:null through executeTool and calculation-only badge', () => {
+    const q = "BC + DD' bằng bao nhiêu ạ?";
+    assert.equal(extractClaimFromText(q), null);
+
+    const call = executeTool('tool_verify_vector_algebra', {
+      expr: extractVectorExpr(q),
+      claim: extractClaimFromText(q),
+    });
+    assert.equal(call.isValid, null, 'executeTool must preserve isValid: null, not convert to true');
+
+    const result = simulateCallerBadge(q);
+    assert.equal(result.isValid, null);
+    assert.match(result.badgeText, /Đã tính toán hình học: \|BC \+ DD'\| = a\\sqrt\{2\}/);
+    assert.doesNotMatch(result.badgeText, /Khớp chuẩn/, 'Must not show "Khớp chuẩn" for question-only');
+  });
+
+  it('[P2] AB + AA\' = A\'B\' returns isValid:false and does not produce a positive badge', () => {
+    const q = "AB + AA' = A'B'";
+    assert.equal(extractClaimFromText(q), "A'B'");
+
+    const call = executeTool('tool_verify_vector_algebra', {
+      expr: "|AB + AA'|",
+      claim: "A'B'",
+    });
+    assert.equal(call.isValid, false, 'Vector A\'B\' is not equivalent to AB + AA\'');
+
+    const result = simulateCallerBadge(q);
+    assert.equal(result.isValid, false);
+    assert.match(result.badgeText, /Đã kiểm chứng hình học: Sai lệch/);
+    assert.doesNotMatch(result.badgeText, /Khớp chuẩn/);
+  });
+
+  it('Explicit answer "cạnh bằng 2 thì BC + DD\' = 2√2 hả" produces positive verification badge', () => {
+    const q = "cạnh bằng 2 thì BC + DD' = 2√2 hả";
+    assert.equal(extractClaimFromText(q), "2√2");
+
+    const result = simulateCallerBadge(q);
+    assert.equal(result.detectedSide, '2');
+    assert.equal(result.isValid, true);
+    assert.match(result.badgeText, /Đã kiểm chứng hình học: Khớp chuẩn \(2\\sqrt\{2\}\)/);
+  });
+});
+
+describe('Claim extraction from learner questions (PR #25 companions)', () => {
+  it('reads "bằng bao nhiêu" as a question, not as the vector BA', () => {
+    const q = "BC + DD' bằng bao nhiêu ạ?";
+    assert.equal(extractClaimFromText(q), null);
+    const r = verifyVectorAlgebra({ expr: extractVectorExpr(q), claim: extractClaimFromText(q) });
+    assert.equal(r.isValid, null);
+  });
+
+  it('keeps "could not judge" as null through executeTool, so no "Khớp chuẩn" badge', () => {
+    const call = executeTool('tool_verify_vector_algebra', { expr: "|BC + DD'|", claim: null });
+    assert.equal(call.isValid, null);
+    assert.equal(executeTool('tool_verify_vector_algebra', { expr: "|BC + DD'|", claim: '2a' }).isValid, false);
+    assert.equal(executeTool('tool_verify_vector_algebra', { expr: "|BC + DD'|", claim: 'a√2' }).isValid, true);
+  });
+
+  it('still reads an uppercase vector name as a claim', () => {
+    assert.equal(extractClaimFromText("BC + DD' bằng BC' đúng không"), "BC'");
+  });
+
+  it('does not attribute what Bo said to the learner', () => {
+    assert.equal(extractClaimFromText("Bo nói BC + DD' bằng 2a, sai đúng không?"), null);
+  });
+
+  it('keeps the trailing a in "căn 3 a"', () => {
+    const claim = extractClaimFromText("AB + AD + AA' bằng căn 3 a");
+    assert.equal(claim, 'căn3a');
+    assert.equal(verifyVectorAlgebra({ side: '2', expr: "|AB + AD + AA'|", claim }).isValid, true);
+  });
+
+  it('understands vectors written in words', () => {
+    assert.equal(extractVectorExpr("vectơ BC cộng vectơ DD' là gì"), "|BC + DD'|");
+  });
+});
+
+describe('Dot product with a zero vector (PR #25 companions)', () => {
+  it('accepts a dot product of 0 and rejects any other value', () => {
+    assert.equal(calculateDotProduct({ uMag: 0, vMag: 2, claimValue: '0', claimType: 'dot_product' }).isValid, true);
+    assert.equal(calculateDotProduct({ uMag: 0, vMag: 2, claimValue: '10', claimType: 'dot_product' }).isValid, false);
+    assert.equal(calculateDotProduct({ uMag: 0, vMag: 2, claimValue: 'không âm' }).isValid, true);
+  });
+
+  it('rejects any angle because the angle is undefined', () => {
+    assert.equal(calculateDotProduct({ uMag: 0, vMag: 2, angleDeg: 0, claimValue: '0', claimType: 'angle' }).isValid, false);
+  });
+});
+
+describe('Reversing a vector changes the angle (MISC_VEC_017)', () => {
+  it('angle(-u, v) = 180° - angle(u, v)', () => {
+    const r = calculateDotProduct({ uMag: 2, vMag: 3, angleDeg: 60, reverseU: true, claimValue: '60', claimType: 'angle' });
+    assert.equal(r.angleDeg, 120);
+    assert.equal(r.isValid, false);
+    assert.equal(r.dotProduct, -3);
+  });
+});
+
+describe('A debate chained to its checkpoint is one pause', () => {
+  it('does not report a collision between the checkpoint and the chained debate', () => {
+    const events = [
+      { id: 'pq02_checkpoint_3713', at_s: 2233, type: 'checkpoint' },
+      { id: 'sc_bo_debate_3713', at_s: 2235, type: 'rebuttal', chainedTo: 'pq02_checkpoint_3713' },
+    ];
+    assert.equal(checkTimelineCollision({ events }).collisions.length, 0);
+    const unchained = events.map(({ chainedTo, ...e }) => e);
+    assert.equal(checkTimelineCollision({ events: unchained }).collisions.length, 1);
+  });
+});
+
+describe('Roundtable verifies angle and dot-product traps with the dot-product tool', () => {
+  for (const [id, expected] of [
+    ['MISC_VEC_017', false],
+    ['MISC_VEC_018', false],
+    ['MISC_VEC_019', false],
+  ]) {
+    it(`${id}: Trí calls tool_calculate_dot_product and rejects Bo`, async () => {
+      const draft = await runRoundtable(id, { useLLM: false });
+      const call = draft.deterministic_tool_calls.find((c) => c.toolName === 'tool_calculate_dot_product');
+      assert.ok(call, 'dot-product tool was called');
+      assert.equal(call.output.isValid, expected);
+    });
+  }
+});

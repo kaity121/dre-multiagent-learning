@@ -104,7 +104,7 @@ export interface TimelineComment {
     label: string;
     badgeText: string;
     category?: 'rag' | 'math_verify' | 'bloom' | 'timeline';
-    isValid?: boolean;
+    isValid?: boolean | null;
     correct?: string;
   } | null;
   toolCalls?: Array<{
@@ -112,7 +112,7 @@ export interface TimelineComment {
     label: string;
     badgeText: string;
     category?: 'rag' | 'math_verify' | 'bloom' | 'timeline';
-    isValid?: boolean;
+    isValid?: boolean | null;
     correct?: string;
   }> | null;
 }

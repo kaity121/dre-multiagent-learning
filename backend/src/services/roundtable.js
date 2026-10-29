@@ -28,7 +28,7 @@ function getMisconceptionVerifiableConfig(misconception) {
     return {
       toolType: 'dot_product',
       toolName: 'tool_calculate_dot_product',
-      params: { uMag: 2, vMag: 3, angleDeg: 60, claimValue: '60', claimType: 'reverse_angle', isReversed: true },
+      params: { uMag: 2, vMag: 3, angleDeg: 60, claimValue: '60', claimType: 'angle', reverseU: true, isReversed: true },
     };
   }
   // 4. MISC_VEC_020: Bình phương tổng bỏ số hạng chéo (|u+v|^2 = |u|^2 + |v|^2 + 2u.v)

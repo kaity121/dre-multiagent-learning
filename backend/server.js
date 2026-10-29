@@ -284,15 +284,12 @@ app.post('/api/chat/classroom', async (req, res) => {
     }
 
     if (parsedExpr) {
-      // Trích xuất claim thực tế từ câu hỏi học sinh
-      // Nếu câu hỏi có tính chất phản biện / nghi vấn về phát biểu của Bo (vd: "Bo nói ... sai đúng không?"),
-      // không coi đó là claim khẳng định của học sinh!
-      const isQuestioningBo = /(?:bo\s+nói|bo\s+bảo|có\s+phải|sai\s+đúng\s+không|đúng\s+không\s*\?)/i.test(message);
-      const parsedClaim = isQuestioningBo ? null : extractClaimFromText(message);
+      // Trích xuất claim thực tế từ câu hỏi học sinh (nếu học sinh không khẳng định gì thì claim = null)
+      const parsedClaim = extractClaimFromText(message);
 
-      // Trích xuất độ dài cạnh linh hoạt: "cạnh 2", "cạnh bằng 2", "cạnh = 2", "cạnh là 2"
-      const sideMatch = lower.match(/(?:cạnh|side)\s*(?:bằng|=|là)?\s*(\d+(?:\.\d+)?)/i);
-      const detectedSide = sideMatch ? sideMatch[1] : (lower.includes('cạnh 2') ? '2' : 'a');
+      // Trích xuất độ dài cạnh linh hoạt: "cạnh 2", "cạnh bằng 2", "cạnh = 2,5", "cạnh là 2"
+      const sideMatch = lower.match(/(?:cạnh|side)\s*(?:bằng|=|là)?\s*(\d+(?:[.,]\d+)?)/i);
+      const detectedSide = sideMatch ? sideMatch[1].replace(',', '.') : (lower.includes('cạnh 2') ? '2' : 'a');
 
       vectorAlgebraTool = executeTool('tool_verify_vector_algebra', {
         shape: 'cube',
@@ -307,7 +304,7 @@ app.post('/api/chat/classroom', async (req, res) => {
       } else if (vectorAlgebraTool.isValid === false) {
         badgeText = `Đã kiểm chứng hình học: Sai lệch (${vectorAlgebraTool.input.claim} ≠ ${vectorAlgebraTool.output.correct})`;
       } else {
-        // Học sinh chỉ hỏi tính toán, không đưa claim sai -> không phán sai lệch!
+        // Học sinh chỉ hỏi tính toán hoặc phát biểu chưa đủ điều kiện kiểm chứng tự động -> không phán sai lệch!
         badgeText = `Đã tính toán hình học: ${vectorAlgebraTool.input.expr} = ${vectorAlgebraTool.output.correct}`;
       }
 

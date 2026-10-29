@@ -6,14 +6,14 @@
  * 1. Khoảng cách giữa các bình luận liên tiếp >= 20 giây (minGapS = 20) để học sinh không bị quá tải.
  * 2. Không chèn tương tác ở đoạn mở đầu bài giảng (at_s < 15s).
  * 3. Tối đa 1 checkpoint dừng trong một phần (part) bài giảng.
- * 4. Cho phép các sự kiện nối tiếp có chủ ý trong cùng một lần dừng (checkpoint + debate turn cách nhau <= 5s, hoặc cùng groupId / cờ isChained).
+ * 4. Cho phép các sự kiện nối tiếp có chủ ý trong cùng một lần dừng (checkpoint + debate turn cách nhau <= 5s, hoặc cùng groupId / cờ isChained / chainedTo).
  */
 
 /**
  * Hàm thực thi Tool: tool_timeline_collision_checker
  *
  * @param {Object} input
- * @param {Array<Object>} [input.events] - Danh sách sự kiện { id, at_s, actor_id, type, duration_s, chained, isChained, groupId, checkpointId }
+ * @param {Array<Object>} [input.events] - Danh sách sự kiện { id, at_s, actor_id, type, duration_s, chained, isChained, chainedTo, groupId, checkpointId }
  * @param {Array<number>} [input.timelineSeconds] - Danh sách mốc thời gian (giây)
  * @param {number} [input.minGapS=20] - Khoảng cách tối thiểu giữa 2 sự kiện (giây)
  * @param {number} [input.minGapSeconds] - Alias cho minGapS
@@ -82,13 +82,18 @@ export function checkTimelineCollision({
 
       // Kiểm tra xem hai sự kiện có cố ý nối nhau trong cùng một lần dừng hay không (chained / co-located)
       // Ví dụ: Checkpoint dừng video tại 37:13 (2233s) và lượt tranh biện của Bo ngay sau đó (cách 2s)
-      const isChained =
-        Boolean(current.chained || current.isChained || current.coLocated) ||
-        (Boolean(current.groupId) && current.groupId === prev.groupId) ||
-        (Boolean(current.checkpointId) && current.checkpointId === prev.checkpointId) ||
-        (prev.type === 'checkpoint' && ['comment', 'debate_turn', 'dialogue'].includes(current.type) && gap <= 5);
+      const chained = Boolean(
+        (current.chainedTo && current.chainedTo === prev.id) ||
+        (prev.chainedTo && prev.chainedTo === current.id) ||
+        current.chained ||
+        current.isChained ||
+        current.coLocated ||
+        (current.groupId && current.groupId === prev.groupId) ||
+        (current.checkpointId && current.checkpointId === prev.checkpointId) ||
+        (prev.type === 'checkpoint' && ['comment', 'debate_turn', 'dialogue'].includes(current.type) && gap <= 5)
+      );
 
-      if (gap < effectiveMinGap && !isChained) {
+      if (gap < effectiveMinGap && !chained) {
         collisions.push({
           eventId1: prev.id || `event_${i - 1}`,
           eventId2: current.id || `event_${i}`,

@@ -36,9 +36,9 @@ const CUBE_VERTICES = buildCubeVertices(1);
  */
 export function parseVectorName(raw) {
   const clean = String(raw ?? '').trim().replace(/^\\?vec\{?|\}?$/g, '').replace(/[\\ ]/g, '');
-  const match = clean.match(/^([A-D][1']?)([A-D][1']?)$/);
+  const match = clean.match(/^([A-D][1'′]?)([A-D][1'′]?)$/);
   if (match) {
-    return [match[1], match[2]];
+    return [match[1].replace(/1/g, "'").replace(/′/g, "'"), match[2].replace(/1/g, "'").replace(/′/g, "'")];
   }
   return null;
 }
@@ -63,7 +63,7 @@ export function evaluateVectorExpression(expr, vertices = CUBE_VERTICES) {
   const isMagnitude = expr.includes('|') || expr.toLowerCase().includes('abs');
   const sanitized = expr.replace(/[|()]/g, '').trim();
 
-  const regex = /([+-]?\s*[A-D][1']?[A-D][1']?)/g;
+  const regex = /([+-]?\s*[A-D][1'′]?[A-D][1'′]?)/g;
   const matches = sanitized.match(regex);
 
   if (!matches) {
@@ -188,43 +188,55 @@ export function extractVectorExpr(text) {
 
   // Chuẩn hoá biểu thức chữ: "vectơ BC cộng vectơ DD'" -> "BC + DD'"
   let normalized = text
-    .replace(/vect[oơ]\s+/gi, '')
+    .replace(/\b(?:vectơ|vecto|vector|vec)\s+/gi, '')
     .replace(/\s+cộng\s+/gi, ' + ')
     .replace(/\s+trừ\s+/gi, ' - ');
 
   // Tìm mẫu vectơ cộng/trừ: BC + DD', AB + AD + AA', BC - DD'
   const match = normalized.match(/((?:\|?\s*)?[A-D][1'′]?[A-D][1'′]?(?:\s*[+\-]\s*[A-D][1'′]?[A-D][1'′]?)+(?:\s*\|)?)/i);
   if (match) {
-    const cleanExpr = match[1].trim().toUpperCase().replace(/1/g, "'");
+    const cleanExpr = match[1].trim().toUpperCase().replace(/1/g, "'").replace(/′/g, "'");
     return cleanExpr.includes('|') ? cleanExpr : `|${cleanExpr}|`;
   }
   return null;
 }
 
 /**
- * Trích xuất phát biểu claim (đáp án) nếu người dùng có nêu ra trong câu
+ * Trích xuất phát biểu claim (đáp án) nếu người dùng có nêu ra trong câu.
+ * Tách biệt rõ ràng độ dài cạnh cho trước (side) với câu trả lời/phán đoán của học sinh.
  */
 export function extractClaimFromText(text) {
   if (!text) return null;
-  const lower = text.toLowerCase();
-  
-  // 1. Khớp các đáp số căn/độ dài: 2a, a√2, 2√2, căn 2, 2\sqrt{2}, v.v.
-  const mSquare = lower.match(/(?:bằng|=| là\b)?\s*([0-9]*\.?[0-9]*\s*(?:a\s*)?(?:√|căn|\\sqrt)\s*\{?\d+\}?a?)/i);
+  // A value someone else said ("Bo nói ... bằng 2a") is being questioned, not claimed by the learner.
+  if (/(?:^|\s)(?:bo|bạn ấy|cậu ấy|bạn)\s+(?:nói|bảo|ghi|viết|cho rằng)\b/i.test(text)) return null;
+
+  // Strip given side length specification so it is not mistaken for a claimed result
+  // (e.g., "cạnh bằng 2, BC + DD' tính thế nào?" specifies side=2, not claim=2)
+  const textWithoutSide = text.replace(
+    /(?:cho\s+|với\s+)?(?:hình\s+(?:lập\s+phương|hộp)\s+)?(?:cạnh|side)(?:\s+[a-z])?\s*(?:bằng|=|là|:)?\s*(\d+(?:[.,]\d+)?|[a-zA-Z]\b)/gi,
+    ''
+  );
+
+  const lower = textWithoutSide.toLowerCase();
+
+  // 1. Khớp các đáp số căn/độ dài: 2a, a√2, 2√2, căn 2, 2\sqrt{2}, căn 3 a, v.v.
+  const mSquare = lower.match(/(?:bằng|=|\blà\b)?\s*([0-9]*\.?[0-9]*\s*(?:a\s*)?(?:√|căn|\\sqrt)\s*\{?\d+\}?(?:\s*a\b)?)/i);
   if (mSquare) return mSquare[1].replace(/\s+/g, '');
 
-  // 2. Khớp tên vectơ viết hoa (A-D): Bắt buộc so khớp trên text GỐC (chữ hoa),
+  // 2. Khớp tên vectơ viết hoa (A-D): Bắt buộc so khớp trên textWithoutSide GỐC (chữ hoa),
   // và lookahead (?![A-Za-zÀ-ỹ0-9_]) để tránh nuốt chữ "bao" trong "bằng bao nhiêu"
-  const mVec = text.match(/(?:bằng|=|là|\bđược\b|\bra\b)\s*([A-D][1'′]?[A-D][1'′]?)(?![A-Za-zÀ-ỹ0-9_])/);
-  if (mVec) return mVec[1].toUpperCase().replace(/1/g, "'");
+  const mVec = textWithoutSide.match(/(?:bằng|=|là|\bđược\b|\bra\b)\s*([A-D][1'′]?[A-D][1'′]?)(?![A-Za-zÀ-ỹ0-9_])/);
+  if (mVec) return mVec[1].toUpperCase().replace(/1/g, "'").replace(/′/g, "'");
 
   // 3. Khớp tham số a (như 2a, 3a)
-  const mA = lower.match(/(?:bằng|=| là\b)?\s*(\d+(?:\.\d+)?a)\b/i);
+  const mA = lower.match(/(?:bằng|=|\blà\b)?\s*(\d+(?:\.\d+)?a)\b/i);
   if (mA) return mA[1].toLowerCase();
 
   // 4. Khớp số nguyên/thực thuần tuý
-  // Không nhận các từ hỏi như "bao nhiêu", "mấy"
-  if (!lower.includes('bao nhiêu') && !lower.includes('bao nhieu') && !lower.includes('mấy') && !lower.includes('may')) {
-    const mPureNum = lower.match(/(?:bằng|=| là\b)\s*(\d+(?:\.\d+)?)\b/);
+  // Không nhận các từ hỏi như "bao nhiêu", "mấy", "thế nào", "làm sao", "tính sao", "ra sao"
+  const isQuestionOnly = /(?:bao\s+nhiêu|bao\s+nhieu|mấy|may|thế\s+nào|như\s+thế\s+nào|làm\s+sao|làm\s+thế\s+nào|tính\s+sao|ra\s+sao)\b/i.test(lower);
+  if (!isQuestionOnly) {
+    const mPureNum = lower.match(/(?:bằng|=|\blà\b)\s*(\d+(?:\.\d+)?)\b/);
     if (mPureNum) return mPureNum[1];
   }
 
@@ -272,13 +284,14 @@ export function verifyVectorAlgebra({ shape = 'cube', side = 'a', expr, claim })
   // TRƯỜNG HỢP 2: Có claim đưa ra
   const parsedClaim = parseClaimValue(claim, sideNum);
 
-  // Kiểm tra trường hợp claim là tên vectơ tương đương (ví dụ: claim là "BC'")
-  const cleanClaim = String(claim).trim().toUpperCase().replace(/1/g, "'");
+  // Kiểm tra trường hợp claim là tên vectơ tương đương (ví dụ: claim là "BC'", "A'B'")
+  const cleanClaim = String(claim).trim().toUpperCase().replace(/1/g, "'").replace(/′/g, "'");
   let isEquivalentVector = false;
   let isVectorFormat = false;
-  if (/^[A-D][1']?[A-D][1']?$/.test(cleanClaim)) {
+  const vectorPoints = parseVectorName(cleanClaim);
+  if (vectorPoints) {
     try {
-      const claimCoords = getVectorCoords(cleanClaim[0], cleanClaim.slice(1), vertices);
+      const claimCoords = getVectorCoords(vectorPoints[0], vectorPoints[1], vertices);
       isVectorFormat = true;
       if (
         claimCoords[0] === evalResult.vector[0] &&

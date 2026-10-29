@@ -81,10 +81,11 @@ export interface DeterministicToolCall {
     | 'tool_verify_vector_algebra' 
     | 'tool_query_misconception_kb' 
     | 'tool_timeline_collision_checker' 
-    | 'tool_evaluate_bloom_level';
+    | 'tool_evaluate_bloom_level'
+    | 'tool_calculate_dot_product';
   input: Record<string, any>;
   output: Record<string, any>;
-  isValid: boolean;
+  isValid: boolean | null;
   timestampMs: number;
 }
 
