@@ -20,6 +20,8 @@ import { ReplaySource } from './services/reasoningSource';
 import { createSSEClient } from './services/sseClient';
 import { WarRoomPanel } from './components/warroom/WarRoomPanel';
 import { TimelineEditor } from './components/timeline/TimelineEditor';
+import { useLessonStore, lessonStore } from './store/lessonStore';
+import { mapReasoningEventsToInspectorTurns } from './services/reasoningAdapter';
 import {
   InspectorDrawer,
 } from './components/inspector/InspectorDrawer';
@@ -204,9 +206,20 @@ export default function App() {
     return 'classroom';
   });
   const [isInternalMenuOpen, setIsInternalMenuOpen] = useState(false);
+  const [lessonStoreState] = useLessonStore();
   const [currentLessonSchema, setCurrentLessonSchema] = useState<DRELessonSchema>(
-    DEMO_LESSON_SCHEMA
+    () => lessonStoreState.currentLessonSchema || DEMO_LESSON_SCHEMA
   );
+
+  // Tự động đồng bộ state từ store chung khi có cập nhật kịch bản đã duyệt
+  useEffect(() => {
+    if (lessonStoreState.currentLessonSchema) {
+      setCurrentLessonSchema(lessonStoreState.currentLessonSchema);
+    }
+    if (lessonStoreState.currentVideoLesson) {
+      setCurrentVideoLesson(lessonStoreState.currentVideoLesson);
+    }
+  }, [lessonStoreState.currentLessonSchema, lessonStoreState.currentVideoLesson]);
   const [useLiveSSE, setUseLiveSSE] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       const s = new URLSearchParams(window.location.search);
@@ -225,6 +238,20 @@ export default function App() {
     return new ReplaySource(DEMO_REASONING_EVENTS as any, 1.0);
   }, [useLiveSSE, currentVideoLesson.id]);
   const [inspectorTurns, setInspectorTurns] = useState<InspectorTurn[]>(() => DEMO_INSPECTOR_TURNS);
+
+  // Tự động map luồng sự kiện từ reasoning source sang inspector turns (Issue #16)
+  useEffect(() => {
+    const unsub = activeReasoningSource.subscribe(() => {
+      const history = activeReasoningSource.getHistory();
+      if (history && history.length > 0) {
+        const turns = mapReasoningEventsToInspectorTurns(history);
+        if (turns.length > 0) {
+          setInspectorTurns(turns);
+        }
+      }
+    });
+    return () => unsub();
+  }, [activeReasoningSource]);
 
   // Kích thước co giãn tự do cho Trạm 1 (Mục B Layout Elasticity)
   const [chatWidth, setChatWidth] = useState<number>(() => {
@@ -972,10 +999,11 @@ export default function App() {
     recordUserActivity();
 
     // Ghi nhận lượt Soi não tác nhân khi học sinh phản biện thành công (P1 Fix)
+    const liveTurnId = isEffective ? `live-reb-${Date.now()}` : '';
     if (isEffective) {
       const rebuttalTurnNumber = inspectorTurns.length + 1;
       const newRebuttalTurn: InspectorTurn = {
-        turnId: `live-reb-${Date.now()}`,
+        turnId: liveTurnId,
         timestamp: Date.now(),
         turnNumber: rebuttalTurnNumber,
         timestampStr: '37:13',
@@ -988,8 +1016,8 @@ export default function App() {
         },
         contextView: {
           visibleContext: [
-            `Lập luận phản biện của học sinh: "${rebuttalText}"`,
-            'Bo đã thừa nhận sai sót',
+            'Đề bài Ví dụ 3 câu a',
+            "Biểu thức vectơ BC + DD'",
             'Quy tắc thế vectơ nối tiếp BC + CC\' = BC\'',
           ],
           hiddenContext: [
@@ -1034,10 +1062,10 @@ export default function App() {
           if (res.followUpResponse?.text && isEffective) {
             setLiveCoLamDialogue(res.followUpResponse.text);
           }
-          if (isEffective) {
+          if (isEffective && liveTurnId) {
             setInspectorTurns((prev) =>
               prev.map((t) =>
-                t.turnId === newRebuttalTurn.turnId
+                t.turnId === liveTurnId
                   ? {
                       ...t,
                       dispatcher: {
@@ -1051,10 +1079,14 @@ export default function App() {
                         : t.thought,
                       speech: res.followUpResponse?.text || res.primaryResponse?.text || t.speech,
                       contextView: {
-                        ...t.contextView,
+                        visibleContext: t.contextView?.visibleContext || [],
+                        hiddenContext: t.contextView?.hiddenContext || [],
+                        boardSnippet: t.contextView?.boardSnippet || "|BC + CC'| = √2",
+                        teacherSpeech: t.contextView?.teacherSpeech,
+                        hiddenItem: t.contextView?.hiddenItem,
                         ragKnowledge: res.ragContextUsed
                           ? `RAG [${res.ragContextUsed.misconceptionId}]: ${res.ragContextUsed.correction}`
-                          : t.contextView.ragKnowledge,
+                          : t.contextView?.ragKnowledge,
                       },
                     }
                   : t
@@ -1700,7 +1732,7 @@ export default function App() {
                 setCurrentVideoLesson((prev) => ({
                   ...prev,
                   title: approved.title || prev.title,
-                  duration: approved.video_duration_s || prev.duration,
+                  duration: (approved as any).video_duration_s || updatedVideoLesson.duration || prev.duration,
                   checkpointTimestamp: updatedVideoLesson.checkpointTimestamp || prev.checkpointTimestamp,
                   checkpointQuestion: updatedVideoLesson.checkpointQuestion || prev.checkpointQuestion,
                   boArgument: updatedVideoLesson.boArgument || prev.boArgument,
@@ -2099,6 +2131,7 @@ export default function App() {
                     onClose={() => setIsInspectorDrawerOpen(false)}
                     turns={inspectorTurns}
                     activeTurnIndex={3}
+                    isReplay={!useLiveSSE}
                   />
                 </div>
               )}
@@ -2205,6 +2238,7 @@ export default function App() {
             onClose={() => setIsInspectorDrawerOpen(false)}
             turns={inspectorTurns}
             activeTurnIndex={3}
+                    isReplay={!useLiveSSE}
           />
         </div>
       )}

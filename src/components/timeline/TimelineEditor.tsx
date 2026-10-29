@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { DRELessonSchema, PauseQuestion, ScenarioItem } from '../../types/lesson';
 import { exportApprovedLessonJSON } from '../../utils/lessonAdapter';
+import { lessonStore } from '../../store/lessonStore';
 import { checkTimelineCollisions, CollisionWarning, CANONICAL_MIN_GAP_S } from './collisionChecker';
 import {
   BoCircleAvatar,
@@ -390,6 +391,9 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     } catch (_e) {
       console.warn('LocalStorage is full or disabled.');
     }
+
+    // Đồng bộ lập tức vào Store dùng chung (Zustand/Context sync localStorage)
+    lessonStore.approveAndPublish(approved);
 
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);

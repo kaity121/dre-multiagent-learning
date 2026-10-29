@@ -2,6 +2,8 @@ import { ReasoningEvent } from '../types/reasoning';
 import { ReasoningSource, EventListener, StatusListener } from './reasoningSource';
 import { sanitizeFixtureData } from '../utils/sanitizeKatex';
 
+import { mapBackendToReasoningEvent } from './reasoningAdapter';
+
 export interface SSEClientOptions {
   url?: string;
   videoId?: string;
@@ -35,7 +37,7 @@ export class SSEReasoningSource implements ReasoningSource {
 
   constructor(options: SSEClientOptions = {}) {
     const apiBase =
-      (typeof process !== 'undefined' && process.env?.REACT_APP_API_BASE_URL) ||
+      ((globalThis as any).process?.env?.REACT_APP_API_BASE_URL) ||
       (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_BASE_URL) ||
       '';
 
@@ -222,43 +224,7 @@ export class SSEReasoningSource implements ReasoningSource {
 
   private normalizeEvent(raw: any): ReasoningEvent | null {
     if (!raw) return null;
-
-    // Chuẩn hóa timestamp ISO sang epoch milliseconds
-    let ts = raw.timestamp;
-    if (typeof ts === 'string') {
-      const parsedTs = new Date(ts).getTime();
-      ts = !isNaN(parsedTs) ? parsedTs : Date.now();
-    } else if (typeof ts !== 'number') {
-      ts = Date.now();
-    }
-
-    // Chuẩn hóa tên loại sự kiện tương thích producer và frontend
-    let evtType = (raw.eventType || raw.type || 'speaking').toLowerCase();
-    if (evtType === 'thought') evtType = 'thinking';
-    else if (evtType === 'debate_turn') evtType = 'speaking';
-    else if (evtType === 'checkpoint_created') evtType = 'checkpoint_created';
-
-    // Chuẩn hóa toolCall params vs input
-    let toolCall = raw.toolCall;
-    if (toolCall && toolCall.input && !toolCall.params) {
-      toolCall = {
-        ...toolCall,
-        params: toolCall.input,
-      };
-    }
-
-    return {
-      id: raw.id || `evt-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      timestamp: ts,
-      agent: raw.agent || 'Bo',
-      eventType: evtType as any,
-      phase: raw.phase,
-      content: raw.content || raw.dialogue || raw.thought || '',
-      toolCall,
-      toolResult: raw.toolResult,
-      crossCheck: raw.crossCheck,
-      metadata: raw.metadata,
-    };
+    return mapBackendToReasoningEvent(raw);
   }
 
   private emitEvent(evt: ReasoningEvent): void {

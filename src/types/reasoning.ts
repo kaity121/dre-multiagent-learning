@@ -14,6 +14,7 @@ export type PhaseStatus = 'pending' | 'running' | 'completed' | 'error';
 export interface ToolCallPayload {
   toolName: string;
   args: Record<string, unknown>;
+  params?: Record<string, unknown>;
   callId?: string;
 }
 

@@ -512,7 +512,7 @@ export const DEMO_REASONING_EVENTS: ReasoningEvent[] = [
     timestamp: 1729000004300,
     agent: 'Tri',
     eventType: 'thinking',
-    phase: 'generate',
+    phase: 'roundtable',
     content: 'Phát hiện bẫy trực giác của Bo (1 + 1 = 2). Chuẩn bị lời thoại phản biện chỉ ra phép thế DD\' = CC\' để nối tiếp BC + CC\' = BC\'.'
   },
   {
@@ -520,7 +520,7 @@ export const DEMO_REASONING_EVENTS: ReasoningEvent[] = [
     timestamp: 1729000005000,
     agent: 'CoLam',
     eventType: 'thinking',
-    phase: 'evaluate',
+    phase: 'bloom',
     content: 'Đánh giá học sinh đã vượt qua bẫy độ dài ở Trạm 1 và sẵn sàng bước vào Trạm 2 (Sổ tay bắt lỗi hiệu vectơ).'
   }
 ];

@@ -1,69 +1,96 @@
 import { DRELessonSchema as LegacyLessonSchema, TimelineComment } from '../types/lesson';
 import { VideoLessonItem as ClassroomVideoLessonItem } from '../types/dre';
 import { sanitizeFixtureData } from './sanitizeKatex';
+import { VIDEO_LESSON_LIBRARY } from '../data/videoLessons';
 
 export interface AdaptedLessonResult {
   videoLesson: ClassroomVideoLessonItem;
   timelineComments: TimelineComment[];
 }
 
+// ============================================================================
+// HỆ QUY CHIẾU THỜI GIAN CHUẨN DUY NHẤT (CANONICAL SINGLE TIMEBASE IN SECONDS)
+// TUYỆT ĐỐI KHÔNG CỘNG DỒN PART OFFSET VÀO MỐC THỜI GIAN ĐÃ LÀ ABSOLUTE FIXTURE
+// ============================================================================
+export const CANONICAL_MAX_DURATION_S = 5880; // 1h38m00s (Chuẩn thời lượng bài giảng Thầy Tiến)
+export const CANONICAL_CHECKPOINT_S = 2233;   // 37:13 (Đúng mốc dừng Ví dụ 3 Thầy Tiến)
+
 /**
  * Chuyển đổi DRELessonSchema (từ Editor hoặc Pipeline Fixture) sang VideoLessonItem của Classroom Player.
- * Đảm bảo đồng bộ 100% dữ liệu đã duyệt (Approved) về Classroom mà không bị ngắt kết nối.
+ * Đảm bảo:
+ * 1. Single source of truth cho timestamp (tính bằng seconds), giữ đúng mốc 37:13 (2233s), không vượt quá 5880s.
+ * 2. Giữ nguyên toàn vẹn nội dung của các bài toán phương trình (VID_001), bất đẳng thức (VID_003),
+ *    tuyệt đối không ghi đè thành câu hỏi vector cố định nếu đề bài là phương trình hoặc bất đẳng thức.
  */
 export function adaptLessonToPlayer(rawLesson: any): ClassroomVideoLessonItem {
   const lesson = sanitizeFixtureData(rawLesson);
-  let cumulativeTime = 0;
-  let detectedCheckpointTimestamp = 2233; // Default 37:13
-  let detectedQuestion: any = null;
+  const lessonId = lesson.lesson_id || lesson.id || 'lesson_vecto_12';
+
+  // Đối chiếu với thư viện bài học chuẩn để bảo tồn dữ liệu chuyên biệt nếu có
+  const matchedLib = VIDEO_LESSON_LIBRARY.find((l) => l.id === lessonId || l.id === lesson.id);
+
+  // Tổng thời lượng: giới hạn không vượt quá CANONICAL_MAX_DURATION_S (5880s)
+  const totalDuration = Math.min(
+    lesson.video_duration_s || (matchedLib ? matchedLib.duration : CANONICAL_MAX_DURATION_S),
+    CANONICAL_MAX_DURATION_S
+  );
+
+  // Mốc checkpoint chuẩn: Ưu tiên mốc của lesson, sau đó đến matchedLib, mặc định 2233s (37:13)
+  const targetCheckpointTime = Math.min(
+    typeof lesson.checkpointTimestamp === 'number'
+      ? lesson.checkpointTimestamp
+      : matchedLib
+      ? matchedLib.checkpointTimestamp
+      : CANONICAL_CHECKPOINT_S,
+    totalDuration
+  );
+
+  // Thu thập tất cả câu hỏi dừng và lời thoại từ các phân đoạn
+  const allQuestions: any[] = [];
   let detectedBoDialogue = '';
 
-  const parts = (lesson.parts || []).map((part: any, pIdx: number) => {
-    const startTime = typeof part.start_s === 'number' ? part.start_s : cumulativeTime;
-    const duration = part.duration || (typeof part.end_s === 'number' ? part.end_s - startTime : 0);
-    const endTime = startTime + duration;
-    cumulativeTime = endTime;
+  (lesson.parts || []).forEach((part: any) => {
+    (part.pause_questions || []).forEach((q: any) => {
+      if (q.is_active !== false) {
+        allQuestions.push(q);
+      }
+    });
 
-    // Tìm câu hỏi dừng được đánh dấu active trong part
-    if (part.pause_questions && Array.isArray(part.pause_questions)) {
-      part.pause_questions.forEach((q: any) => {
-        if (q.is_active !== false && !detectedQuestion) {
-          detectedQuestion = q;
-          const rawQTime = typeof q.at_s === 'number' ? q.at_s : q.timestamp;
-          if (typeof rawQTime === 'number') {
-            detectedCheckpointTimestamp = rawQTime >= startTime ? rawQTime : startTime + rawQTime;
-          }
-        }
-      });
-    }
-
-    if (part.scenarios && Array.isArray(part.scenarios)) {
-      part.scenarios.forEach((s: any) => {
-        if ((s.actor_id === 'bo' || s.agent === 'Bo') && (s.bo_fallacy_statement || s.dialogue)) {
+    (part.scenarios || []).forEach((s: any) => {
+      if ((s.actor_id === 'bo' || s.agent === 'Bo') && (s.bo_fallacy_statement || s.dialogue)) {
+        if (!detectedBoDialogue) {
           detectedBoDialogue = s.bo_fallacy_statement || s.dialogue;
         }
-      });
-    }
-
-    return {
-      id: part.id || part.part_id || `part-${pIdx + 1}`,
-      title: part.title || part.concept || `Phần ${pIdx + 1}`,
-      startTime,
-      endTime,
-      url: part.video_url || lesson.video_url || '',
-    };
+      }
+    });
   });
 
-  const totalDuration = lesson.video_duration_s || cumulativeTime || 9503;
+  // Tìm câu hỏi dừng khớp nhất với mốc checkpoint mong đợi (trong phạm vi 15 giây hoặc câu hỏi bậc cao)
+  const matchedQuestion = allQuestions.find((q) => {
+    const qt = typeof q.at_s === 'number' ? q.at_s : q.timestamp;
+    return typeof qt === 'number' && Math.abs(qt - targetCheckpointTime) <= 15;
+  }) || allQuestions.find((q) => {
+    const lvl = (q.bloom_level || '').toLowerCase();
+    return lvl.includes('đánh giá') || lvl.includes('evaluate') || lvl.includes('phân tích') || lvl.includes('analyze');
+  }) || allQuestions[0];
 
-  // Xây dựng options chuẩn từ detectedQuestion
-  const mappedOptions = detectedQuestion?.options && Array.isArray(detectedQuestion.options)
-    ? detectedQuestion.options.map((opt: any, oIdx: number) => ({
+  const detectedCheckpointTimestamp = matchedQuestion
+    ? Math.min(
+        typeof matchedQuestion.at_s === 'number' ? matchedQuestion.at_s : matchedQuestion.timestamp,
+        totalDuration
+      )
+    : targetCheckpointTime;
+
+  // Xây dựng danh sách phương án lựa chọn (Options)
+  let mappedOptions = matchedQuestion?.options && Array.isArray(matchedQuestion.options)
+    ? matchedQuestion.options.map((opt: any, oIdx: number) => ({
         id: opt.option_id || opt.id || `opt_${oIdx}`,
         label: opt.text || opt.label || '',
         isStandardBest: opt.is_correct ?? opt.isStandardBest ?? (oIdx === 0),
         feedback: opt.explanation || opt.feedback || '',
       }))
+    : matchedLib
+    ? matchedLib.checkpointQuestion.options
     : [
         {
           id: 'opt_a',
@@ -85,71 +112,96 @@ export function adaptLessonToPlayer(rawLesson: any): ClassroomVideoLessonItem {
         },
       ];
 
+  // Nội dung câu hỏi dừng: Không ghi đè câu hỏi phương trình/bất đẳng thức thành vector
+  const checkpointPrompt = matchedQuestion?.question ||
+    matchedQuestion?.prompt ||
+    (matchedLib ? matchedLib.checkpointQuestion.prompt : "Cho hình lập phương ABCD.A'B'C'D' có cạnh bằng 1. Độ dài của tổng hai vectơ |BC + DD'| bằng bao nhiêu và tính thế nào?");
+
+  // Lời thoại bẫy của Bo
+  const boSpeech = detectedBoDialogue ||
+    (matchedLib ? matchedLib.boArgument.speech : "Ủa sao cậu phải đổi DD' thành CC' chi cho cực vậy?! Tớ thấy |BC + DD'| thì cứ tách ra thành |BC| + |DD'| = 1 + 1 = 2 luôn chứ sao lại ra √2?!");
+
+  // Nhãn dán phản biện (Rebuttal Stickers)
+  const rebuttalStickers = matchedLib
+    ? matchedLib.rebuttalStickers
+    : [
+        {
+          id: 'stk_1',
+          text: "Cấm tách |a + b| = |a| + |b|! Phải thế DD' = CC' để gom về 1 vectơ BC' rồi mới tính Pytago ra √2.",
+          isEffective: true,
+          feedback: "Bo tâm phục khẩu phục! Phải gom biểu thức trong trị tuyệt đối thành 1 vectơ duy nhất trước.",
+        },
+        {
+          id: 'stk_2',
+          text: "Đi ngang 1m (BC) rồi đi thẳng đứng lên 1m (CC') thì đường chéo mặt bên BC' phải là cạnh huyền √2m!",
+          isEffective: true,
+          feedback: "Ví dụ thực tế quá chuẩn! Hai vectơ vuông góc nhau nên phải dùng định lý Pytago.",
+        },
+        {
+          id: 'stk_3',
+          text: "Tại vì bài hình học không gian nào của thầy Tiến cũng phải có căn bậc hai trong đáp án.",
+          isEffective: false,
+          feedback: "Bo chưa chịu đâu! Hãy dùng quy tắc nối tiếp vectơ để giải thích cho Bo nhé!",
+        },
+      ];
+
+  // Bo nhận thua (Concession)
+  const boConcession = matchedLib
+    ? matchedLib.boConcession
+    : {
+        speech: "Ối giời ơi đúng ha! Đi ngang 1 bước rồi đi thẳng lên 1 bước thì khoảng cách chéo phải là √2! Tớ chừa tật tách bừa |a + b| = |a| + |b| rồi!",
+      };
+
+  // Lời chốt sư phạm của Cô Lam (Teacher Closure)
+  const teacherClosure = matchedLib
+    ? matchedLib.teacherClosure
+    : {
+        goldenRule: "Quy tắc vàng [37:13]: Tuyệt đối không tách |a + b| = |a| + |b|. Luôn thu gọn biểu thức bên trong thành 1 vectơ duy nhất trước khi tính độ dài!",
+      };
+
   return {
-    id: lesson.lesson_id || 'lesson_vecto_12',
-    title: lesson.title || 'Bài 1.1: Vectơ Trong Không Gian',
+    id: lessonId,
+    title: lesson.title || (matchedLib ? matchedLib.title : 'Bài 1.1: Vectơ Trong Không Gian'),
     duration: totalDuration,
     checkpointTimestamp: detectedCheckpointTimestamp,
     lectureEndSecond: totalDuration,
-    videoUrl: lesson.video_url || 'https://www.youtube.com/watch?v=phvpqxLNTUQ',
+    videoUrl: lesson.video_url || (matchedLib ? matchedLib.videoUrl : 'https://www.youtube.com/watch?v=phvpqxLNTUQ'),
+    youtubeId: matchedLib?.youtubeId || 'phvpqxLNTUQ',
     checkpointQuestion: {
-      prompt: detectedQuestion?.question || detectedQuestion?.prompt || "Cho hình lập phương ABCD.A'B'C'D' có cạnh bằng 1. Độ dài của tổng hai vectơ |BC + DD'| bằng bao nhiêu và tính thế nào?",
+      prompt: checkpointPrompt,
       options: mappedOptions,
     },
     boArgument: {
-      speech: detectedBoDialogue || "Ủa sao cậu phải đổi DD' thành CC' chi cho cực vậy?! Tớ thấy |BC + DD'| thì cứ tách ra thành |BC| + |DD'| = 1 + 1 = 2 luôn chứ sao lại ra √2?!",
+      speech: boSpeech,
     },
-    rebuttalStickers: [
-      {
-        id: 'stk_1',
-        text: "Cấm tách |a + b| = |a| + |b|! Phải thế DD' = CC' để gom về 1 vectơ BC' rồi mới tính Pytago ra √2.",
-        isEffective: true,
-        feedback: "Bo tâm phục khẩu phục! Phải gom biểu thức trong trị tuyệt đối thành 1 vectơ duy nhất trước.",
-      },
-      {
-        id: 'stk_2',
-        text: "Đi ngang 1m (BC) rồi đi thẳng đứng lên 1m (CC') thì đường chéo mặt bên BC' phải là cạnh huyền √2m!",
-        isEffective: true,
-        feedback: "Ví dụ thực tế quá chuẩn! Hai vectơ vuông góc nhau nên phải dùng định lý Pytago.",
-      },
-      {
-        id: 'stk_3',
-        text: "Tại vì bài hình học không gian nào của thầy Tiến cũng phải có căn bậc hai trong đáp án.",
-        isEffective: false,
-        feedback: "Bo chưa chịu đâu! Hãy dùng quy tắc nối tiếp vectơ để giải thích cho Bo nhé!",
-      },
-    ],
-    boConcession: {
-      speech: "Ối giời ơi đúng ha! Đi ngang 1 bước rồi đi thẳng lên 1 bước thì khoảng cách chéo phải là √2! Tớ chừa tật tách bừa |a + b| = |a| + |b| rồi!",
-    },
-    teacherClosure: {
-      goldenRule: "Quy tắc vàng [37:13]: Tuyệt đối không tách |a + b| = |a| + |b|. Luôn thu gọn biểu thức bên trong thành 1 vectơ duy nhất trước khi tính độ dài!",
-    },
-    freezeNote: "Thầy Tiến chuẩn bị giải Ví dụ 3 câu a trên bảng. Hãy cùng Bo thảo luận cách tính độ dài tổng hai vectơ!",
+    rebuttalStickers,
+    boConcession,
+    teacherClosure,
+    peerContext: matchedLib?.peerContext,
+    transcriptCues: matchedLib?.transcriptCues,
+    chapters: matchedLib?.chapters,
+    freezeNote: matchedLib?.freezeNote || "Thầy Tiến chuẩn bị giải Ví dụ 3 câu a trên bảng. Hãy cùng Bo thảo luận cách tính độ dài tổng hai vectơ!",
   };
 }
 
 /**
  * Chuyển đổi các câu hỏi dừng và kịch bản trong lesson thành danh sách bình luận trên timeline.
- * SỬA LỖI P2: Thiết lập một hệ quy chiếu thời gian tuyệt đối (Single Timebase).
- * Nếu timestamp/at_s trong fixture đã là mốc giây tuyệt đối (>= start_s hoặc >= 100),
- * TUYỆT ĐỐI KHÔNG cộng dồn partOffset làm trôi 37:13 thành 58:13!
+ * SỬA LỖI P1/P2 REVIEW:
+ * Single Source of Truth tính bằng seconds.
+ * TUYỆT ĐỐI KHÔNG cộng dồn part offset vào mốc thời gian đã là absolute fixture.
+ * Giữ đúng mốc 37:13 (2233s) và giới hạn trong CANONICAL_MAX_DURATION_S (5880s).
  */
 export function adaptLessonToTimelineComments(rawLesson: any): TimelineComment[] {
   const lesson = sanitizeFixtureData(rawLesson);
   const comments: TimelineComment[] = [];
-  let cumulativeTime = 0;
+  const maxDuration = Math.min(lesson.video_duration_s || CANONICAL_MAX_DURATION_S, CANONICAL_MAX_DURATION_S);
 
   (lesson.parts || []).forEach((part: any) => {
-    const partStart = typeof part.start_s === 'number' ? part.start_s : cumulativeTime;
-    const duration = part.duration || (typeof part.end_s === 'number' ? part.end_s - partStart : 0);
-
     if (part.pause_questions && Array.isArray(part.pause_questions)) {
       part.pause_questions.forEach((q: any) => {
         const rawTime = typeof q.at_s === 'number' ? q.at_s : typeof q.timestamp === 'number' ? q.timestamp : 0;
-        // Kiểm tra xem thời gian đã là mốc tuyệt đối chưa (nếu >= partStart hoặc lớn hơn duration của part)
-        const isAlreadyAbsolute = (typeof part.start_s === 'number' && rawTime >= part.start_s) || rawTime > (duration || 300);
-        const resolvedTimestamp = isAlreadyAbsolute ? rawTime : partStart + rawTime;
+        // Sử dụng timestamp tuyệt đối chuẩn (không cộng dồn partStart)
+        const resolvedTimestamp = Math.min(Math.max(0, rawTime), maxDuration);
 
         comments.push({
           id: q.id || q.question_id,
@@ -172,8 +224,7 @@ export function adaptLessonToTimelineComments(rawLesson: any): TimelineComment[]
     if (part.scenarios && Array.isArray(part.scenarios)) {
       part.scenarios.forEach((s: any) => {
         const rawTime = typeof s.at_s === 'number' ? s.at_s : typeof s.timestamp === 'number' ? s.timestamp : 0;
-        const isAlreadyAbsolute = (typeof part.start_s === 'number' && rawTime >= part.start_s) || rawTime > (duration || 300);
-        const resolvedTimestamp = isAlreadyAbsolute ? rawTime : partStart + rawTime;
+        const resolvedTimestamp = Math.min(Math.max(0, rawTime), maxDuration);
 
         comments.push({
           id: s.id || s.scenario_id,
@@ -192,8 +243,6 @@ export function adaptLessonToTimelineComments(rawLesson: any): TimelineComment[]
         });
       });
     }
-
-    cumulativeTime = partStart + duration;
   });
 
   return comments.sort((a, b) => a.timestamp - b.timestamp);

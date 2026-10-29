@@ -5,13 +5,15 @@ import {
   X,
   ArrowRight,
   Lock,
+  RotateCcw,
+  Sparkles,
 } from 'lucide-react';
 import { InspectorTurn } from '../../types/reasoning';
 import { DEMO_INSPECTOR_TURNS } from '../../demo/demoLesson';
 import { sound } from '../../utils/soundEffects';
 
 export const API_BASE_URL =
-  (typeof process !== 'undefined' && process.env?.REACT_APP_API_BASE_URL) ||
+  ((globalThis as any).process?.env?.REACT_APP_API_BASE_URL) ||
   (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_BASE_URL) ||
   '/api';
 
@@ -20,6 +22,7 @@ interface InspectorDrawerProps {
   onClose: () => void;
   turns?: InspectorTurn[];
   activeTurnIndex?: number;
+  isReplay?: boolean;
 }
 
 export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
@@ -27,6 +30,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
   onClose,
   turns: propTurns,
   activeTurnIndex: propActiveIndex,
+  isReplay: propIsReplay,
 }) => {
   const [turns, setTurns] = useState<InspectorTurn[]>(DEMO_INSPECTOR_TURNS);
   // Mặc định chọn Lượt 4: Bo phản biện sắc bén ở 37:13 (index 3)
@@ -73,7 +77,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
   const contextView = currentTurn.contextView || {
     boardSnippet: "| BC + DD' |",
     teacherSpeech: 'Đã chép lời',
-    ragKnowledge: 'Không dùng',
+    ragKnowledge: 'MISC_VEC_005',
     hiddenItem: 'Lời giải chuẩn của bài',
     visibleContext: [],
     hiddenContext: [],
@@ -94,6 +98,10 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
   const confidencePercent = Math.round(confidenceNum * 100);
   const confidenceFormatted = (confidenceNum).toFixed(2).replace('.', ',');
 
+  const isReplayMode = propIsReplay !== undefined
+    ? propIsReplay
+    : (!currentTurn.turnId?.startsWith('live-') && selectedIndex < 4);
+
   return (
     <aside
       id="inspector-drawer-panel"
@@ -101,7 +109,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
       role="complementary"
       aria-label="Soi não tác nhân"
     >
-      {/* 1. Header: Biểu tượng mắt lime + Tiêu đề + Dòng phụ + Nút đóng */}
+      {/* 1. Header: Biểu tượng mắt lime + Tiêu đề + Cờ Replay / Live + Nút đóng */}
       <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 bg-white border-b border-[#E2EAD2] shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-2xl bg-[#C8F169] border border-[#A6D83B] flex items-center justify-center text-[#121712] shrink-0">
@@ -111,15 +119,28 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
             <h2 className="text-base font-extrabold text-[#121712] leading-tight m-0">
               Soi não tác nhân
             </h2>
-            <p className="text-xs text-stone-500 font-medium m-0 mt-0.5">
-              Lượt #{currentTurn.turnNumber || selectedIndex + 1} · {currentTurn.timestampStr || '37:13'} · {
-                selectedIndex === turns.length - 1 && currentTurn.timestamp > Date.now() - 300000
-                  ? 'Vừa cập nhật theo tương tác học sinh'
-                  : currentTurn.turnId?.startsWith('live-')
-                  ? 'Vừa cập nhật theo câu trả lời'
-                  : 'Bản ghi lưu trữ (Replay)'
-              }
-            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-xs text-stone-600 font-medium">
+                Lượt #{currentTurn.turnNumber || selectedIndex + 1} · {currentTurn.timestampStr || '37:13'}
+              </span>
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold tracking-tight border flex items-center gap-1 ${
+                isReplayMode
+                  ? 'bg-amber-50 text-amber-950 border-amber-300'
+                  : 'bg-emerald-50 text-emerald-950 border-emerald-300'
+              }`}>
+                {isReplayMode ? (
+                  <>
+                    <RotateCcw className="w-2.5 h-2.5 text-amber-800" />
+                    <span>Replay</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-2.5 h-2.5 text-emerald-700 animate-pulse" />
+                    <span>Trực tiếp (Live)</span>
+                  </>
+                )}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -164,7 +185,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
       {/* 3. Vùng thân cuộn: 4 khối đánh số 1 đến 4 */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5">
         {/* =========================================================================
-            KHỐI 1: ĐIỀU PHỐI
+            KHỐI 1: ĐIỀU PHỐI (INTENT ROUTING DISPATCHER)
             ========================================================================= */}
         <div className="bg-white border border-[#E2EAD2] rounded-2xl p-3.5 sm:p-4 shadow-2xs space-y-2.5">
           <div className="flex items-center gap-2">
@@ -172,7 +193,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
               1
             </span>
             <span className="font-bold text-xs text-[#121712] uppercase tracking-wider">
-              ĐIỀU PHỐI
+              ĐIỀU PHỐI (DISPATCHER)
             </span>
           </div>
 
@@ -210,7 +231,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
         </div>
 
         {/* =========================================================================
-            KHỐI 2: BO NHÌN THẤY GÌ
+            KHỐI 2: CONTEXT SNAPSHOT (TÁC NHÂN NHÌN THẤY GÌ - ISSUE #16)
             ========================================================================= */}
         <div className="bg-white border border-[#E2EAD2] rounded-2xl p-3.5 sm:p-4 shadow-2xs space-y-2.5">
           <div className="flex items-center gap-2">
@@ -218,7 +239,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
               2
             </span>
             <span className="font-bold text-xs text-[#121712] uppercase tracking-wider">
-              {currentTurn.agent.toUpperCase()} NHÌN THẤY GÌ
+              {currentTurn.agent.toUpperCase()} NHÌN THẤY GÌ (CONTEXT SNAPSHOT)
             </span>
           </div>
 
@@ -244,10 +265,10 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
 
             <div className="p-2.5 rounded-xl bg-[#F8FAF4] border border-[#E2EAD2] flex flex-col justify-between">
               <span className="text-xs text-stone-500 font-medium leading-tight mb-1 block">
-                Tri thức tra cứu
+                Tri thức tra cứu (RAG)
               </span>
-              <span className="text-xs font-bold text-[#121712] block">
-                {contextView.ragKnowledge || 'Không dùng'}
+              <span className="text-xs font-bold text-[#121712] block truncate" title={contextView.ragKnowledge}>
+                {contextView.ragKnowledge || 'MISC_VEC_005'}
               </span>
             </div>
           </div>
@@ -289,7 +310,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
                   <Lock className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                   <span className="line-through">{item}</span>
                 </div>
-                <span className="px-2 py-0.5 rounded-full bg-[#121712] text-white text-[10px] font-bold shrink-0">
+                <span className="px-2 py-0.5 rounded-full bg-[#121712] text-white text-[11px] font-bold shrink-0">
                   Ẩn với {currentTurn.agent || 'Bo'}
                 </span>
               </div>
@@ -298,7 +319,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
         </div>
 
         {/* =========================================================================
-            KHỐI 3: SUY NGHĨ NGẦM CỦA BO (NỀN LIME NHẠT)
+            KHỐI 3: SUY NGHĨ NGẦM CỦA TÁC NHÂN (CANONICAL THOUGHTS)
             ========================================================================= */}
         <div className="bg-[#F3F8E8] border border-[#E2EAD2] rounded-2xl p-3.5 sm:p-4 shadow-2xs space-y-2.5">
           <div className="flex items-center gap-2">
@@ -322,7 +343,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
         </div>
 
         {/* =========================================================================
-            KHỐI 4: CHẤM NGẦM (KHỐI NỀN ĐEN DUY NHẤT)
+            KHỐI 4: CHẤM NGẦM (ASSESSOR & MISSING POINTS - ISSUE #16)
             ========================================================================= */}
         <div className="bg-[#121712] border border-[#121712] rounded-2xl p-4 shadow-sm text-white space-y-3">
           <div className="flex items-center justify-between">
@@ -331,7 +352,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
                 4
               </span>
               <span className="font-bold text-xs text-white uppercase tracking-wider">
-                CHẤM NGẦM
+                CHẤM NGẦM & ĐÁNH GIÁ NHẬN THỨC
               </span>
             </div>
             <span className="px-2.5 py-0.5 rounded-full bg-[#C8F169] text-[#121712] text-xs font-bold">
@@ -355,16 +376,27 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
                     <span>{pt}</span>
                   </div>
                 ))}
-                {(assessor.missingPoints || []).map((pt, pIdx) => (
-                  <div
-                    key={`miss-${pIdx}`}
-                    className="flex items-center gap-1.5 leading-snug text-amber-300 bg-amber-950/40 px-2 py-1 rounded-lg border border-amber-500/30"
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-                    <span className="text-xs">Thiếu: {pt}</span>
-                  </div>
-                ))}
               </div>
+
+              {/* HIỂN THỊ MISSING POINTS RÕ RÀNG (ISSUE #16) */}
+              {assessor.missingPoints && assessor.missingPoints.length > 0 && (
+                <div className="pt-2 space-y-1.5">
+                  <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wide block">
+                    Ý còn thiếu cần bổ sung:
+                  </span>
+                  <div className="space-y-1">
+                    {assessor.missingPoints.map((pt, pIdx) => (
+                      <div
+                        key={`miss-${pIdx}`}
+                        className="flex items-center gap-1.5 leading-snug text-amber-200 bg-amber-950/60 px-2 py-1 rounded-lg border border-amber-500/40 text-xs"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                        <span>Thiếu: {pt}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5">

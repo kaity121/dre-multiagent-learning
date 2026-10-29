@@ -83,6 +83,10 @@ class SoundEngine {
   /**
    * Soft paper page flip / rustle
    */
+  public playPaperRustle() {
+    this.playPageFlip();
+  }
+
   public playPageFlip() {
     if (!this.isEnabled) return;
     const ctx = this.initCtx();
