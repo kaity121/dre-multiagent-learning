@@ -12,6 +12,7 @@ const readJson = (rel) => JSON.parse(fs.readFileSync(path.join(root, rel), 'utf8
 const FIXTURES = [
   { file: 'mock/mock_cognitive_stream_vecto12.json', type: 'CognitiveEventStream' },
   { file: 'mock/mock_short_clip_sample.json', type: 'CognitiveEventStream' },
+  { file: 'backend/src/data/lesson-index/VID_VECTO_12_TIEN.json', type: 'CognitiveEventStream' },
   { file: 'mock/lesson.json', type: 'DRELessonSchema' },
   { file: 'mock/session_001.json', type: 'DRESessionSchema' },
   { file: 'mock/mock_reasoning_events.json', type: 'AgentReasoningEvent', isArray: true },
