@@ -1,12 +1,18 @@
 {
-  "clipId": "CLIP_DEMO_60S_TIEN_EX3",
-  "clipTitle": "Trích đoạn 60s: Ví dụ 3 - Bẫy tính độ dài vectơ trong hình lập phương",
+  "videoId": "CLIP_DEMO_60S_TIEN_EX3",
+  "videoTitle": "Trích đoạn 60s: Ví dụ 3 - Bẫy tính độ dài vectơ trong hình lập phương",
   "teacherName": "Thầy Nguyễn Phan Tiến",
-  "sourceVideoTimestamp": "36:44 -> 37:44",
+  "subject": "Toán 12 - Hình học không gian",
   "durationSeconds": 60,
+  "sourceClip": {
+    "parentVideoId": "VID_VECTO_12_TIEN",
+    "startSecond": 2204,
+    "endSecond": 2264
+  },
   "processedBy": {
+    "mode": "authored",
     "sttModel": "Whisper-Large-v3",
-    "ocrVisionModel": "Gemini-2.5-Flash-Vision",
+    "visionModel": "Gemini-2.5-Flash-Vision",
     "processingLatencyMs": 4820
   },
   "segments": [
@@ -20,12 +26,23 @@
       "blackboardLatex": [],
       "spatialGeometry": {
         "shapeType": "cube",
-        "vertices": ["A", "B", "C", "D", "A'", "B'", "C'", "D'"],
+        "vertices": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "A'",
+          "B'",
+          "C'",
+          "D'"
+        ],
         "highlightedVectors": [],
         "actionDescription": "Bảng phấn hiện hình vẽ hình lập phương cạnh 1"
       },
       "trapRiskLevel": "none",
-      "pedagogicalTags": ["problem_statement"]
+      "pedagogicalTags": [
+        "problem_statement"
+      ]
     },
     {
       "id": "clip_seg_02",
@@ -40,12 +57,27 @@
       ],
       "spatialGeometry": {
         "shapeType": "cube",
-        "vertices": ["A", "B", "C", "D", "A'", "B'", "C'", "D'"],
-        "highlightedVectors": ["BC", "DD'"],
+        "vertices": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "A'",
+          "B'",
+          "C'",
+          "D'"
+        ],
+        "highlightedVectors": [
+          "BC",
+          "DD'"
+        ],
         "actionDescription": "Thầy đánh dấu hai vectơ màu vàng: BC trên đáy dưới, DD' cạnh bên đứng"
       },
       "trapRiskLevel": "high",
-      "pedagogicalTags": ["checkpoint_candidate", "length_addition_fallacy"]
+      "pedagogicalTags": [
+        "checkpoint_candidate",
+        "length_addition_fallacy"
+      ]
     }
   ]
 }

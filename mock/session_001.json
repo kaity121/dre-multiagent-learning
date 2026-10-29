@@ -1,15 +1,242 @@
 {
   "session_id": "session_001",
-  "student_id": "hs_danang_042",
-  "lesson_id": "lesson_dre_vector_12",
-  "start_time": 1729000000000,
-  "current_part_id": "part-02",
-  "turn_count": 4,
-  "history": [
+  "learner_id": "learner_001",
+  "lesson_id": "math_12_vecto_01",
+  "lesson_version": "1.1",
+  "status": "completed",
+  "video_time_s": 2300,
+  "station_progress": "station_4_protege",
+  "activity_log": [
     {
-      "turn_id": "turn-01",
-      "user_message": "Em chưa hiểu tại sao độ dài |BC + DD'| lại không bằng 1 + 1 = 2 ạ?",
-      "agent_response": "Chào bạn! Trong không gian, hai vectơ BC và DD' vuông góc chéo nhau. Khi thế DD' bằng CC', ta có tam giác vuông BCC' với độ dài đường chéo bằng √2 ≈ 1.414 chứ không bằng tổng đại số 2 đâu nhé!"
+      "event_id": "e01",
+      "type": "pause_question_shown",
+      "question_id": "pq01",
+      "part_id": "part_01_definition",
+      "video_time_s": 282
+    },
+    {
+      "event_id": "e02",
+      "type": "pause_question_answer",
+      "question_id": "pq01",
+      "part_id": "part_01_definition",
+      "video_time_s": 282,
+      "attempt": 1,
+      "selected_option_ids": ["A"],
+      "evaluation": "correct",
+      "hesitation_seconds": 6
+    },
+    {
+      "event_id": "e03",
+      "type": "pause_question_shown",
+      "question_id": "pq02_checkpoint_3713",
+      "part_id": "part_03_box_rule_example3",
+      "video_time_s": 2233
+    },
+    {
+      "event_id": "e04",
+      "type": "pause_question_answer",
+      "question_id": "pq02_checkpoint_3713",
+      "part_id": "part_03_box_rule_example3",
+      "video_time_s": 2233,
+      "attempt": 1,
+      "selected_option_ids": ["A"],
+      "evaluation": "correct",
+      "hesitation_seconds": 11
+    },
+    {
+      "event_id": "e05",
+      "type": "bo_challenge_initiated",
+      "scenario_id": "sc_bo_debate_3713",
+      "part_id": "part_03_box_rule_example3",
+      "video_time_s": 2235,
+      "agent_actor": "bo"
+    },
+    {
+      "event_id": "e06",
+      "type": "learner_answer",
+      "scenario_id": "sc_bo_debate_3713",
+      "part_id": "part_03_box_rule_example3",
+      "video_time_s": 2235,
+      "answer": "Không cộng 1 + 1 được vì BC và DD' không cùng hướng. DD' bằng CC' nên BC + DD' = BC + CC' = BC', mà tam giác BCC' vuông tại C nên BC' = √2.",
+      "evaluation": "sharp_rebuttal",
+      "matched_points": [
+        "BC và DD' không cùng hướng nên không cộng độ dài trực tiếp được",
+        "Phải dựng một vectơ tổng (DD' = CC' nên BC + CC' = BC') trước khi lấy độ dài",
+        "Tam giác BCC' vuông tại C nên BC' = √2"
+      ],
+      "missing_points": [],
+      "bloom_level_demonstrated": "Evaluate",
+      "hesitation_seconds": 14
+    },
+    {
+      "event_id": "e07",
+      "type": "bo_conceded",
+      "scenario_id": "sc_bo_debate_3713",
+      "part_id": "part_03_box_rule_example3",
+      "video_time_s": 2235,
+      "agent_actor": "bo",
+      "feedback": "Ờ ha, dời DD' về C thì thành đường chéo BC'. Tớ thua, phải dựng tổng trước rồi mới đo."
+    },
+    {
+      "event_id": "e08",
+      "type": "linhchi_cheat_sheet_opened",
+      "part_id": "part_03_box_rule_example3",
+      "video_time_s": 2235,
+      "agent_actor": "linhchi",
+      "feedback": "Station 2: mở sổ tay quy tắc 'cộng vectơ trước, lấy độ dài sau' để soi vở bài tập của Bo."
+    },
+    {
+      "event_id": "e09",
+      "type": "learner_answer",
+      "part_id": "part_03_box_rule_example3",
+      "video_time_s": 2235,
+      "answer": "Bo sai ở dòng 2 vì tách |BC + DD'| thành |BC| + |DD'|.",
+      "evaluation": "partial",
+      "matched_points": ["Chỉ ra đúng dòng sai trong vở của Bo"],
+      "missing_points": ["Giải thích điều kiện khi nào độ dài tổng bằng tổng độ dài"],
+      "bloom_level_demonstrated": "Analyze",
+      "hesitation_seconds": 22
+    },
+    {
+      "event_id": "e10",
+      "type": "tutor_nudge_offered",
+      "part_id": "part_03_box_rule_example3",
+      "video_time_s": 2235,
+      "agent_actor": "an",
+      "feedback": "Gợi ý cấp 1: khi nào thì |u + v| mới bằng |u| + |v|?"
+    },
+    {
+      "event_id": "e11",
+      "type": "learner_answer",
+      "part_id": "part_03_box_rule_example3",
+      "video_time_s": 2235,
+      "answer": "Chỉ khi hai vectơ cùng hướng, còn lại thì độ dài tổng nhỏ hơn.",
+      "evaluation": "correct",
+      "matched_points": ["Giải thích điều kiện khi nào độ dài tổng bằng tổng độ dài"],
+      "missing_points": [],
+      "bloom_level_demonstrated": "Analyze",
+      "hesitation_seconds": 9
+    },
+    {
+      "event_id": "e12",
+      "type": "poe_prediction_submitted",
+      "part_id": "part_03_box_rule_example3",
+      "video_time_s": 2235,
+      "answer": "Dự đoán |AB + AD + AA'| = 3 vì có ba cạnh bằng 1.",
+      "evaluation": "incorrect",
+      "bloom_level_demonstrated": "Apply",
+      "hesitation_seconds": 8
+    },
+    {
+      "event_id": "e13",
+      "type": "poe_explanation_submitted",
+      "part_id": "part_03_box_rule_example3",
+      "video_time_s": 2235,
+      "answer": "Quan sát thấy tổng là đường chéo AC' của hình lập phương, độ dài √3. Em lại mắc đúng bẫy cộng độ dài, phải dùng quy tắc hình hộp.",
+      "evaluation": "correct",
+      "matched_points": ["AB + AD + AA' = AC'", "AC' = √3 với cạnh 1"],
+      "missing_points": [],
+      "bloom_level_demonstrated": "Evaluate",
+      "hesitation_seconds": 15
+    },
+    {
+      "event_id": "e14",
+      "type": "protege_teaching_turn",
+      "part_id": "part_03_box_rule_example3",
+      "video_time_s": 2235,
+      "agent_actor": "bo",
+      "answer": "Bo ơi, muốn tính độ dài tổng thì dựng vectơ tổng trước. Như BC + DD' thì thay DD' bằng CC' để nối đuôi thành BC', rồi mới dùng Pitago. Chỉ khi hai vectơ cùng hướng mới cộng thẳng độ dài được.",
+      "evaluation": "correct",
+      "matched_points": [
+        "Dựng vectơ tổng trước khi tính độ dài",
+        "Nêu điều kiện cùng hướng",
+        "Tự đưa ví dụ minh hoạ"
+      ],
+      "missing_points": [],
+      "bloom_level_demonstrated": "Create"
+    },
+    {
+      "event_id": "e15",
+      "type": "bloom_certified",
+      "part_id": "part_03_box_rule_example3",
+      "video_time_s": 2300,
+      "agent_actor": "colam",
+      "bloom_level_demonstrated": "Evaluate",
+      "feedback": "Chứng nhận Bloom: Evaluate. Bằng chứng: e06, e11, e13, e14."
     }
-  ]
+  ],
+  "memory": {
+    "summary": "Ở 04:42 người học chọn đúng câu cùng phương nhưng chưa giải thích nên chỉ ghi nhận attempted. Ở checkpoint 37:13 người học chọn đúng √2 và phản biện sắc bén bẫy cộng độ dài của Bo. Ở Trạm 3 người học lại dự đoán sai |AB + AD + AA'| = 3 rồi tự sửa bằng quy tắc hình hộp. Ở Trạm 4 người học dạy lại Bo được và tự đưa ví dụ.",
+    "open_questions": [],
+    "misconceptions_triggered": ["MISC_VEC_005", "MISC_VEC_006"],
+    "rebuttal_mastery_rate": 0.8
+  },
+  "assessment": {
+    "prerequisite_review": {
+      "question_id": "pq01",
+      "result": "correct",
+      "evidence_event_ids": ["e02"],
+      "comment": "Chọn đúng: hai đường chéo nhau thì không cùng phương."
+    },
+    "goals": [
+      {
+        "goal_id": "g01",
+        "result": "attempted",
+        "bloom_level": "Remember",
+        "evidence_event_ids": ["e02"],
+        "comment": "Chọn đúng trắc nghiệm nhưng chưa giải thích, nên chưa cấp mastered."
+      },
+      {
+        "goal_id": "g02",
+        "result": "not_started",
+        "evidence_event_ids": [],
+        "comment": "Người học bỏ qua câu hỏi của Linh Chi ở part 2."
+      },
+      {
+        "goal_id": "g03",
+        "result": "mastered",
+        "bloom_level": "Evaluate",
+        "evidence_event_ids": ["e06", "e11", "e13", "e14"],
+        "comment": "Bẻ được bẫy cộng độ dài, tự sửa lỗi ở bài biến thể và dạy lại cho Bo."
+      },
+      {
+        "goal_id": "g04",
+        "result": "not_started",
+        "evidence_event_ids": [],
+        "comment": "Phiên học dừng trước part hiệu hai vectơ."
+      }
+    ]
+  },
+  "part_reviews": [
+    {
+      "part_id": "part_01_definition",
+      "concept": "Định nghĩa vectơ, cùng phương và cùng hướng",
+      "overall_result": "developing",
+      "summary": "Chọn đúng nhưng chưa có lời giải thích để xác nhận hiểu.",
+      "strengths": ["Nhận biết đúng hai đường chéo nhau không cùng phương."],
+      "needs_review": ["Tự giải thích vì sao cùng phương mới xét được cùng hướng."],
+      "suggested_follow_up": "Xem lại 04:42 và giải thích bằng lời cho Trí.",
+      "evidence_event_ids": ["e02"]
+    },
+    {
+      "part_id": "part_03_box_rule_example3",
+      "concept": "Quy tắc hình hộp và bẫy cộng độ dài (Ví dụ 3)",
+      "overall_result": "mastered",
+      "summary": "Vượt qua bẫy ở 37:13, sửa được lỗi tương tự ở bài biến thể và dạy lại cho Bo.",
+      "strengths": [
+        "Phản biện đủ 3 ý kỳ vọng.",
+        "Tự phát hiện mình mắc lại bẫy ở Trạm 3 và sửa bằng quy tắc hình hộp."
+      ],
+      "needs_review": [],
+      "suggested_follow_up": "Thử bài |AB + CC'| trên hình hộp chữ nhật kích thước 1 × 2 × 3.",
+      "evidence_event_ids": ["e06", "e09", "e11", "e13", "e14"]
+    }
+  ],
+  "overall_review": {
+    "result": "developing",
+    "bloom_certified_level": "Evaluate",
+    "hesitation_index_score": 0.72,
+    "summary": "Thành thạo bẫy cộng độ dài ở mức Evaluate; phần định nghĩa mới ở mức attempted và chưa học tới phần hiệu hai vectơ.",
+    "reviewed_part_ids": ["part_01_definition", "part_03_box_rule_example3"]
+  }
 }
