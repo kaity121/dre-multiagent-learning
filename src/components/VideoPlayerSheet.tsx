@@ -11,6 +11,7 @@ import {
   EyeSticker
 } from './HandmadeArtwork';
 import { sound } from '../utils/soundEffects';
+import { FormattedMathText } from './MathVector';
 
 declare global {
   interface Window {
@@ -986,26 +987,18 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 )}
               </div>
 
-              {/* TRẠNG THÁI 1: CÂU HỎI & 3 ĐÁP ÁN A, B, C (KHỚP 100% ẢNH 2 MOCKUP) */}
+              {/* TRẠNG THÁI 1: CÂU HỎI & 3 ĐÁP ÁN A, B, C (ĐỘNG THEO LESSON DATA) */}
               {internalPhase === 'CHECKPOINT_REACHED' && (
                 <div className="space-y-3.5">
                   <h3 className="font-bold text-sm sm:text-[15px] text-[#121712] leading-snug m-0">
-                    Cho hình lập phương ABCD.A'B'C'D' có cạnh bằng 1. Độ dài |BC + DD'| bằng bao nhiêu và tính thế nào?
+                    <FormattedMathText text={cleanText(lesson.checkpointQuestion?.prompt || '')} />
                   </h3>
 
                   <div className="grid grid-cols-1 gap-2.5">
-                    {lesson.checkpointQuestion.options.map((opt, idx) => {
-                      const letter = idx === 0 ? 'A' : idx === 1 ? 'B' : 'C';
-                      const isSelected = (selectedQuizOptionId || 'opt_b') === opt.id;
-
-                      let cleanLabel = cleanText(opt.label);
-                      if (opt.id === 'opt_a' || idx === 0) {
-                        cleanLabel = "Thay DD' = CC' để nối tiếp: |BC + CC'| = |BC'| = √2";
-                      } else if (opt.id === 'opt_b' || idx === 1) {
-                        cleanLabel = "Tách trực tiếp thành tổng hai độ dài: |BC| + |DD'| = 1 + 1 = 2";
-                      } else if (opt.id === 'opt_c' || idx === 2) {
-                        cleanLabel = "Dùng công thức đường chéo hình lập phương: bằng √3";
-                      }
+                    {lesson.checkpointQuestion?.options?.map((opt, idx) => {
+                      const letter = String.fromCharCode(65 + idx);
+                      const isSelected = (selectedQuizOptionId || lesson.checkpointQuestion.options[0]?.id) === opt.id;
+                      const cleanLabel = cleanText(opt.label);
 
                       return (
                         <button
@@ -1031,7 +1024,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                             {letter}
                           </span>
                           <span className="leading-snug flex-1">
-                            {cleanLabel}
+                            <FormattedMathText text={cleanLabel} />
                           </span>
                         </button>
                       );
@@ -1054,10 +1047,10 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                     <button
                       type="button"
                       onClick={() => {
-                        const chosen = lesson.checkpointQuestion.options.find(
-                          (o) => o.id === (selectedQuizOptionId || 'opt_b')
-                        ) || lesson.checkpointQuestion.options[1];
-                        handleSelectQuizOption(chosen);
+                        const chosen = lesson.checkpointQuestion?.options?.find(
+                          (o) => o.id === (selectedQuizOptionId || lesson.checkpointQuestion.options[0]?.id)
+                        ) || lesson.checkpointQuestion?.options?.[0];
+                        if (chosen) handleSelectQuizOption(chosen);
                       }}
                       className="px-5 py-2 rounded-full bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] font-bold text-xs cursor-pointer transition-all shadow-xs"
                     >
@@ -1067,23 +1060,20 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 </div>
               )}
 
-              {/* TRẠNG THÁI 2: BO PHẢN BIỆN (KHỚP 100% ẢNH 4 MOCKUP) */}
+              {/* TRẠNG THÁI 2: BO PHẢN BIỆN (ĐỘNG THEO LIVE DIALOGUE & LESSON DATA) */}
               {internalPhase === 'BO_DEBATE' && (
                 <div className="space-y-3">
                   {/* Hộp thoại của Bo */}
                   <div className="p-3 sm:p-3.5 rounded-2xl bg-[#F8FAF4] border border-[#E2EAD2] text-xs sm:text-[13px] text-stone-800 leading-relaxed">
                     <span className="font-bold text-[#121712] mr-1.5">Bo cãi:</span>
-                    “Ủa sao cậu phải đổi DD' thành CC' chi cho cực vậy?! Tớ thấy |BC + DD'| thì cứ tách ra thành |BC| + |DD'| = 2 luôn chứ sao lại ra √2?!”
+                    “<FormattedMathText text={boDebateSpeech} />”
                   </div>
 
                   {/* Danh sách các phương án phản biện - cả dòng bấm được, viền rõ, không chip */}
                   <div className="grid grid-cols-1 gap-2">
-                    {lesson.rebuttalStickers.map((stk, idx) => {
-                      const isSelected = (selectedRebuttalStickerId || 'stk_1') === stk.id;
-                      let text = cleanText(stk.text);
-                      if (idx === 0) text = "“Cấm tách |a + b| = |a| + |b|! Phải thế DD’ = CC’ để gom về 1 vectơ BC’ rồi mới tính Pytago ra √2.”";
-                      else if (idx === 1) text = "“Đi ngang 1m (BC) rồi đi thẳng đứng lên 1m (CC’) thì đường chéo mặt bên BC’ phải là cạnh huyền √2m!”";
-                      else if (idx === 2) text = "“Tại vì bài hình học không gian nào của thầy Tiến cũng phải có căn bậc hai trong đáp án.”";
+                    {lesson.rebuttalStickers?.map((stk, idx) => {
+                      const isSelected = (selectedRebuttalStickerId || lesson.rebuttalStickers[0]?.id) === stk.id;
+                      const text = cleanText(stk.text);
 
                       return (
                         <button
@@ -1099,7 +1089,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                               : 'bg-white border border-stone-200 hover:border-stone-400 text-stone-800'
                           }`}
                         >
-                          {text}
+                          <FormattedMathText text={text} />
                         </button>
                       );
                     })}
@@ -1112,10 +1102,10 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                       if (customRebuttal.trim()) {
                         handleCustomRebuttalSubmit(e);
                       } else {
-                        const chosenStk = lesson.rebuttalStickers.find(
-                          (s) => s.id === (selectedRebuttalStickerId || 'stk_1')
-                        ) || lesson.rebuttalStickers[0];
-                        handleStickerClick(chosenStk);
+                        const chosenStk = lesson.rebuttalStickers?.find(
+                          (s) => s.id === (selectedRebuttalStickerId || lesson.rebuttalStickers[0]?.id)
+                        ) || lesson.rebuttalStickers?.[0];
+                        if (chosenStk) handleStickerClick(chosenStk);
                       }
                     }}
                     className="flex items-center gap-2 pt-0.5"
@@ -1137,15 +1127,11 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 </div>
               )}
 
-              {/* TRẠNG THÁI 3: CÔ LAM CHỐT (KHỚP 100% ẢNH 3 MOCKUP) */}
+              {/* TRẠNG THÁI 3: CÔ LAM CHỐT (ĐỘNG THEO LESSON DATA) */}
               {(internalPhase === 'BO_CONCEDED' || internalPhase === 'CO_LAM_CLOSURE') && (
                 <div className="space-y-4 pt-1">
                   <div className="text-sm sm:text-[14px] text-[#121712] leading-relaxed font-medium">
-                    <span>Quy tắc vàng [37:13]: Tuyệt đối không tách </span>
-                    <span className="bg-[#C8F169] text-[#121712] px-2 py-0.5 rounded-lg border border-[#A6D83B] font-bold inline-block mx-1">
-                      |a + b| = |a| + |b|
-                    </span>
-                    <span>. Luôn thu gọn biểu thức bên trong thành 1 vectơ duy nhất trước khi tính độ dài!</span>
+                    <FormattedMathText text={cleanText(lesson.teacherClosure?.goldenRule || "Quy tắc vàng: Luôn thu gọn biểu thức bên trong thành 1 vectơ duy nhất trước khi tính độ dài!")} />
                   </div>
 
                   <div className="flex items-center justify-end pt-1">
