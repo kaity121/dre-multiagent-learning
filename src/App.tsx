@@ -23,7 +23,9 @@ import { TimelineEditor } from './components/timeline/TimelineEditor';
 import {
   InspectorDrawer,
 } from './components/inspector/InspectorDrawer';
-import { ChevronDown, SlidersHorizontal, Activity, Clock, ArrowLeft, MoreHorizontal, Eye } from 'lucide-react';
+import { ChevronDown, SlidersHorizontal, Activity, Clock, ArrowLeft, MoreHorizontal, Eye, Zap } from 'lucide-react';
+import { useShowcaseController } from './hooks/useShowcaseController';
+import { ShowcaseHUD } from './components/showcase/ShowcaseHUD';
 import { 
   DREState, 
   LearnerLevel, 
@@ -1125,6 +1127,19 @@ export default function App() {
     setLiveHintDialogue(null);
   };
 
+  // 1-Click Automated Showcase Controller (Issue #17)
+  const showcase = useShowcaseController({
+    setCurrentMode,
+    setActiveStudioView,
+    handleJumpToCheckpoint,
+    handleAnswerCheckpoint,
+    handleSubmitRebuttal,
+    setIsInspectorDrawerOpen,
+    currentVideoLesson,
+    playTabSound: () => sound.playTabSwitch(),
+    playSuccessSound: () => sound.playSuccessChime(),
+  });
+
   // TỰ ĐỘNG CHẠY LIÊN HOÀN 4 TRẠM (1 CHẠM DEMO TUẦN TỰ)
   const stopAutoWalk = () => {
     autoWalkTimersRef.current.forEach(clearTimeout);
@@ -1357,6 +1372,27 @@ export default function App() {
 
               {/* Cụm phải: Tiện ích có Tooltip rõ ràng (Ẩn nút học viên khi ở chế độ Giáo viên) */}
               <div className="flex items-center gap-2 shrink-0">
+                {/* Nút Demo 1-Click (F2) (Issue #17) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (showcase.status === 'idle') {
+                      showcase.start();
+                    } else {
+                      showcase.stop();
+                    }
+                  }}
+                  className={`h-8 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer transition shadow-2xs shrink-0 ${
+                    showcase.status !== 'idle'
+                      ? 'bg-[#121712] text-[#C8F169] border border-[#121712] ring-1 ring-[#C8F169]'
+                      : 'bg-[#C8F169] hover:bg-[#BCEB58] text-[#121712] border border-[#B5E350]'
+                  }`}
+                  title={showcase.status !== 'idle' ? 'Dừng Demo 1-Click (Phím tắt: F2 hoặc Esc)' : 'Bật Demo 1-Click 4 Trạm liên hoàn (Phím tắt: F2)'}
+                >
+                  <Zap className={`w-3.5 h-3.5 ${showcase.status !== 'idle' ? 'text-[#C8F169] fill-[#C8F169]' : 'text-[#121712] fill-[#121712]'}`} />
+                  <span className="hidden sm:inline">{showcase.status !== 'idle' ? 'Đang Demo (F2)' : 'Demo 1-Click (F2)'}</span>
+                  <span className="sm:hidden">F2</span>
+                </button>
                 {activeStudioView === 'editor' || activeStudioView === 'warroom' ? (
                   <>
                     {/* Nút Bật / Tắt Âm thanh */}
@@ -2172,6 +2208,17 @@ export default function App() {
           />
         </div>
       )}
+      {/* 1-CLICK AUTOMATED SHOWCASE CONTROLLER HUD (ISSUE #17) */}
+      <ShowcaseHUD
+        status={showcase.status}
+        currentStep={showcase.currentStep}
+        currentStation={showcase.currentStation}
+        progressPercent={showcase.progressPercent}
+        remainingSeconds={showcase.remainingSeconds}
+        onTogglePause={showcase.togglePause}
+        onNextStation={showcase.nextStation}
+        onStop={showcase.stop}
+      />
     </>
   );
 }
