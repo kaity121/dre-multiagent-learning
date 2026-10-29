@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Clock,
   HelpCircle,
@@ -13,11 +13,14 @@ import {
   Sliders,
   AlertCircle,
   ShieldCheck,
-  Edit3
+  Edit3,
+  Play,
+  RotateCcw,
+  Sparkles,
 } from 'lucide-react';
 import { DRELessonSchema, PauseQuestion, ScenarioItem } from '../../types/lesson';
 import { exportApprovedLessonJSON } from '../../utils/lessonAdapter';
-import { checkTimelineCollisions, CollisionWarning } from './collisionChecker';
+import { checkTimelineCollisions, CollisionWarning, CANONICAL_MIN_GAP_S } from './collisionChecker';
 import {
   BoCircleAvatar,
   TriDeepThinkerAvatar,
@@ -25,6 +28,7 @@ import {
   TutorLamCircleAvatar,
   TaAvatar,
 } from '../HandmadeArtwork';
+import { FormattedMathText } from '../MathVector';
 import { sound } from '../../utils/soundEffects';
 
 interface TimelineEditorProps {
@@ -56,7 +60,7 @@ function getBloomInfo(bloomStr?: string) {
   return BLOOM_LEVELS[1];
 }
 
-// 6-level Bloom Pip Progress Meter
+// 6-level Bloom Pip Progress Meter (Typography >= 11px)
 const BloomPipMeter: React.FC<{ bloomStr?: string }> = ({ bloomStr }) => {
   const info = getBloomInfo(bloomStr);
   return (
@@ -74,7 +78,7 @@ const BloomPipMeter: React.FC<{ bloomStr?: string }> = ({ bloomStr }) => {
           );
         })}
       </div>
-      <span className="text-xs font-bold text-stone-800 font-mono tracking-tight ml-1">
+      <span className="text-[11px] font-bold text-stone-800 font-mono tracking-tight ml-1">
         L{info.index} · {info.short}
       </span>
     </div>
@@ -120,14 +124,13 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
         console.warn('Failed to load draft from localStorage', err);
       }
     }
-    // If collision simulation requested via URL (?collision=1), inject a collision (180s and 183s)
+    // Simulation injection via URL (?collision=1)
     if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('collision') === '1') {
       const cloned = JSON.parse(JSON.stringify(initialLesson)) as DRELessonSchema;
       if (cloned.parts && cloned.parts[0] && cloned.parts[0].scenarios) {
-        // Adjust scenario 2 to 303s (only 3s after question at 300s) to trigger collision warning
         const sc = cloned.parts[0].scenarios.find((s) => s.id === 'sc-02') || cloned.parts[0].scenarios[0];
         if (sc) {
-          sc.timestamp = 303;
+          sc.timestamp = 308; // 8s after question at 300s -> collision < 20s
           sc.dialogue = 'Lưu ý ngay: Phải kiểm tra điều kiện cùng phương trước khi thực hiện cộng vectơ!';
         }
       }
@@ -135,6 +138,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     }
     return initialLesson;
   });
+
   const [isDirty, setIsDirty] = useState(false);
   const [warnings, setWarnings] = useState<CollisionWarning[]>([]);
   const [showApproveModal, setShowApproveModal] = useState(false);
@@ -146,8 +150,13 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     return initialLesson.parts[0]?.id || '';
   });
 
-  // Playhead scrubber position (seconds) - defaults to 180s (3 phút)
-  const [playheadSec, setPlayheadSec] = useState<number>(180);
+  // Playhead scrubber position (seconds) - defaults to 2233s (37:13) or 180s
+  const [playheadSec, setPlayheadSec] = useState<number>(() => {
+    if (initialLesson.parts[1]?.pause_questions?.[0]?.timestamp) {
+      return initialLesson.parts[1].pause_questions[0].timestamp;
+    }
+    return 300;
+  });
 
   // Selected item on timeline or table
   const [selectedItem, setSelectedItem] = useState<{
@@ -155,7 +164,17 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     isQuestion: boolean;
   }>({ id: 'pq-01', isQuestion: true });
 
-  // Lưu draftLesson vào localStorage khi có chỉnh sửa (P2 Fix)
+  const editorSectionRef = useRef<HTMLDivElement>(null);
+
+  // Detail panel side-over drawer
+  const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(window.location.search).get('drawer') === '1';
+    }
+    return false;
+  });
+
+  // Lưu draftLesson vào localStorage khi có chỉnh sửa
   useEffect(() => {
     if (isDirty && typeof window !== 'undefined') {
       try {
@@ -171,21 +190,12 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault();
-        e.returnValue = '';
+        e.returnValue = 'Bạn có các thay đổi kịch bản chưa được xuất bản. Bạn có chắc muốn rời đi?';
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
-
-
-  // Detail panel as a dedicated side-over drawer (so the table keeps 100% full width)
-  const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return new URLSearchParams(window.location.search).get('drawer') === '1';
-    }
-    return false;
-  });
 
   const activePart =
     draftLesson.parts.find((p) => p.id === selectedPartId) || draftLesson.parts[0] || {
@@ -195,17 +205,6 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
       pause_questions: [],
       scenarios: [],
     };
-
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = 'Bạn có các thay đổi kịch bản chưa được lưu. Bạn có chắc muốn rời đi?';
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDirty]);
 
   useEffect(() => {
     let isMounted = true;
@@ -272,7 +271,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
       totalActiveScenarios: scenariosCount,
       bloomCoverage: Math.max(1, Math.min(6, bloomSet.size)),
       highestBloom: highest,
-      allAgentsSummary: agentList.length > 0 ? agentList.join(' · ') : 'Bo · Trí · An',
+      allAgentsSummary: agentList.length > 0 ? agentList.join(' · ') : 'Bo · Trí · An · Cô Lam',
       partsDurationSummary,
     };
   }, [draftLesson.parts]);
@@ -315,7 +314,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
   const handleUpdateQuestion = (
     partId: string,
     questionId: string,
-    updates: Partial<PauseQuestion>
+    updates: Partial<PauseQuestion> & { bo_trap?: string; teacher_rule?: string }
   ) => {
     setDraftLesson((prev) => {
       const updatedParts = prev.parts.map((part) => {
@@ -407,7 +406,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     onApproveSuccess?.(approved);
   };
 
-  // Currently focused item for detail drawer
+  // Currently focused item for inspector card / detail drawer
   const focusedQuestion = useMemo(() => {
     if (!selectedItem.isQuestion) return null;
     return (activePart?.pause_questions || []).find((q) => q.id === selectedItem.id);
@@ -418,6 +417,18 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     return (activePart?.scenarios || []).find((s) => s.id === selectedItem.id);
   }, [activePart, selectedItem]);
 
+  // Liên kết tự động bẫy của Bo và lời chốt của Cô Lam trong cùng phân đoạn
+  const linkedBoScenario = useMemo(() => {
+    return (activePart?.scenarios || []).find((s) => (s.agent || '').toLowerCase().includes('bo'));
+  }, [activePart]);
+
+  const linkedTeacherScenario = useMemo(() => {
+    return (activePart?.scenarios || []).find((s) => {
+      const a = (s.agent || '').toLowerCase();
+      return a.includes('lam') || a.includes('trí') || a.includes('tri');
+    });
+  }, [activePart]);
+
   const getItemWarning = (itemId: string) => {
     return warnings.find((w) => w.itemIds.includes(itemId));
   };
@@ -425,7 +436,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
   // Generate markers every 5 minutes (00:00, 05:00, 10:00...), prevent overlapping timestamps at ends
   const durationSec = activePart.duration || 1260;
   const minuteTicks = useMemo(() => {
-    const stepSec = 300; // 5 minutes
+    const stepSec = 300; // 5 phút chuẩn sư phạm
     const ticks: number[] = [0];
     for (let s = stepSec; s < durationSec - 120; s += stepSec) {
       ticks.push(s);
@@ -435,6 +446,16 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     }
     return ticks;
   }, [durationSec]);
+
+  // Track 2: Bo scenarios (Bẫy ngộ nhận)
+  const boScenarios = useMemo(() => {
+    return (activePart.scenarios || []).filter((s) => (s.agent || '').toLowerCase().includes('bo'));
+  }, [activePart.scenarios]);
+
+  // Track 3: Trí & Cô Lam (Phản biện & Chốt quy tắc)
+  const debateAndRuleScenarios = useMemo(() => {
+    return (activePart.scenarios || []).filter((s) => !(s.agent || '').toLowerCase().includes('bo'));
+  }, [activePart.scenarios]);
 
   // Unified & Chronologically Sorted Rows for Interaction Table
   const sortedTimelineRows = useMemo(() => {
@@ -462,22 +483,29 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     return (str || '').replace(/\\vec\{([A-Za-z]+)\}/g, '$1').replace(/\\vec\s*([A-Za-z]+)/g, '$1');
   };
 
+  // Select an item and scroll to the inspector editor
+  const handleSelectItem = (id: string, isQuestion: boolean, timestamp: number) => {
+    sound.playTabSwitch();
+    setSelectedItem({ id, isQuestion });
+    setPlayheadSec(timestamp);
+  };
+
   return (
-    <div id="timeline-section" className="w-full space-y-6">
+    <div id="timeline-section" className="w-full space-y-6 overflow-x-hidden">
       {/* =========================================================================
-          PAGE HEADER: BẢN THẢO -> ĐÃ DUYỆT + 1 NÚT CHÍNH DUY NHẤT "PHÊ DUYỆT & MỞ LỚP"
+          PAGE HEADER: BẢN THẢO -> ĐÃ DUYỆT + 1 NÚT CHÍNH DUY NHẤT "PHÊ DUYỆT & ĐƯA VÀO LỚP HỌC"
           ========================================================================= */}
       <div className="bg-white border border-[#E2EAD2] rounded-3xl p-6 sm:p-7 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="space-y-1.5 max-w-3xl">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#F3F8E8] text-[#121712] border border-[#E2EAD2]">
+            <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#F3F8E8] text-[#121712] border border-[#E2EAD2]">
               Giáo án tương tác
             </span>
             <span
-              className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide flex items-center gap-1.5 border ${
+              className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide flex items-center gap-1.5 border ${
                 draftLesson.status === 'approved'
-                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                  : 'bg-amber-50 text-amber-900 border-amber-300'
+                  ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                  : 'bg-amber-50 text-amber-950 border-amber-300'
               }`}
             >
               <span
@@ -488,8 +516,8 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
               <span>{draftLesson.status === 'approved' ? 'Đã phê duyệt' : 'Bản thảo (Draft)'}</span>
             </span>
             {isDirty && (
-              <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-                • Có thay đổi chưa xuất bản
+              <span className="text-[11px] font-semibold text-amber-950 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-300">
+                Có thay đổi chưa xuất bản
               </span>
             )}
           </div>
@@ -499,13 +527,13 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
           >
             {draftLesson.title || 'Biên tập dòng thời gian tương tác'}
           </h1>
-          <p className="text-sm text-stone-600 truncate max-w-4xl">
+          <p className="text-xs sm:text-sm text-stone-600 truncate max-w-4xl">
             {draftLesson.description ||
               'Kiểm duyệt và tinh chỉnh các mốc câu hỏi dừng, kịch bản tranh luận đa tác nhân và thang nhận thức Bloom.'}
           </p>
         </div>
 
-        {/* NÚT CHÍNH DUY NHẤT: PHÊ DUYỆT & MỞ LỚP (LIME SOFT CHUẨN #C8F169, CHỮ ĐEN) */}
+        {/* NÚT CHÍNH DUY NHẤT: PHÊ DUYỆT & ĐƯA VÀO LỚP HỌC (LIME SOFT CHUẨN #C8F169, CHỮ ĐEN) */}
         <div className="shrink-0 flex items-center">
           <button
             id="btn-approve-open"
@@ -514,13 +542,13 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
             className="w-full sm:w-auto px-6 py-3 rounded-full bg-[#C8F169] hover:bg-[#bbf055] text-[#121712] font-bold text-sm flex items-center justify-center gap-2.5 shadow-sm transition-all transform active:scale-95 cursor-pointer border border-[#b4e64f]"
           >
             <CheckCircle2 className="w-4 h-4 text-[#121712]" />
-            <span>Phê duyệt & mở lớp</span>
+            <span>Phê duyệt & Đưa vào lớp học</span>
           </button>
         </div>
       </div>
 
       {/* =========================================================================
-          BENTO 4 Ô TRẮNG BO 24PX: ICON TRUNG TÍNH, SỐ LIỆU THỰC "CẢ 2 PHẦN"
+          BENTO 4 Ô TRẮNG BO 24PX: SỐ LIỆU SƯ PHẠM ĐA PHÂN ĐOẠN
           ========================================================================= */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Bento 1: Tổng thời lượng */}
@@ -529,13 +557,13 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
             <Clock className="w-6 h-6 text-stone-700" />
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-semibold text-stone-700 uppercase tracking-wider">
+            <div className="text-[11px] font-semibold text-stone-700 uppercase tracking-wider">
               Tổng thời lượng
             </div>
             <div className="text-xl sm:text-2xl font-bold text-[#121712] font-mono">
               {formatTime(totalDuration)}
             </div>
-            <div className="text-xs text-stone-600 truncate mt-0.5" title={`Cả ${draftLesson.parts.length} phần (${partsDurationSummary})`}>
+            <div className="text-[11px] text-stone-600 truncate mt-0.5" title={`Cả ${draftLesson.parts.length} phần (${partsDurationSummary})`}>
               Cả {draftLesson.parts.length} phần ({partsDurationSummary})
             </div>
           </div>
@@ -547,13 +575,13 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
             <HelpCircle className="w-6 h-6 text-stone-700" />
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-semibold text-stone-700 uppercase tracking-wider">
+            <div className="text-[11px] font-semibold text-stone-700 uppercase tracking-wider">
               Câu hỏi dừng
             </div>
             <div className="text-xl sm:text-2xl font-bold text-[#121712] font-mono">
               {totalActiveQuestions} <span className="text-xs font-normal text-stone-600">mốc kích hoạt</span>
             </div>
-            <div className="text-xs text-stone-600 truncate mt-0.5">
+            <div className="text-[11px] text-stone-600 truncate mt-0.5">
               Cả {draftLesson.parts.length} phần (Đang bật {totalActiveQuestions}/{totalQuestions})
             </div>
           </div>
@@ -565,13 +593,13 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
             <MessageSquare className="w-6 h-6 text-stone-700" />
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-semibold text-stone-700 uppercase tracking-wider">
+            <div className="text-[11px] font-semibold text-stone-700 uppercase tracking-wider">
               Lượt thoại tác tử
             </div>
             <div className="text-xl sm:text-2xl font-bold text-[#121712] font-mono">
               {totalActiveScenarios} <span className="text-xs font-normal text-stone-600">lượt thoại</span>
             </div>
-            <div className="text-xs text-stone-600 truncate mt-0.5" title={`Cả ${draftLesson.parts.length} phần (${allAgentsSummary})`}>
+            <div className="text-[11px] text-stone-600 truncate mt-0.5" title={`Cả ${draftLesson.parts.length} phần (${allAgentsSummary})`}>
               Cả {draftLesson.parts.length} phần ({allAgentsSummary})
             </div>
           </div>
@@ -583,30 +611,30 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
             <BarChart3 className="w-6 h-6 text-stone-700" />
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-semibold text-stone-700 uppercase tracking-wider">
+            <div className="text-[11px] font-semibold text-stone-700 uppercase tracking-wider">
               Tháp Bloom
             </div>
             <div className="text-xl sm:text-2xl font-bold text-[#121712] font-mono">
               {bloomCoverage}/6 <span className="text-xs font-normal text-stone-600">cấp độ</span>
             </div>
-            <div className="text-xs text-stone-800 font-semibold truncate mt-0.5">
+            <div className="text-[11px] text-stone-800 font-semibold truncate mt-0.5">
               Cao nhất: {highestBloom.short} (L{highestBloom.index})
             </div>
           </div>
         </div>
       </div>
 
-      {/* CẢNH BÁO XUNG ĐỘT TIMELINE NẾU CÓ */}
+      {/* CẢNH BÁO VA CHẠM NHỊP ĐỘ (< 20S) VỚI ĐỘ TƯƠNG PHẢN ĐẠT CHUẨN WCAG AAA (8.5:1) */}
       {warnings.length > 0 && (
-        <div className="p-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl space-y-2 text-[#9A3412]">
+        <div className="p-4 bg-[#FFF7ED] border border-[#FDBA74] rounded-2xl space-y-2 text-[#7C2D12]">
           <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wide">
-            <AlertTriangle className="w-4 h-4 text-[#EA580C] shrink-0" />
-            <span>Phát hiện {warnings.length} điểm xung đột Timeline cần lưu ý:</span>
+            <AlertTriangle className="w-4 h-4 text-[#C2410C] shrink-0" />
+            <span>Phát hiện {warnings.length} điểm cảnh báo va chạm nhịp độ sư phạm (&lt; {CANONICAL_MIN_GAP_S}s):</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
             {warnings.map((w, idx) => (
               <div key={idx} className="flex items-start gap-1.5 pl-2 leading-relaxed font-medium">
-                <span className="font-bold text-[#EA580C]">•</span>
+                <span className="font-bold text-[#C2410C]">•</span>
                 <span>{w.message}</span>
               </div>
             ))}
@@ -615,49 +643,28 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
       )}
 
       {/* =========================================================================
-          TIMELINE THẬT: THƯỚC ĐO CHIA VẠCH MỖI PHÚT, PLAYHEAD, 3 TRACK BO TRÒN
+          BỐ CỤC MULTI-TRACK TIMELINE (DÒNG THỜI GIAN ĐA LUỒNG):
+          - THƯỚC ĐO NHỊP SƯ PHẠM (5M RULER) RÕ NÉT VỚI VẠCH CHIA MỖI PHÚT
+          - TRACK 1: ĐIỂM DỪNG (CHECKPOINTS)
+          - TRACK 2: BẪY NGỘ NHẬN CỦA BO (MISCONCEPTIONS)
+          - TRACK 3: PHẢN BIỆN CỦA TRÍ & CHỐT QUY TẮC CÔ LAM
           ========================================================================= */}
       <div className="bg-white border border-[#E2EAD2] rounded-3xl p-6 sm:p-7 shadow-xs space-y-5">
         {/* Header cụm timeline: Chọn phân đoạn (Parts) + Playhead info */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-stone-600" />
-            <span className="text-xs font-bold text-stone-700 uppercase tracking-wider">
-              Dòng thời gian tương tác đa rãnh
+            <span className="text-xs font-bold text-stone-800 uppercase tracking-wider">
+              Dòng thời gian tương tác đa luồng (Multi-Track Timeline)
             </span>
-            <span className="text-xs text-stone-500 font-mono ml-1">
+            <span className="text-[11px] text-stone-500 font-mono ml-1">
               (Thước đo 00:00 – {formatTime(durationSec)})
             </span>
           </div>
 
-          {/* Part selector pills & Optional Debug Collision Simulator Button */}
+          {/* Part selector pills */}
           <div className="flex flex-wrap items-center gap-2">
-            {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1' && (
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playPencilTap();
-                  setDraftLesson((prev) => {
-                    const cloned = JSON.parse(JSON.stringify(prev)) as DRELessonSchema;
-                    const p1 = cloned.parts[0];
-                    if (p1 && p1.scenarios) {
-                      const sc = p1.scenarios.find((s) => s.id === 'sc-02') || p1.scenarios[0];
-                      if (sc) {
-                        sc.timestamp = sc.timestamp === 183 ? 240 : 183;
-                      }
-                    }
-                    return cloned;
-                  });
-                }}
-                className="h-7 px-3 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 bg-[#FFF7ED] text-[#C2410C] hover:bg-[#FFEDD5] border border-[#FED7AA]"
-                title="Nhấn để bật / tắt mô phỏng xung đột thời gian (<5s)"
-              >
-                <AlertTriangle className="w-3.5 h-3.5" />
-                <span>Mô phỏng va chạm (&lt;5s)</span>
-              </button>
-            )}
-
-            <span className="text-xs font-semibold text-stone-600 mr-1 ml-1">Phân đoạn:</span>
+            <span className="text-xs font-semibold text-stone-600 mr-1">Phân đoạn:</span>
             {draftLesson.parts.map((p) => {
               const isSelected = p.id === activePart.id;
               return (
@@ -683,14 +690,14 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
         </div>
 
         {/* Cụm Ruler & Tracks Container */}
-        <div className="space-y-3 select-none">
-          {/* 1. THƯỚC ĐO THỜI GIAN: CHIA VẠCH CHUẨN MỖI PHÚT (00:00, 01:00, 02:00...) */}
+        <div className="space-y-3.5 select-none">
+          {/* 1. THƯỚC ĐO NHỊP SƯ PHẠM (5M RULER) RÕ NÉT CÓ VẠCH CHIA MỐC THỜI GIAN */}
           <div className="flex items-center gap-3">
-            <div className="w-28 sm:w-32 shrink-0 text-right pr-2 text-xs font-bold text-stone-700 font-mono">
+            <div className="w-32 sm:w-36 shrink-0 text-right pr-2 text-xs font-bold text-stone-700 font-mono">
               {formatTime(playheadSec)} / {formatTime(durationSec)}
             </div>
             <div
-              className="flex-1 relative h-7 bg-stone-50 border border-stone-200 rounded-lg cursor-pointer overflow-hidden"
+              className="flex-1 relative h-8 bg-stone-50 border border-stone-200 rounded-xl cursor-pointer overflow-hidden shadow-2xs"
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const clickX = e.clientX - rect.left;
@@ -699,9 +706,9 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                 setPlayheadSec(newSec);
                 sound.playPencilTap();
               }}
-              title="Nhấn vào thước đo để định vị Playhead"
+              title="Nhấn vào thước đo 5m để định vị Playhead"
             >
-              {/* Vạch chia mỗi phút (không bị cắt ở mép, ẩn mốc khi playhead đè lên) */}
+              {/* Vạch chia mốc 5 phút và 1 phút */}
               <div className="absolute inset-0 flex items-center pointer-events-none">
                 {minuteTicks.map((sec) => {
                   const percent = (sec / durationSec) * 100;
@@ -720,66 +727,43 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                       }`}
                       style={{ left: `${percent}%` }}
                     >
-                      <div className="w-px h-1.5 bg-stone-300" />
+                      <div className="w-px h-2 bg-stone-400" />
                       <span
-                        className={`text-[10px] text-stone-600 font-mono font-bold leading-none mb-0.5 transition-opacity ${
+                        className={`text-[11px] text-stone-700 font-mono font-bold leading-none mb-0.5 transition-opacity ${
                           isPlayheadNear ? 'opacity-0' : 'opacity-100'
                         }`}
                       >
                         {formatTime(sec)}
                       </span>
-                      <div className="w-px h-1 bg-stone-300" />
+                      <div className="w-px h-1.5 bg-stone-300" />
                     </div>
                   );
                 })}
               </div>
 
-              {/* Playhead Marker on Ruler (khớp vạch thời gian) */}
+              {/* Playhead Marker on Ruler */}
               <div
                 className="absolute top-0 bottom-0 w-px bg-[#121712] z-30 transition-all pointer-events-none"
                 style={{
                   left: `${Math.min(99, Math.max(1, (playheadSec / durationSec) * 100))}%`,
                 }}
               >
-                <div className="absolute -top-1 -translate-x-1/2 w-3 h-3 bg-[#121712] rounded-xs rotate-45 ring-2 ring-[#C8F169]" />
+                <div className="absolute -top-1 -translate-x-1/2 w-3.5 h-3.5 bg-[#121712] rounded-xs rotate-45 ring-2 ring-[#C8F169]" />
               </div>
             </div>
           </div>
 
-          {/* 2. TRACK 1: VIDEO CHÍNH (PHÂN ĐOẠN VIDEO BÀI GIẢNG) */}
+          {/* 2. TRACK 1: ĐIỂM DỪNG (CHECKPOINTS) */}
           <div className="flex items-center gap-3">
-            <div className="w-28 sm:w-32 shrink-0 text-right pr-2 text-xs font-bold text-stone-700 truncate">
-              Track 1 · Video
+            <div className="w-32 sm:w-36 shrink-0 text-right pr-2 text-xs font-bold text-stone-800 truncate flex items-center justify-end gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" />
+              <span>Track 1 · Điểm dừng</span>
             </div>
-            <div className="flex-1 h-9 bg-[#F3F8E8] border border-[#E2EAD2] rounded-xl relative flex items-center px-3 overflow-hidden shadow-2xs">
-              <span className="relative z-10 text-xs font-bold text-[#121712] truncate flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" />
-                <span className="truncate">{activePart.title}</span>
-                <span className="text-stone-600 font-mono text-[11px] font-normal">
-                  (00:00 – {formatTime(durationSec)})
-                </span>
-              </span>
-
-              {/* Playhead line through track 1 (1px hairline behind label) */}
-              <div
-                className="absolute top-0 bottom-0 w-px bg-[#121712]/30 pointer-events-none z-0"
-                style={{
-                  left: `${Math.min(99, Math.max(1, (playheadSec / durationSec) * 100))}%`,
-                }}
-              />
-            </div>
-          </div>
-
-          {/* 3. TRACK 2: CÂU HỎI DỪNG (CHIP GỌN ĐẸP, KHÔNG TRÀN KHUNG) */}
-          <div className="flex items-center gap-3">
-            <div className="w-28 sm:w-32 shrink-0 text-right pr-2 text-xs font-bold text-stone-700 truncate flex items-center justify-end gap-1">
-              <span>Track 2 · Câu hỏi</span>
-            </div>
-            <div className="flex-1 h-12 bg-white border border-[#E2EAD2] rounded-xl relative overflow-hidden flex items-center px-1 shadow-2xs">
+            <div className="flex-1 h-14 bg-white border border-[#E2EAD2] rounded-2xl relative overflow-hidden flex items-center px-1 shadow-2xs">
               {(activePart.pause_questions || []).map((q) => {
                 const isSelected = selectedItem.isQuestion && selectedItem.id === q.id;
                 const posPercent = Math.min(
-                  90,
+                  88,
                   Math.max(2, (q.timestamp / durationSec) * 100)
                 );
                 const hasWarning = !!getItemWarning(q.id);
@@ -788,12 +772,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                   <button
                     key={q.id}
                     type="button"
-                    onClick={() => {
-                      sound.playTabSwitch();
-                      setSelectedItem({ id: q.id, isQuestion: true });
-                      setPlayheadSec(q.timestamp);
-                      setIsDetailDrawerOpen(true);
-                    }}
+                    onClick={() => handleSelectItem(q.id, true, q.timestamp)}
                     className={`absolute z-10 top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${
                       isSelected
                         ? 'bg-[#121712] text-white ring-2 ring-[#C8F169] z-20 scale-105'
@@ -802,21 +781,21 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                         : 'bg-stone-100 text-stone-400 border border-stone-200 line-through opacity-60'
                     }`}
                     style={{ left: `${posPercent}%` }}
-                    title={`Câu hỏi dừng: ${q.question} (${formatTime(q.timestamp)}) - Nhấn để xem chi tiết`}
+                    title={`Câu hỏi dừng: ${q.question} (${formatTime(q.timestamp)}) - Nhấn để biên tập chi tiết`}
                   >
                     <HelpCircle className={`w-3.5 h-3.5 ${isSelected ? 'text-[#C8F169]' : 'text-stone-700'}`} />
                     <span className="font-mono font-bold text-xs">{formatTime(q.timestamp)}</span>
                     <span className={`text-[11px] ${isSelected ? 'text-[#C8F169]' : 'text-stone-600'}`}>
-                      Câu hỏi
+                      Điểm dừng
                     </span>
                     {hasWarning && (
-                      <span className="w-2 h-2 rounded-full bg-[#EA580C] animate-ping" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#EA580C] animate-ping" title="Cảnh báo va chạm nhịp độ < 20s" />
                     )}
                   </button>
                 );
               })}
 
-              {/* Playhead line through track 2 (1px hairline behind chips) */}
+              {/* Playhead line through track 1 */}
               <div
                 className="absolute top-0 bottom-0 w-px bg-[#121712]/30 pointer-events-none z-0"
                 style={{
@@ -826,16 +805,17 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
             </div>
           </div>
 
-          {/* 4. TRACK 3: KỊCH BẢN TÁC TỬ (AVATAR TRÒN CỦA BO, TRÍ, LINH CHI, LAM) */}
+          {/* 3. TRACK 2: BẪY NGỘ NHẬN CỦA BO (MISCONCEPTIONS) */}
           <div className="flex items-center gap-3">
-            <div className="w-28 sm:w-32 shrink-0 text-right pr-2 text-xs font-bold text-stone-700 truncate">
-              Track 3 · Kịch bản
+            <div className="w-32 sm:w-36 shrink-0 text-right pr-2 text-xs font-bold text-stone-800 truncate flex items-center justify-end gap-1">
+              <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+              <span>Track 2 · Bẫy của Bo</span>
             </div>
-            <div className="flex-1 h-12 bg-white border border-[#E2EAD2] rounded-xl relative overflow-hidden flex items-center px-1 shadow-2xs">
-              {(activePart.scenarios || []).map((s) => {
+            <div className="flex-1 h-14 bg-white border border-[#E2EAD2] rounded-2xl relative overflow-hidden flex items-center px-1 shadow-2xs">
+              {boScenarios.map((s) => {
                 const isSelected = !selectedItem.isQuestion && selectedItem.id === s.id;
                 const posPercent = Math.min(
-                  90,
+                  88,
                   Math.max(2, (s.timestamp / durationSec) * 100)
                 );
                 const hasWarning = !!getItemWarning(s.id);
@@ -844,13 +824,8 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                   <button
                     key={s.id}
                     type="button"
-                    onClick={() => {
-                      sound.playTabSwitch();
-                      setSelectedItem({ id: s.id, isQuestion: false });
-                      setPlayheadSec(s.timestamp);
-                      setIsDetailDrawerOpen(true);
-                    }}
-                    className={`absolute z-10 top-2 bottom-2 px-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${
+                    onClick={() => handleSelectItem(s.id, false, s.timestamp)}
+                    className={`absolute z-10 top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${
                       isSelected
                         ? 'bg-[#121712] text-white ring-2 ring-[#C8F169] z-20 scale-105'
                         : s.is_active
@@ -858,21 +833,74 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                         : 'bg-stone-100 text-stone-400 border border-stone-200 opacity-60 line-through'
                     }`}
                     style={{ left: `${posPercent}%` }}
-                    title={`${s.agent}: "${s.dialogue}" (${formatTime(s.timestamp)}) - Nhấn để xem chi tiết`}
+                    title={`Bo gài bẫy ngộ nhận: "${s.dialogue}" (${formatTime(s.timestamp)})`}
                   >
-                    <AgentAvatarBadge agentName={s.agent} size="w-5 h-5" />
+                    <AgentAvatarBadge agentName="Bo" size="w-5 h-5" />
                     <span className="font-mono font-bold text-xs">{formatTime(s.timestamp)}</span>
-                    <span className={`text-[11px] ${isSelected ? 'text-[#C8F169]' : 'text-stone-600'}`}>
-                      {s.agent}
+                    <span className={`text-[11px] font-medium truncate max-w-[130px] ${isSelected ? 'text-[#C8F169]' : 'text-stone-700'}`}>
+                      Bo · Bẫy trực giác
                     </span>
                     {hasWarning && (
-                      <span className="w-2 h-2 rounded-full bg-[#EA580C] animate-ping" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#EA580C] animate-ping" title="Cảnh báo va chạm nhịp độ < 20s" />
                     )}
                   </button>
                 );
               })}
 
-              {/* Playhead line through track 3 (1px hairline behind chips) */}
+              {/* Playhead line through track 2 */}
+              <div
+                className="absolute top-0 bottom-0 w-px bg-[#121712]/30 pointer-events-none z-0"
+                style={{
+                  left: `${Math.min(99, Math.max(1, (playheadSec / durationSec) * 100))}%`,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* 4. TRACK 3: PHẢN BIỆN CỦA TRÍ & CHỐT QUY TẮC CÔ LAM */}
+          <div className="flex items-center gap-3">
+            <div className="w-32 sm:w-36 shrink-0 text-right pr-2 text-xs font-bold text-stone-800 truncate flex items-center justify-end gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-700 shrink-0" />
+              <span>Track 3 · Trí & Cô Lam</span>
+            </div>
+            <div className="flex-1 h-14 bg-white border border-[#E2EAD2] rounded-2xl relative overflow-hidden flex items-center px-1 shadow-2xs">
+              {debateAndRuleScenarios.map((s) => {
+                const isSelected = !selectedItem.isQuestion && selectedItem.id === s.id;
+                const posPercent = Math.min(
+                  88,
+                  Math.max(2, (s.timestamp / durationSec) * 100)
+                );
+                const hasWarning = !!getItemWarning(s.id);
+                const isTeacher = (s.agent || '').toLowerCase().includes('lam');
+
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => handleSelectItem(s.id, false, s.timestamp)}
+                    className={`absolute z-10 top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#121712] text-white ring-2 ring-[#C8F169] z-20 scale-105'
+                        : s.is_active
+                        ? 'bg-[#F9FAFB] text-stone-800 border border-stone-200 hover:bg-stone-100'
+                        : 'bg-stone-100 text-stone-400 border border-stone-200 opacity-60 line-through'
+                    }`}
+                    style={{ left: `${posPercent}%` }}
+                    title={`${s.agent}: "${s.dialogue}" (${formatTime(s.timestamp)})`}
+                  >
+                    <AgentAvatarBadge agentName={s.agent} size="w-5 h-5" />
+                    <span className="font-mono font-bold text-xs">{formatTime(s.timestamp)}</span>
+                    <span className={`text-[11px] font-medium truncate max-w-[140px] ${isSelected ? 'text-[#C8F169]' : 'text-stone-700'}`}>
+                      {isTeacher ? 'Cô Lam · Chốt quy tắc' : `${s.agent} · Phản biện`}
+                    </span>
+                    {hasWarning && (
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#EA580C] animate-ping" title="Cảnh báo va chạm nhịp độ < 20s" />
+                    )}
+                  </button>
+                );
+              })}
+
+              {/* Playhead line through track 3 */}
               <div
                 className="absolute top-0 bottom-0 w-px bg-[#121712]/30 pointer-events-none z-0"
                 style={{
@@ -885,7 +913,411 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
       </div>
 
       {/* =========================================================================
-          BẢNG KỊCH BẢN RỘNG ĐỦ (FULL WIDTH): CỘT NỘI DUNG RỘNG, KHÔNG BỊ NÉN
+          INTERACTIVE INSPECTOR & EDITOR (THẺ BIÊN TẬP CHI TIẾT & BẢNG PHẤN 16:9)
+          CẬP NHẬT TỨC THÌ KHI CLICK VÀO ĐIỂM DỪNG / KỊCH BẢN TRÊN TIMELINE
+          ========================================================================= */}
+      <div ref={editorSectionRef} className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* CỘT TRÁI (5/12): KHUNG XEM TRƯỚC BẢNG PHẤN 16:9 (BLACKBOARD PREVIEW) */}
+        <div className="lg:col-span-5 bg-[#141A14] border-2 border-[#243324] rounded-3xl p-5 text-white flex flex-col justify-between shadow-md space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-stone-800">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#C8F169] animate-pulse" />
+              <span className="text-xs font-bold uppercase tracking-wider text-stone-200">
+                Bảng Phấn Thầy Tiến · Mốc {formatTime(playheadSec)}
+              </span>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-[#C8F169] font-mono text-[11px] font-bold">
+              1080p HD
+            </span>
+          </div>
+
+          {/* Vùng Bảng Phấn 16:9 với KaTeX mượt mà không tràn viền */}
+          <div className="relative aspect-video rounded-2xl bg-[#0D130E] border border-[#243324] p-4 flex flex-col justify-between overflow-hidden shadow-inner">
+            <div className="flex items-center justify-between text-[11px] text-stone-400">
+              <span className="font-semibold text-stone-300">Toán 12: Vectơ Không Gian</span>
+              <span className="font-mono text-[#C8F169] bg-stone-900 px-2 py-0.5 rounded border border-stone-800">
+                {formatTime(playheadSec)}
+              </span>
+            </div>
+
+            {/* Công thức toán trung tâm KaTeX có overflow-x-auto */}
+            <div className="py-3 px-2 text-center space-y-2 overflow-x-auto">
+              <div className="text-base sm:text-lg font-serif font-bold text-emerald-300 tracking-wide">
+                <FormattedMathText
+                  text={
+                    focusedQuestion?.question
+                      ? `\\[ ${focusedQuestion.question.slice(0, 70)} \\]`
+                      : `\\[ |\\overrightarrow{BC} + \\overrightarrow{DD'}| = \\sqrt{2} \\neq 2 \\]`
+                  }
+                />
+              </div>
+              <div className="text-xs text-stone-300 italic font-sans">
+                "Thầy Tiến: Lưu ý độ dài của tổng khác tổng hai độ dài!"
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] text-stone-400 pt-2 border-t border-stone-800">
+              <span className="truncate max-w-[200px]">Ví dụ 3: Hình lập phương ABCD.A'B'C'D'</span>
+              <span className="text-[#C8F169] font-mono">Cạnh = 1</span>
+            </div>
+          </div>
+
+          {/* Nút xem trước mốc trên Video Player */}
+          {onSeekVideo && (
+            <button
+              type="button"
+              onClick={() => {
+                sound.playPencilTap();
+                onSeekVideo(playheadSec);
+              }}
+              className="w-full py-2.5 rounded-full bg-[#C8F169] hover:bg-[#bbf055] text-[#121712] font-black text-xs flex items-center justify-center gap-2 cursor-pointer transition shadow-xs border border-[#b4e64f]"
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>Xem trước mốc này trên Video Player ({formatTime(playheadSec)})</span>
+            </button>
+          )}
+        </div>
+
+        {/* CỘT PHẢI (7/12): THẺ CHI TIẾT BIÊN TẬP TỨC THÌ (INTERACTIVE EDITOR CARD) */}
+        <div className="lg:col-span-7 bg-white border border-[#E2EAD2] rounded-3xl p-6 sm:p-7 shadow-xs space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-stone-100">
+            <div className="flex items-center gap-2.5">
+              <Sliders className="w-5 h-5 text-stone-800" />
+              <h3 className="font-bold text-base text-[#121712]">
+                Biên tập chi tiết điểm tương tác
+              </h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-mono text-stone-600 bg-[#F3F8E8] px-2.5 py-1 rounded-full border border-[#E2EAD2]">
+                {selectedItem.isQuestion ? 'Điểm dừng kiểm tra' : 'Lượt thoại tác tử'}
+              </span>
+            </div>
+          </div>
+
+          {/* Nếu đang chọn Câu hỏi dừng (Checkpoint) */}
+          {focusedQuestion && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between bg-[#F8FAF4] border border-[#E2EAD2] p-3.5 rounded-2xl">
+                <div className="flex items-center gap-3">
+                  <TutorLamCircleAvatar className="w-8 h-8 shrink-0 ring-1 ring-stone-300 rounded-full" />
+                  <div>
+                    <div className="text-xs font-bold text-[#121712]">Điểm dừng kiểm tra (Checkpoint)</div>
+                    <div className="text-[11px] text-stone-600 font-mono">
+                      Mốc video: {formatTime(focusedQuestion.timestamp)} · ID: {focusedQuestion.id}
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => handleToggleQuestion(activePart.id, focusedQuestion.id)}
+                  className="flex items-center gap-2 text-xs font-bold cursor-pointer select-none"
+                >
+                  <span className="text-stone-700">Kích hoạt:</span>
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={focusedQuestion.is_active}
+                    className={`w-5 h-5 rounded-md flex items-center justify-center transition border ${
+                      focusedQuestion.is_active
+                        ? 'bg-[#121712] border-[#121712] text-[#C8F169]'
+                        : 'bg-white border-stone-300 hover:border-stone-400 text-transparent'
+                    }`}
+                  >
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Mốc thời gian */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-stone-800 uppercase tracking-wide">
+                  Mốc thời gian (Giây & Định dạng 00:00)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    max={durationSec}
+                    value={focusedQuestion.timestamp}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      handleUpdateQuestion(activePart.id, focusedQuestion.id, { timestamp: val });
+                      setPlayheadSec(val);
+                    }}
+                    className="w-28 px-3 py-1.5 rounded-xl border border-stone-300 text-sm font-mono font-bold focus:border-[#121712] focus:ring-1 focus:ring-[#121712] outline-none text-[#121712]"
+                  />
+                  <span className="text-xs font-mono font-bold text-stone-700">
+                    = {formatTime(focusedQuestion.timestamp)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Thang nhận thức Bloom */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-stone-800 uppercase tracking-wide">
+                  Thang nhận thức Bloom (6 mức)
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {BLOOM_LEVELS.map((lvl) => {
+                    const isSelected =
+                      getBloomInfo(focusedQuestion.bloom_level).index === lvl.index;
+                    return (
+                      <button
+                        key={lvl.index}
+                        type="button"
+                        onClick={() =>
+                          handleUpdateQuestion(activePart.id, focusedQuestion.id, {
+                            bloom_level: lvl.label,
+                          })
+                        }
+                        className={`py-1.5 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#121712] text-white shadow-2xs'
+                            : 'bg-stone-100 hover:bg-stone-200 text-stone-800'
+                        }`}
+                      >
+                        <span className="font-mono">L{lvl.index}</span>
+                        <span className="truncate">{lvl.short}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Nội dung câu hỏi dừng */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-stone-800 uppercase tracking-wide">
+                  Nội dung câu hỏi dừng của giáo viên
+                </label>
+                <textarea
+                  rows={3}
+                  value={focusedQuestion.question}
+                  onChange={(e) =>
+                    handleUpdateQuestion(activePart.id, focusedQuestion.id, {
+                      question: e.target.value,
+                    })
+                  }
+                  className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs sm:text-sm leading-relaxed focus:border-[#121712] focus:ring-1 focus:ring-[#121712] outline-none resize-none font-sans text-[#121712]"
+                  placeholder="Nhập nội dung câu hỏi dừng sư phạm..."
+                />
+              </div>
+
+              {/* Phương án gài bẫy ngộ nhận của Bo (Liên kết sư phạm) */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-stone-800 uppercase tracking-wide flex items-center gap-1.5">
+                    <BoCircleAvatar className="w-4 h-4 rounded-full ring-1 ring-stone-300" />
+                    <span>Phương án gài bẫy ngộ nhận của Bo</span>
+                  </label>
+                  <span className="text-[11px] text-stone-500 font-mono">Bẫy trực giác</span>
+                </div>
+                <input
+                  type="text"
+                  value={
+                    linkedBoScenario?.dialogue ||
+                    "Tách trực tiếp thành tổng hai độ dài: |BC| + |DD'| = 1 + 1 = 2!"
+                  }
+                  onChange={(e) => {
+                    if (linkedBoScenario) {
+                      handleUpdateScenario(activePart.id, linkedBoScenario.id, {
+                        dialogue: e.target.value,
+                      });
+                    }
+                  }}
+                  className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs font-sans focus:border-[#121712] focus:ring-1 focus:ring-[#121712] outline-none text-[#121712]"
+                  placeholder="Nhập phương án hoặc lời thoại gài bẫy ngộ nhận của Bo..."
+                />
+              </div>
+
+              {/* Lời chốt quy tắc của Cô Lam */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-stone-800 uppercase tracking-wide flex items-center gap-1.5">
+                    <TutorLamCircleAvatar className="w-4 h-4 rounded-full ring-1 ring-stone-300" />
+                    <span>Lời chốt quy tắc của Cô Lam</span>
+                  </label>
+                  <span className="text-[11px] text-stone-500 font-mono">Quy tắc sư phạm</span>
+                </div>
+                <input
+                  type="text"
+                  value={
+                    linkedTeacherScenario?.dialogue ||
+                    "Quy tắc vàng: Phải đưa về hai vectơ nối tiếp BC + CC' = BC' rồi mới tính độ dài!"
+                  }
+                  onChange={(e) => {
+                    if (linkedTeacherScenario) {
+                      handleUpdateScenario(activePart.id, linkedTeacherScenario.id, {
+                        dialogue: e.target.value,
+                      });
+                    }
+                  }}
+                  className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs font-sans focus:border-[#121712] focus:ring-1 focus:ring-[#121712] outline-none text-[#121712]"
+                  placeholder="Nhập lời chốt kiến thức trọng tâm của Cô Lam..."
+                />
+              </div>
+
+              <div className="pt-2 border-t border-stone-200 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => handleDeleteItem(activePart.id, focusedQuestion.id, true)}
+                  className="px-3.5 py-1.5 rounded-xl text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                  title="Xoá vĩnh viễn điểm tương tác này"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Xoá điểm này</span>
+                </button>
+                <span className="text-[11px] text-emerald-800 font-bold flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                  <Check className="w-3 h-3 text-emerald-700 stroke-[3]" />
+                  <span>Đã lưu bản thảo tự động</span>
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Nếu đang chọn Kịch bản thoại của tác tử (Scenario) */}
+          {focusedScenario && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between bg-[#F8FAF4] border border-[#E2EAD2] p-3.5 rounded-2xl">
+                <div className="flex items-center gap-3">
+                  <AgentAvatarBadge agentName={focusedScenario.agent} size="w-8 h-8" />
+                  <div>
+                    <div className="text-xs font-bold text-[#121712]">
+                      Tác tử tương tác: {focusedScenario.agent}
+                    </div>
+                    <div className="text-[11px] text-stone-600 font-mono">
+                      Mốc kích hoạt: {formatTime(focusedScenario.timestamp)} · ID: {focusedScenario.id}
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => handleToggleScenario(activePart.id, focusedScenario.id)}
+                  className="flex items-center gap-2 text-xs font-bold cursor-pointer select-none"
+                >
+                  <span className="text-stone-700">Kích hoạt:</span>
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={focusedScenario.is_active}
+                    className={`w-5 h-5 rounded-md flex items-center justify-center transition border ${
+                      focusedScenario.is_active
+                        ? 'bg-[#121712] border-[#121712] text-[#C8F169]'
+                        : 'bg-white border-stone-300 hover:border-stone-400 text-transparent'
+                    }`}
+                  >
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Mốc thời gian */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-stone-800 uppercase tracking-wide">
+                  Mốc thời gian (Giây & Định dạng 00:00)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    max={durationSec}
+                    value={focusedScenario.timestamp}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      handleUpdateScenario(activePart.id, focusedScenario.id, { timestamp: val });
+                      setPlayheadSec(val);
+                    }}
+                    className="w-28 px-3 py-1.5 rounded-xl border border-stone-300 text-sm font-mono font-bold focus:border-[#121712] focus:ring-1 focus:ring-[#121712] outline-none text-[#121712]"
+                  />
+                  <span className="text-xs font-mono font-bold text-stone-700">
+                    = {formatTime(focusedScenario.timestamp)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Thang nhận thức Bloom */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-stone-800 uppercase tracking-wide">
+                  Thang nhận thức Bloom (6 mức)
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {BLOOM_LEVELS.map((lvl) => {
+                    const isSelected =
+                      getBloomInfo(focusedScenario.bloom_level).index === lvl.index;
+                    return (
+                      <button
+                        key={lvl.index}
+                        type="button"
+                        onClick={() =>
+                          handleUpdateScenario(activePart.id, focusedScenario.id, {
+                            bloom_level: lvl.label,
+                          })
+                        }
+                        className={`py-1.5 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#121712] text-white shadow-2xs'
+                            : 'bg-stone-100 hover:bg-stone-200 text-stone-800'
+                        }`}
+                      >
+                        <span className="font-mono">L{lvl.index}</span>
+                        <span className="truncate">{lvl.short}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Lời thoại kịch bản */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-stone-800 uppercase tracking-wide">
+                  Lời thoại tương tác của {focusedScenario.agent}
+                </label>
+                <textarea
+                  rows={3}
+                  value={focusedScenario.dialogue}
+                  onChange={(e) =>
+                    handleUpdateScenario(activePart.id, focusedScenario.id, {
+                      dialogue: e.target.value,
+                    })
+                  }
+                  className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs sm:text-sm leading-relaxed focus:border-[#121712] focus:ring-1 focus:ring-[#121712] outline-none resize-none font-sans text-[#121712]"
+                  placeholder="Nhập lời thoại tương tác của tác tử..."
+                />
+              </div>
+
+              {/* Điều kiện kích hoạt */}
+              {focusedScenario.trigger_condition && (
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-stone-700 uppercase tracking-wide">
+                    Điều kiện kích hoạt sư phạm
+                  </label>
+                  <div className="p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-700 leading-relaxed">
+                    {focusedScenario.trigger_condition}
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-2 border-t border-stone-200 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => handleDeleteItem(activePart.id, focusedScenario.id, false)}
+                  className="px-3.5 py-1.5 rounded-xl text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                  title="Xoá vĩnh viễn điểm tương tác này"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Xoá điểm này</span>
+                </button>
+                <span className="text-[11px] text-emerald-800 font-bold flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                  <Check className="w-3 h-3 text-emerald-700 stroke-[3]" />
+                  <span>Đã lưu bản thảo tự động</span>
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* =========================================================================
+          BẢNG KỊCH BẢN RỘNG ĐỦ (FULL WIDTH): DANH SÁCH TƯƠNG TÁC SƯ PHẠM
           SẮP XẾP CHUẨN XÁC THEO THỨ TỰ THỜI GIAN (TIMESTAMP ASCENDING)
           ========================================================================= */}
       <div className="w-full bg-white border border-[#E2EAD2] rounded-3xl p-6 sm:p-7 shadow-xs space-y-4">
@@ -927,12 +1359,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                   return (
                     <tr
                       key={q.id}
-                      onClick={() => {
-                        sound.playTabSwitch();
-                        setSelectedItem({ id: q.id, isQuestion: true });
-                        setPlayheadSec(q.timestamp);
-                        setIsDetailDrawerOpen(true);
-                      }}
+                      onClick={() => handleSelectItem(q.id, true, q.timestamp)}
                       className={`group transition-colors cursor-pointer ${
                         isSelected
                           ? 'bg-[#F3F8E8] font-medium'
@@ -945,9 +1372,9 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                           <span className="text-xs text-stone-500 font-normal">({q.timestamp}s)</span>
                         </div>
                         {warning && (
-                          <div className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-[#C2410C] bg-[#FFF7ED] px-2 py-0.5 rounded border border-[#FED7AA]">
-                            <AlertCircle className="w-3 h-3 text-[#EA580C]" />
-                            <span>Xung đột mốc (&lt;5s)</span>
+                          <div className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-[#7C2D12] bg-[#FFF7ED] px-2 py-0.5 rounded border border-[#FDBA74]">
+                            <AlertCircle className="w-3 h-3 text-[#C2410C]" />
+                            <span>Cảnh báo nhịp độ (&lt;20s)</span>
                           </div>
                         )}
                       </td>
@@ -957,14 +1384,13 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                           <TutorLamCircleAvatar className="w-7 h-7 shrink-0 ring-1 ring-stone-300 rounded-full" />
                           <div>
                             <div className="font-bold text-xs text-[#121712]">Trợ giảng AI</div>
-                            <span className="text-[10px] font-semibold text-stone-700 bg-stone-100 px-1.5 py-0.2 rounded border border-stone-200">
+                            <span className="text-[11px] font-semibold text-stone-700 bg-stone-100 px-1.5 py-0.2 rounded border border-stone-200">
                               Câu hỏi dừng
                             </span>
                           </div>
                         </div>
                       </td>
 
-                      {/* Cột Nội dung rộng rãi, không bị nén, khử LaTeX escape thô */}
                       <td className="py-4 px-4">
                         <p className="text-sm text-stone-800 leading-relaxed font-sans">
                           {cleanFormula(q.question)}
@@ -1002,11 +1428,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                         <div className="flex items-center justify-center gap-1">
                           <button
                             type="button"
-                            onClick={() => {
-                              setSelectedItem({ id: q.id, isQuestion: true });
-                              setPlayheadSec(q.timestamp);
-                              setIsDetailDrawerOpen(true);
-                            }}
+                            onClick={() => handleSelectItem(q.id, true, q.timestamp)}
                             className="p-1.5 rounded-lg text-stone-500 hover:text-[#121712] hover:bg-stone-100 transition cursor-pointer"
                             title="Chỉnh sửa chi tiết"
                           >
@@ -1032,12 +1454,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                   return (
                     <tr
                       key={s.id}
-                      onClick={() => {
-                        sound.playTabSwitch();
-                        setSelectedItem({ id: s.id, isQuestion: false });
-                        setPlayheadSec(s.timestamp);
-                        setIsDetailDrawerOpen(true);
-                      }}
+                      onClick={() => handleSelectItem(s.id, false, s.timestamp)}
                       className={`group transition-colors cursor-pointer ${
                         isSelected
                           ? 'bg-[#F3F8E8] font-medium'
@@ -1050,9 +1467,9 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                           <span className="text-xs text-stone-500 font-normal">({s.timestamp}s)</span>
                         </div>
                         {warning && (
-                          <div className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-[#C2410C] bg-[#FFF7ED] px-2 py-0.5 rounded border border-[#FED7AA]">
-                            <AlertCircle className="w-3 h-3 text-[#EA580C]" />
-                            <span>Xung đột mốc (&lt;5s)</span>
+                          <div className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-[#7C2D12] bg-[#FFF7ED] px-2 py-0.5 rounded border border-[#FDBA74]">
+                            <AlertCircle className="w-3 h-3 text-[#C2410C]" />
+                            <span>Cảnh báo nhịp độ (&lt;20s)</span>
                           </div>
                         )}
                       </td>
@@ -1062,14 +1479,13 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                           <AgentAvatarBadge agentName={s.agent} size="w-7 h-7" />
                           <div>
                             <div className="font-bold text-xs text-[#121712]">{s.agent}</div>
-                            <span className="text-[10px] font-semibold text-stone-700 bg-stone-100 px-1.5 py-0.2 rounded border border-stone-200">
+                            <span className="text-[11px] font-semibold text-stone-700 bg-stone-100 px-1.5 py-0.2 rounded border border-stone-200">
                               Kịch bản thoại
                             </span>
                           </div>
                         </div>
                       </td>
 
-                      {/* Cột Nội dung rộng rãi */}
                       <td className="py-4 px-4">
                         <p className="text-sm text-stone-800 leading-relaxed font-sans italic">
                           "{cleanFormula(s.dialogue)}"
@@ -1107,11 +1523,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                         <div className="flex items-center justify-center gap-1">
                           <button
                             type="button"
-                            onClick={() => {
-                              setSelectedItem({ id: s.id, isQuestion: false });
-                              setPlayheadSec(s.timestamp);
-                              setIsDetailDrawerOpen(true);
-                            }}
+                            onClick={() => handleSelectItem(s.id, false, s.timestamp)}
                             className="p-1.5 rounded-lg text-stone-500 hover:text-[#121712] hover:bg-stone-100 transition cursor-pointer"
                             title="Chỉnh sửa chi tiết"
                           >
@@ -1137,380 +1549,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
       </div>
 
       {/* =========================================================================
-          PANEL CHI TIẾT SƯ PHẠM DẠNG DRAWER TRƯỢT PHẢI (SLIDE-OVER DRAWER)
-          KHÔNG LÀM CHẬT BẢNG, CÓ THỂ ĐÓNG BẰNG NÚT [X]
-          ========================================================================= */}
-      {isDetailDrawerOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end animate-in fade-in duration-150">
-          {/* Backdrop mờ nhẹ */}
-          <div
-            className="fixed inset-0 bg-black/30 backdrop-blur-xs transition-opacity"
-            onClick={() => setIsDetailDrawerOpen(false)}
-          />
-
-          {/* Drawer container */}
-          <div className="relative w-full max-w-lg bg-white border-l border-[#E2EAD2] shadow-2xl p-6 sm:p-7 overflow-y-auto space-y-5 z-10 animate-in slide-in-from-right duration-200">
-            <div className="flex items-center justify-between pb-3.5 border-b border-stone-200">
-              <div className="flex items-center gap-2">
-                <Sliders className="w-5 h-5 text-stone-800" />
-                <h3 className="font-bold text-base text-[#121712]">
-                  Biên tập chi tiết điểm tương tác
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsDetailDrawerOpen(false)}
-                className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition cursor-pointer"
-                title="Đóng panel chi tiết"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* VIDEO CONTEXT PREVIEW CARD (P2 FIX: KHỚP MỐC VIDEO THẦY TIẾN & BẢNG PHẤN) */}
-            <div className="bg-[#121712] border border-[#121712] rounded-2xl p-4 text-white space-y-3 shadow-md">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#C8F169] animate-pulse" />
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">
-                    Ngữ cảnh video tại mốc {formatTime(playheadSec)}
-                  </span>
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full bg-white/15 text-[#C8F169] font-mono text-[11px] font-bold">
-                  {playheadSec}s
-                </span>
-              </div>
-
-              {/* Khung mô phỏng bảng phấn 16:9 với công thức toán KaTeX */}
-              <div className="relative aspect-video rounded-xl bg-stone-900 border border-stone-800 overflow-hidden flex flex-col justify-between p-3.5 shadow-inner">
-                <div className="flex items-center justify-between text-[11px] text-stone-400">
-                  <span className="font-medium text-stone-300">Bảng phấn Thầy Tiến</span>
-                  <span className="font-mono text-[#C8F169] bg-stone-800 px-1.5 py-0.5 rounded">1080p HD</span>
-                </div>
-                <div className="text-center py-2 space-y-1">
-                  <div className="text-base font-serif font-bold text-emerald-300">
-                    {focusedQuestion?.question || "|BC + DD'| = ?"}
-                  </div>
-                  <div className="text-xs text-stone-300 italic">
-                    "Thầy Tiến: Cộng độ dài DD' đấy bằng là 1 + 1 bằng..."
-                  </div>
-                </div>
-                <div className="flex items-center justify-between text-[10px] text-stone-400 pt-1 border-t border-stone-800">
-                  <span>Chương 1: Vectơ không gian</span>
-                  <span>Ví dụ 3: Hình lập phương ABCD.A'B'C'D'</span>
-                </div>
-              </div>
-
-              {onSeekVideo && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    sound.playPencilTap();
-                    onSeekVideo(playheadSec);
-                  }}
-                  className="w-full py-2.5 rounded-xl bg-[#C8F169] hover:bg-[#bbf055] text-[#121712] font-black text-xs flex items-center justify-center gap-2 cursor-pointer transition shadow-xs"
-                >
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>Xem trước mốc này trên Video Player ({formatTime(playheadSec)})</span>
-                </button>
-              )}
-            </div>
-
-            {/* Chi tiết câu hỏi dừng */}
-            {focusedQuestion && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between bg-stone-50 border border-stone-200 p-4 rounded-2xl">
-                  <div className="flex items-center gap-3">
-                    <TutorLamCircleAvatar className="w-8 h-8 shrink-0 ring-1 ring-stone-300 rounded-full" />
-                    <div>
-                      <div className="text-xs font-bold text-[#121712]">Điểm dừng kiểm tra (checkpoint)</div>
-                      <div className="text-xs text-stone-600 font-mono">
-                        Mốc video: {formatTime(focusedQuestion.timestamp)} · ID: {focusedQuestion.id}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div 
-                    onClick={() => handleToggleQuestion(activePart.id, focusedQuestion.id)}
-                    className="flex items-center gap-2 text-xs font-bold cursor-pointer select-none"
-                  >
-                    <span className="text-stone-700">Kích hoạt:</span>
-                    <button
-                      type="button"
-                      role="checkbox"
-                      aria-checked={focusedQuestion.is_active}
-                      className={`w-5 h-5 rounded-md flex items-center justify-center transition border ${
-                        focusedQuestion.is_active
-                          ? 'bg-[#121712] border-[#121712] text-[#C8F169]'
-                          : 'bg-white border-stone-300 hover:border-stone-400 text-transparent'
-                      }`}
-                    >
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Mốc thời gian */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-stone-800 uppercase tracking-wide">
-                    Mốc thời gian (Giây & Định dạng 00:00)
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min={0}
-                      max={durationSec}
-                      value={focusedQuestion.timestamp}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        handleUpdateQuestion(activePart.id, focusedQuestion.id, { timestamp: val });
-                        setPlayheadSec(val);
-                      }}
-                      className="w-28 px-3 py-2 rounded-xl border border-stone-300 text-sm font-mono font-bold focus:border-[#121712] focus:ring-1 focus:ring-[#121712] outline-none text-[#121712]"
-                    />
-                    <span className="text-xs font-mono font-bold text-stone-600">
-                      = {formatTime(focusedQuestion.timestamp)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Thang nhận thức Bloom */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-stone-800 uppercase tracking-wide">
-                    Thang nhận thức Bloom (6 mức)
-                  </label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {BLOOM_LEVELS.map((lvl) => {
-                      const isSelected =
-                        getBloomInfo(focusedQuestion.bloom_level).index === lvl.index;
-                      return (
-                        <button
-                          key={lvl.index}
-                          type="button"
-                          onClick={() =>
-                            handleUpdateQuestion(activePart.id, focusedQuestion.id, {
-                              bloom_level: lvl.label,
-                            })
-                          }
-                          className={`py-2 px-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
-                            isSelected
-                              ? 'bg-[#121712] text-white shadow-2xs'
-                              : 'bg-stone-100 hover:bg-stone-200 text-stone-800'
-                          }`}
-                        >
-                          <span className="font-mono text-xs">L{lvl.index}</span>
-                          <span className="truncate">{lvl.short}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Nội dung câu hỏi dừng */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-stone-800 uppercase tracking-wide">
-                    Nội dung câu hỏi dừng
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={focusedQuestion.question}
-                    onChange={(e) =>
-                      handleUpdateQuestion(activePart.id, focusedQuestion.id, {
-                        question: e.target.value,
-                      })
-                    }
-                    className="w-full px-3.5 py-2.5 rounded-2xl border border-stone-300 text-sm leading-relaxed focus:border-[#121712] focus:ring-1 focus:ring-[#121712] outline-none resize-none font-sans text-[#121712]"
-                    placeholder="Nhập câu hỏi dừng sư phạm..."
-                  />
-                </div>
-
-                {/* Đáp án mong đợi */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-stone-800 uppercase tracking-wide">
-                    Đáp án chuẩn dự kiến (Expected Answers)
-                  </label>
-                  <div className="space-y-1.5">
-                    {(focusedQuestion.expected_answers || []).map((ans, idx) => (
-                      <div
-                        key={idx}
-                        className="px-3.5 py-2 bg-[#F3F8E8] border border-[#E2EAD2] rounded-xl text-xs font-mono text-[#121712] flex items-center justify-between"
-                      >
-                        <span>{ans}</span>
-                        <Check className="w-4 h-4 text-emerald-700" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-stone-200 flex items-center justify-between">
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteItem(activePart.id, focusedQuestion.id, true)}
-                    className="px-4 py-2 rounded-xl text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
-                    title="Xoá vĩnh viễn điểm tương tác này"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Xoá điểm này</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsDetailDrawerOpen(false)}
-                    className="px-5 py-2.5 rounded-full bg-[#121712] hover:bg-black text-white font-bold text-xs shadow-sm transition cursor-pointer"
-                  >
-                    Xong (Lưu đóng)
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Chi tiết kịch bản thoại */}
-            {focusedScenario && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between bg-stone-50 border border-stone-200 p-4 rounded-2xl">
-                  <div className="flex items-center gap-3">
-                    <AgentAvatarBadge agentName={focusedScenario.agent} size="w-8 h-8" />
-                    <div>
-                      <div className="text-xs font-bold text-[#121712]">
-                        Tác tử: {focusedScenario.agent}
-                      </div>
-                      <div className="text-xs text-stone-600 font-mono">
-                        Mốc kích hoạt: {formatTime(focusedScenario.timestamp)} · ID: {focusedScenario.id}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div 
-                    onClick={() => handleToggleScenario(activePart.id, focusedScenario.id)}
-                    className="flex items-center gap-2 text-xs font-bold cursor-pointer select-none"
-                  >
-                    <span className="text-stone-700">Kích hoạt:</span>
-                    <button
-                      type="button"
-                      role="checkbox"
-                      aria-checked={focusedScenario.is_active}
-                      className={`w-5 h-5 rounded-md flex items-center justify-center transition border ${
-                        focusedScenario.is_active
-                          ? 'bg-[#121712] border-[#121712] text-[#C8F169]'
-                          : 'bg-white border-stone-300 hover:border-stone-400 text-transparent'
-                      }`}
-                    >
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Mốc thời gian */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-stone-800 uppercase tracking-wide">
-                    Mốc thời gian (Giây & Định dạng 00:00)
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min={0}
-                      max={durationSec}
-                      value={focusedScenario.timestamp}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        handleUpdateScenario(activePart.id, focusedScenario.id, { timestamp: val });
-                        setPlayheadSec(val);
-                      }}
-                      className="w-28 px-3 py-2 rounded-xl border border-stone-300 text-sm font-mono font-bold focus:border-[#121712] focus:ring-1 focus:ring-[#121712] outline-none text-[#121712]"
-                    />
-                    <span className="text-xs font-mono font-bold text-stone-600">
-                      = {formatTime(focusedScenario.timestamp)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Thang nhận thức Bloom */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-stone-800 uppercase tracking-wide">
-                    Thang nhận thức Bloom (6 mức)
-                  </label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {BLOOM_LEVELS.map((lvl) => {
-                      const isSelected =
-                        getBloomInfo(focusedScenario.bloom_level).index === lvl.index;
-                      return (
-                        <button
-                          key={lvl.index}
-                          type="button"
-                          onClick={() =>
-                            handleUpdateScenario(activePart.id, focusedScenario.id, {
-                              bloom_level: lvl.label,
-                            })
-                          }
-                          className={`py-2 px-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
-                            isSelected
-                              ? 'bg-[#121712] text-white shadow-2xs'
-                              : 'bg-stone-100 hover:bg-stone-200 text-stone-800'
-                          }`}
-                        >
-                          <span className="font-mono text-xs">L{lvl.index}</span>
-                          <span className="truncate">{lvl.short}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Lời thoại kịch bản */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-stone-800 uppercase tracking-wide">
-                    Lời thoại tương tác của {focusedScenario.agent}
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={focusedScenario.dialogue}
-                    onChange={(e) =>
-                      handleUpdateScenario(activePart.id, focusedScenario.id, {
-                        dialogue: e.target.value,
-                      })
-                    }
-                    className="w-full px-3.5 py-2.5 rounded-2xl border border-stone-300 text-sm leading-relaxed focus:border-[#121712] focus:ring-1 focus:ring-[#121712] outline-none resize-none font-sans text-[#121712]"
-                    placeholder="Nhập lời thoại của tác tử..."
-                  />
-                </div>
-
-                {/* Điều kiện kích hoạt */}
-                {focusedScenario.trigger_condition && (
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-stone-700 uppercase tracking-wide">
-                      Điều kiện kích hoạt
-                    </label>
-                    <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-700 leading-relaxed">
-                      {focusedScenario.trigger_condition}
-                    </div>
-                  </div>
-                )}
-
-                <div className="pt-3 border-t border-stone-200 flex items-center justify-between">
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteItem(activePart.id, focusedScenario.id, false)}
-                    className="px-4 py-2 rounded-xl text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
-                    title="Xoá vĩnh viễn điểm tương tác này"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Xoá điểm này</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsDetailDrawerOpen(false)}
-                    className="px-5 py-2.5 rounded-full bg-[#121712] hover:bg-black text-white font-bold text-xs shadow-sm transition cursor-pointer"
-                  >
-                    Xong (Lưu đóng)
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* =========================================================================
-          MODAL XÁC NHẬN PHÊ DUYỆT & MỞ LỚP (LIME SOFT CHUẨN)
+          MODAL XÁC NHẬN PHÊ DUYỆT & ĐƯA VÀO LỚP HỌC (LIME SOFT CHUẨN)
           ========================================================================= */}
       {showApproveModal && (
         <div id="approve-modal" className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
@@ -1521,7 +1560,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
               </div>
               <div>
                 <h3 className="font-bold text-lg text-[#121712]">
-                  Phê duyệt giáo án & mở lớp học
+                  Phê duyệt giáo án & Đưa vào lớp học
                 </h3>
                 <p className="text-xs text-stone-600">
                   Xác nhận kiểm duyệt sư phạm và đóng gói kịch bản tương tác
@@ -1557,8 +1596,8 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
             </div>
 
             {warnings.length > 0 && (
-              <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="p-3 rounded-xl bg-[#FFF7ED] border border-[#FDBA74] text-[#7C2D12] text-xs flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-[#C2410C] shrink-0 mt-0.5" />
                 <span>
                   Vẫn còn {warnings.length} cảnh báo timeline. Nếu bạn đã kiểm tra tính sư phạm, vẫn có thể tiến hành phê duyệt xuất bản.
                 </span>
@@ -1579,7 +1618,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                 className="px-6 py-2.5 rounded-full bg-[#C8F169] hover:bg-[#bbf055] text-[#121712] font-bold text-xs flex items-center gap-2 shadow-sm transition active:scale-95 cursor-pointer border border-[#b4e64f]"
               >
                 <Check className="w-4 h-4 text-[#121712]" />
-                <span>Xác nhận duyệt & xuất bản</span>
+                <span>Xác nhận duyệt & Đưa vào lớp học</span>
               </button>
             </div>
           </div>
