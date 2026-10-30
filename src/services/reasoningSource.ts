@@ -1,5 +1,6 @@
 import { ReasoningEvent } from '../types/reasoning';
 import { sanitizeFixtureData } from '../utils/sanitizeKatex';
+import type { RoundtableProvenance } from './dreBackendApi';
 
 export type EventListener = (event: ReasoningEvent) => void;
 export type StatusListener = (status: {
@@ -8,6 +9,8 @@ export type StatusListener = (status: {
   currentIndex: number;
   totalEvents: number;
   isReplay: boolean;
+  /** Origin reported by the backend stream (`session_start`); null until known or for local replays. */
+  provenance?: RoundtableProvenance | null;
 }) => void;
 
 export interface ReasoningSource {
@@ -19,6 +22,8 @@ export interface ReasoningSource {
   stop(): void;
   setSpeed(speed: number): void;
   isReplay(): boolean;
+  /** Provenance reported by a backend stream; sources without one omit this method. */
+  getProvenance?(): RoundtableProvenance | null;
   getCurrentSpeed(): number;
   getHistory(): ReasoningEvent[];
 }

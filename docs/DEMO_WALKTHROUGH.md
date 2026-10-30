@@ -12,7 +12,7 @@ Tài liệu này mô tả bộ điều khiển Showcase 1-Click (Issue #17) và 
 - **Phím tắt F2**: Nhấn `F2` để khởi chạy chu trình 4 Trạm. Nhấn lại `F2` để dừng và trở về trạng thái ban đầu.
 - **Nút trên thanh Header**: Nút **Demo 1-Click (F2)** (biểu tượng tia sét) ở góc phải thanh tiêu đề.
 - **Tham số URL**: Mở `http://localhost:3000/?showcase=1` (hoặc `?demo=1`) để tự khởi chạy khoảng 300 ms sau khi tải trang. Tham số này chỉ được dùng **một lần** cho mỗi lần tải trang: sau khi người demo nhấn `Esc`, `Space`, `F2` hoặc nút dừng, showcase không tự bật lại.
-- **Nguồn sự kiện War Room**: Showcase luôn dùng `ReplaySource`, phát lại fixture `mock/mock_reasoning_events.json` (18 sự kiện) cộng với một marker kết thúc do UI thêm vào. Nút chuyển sang `SSE backend (fixture)` trong War Room chỉ đổi **kênh truyền** sang route `GET /api/roundtable/stream`; ở phiên bản hiện tại route đó cũng phát lại chính file fixture trên qua SSE, nên đó vẫn chưa phải suy luận trực tiếp của các tác tử.
+- **Nguồn sự kiện War Room**: Showcase luôn dùng `ReplaySource`, phát lại fixture `mock/mock_reasoning_events.json` (18 sự kiện) cộng với một marker kết thúc do UI thêm vào. Nút chuyển sang SSE trong War Room đổi nguồn sang route `GET /api/roundtable/stream`, nơi Roundtable Orchestrator chạy thật (mặc định tất định, không gọi LLM) và báo `provenance` qua frame `session_start`. Nhãn nút hiển thị đúng nguồn máy chủ báo về: `SSE backend (live)` cho phiên chạy trực tiếp, `SSE backend (replay)` khi phát lại một run đã ghi, `SSE backend (fixture)` khi phát fixture dự phòng; trước khi nhận `session_start`, nhãn là `SSE backend (chờ kết nối)`.
 
 ### 1.2. Các phím điều hướng trong khi trình diễn
 - **Space**: Tạm dừng / tiếp tục trạm hiện tại (bỏ qua khi đang gõ trong ô nhập liệu).

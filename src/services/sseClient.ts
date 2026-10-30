@@ -3,6 +3,9 @@ import { ReasoningSource, EventListener, StatusListener } from './reasoningSourc
 import { sanitizeFixtureData } from '../utils/sanitizeKatex';
 
 import { mapBackendToReasoningEvent, normalizeAgentName } from './reasoningAdapter';
+import type { RoundtableProvenance } from './dreBackendApi';
+
+const KNOWN_PROVENANCES: ReadonlySet<string> = new Set(['live', 'replay', 'fallback_fixture']);
 
 export interface SSEClientOptions {
   url?: string;
@@ -34,6 +37,9 @@ export class SSEReasoningSource implements ReasoningSource {
   private reconnectAttempts: number = 0;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private speed: number = 1.0;
+  /** Set from the server's `session_start` frame; a started session is never silently re-run. */
+  private provenance: RoundtableProvenance | null = null;
+  private sessionStarted: boolean = false;
 
   constructor(options: SSEClientOptions = {}) {
     const apiBase =
@@ -53,6 +59,10 @@ export class SSEReasoningSource implements ReasoningSource {
 
   public isReplay(): boolean {
     return false;
+  }
+
+  public getProvenance(): RoundtableProvenance | null {
+    return this.provenance;
   }
 
   public getCurrentSpeed(): number {
@@ -91,6 +101,7 @@ export class SSEReasoningSource implements ReasoningSource {
       currentIndex: this.history.length,
       totalEvents: this.history.length,
       isReplay: false,
+      provenance: this.provenance,
     });
     return () => {
       this.statusListeners.delete(listener);
@@ -101,6 +112,8 @@ export class SSEReasoningSource implements ReasoningSource {
     if (this.isRunning) return;
     this.isRunning = true;
     this.reconnectAttempts = 0;
+    this.sessionStarted = false;
+    this.provenance = null;
     this.connect();
   }
 
@@ -120,6 +133,8 @@ export class SSEReasoningSource implements ReasoningSource {
     this.stopConnection();
     this.isRunning = false;
     this.history = [];
+    this.sessionStarted = false;
+    this.provenance = null;
     this.notifyStatus();
   }
 
@@ -177,11 +192,20 @@ export class SSEReasoningSource implements ReasoningSource {
         }
       };
 
-      this.eventSource.addEventListener('reasoning_event', (e: MessageEvent) => {
-        handleEventData(e.data);
+      this.eventSource.addEventListener('session_start', (e: MessageEvent) => {
+        try {
+          const info = JSON.parse(e.data);
+          this.sessionStarted = true;
+          this.provenance = KNOWN_PROVENANCES.has(info?.provenance) ? info.provenance : null;
+          this.notifyStatus();
+        } catch (err) {
+          console.warn('[SSEClient] Lỗi parse session_start:', err);
+        }
       });
 
-      this.eventSource.addEventListener('message', (e: MessageEvent) => {
+      // The server also emits alias names (`reasoning`, `message`, per-eventType) for each event;
+      // only the canonical `reasoning_event` is consumed so every event is delivered once.
+      this.eventSource.addEventListener('reasoning_event', (e: MessageEvent) => {
         handleEventData(e.data);
       });
 
@@ -219,10 +243,21 @@ export class SSEReasoningSource implements ReasoningSource {
       });
 
       this.eventSource.onerror = (err) => {
-        console.warn('[SSEClient] EventSource kết nối bị gián đoạn:', err);
         this.stopConnection();
 
-        if (this.isRunning && this.autoReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
+        // A server `event: error` frame carries JSON data and is terminal; native connection errors carry none.
+        const serverPayload = (err as MessageEvent).data;
+        if (typeof serverPayload === 'string') {
+          console.warn('[SSEClient] Máy chủ Roundtable báo lỗi:', serverPayload);
+          this.isRunning = false;
+          this.notifyStatus();
+          return;
+        }
+        console.warn('[SSEClient] EventSource kết nối bị gián đoạn:', err);
+
+        // Reconnecting after a live session started would launch a brand-new run and duplicate events,
+        // so only retry while the backend has not been reached yet.
+        if (this.isRunning && !this.sessionStarted && this.autoReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
           this.reconnectAttempts += 1;
           const delay = this.reconnectDelayMs * Math.pow(1.5, this.reconnectAttempts - 1);
           this.reconnectTimer = setTimeout(() => {
@@ -263,6 +298,7 @@ export class SSEReasoningSource implements ReasoningSource {
       currentIndex: this.history.length,
       totalEvents: this.history.length,
       isReplay: false,
+      provenance: this.provenance,
     };
     this.statusListeners.forEach((listener) => {
       try {
