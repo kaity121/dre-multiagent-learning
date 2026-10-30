@@ -196,6 +196,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   const [replyingToComment, setReplyingToComment] = useState<TimelineComment | null>(null);
   // Long messages open clamped to three lines so one reply never buries the conversation.
   const [expandedMessageIds, setExpandedMessageIds] = useState<Set<string>>(() => new Set());
+  const [isPinnedOpen, setIsPinnedOpen] = useState(false);
   const [typingAgent, setTypingAgent] = useState<TypingAgentInfo | null>(null);
   const [isRecipientOpen, setIsRecipientOpen] = useState(false);
   const recipientDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -1045,7 +1046,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
         key={msg.id}
         id={`chat-msg-${msg.id}`}
         // Leaves room for the sticky pinned note when a message is scrolled to the top.
-        className="flex scroll-mt-32 items-start gap-2.5 transition-colors group"
+        className="flex scroll-mt-2 items-start gap-2.5 transition-colors group"
       >
         {renderPeerAvatar(msg.author, 'w-8 h-8 shrink-0 mt-0.5')}
 
@@ -1449,22 +1450,29 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           })}
         </div>
       ) : (
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          {/* Ghim Trợ giảng An */}
+        <div className="flex-1 flex flex-col min-h-0 overflow-clip">
+          {/* Ghim Trợ giảng An: a one-line bar above the stream (not over it); opens on demand. */}
           {pinnedComment && (
-            <div className="mx-3.5 mt-2.5 p-3 rounded-2xl bg-[#F3F8E8] text-[#121712] shrink-0 text-xs space-y-1.5 border border-[#E2EAD2] shadow-2xs">
-              <div className="flex items-center gap-2">
+            <div className="shrink-0 border-b border-[#E2EAD2] bg-[#FBFDF7] px-3.5 py-2 text-[13px] text-[#121712]">
+              <div className="flex items-start gap-2">
                 <AgentAvatar role="an" size={24} tooltip />
-                <span className="px-1.5 py-0.5 rounded-md bg-[#C8F169] text-[#121712] font-black text-xs tracking-wide uppercase">
-                  GHIM
-                </span>
-                <span className="text-xs font-bold text-[#121712]">Trợ giảng An · {formatSec(pinnedComment.second)}</span>
+                <span className="mt-0.5 shrink-0 rounded-md border border-[#121712] px-1.5 text-[11px] font-bold">Ghim</span>
+                <p id="pinned-note" className={`min-w-0 flex-1 leading-snug ${isPinnedOpen ? '' : 'line-clamp-1'}`}>
+                  <span className="font-semibold">Trợ giảng An: </span>
+                  <FormattedMathText text={cleanText(pinnedComment.text)} />
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsPinnedOpen((v) => !v)}
+                  aria-expanded={isPinnedOpen}
+                  aria-controls="pinned-note"
+                  className="shrink-0 rounded px-1 text-[12px] font-semibold text-[#1F4D12] underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-[#121712]"
+                >
+                  {isPinnedOpen ? 'Thu gọn' : 'Xem'}
+                </button>
               </div>
-              <p className="leading-relaxed text-[#121712] font-normal text-xs pl-8">
-                <FormattedMathText text={cleanText(pinnedComment.text)} />
-              </p>
               {taHintTier > 0 && (
-                <div className="mt-2 ml-8 p-2.5 bg-white text-[#121712] rounded-xl font-medium text-xs border border-[#E2EAD2] shadow-2xs">
+                <div className="mt-2 ml-8 rounded-xl border border-[#E2EAD2] bg-white p-2.5 text-[13px] font-medium text-[#121712]">
                   {taHintTier === 1 && "Gợi ý 1: Kiểm tra điểm cuối của BC và điểm đầu của DD' đã nối tiếp chưa."}
                   {taHintTier === 2 && `Gợi ý 2: ${cleanText(lesson.freezeNote)}`}
                   {taHintTier === 3 && "Gợi ý 3: Thay DD' = CC' thì BC + CC' = BC' (đường chéo bằng √2)."}
