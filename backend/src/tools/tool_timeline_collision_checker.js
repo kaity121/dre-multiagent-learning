@@ -6,13 +6,14 @@
  * 1. Khoảng cách giữa các bình luận liên tiếp >= 20 giây (minGapS = 20) để học sinh không bị quá tải.
  * 2. Không chèn tương tác ở đoạn mở đầu bài giảng (at_s < 15s).
  * 3. Tối đa 1 checkpoint dừng trong một phần (part) bài giảng.
+ * 4. Cho phép các sự kiện nối tiếp có chủ ý trong cùng một lần dừng (checkpoint + debate turn cách nhau <= 5s, hoặc cùng groupId / cờ isChained / chainedTo).
  */
 
 /**
  * Hàm thực thi Tool: tool_timeline_collision_checker
  *
  * @param {Object} input
- * @param {Array<Object>} [input.events] - Danh sách sự kiện { id, at_s, actor_id, type, duration_s }
+ * @param {Array<Object>} [input.events] - Danh sách sự kiện { id, at_s, actor_id, type, duration_s, chained, isChained, chainedTo, groupId, checkpointId }
  * @param {Array<number>} [input.timelineSeconds] - Danh sách mốc thời gian (giây)
  * @param {number} [input.minGapS=20] - Khoảng cách tối thiểu giữa 2 sự kiện (giây)
  * @param {number} [input.minGapSeconds] - Alias cho minGapS
@@ -79,7 +80,40 @@ export function checkTimelineCollision({
       const prev = sorted[i - 1];
       const gap = current.at_s - prev.at_s;
 
-      if (gap < effectiveMinGap) {
+      // Kiểm tra xem hai sự kiện có cố ý nối nhau trong cùng một lần dừng hay không (verified chained / co-located link)
+      // Yêu cầu liên kết rõ ràng đến sự kiện trước đó hoặc cùng nhóm mốc dừng
+      const hasDirectIdLink = Boolean(
+        (current.chainedTo && current.chainedTo === prev.id) ||
+        (prev.chainedTo && prev.chainedTo === current.id)
+      );
+      const hasSharedGroupLink = Boolean(
+        (current.groupId && prev.groupId && current.groupId === prev.groupId) ||
+        (current.checkpointId && prev.checkpointId && current.checkpointId === prev.checkpointId)
+      );
+      // Nối tiếp với checkpoint đứng ngay trước:
+      // Miễn trừ nếu:
+      // - Có liên kết trực tiếp ID (chainedTo === prev.id)
+      // - Hoặc có cùng nhóm (groupId / checkpointId)
+      // - Hoặc có cờ chaining/coLocated rõ ràng gắn liền với checkpoint đứng trước đó (khi gap <= 5s)
+      // - Hoặc là cặp checkpoint + tương tác kế tiếp (comment / debate_turn / dialogue) trong vòng 5s khi không có chainedTo chỉ định sự kiện khác
+      const hasCheckpointProximityLink = Boolean(
+        prev.type === 'checkpoint' &&
+        ['comment', 'debate_turn', 'dialogue'].includes(current.type) &&
+        gap <= 5 &&
+        (!current.chainedTo || current.chainedTo === prev.id)
+      );
+
+      // Nếu sự kiện có cờ isChained, chained, hoặc coLocated:
+      // CHỈ miễn trừ khi nó thực sự liên kết với sự kiện trước đó (hasDirectIdLink, hasSharedGroupLink, hoặc đi kèm checkpoint trước đó trong 5s).
+      // Không được miễn trừ một sự kiện độc lập/không liên quan chỉ vì nó mang cờ isChained mà không liên kết tới prev.
+      const hasVerifiedChainedFlag = Boolean(
+        (current.chained || current.isChained || current.coLocated) &&
+        (hasDirectIdLink || hasSharedGroupLink || (prev.type === 'checkpoint' && gap <= 5))
+      );
+
+      const chained = hasDirectIdLink || hasSharedGroupLink || hasCheckpointProximityLink || hasVerifiedChainedFlag;
+
+      if (gap < effectiveMinGap && !chained) {
         collisions.push({
           eventId1: prev.id || `event_${i - 1}`,
           eventId2: current.id || `event_${i}`,
@@ -110,7 +144,7 @@ export function checkTimelineCollision({
 
   const isValid = collisions.length === 0 && warnings.length === 0;
   const reason = isValid
-    ? `Dòng thời gian hợp lệ: ${sorted.length} sự kiện cách nhau tối thiểu ${effectiveMinGap}s, nhịp sư phạm tốt.`
+    ? `Dòng thời gian hợp lệ: ${sorted.length} sự kiện cách nhau tối thiểu ${effectiveMinGap}s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt.`
     : `Phát hiện ${collisions.length} điểm va chạm nhịp và ${warnings.length} cảnh báo sư phạm.`;
 
   return {

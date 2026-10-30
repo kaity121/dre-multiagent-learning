@@ -4,7 +4,6 @@ import { VideoLessonItem, VideoCheckpointPhase, RebuttalSticker } from '../types
 import { VIDEO_LESSON_LIBRARY } from '../data/videoLessons';
 import { 
   BoAvatar,
-  BoCircleAvatar,
   HandStopIcon, 
   LinkChainIcon, 
   RubberStampSuccess,
@@ -12,6 +11,8 @@ import {
   EyeSticker
 } from './HandmadeArtwork';
 import { sound } from '../utils/soundEffects';
+import { hasCheckpoint } from '../utils/lessonAdapter';
+import { FormattedMathText } from './MathVector';
 
 declare global {
   interface Window {
@@ -189,9 +190,44 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   const defaultYtId = lesson.youtubeId || extractYouTubeId(lesson.videoUrl) || 'phvpqxLNTUQ';
   const [activeYoutubeId, setActiveYoutubeId] = useState<string>(defaultYtId);
 
-  const [internalPhase, setInternalPhase] = useState<VideoCheckpointPhase>('WATCHING');
+  const [internalPhase, setInternalPhase] = useState<VideoCheckpointPhase>(() => {
+    if (typeof window !== 'undefined') {
+      const cp = new URLSearchParams(window.location.search).get('checkpoint_phase');
+      if (cp === 'question') return 'CHECKPOINT_REACHED';
+      if (cp === 'bo_debate') return 'BO_DEBATE';
+      if (cp === 'co_lam') return 'CO_LAM_CLOSURE';
+    }
+    return (phase as any) === 'BO_CONCEDED' ? 'CO_LAM_CLOSURE' : (phase || 'WATCHING');
+  });
   const [rebuttalFeedback, setRebuttalFeedback] = useState<string | null>(null);
   const [customRebuttal, setCustomRebuttal] = useState<string>('');
+  const [selectedQuizOptionId, setSelectedQuizOptionId] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search).get('checkpoint_option');
+      if (p) return p;
+    }
+    return 'opt_b'; // Mặc định chọn opt_b khớp mockup 2 nền đen chữ trắng
+  });
+  const [selectedRebuttalStickerId, setSelectedRebuttalStickerId] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search).get('rebuttal_sticker');
+      if (p) return p;
+    }
+    return 'stk_1'; // Mặc định chọn stk_1 để thấy trạng thái chọn rõ
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const cp = new URLSearchParams(window.location.search).get('checkpoint_phase');
+      if (cp === 'question') {
+        setInternalPhase('CHECKPOINT_REACHED');
+      } else if (cp === 'bo_debate') {
+        setInternalPhase('BO_DEBATE');
+      } else if (cp === 'co_lam') {
+        setInternalPhase('CO_LAM_CLOSURE');
+      }
+    }
+  }, []);
 
   const [localOverlayDrawerOpen, setLocalOverlayDrawerOpen] = useState<boolean>(false);
   const isOverlayDrawerOpen = propIsOverlayDrawerOpen !== undefined ? propIsOverlayDrawerOpen : localOverlayDrawerOpen;
@@ -233,7 +269,24 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   const [inputUrl, setInputUrl] = useState<string>('https://www.youtube.com/watch?v=phvpqxLNTUQ');
 
   // Trạng thái poster/thumbnail khởi tạo video (tránh màn hình xám trống)
-  const [hasStartedPlayback, setHasStartedPlayback] = useState<boolean>(false);
+  const [hasStartedPlayback, setHasStartedPlayback] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      if (s.get('banner') === '1' || s.get('collapsed') === '1' || s.get('play') === '1') return true;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOverlayDrawerOpen(false);
+        setIsRaiseHandModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const [videoDuration, setVideoDuration] = useState<number>(lesson.durationSeconds || 9503); // Mặc định 2:38:23 (9503s)
 
@@ -245,7 +298,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   // 1. Đồng bộ trạng thái Phase từ props (ví dụ khi bấm nút vàng [Câu hỏi dừng (37:13)] ở thanh công cụ hoặc Giơ tay)
   useEffect(() => {
     if (phase) {
-      setInternalPhase(phase);
+      setInternalPhase((phase as any) === 'BO_CONCEDED' ? 'CO_LAM_CLOSURE' : phase);
       if (phase === 'CHECKPOINT_REACHED') {
         hasAutoPausedAtCheckpointRef.current = true;
         setIsOverlayDrawerOpen(false);
@@ -379,6 +432,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
           }
 
           if (
+            hasCheckpoint(lesson) &&
             sec >= lesson.checkpointTimestamp &&
             sec <= lesson.checkpointTimestamp + 4 &&
             !hasAutoPausedAtCheckpointRef.current
@@ -407,6 +461,10 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
     onSeek(validSec);
     if (ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
       ytPlayerRef.current.seekTo(validSec, true);
+    }
+    // Tự động kích hoạt điểm dừng khi tua trúng mốc 37:13 (+/- 3s)
+    if (hasCheckpoint(lesson) && Math.abs(validSec - lesson.checkpointTimestamp) <= 3 && !hasAutoPausedAtCheckpointRef.current) {
+      setTimeout(() => handleTriggerCheckpointNow(), 50);
     }
   };
 
@@ -537,6 +595,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
 
 
   const boDebateSpeech = cleanText(liveBoDialogue || lesson.boArgument.speech);
+  const effectivePhase = (internalPhase !== 'WATCHING' ? internalPhase : (phase as any) === 'BO_CONCEDED' ? 'CO_LAM_CLOSURE' : phase) || 'WATCHING';
   const isCheckpointActive =
     internalPhase === 'CHECKPOINT_REACHED' ||
     internalPhase === 'BO_DEBATE' ||
@@ -547,17 +606,21 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
     phase === 'BO_CONCEDED' ||
     phase === 'CO_LAM_CLOSURE';
 
-  const showFullQuizOverlay = isCheckpointActive && !isQuizCollapsedToChat;
+  const isQuizCollapsed =
+    isQuizCollapsedToChat ||
+    (typeof window !== 'undefined' && (new URLSearchParams(window.location.search).get('banner') === '1' || new URLSearchParams(window.location.search).get('collapsed') === '1'));
+
+  const showFullQuizOverlay = isCheckpointActive && !isQuizCollapsed;
 
   return (
     <div
-      className="relative w-full flex flex-col bg-slate-950 rounded-2xl overflow-hidden border border-stone-200/90 shadow-md ring-1 ring-slate-900/5 transition-all duration-300"
+      className="relative w-full flex flex-col bg-white rounded-3xl overflow-hidden border border-[#E2EAD2] shadow-xs transition-all duration-300"
     >
-      {/* 1. VÙNG VIDEO YOUTUBE (CHUẨN 16:9) + CÁC LỚP OVERLAY THÔNG MINH */}
+      {/* 1. VÙNG VIDEO YOUTUBE (CHUẨN 16:9) */}
       <div className="relative w-full aspect-video bg-black overflow-hidden">
         <div id={playerContainerId.current} className="w-full h-full" />
 
-        {/* THUMBNAIL / POSTER OVERLAY NẾU VIDEO CHƯA BẮT ĐẦU PHÁT (TRÁNH KHUNG XÁM TRỐNG) */}
+        {/* THUMBNAIL / POSTER OVERLAY SẠCH KHÔNG CHỮ PHỦ LÊN VIDEO */}
         {!hasStartedPlayback && !isPlaying && currentTime < 2 && !isCheckpointActive && (
           <div
             onClick={() => {
@@ -568,39 +631,47 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
               }
               if (!isPlaying) onTogglePlay();
             }}
-            className="absolute inset-0 z-20 bg-slate-950 flex flex-col items-center justify-center cursor-pointer group select-none overflow-hidden"
+            className="absolute inset-0 z-20 bg-[#121712] flex items-center justify-center cursor-pointer group select-none overflow-hidden"
           >
-            {/* Background Thumbnail Image */}
+            {/* Background Graphic & Geometry Fallback Pattern */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#121712] via-[#1a241a] to-[#121712] flex flex-col items-center justify-center p-6 text-center select-none">
+              <div className="absolute inset-0 bg-[radial-gradient(#C8F169_1.5px,transparent_1.5px)] [background-size:24px_24px] opacity-20" />
+              <div className="relative z-0 max-w-md opacity-35 pointer-events-none mb-4">
+                <svg viewBox="0 0 220 130" className="w-56 h-auto mx-auto text-[#C8F169] stroke-current fill-none stroke-[1.8]">
+                  <polygon points="40,90 140,90 180,50 80,50" />
+                  <polygon points="40,50 140,50 180,10 80,10" />
+                  <line x1="40" y1="90" x2="40" y2="50" />
+                  <line x1="140" y1="90" x2="140" y2="50" />
+                  <line x1="180" y1="50" x2="180" y2="10" />
+                  <line x1="80" y1="50" x2="80" y2="10" />
+                </svg>
+              </div>
+              <div className="relative z-0 text-xs text-stone-300 font-semibold tracking-wide">
+                Toán 12 · Bài 1.1: Vectơ trong không gian (Thầy Nguyễn Phan Tiến)
+              </div>
+            </div>
+
+            {/* Background Thumbnail Image rõ ràng */}
             <img
               src={`https://img.youtube.com/vi/${activeYoutubeId}/maxresdefault.jpg`}
               alt={cleanText(lesson.topic)}
-              className="absolute inset-0 w-full h-full object-cover opacity-65 group-hover:opacity-80 group-hover:scale-105 transition-all duration-300"
+              className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover:opacity-95 group-hover:scale-102 transition-all duration-300"
               onError={(e) => {
-                // Fallback to hqdefault
-                (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${activeYoutubeId}/hqdefault.jpg`;
+                // Fallback to hqdefault or hide
+                const target = e.target as HTMLImageElement;
+                if (!target.src.includes('hqdefault')) {
+                  target.src = `https://img.youtube.com/vi/${activeYoutubeId}/hqdefault.jpg`;
+                } else {
+                  target.style.display = 'none';
+                }
               }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-900/60" />
 
-            {/* Play Button & Topic Info */}
-            <div className="relative z-10 flex flex-col items-center text-center p-6 space-y-3.5 max-w-lg">
-              <span className="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-cyan-200 text-xs font-semibold backdrop-blur-md">
-                Toán 12 · Thầy Nguyễn Phan Tiến
-              </span>
-
-              <h3 className="text-white font-bold text-base sm:text-xl drop-shadow-md leading-snug">
-                {cleanText(lesson.topic)}
-              </h3>
-
-              <div className="w-16 h-16 rounded-full bg-[#1B4338] group-hover:bg-[#285E4F] text-white flex items-center justify-center shadow-2xl group-hover:scale-110 transition-all border-2 border-white/40">
-                <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 translate-x-0.5">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
-
-              <div className="flex items-center text-xs text-amber-300 font-semibold bg-amber-500/15 border border-amber-400/30 px-3 py-1.5 rounded-full backdrop-blur-md">
-                <span>Câu hỏi dừng</span>
-              </div>
+            {/* Chỉ một nút Phát lớn nổi bật ở trung tâm (Chuẩn Lime Soft #C8F169, không chữ đè) */}
+            <div className="relative z-10 w-16 h-16 rounded-full bg-[#C8F169] hover:bg-[#bbf055] text-[#121712] flex items-center justify-center shadow-2xl group-hover:scale-110 transition-all border-2 border-white">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 translate-x-0.5">
+                <path d="M8 5v14l11-7z" />
+              </svg>
             </div>
           </div>
         )}
@@ -613,15 +684,13 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
           </div>
         )}
 
-        {/* PILL NỔI KHI THU GỌN CÂU HỎI XUỐNG CHAT (GIỮ NGUYÊN ĐỂ HỌC SINH MỞ LẠI HOẶC LÙI 30S) */}
-        {(isQuizCollapsedToChat || isQuizSkipped) && !showFullQuizOverlay && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 bg-white/95 backdrop-blur-md text-stone-800 border border-amber-300 px-4 py-2 rounded-full shadow-2xl flex items-center gap-3 text-xs animate-in fade-in slide-in-from-bottom-2 duration-200 whitespace-nowrap ring-2 ring-amber-400/20">
-            <span className="flex items-center gap-1.5 font-bold text-[#1B4338]">
-              <ClockWaitSvg className="w-3.5 h-3.5 text-[#1B4338]" />
-              <span>Câu hỏi đang chờ ({formatTime(lesson.checkpointTimestamp)})</span>
-            </span>
-
-            <span className="text-stone-300">|</span>
+        {/* PILL NỔI KHI THU GỌN CÂU HỎI XUỐNG CHAT (KHÔNG ĐÈ THANH ĐIỀU KHIỂN YOUTUBE, CHỮ ĐẬM TƯƠNG PHẢN CAO) */}
+        {(isQuizCollapsed || isQuizSkipped) && !showFullQuizOverlay && (
+          <div className="absolute top-14 left-4 z-30 bg-[#121712] p-1.5 rounded-full shadow-2xl flex items-center gap-2 text-xs animate-in fade-in slide-in-from-top-2 duration-200 whitespace-nowrap border border-black/40">
+            <div className="flex items-center gap-2 px-3 py-1 font-bold text-white">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#C8F169] animate-pulse shrink-0" />
+              <span className="text-[#F3F8E8] font-bold text-xs">Câu hỏi đang chờ · 37:13</span>
+            </div>
 
             <button
               type="button"
@@ -630,13 +699,11 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 handleSeekBoth(Math.max(0, lesson.checkpointTimestamp - 30));
                 if (ytPlayerRef.current?.playVideo) ytPlayerRef.current.playVideo();
               }}
-              className="text-stone-600 hover:text-[#1B4338] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+              style={{ color: "#121712", backgroundColor: "#FFFFFF" }}
+              className="px-3.5 py-1.5 rounded-full bg-white hover:bg-stone-100 text-[#121712] font-black text-xs cursor-pointer transition-colors shadow-sm border border-stone-300"
             >
-              <Rewind30sSvg className="w-3.5 h-3.5" />
-              <span>Lùi 30 giây</span>
+              <span className="text-[#121712] font-black">Lùi 30 giây</span>
             </button>
-
-            <span className="text-stone-300">|</span>
 
             <button
               type="button"
@@ -647,10 +714,10 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
                 onToggleCollapseQuiz?.(false);
                 onJumpToCheckpoint?.();
               }}
-              className="px-3 py-1 rounded-full bg-[#1B4338] hover:bg-[#285E4F] text-white font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
+              style={{ color: "#121712", backgroundColor: "#C8F169" }}
+              className="px-4 py-1.5 rounded-full bg-[#C8F169] hover:bg-[#bbf055] text-[#121712] font-black text-xs cursor-pointer transition-all shadow-sm"
             >
-              <SearchMagnifierIcon className="w-3 h-3 text-white" />
-              <span>Mở lại câu hỏi</span>
+              <span className="text-[#121712] font-black">Mở lại câu hỏi</span>
             </button>
           </div>
         )}
@@ -735,7 +802,15 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
 
         {/* KHAY KÍNH MỜ TRẮNG ĐỤC "PHÂN CẢNH | BẢN CHÉP LỜI" */}
         {isOverlayDrawerOpen && (
-          <div className="absolute top-2 bottom-2 right-2 w-[300px] sm:w-[330px] bg-white/98 backdrop-blur-md text-stone-800 rounded-xl border border-stone-200 shadow-2xl z-30 flex flex-col overflow-hidden animate-in fade-in slide-in-from-right-3 duration-150">
+          <>
+            <div 
+              className="absolute inset-0 z-20 bg-black/20"
+              onClick={() => {
+                sound.playPencilTap();
+                setIsOverlayDrawerOpen(false);
+              }}
+            />
+            <div className="absolute top-2 bottom-2 right-2 w-[300px] sm:w-[330px] bg-white/98 backdrop-blur-md text-stone-800 rounded-xl border border-stone-200 shadow-2xl z-30 flex flex-col overflow-hidden animate-in fade-in slide-in-from-right-3 duration-150">
             <div className="px-3.5 pt-3 pb-2.5 border-b border-stone-200 space-y-2.5 shrink-0 bg-stone-50/70">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-xs text-stone-900 tracking-tight">
@@ -887,155 +962,215 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
               </div>
             )}
           </div>
+        </>
         )}
 
-        {/* THẺ CÂU HỎI NGẮT TẠI 37:13 (CHUẨN HIỆU ỨNG BLU1606 - KHÔNG VIỀN VÀNG) */}
+        {/* THẺ CÂU HỎI NGẮT TẠI 37:13 (KHỚP 100% 4 ẢNH MOCKUP LIME SOFT - BỎ BLUR, PHỦ TỐI 35%, GỌN THẤY BẢNG PHẤN) */}
         {showFullQuizOverlay && (
-          <div className="absolute inset-0 z-40 bg-slate-950/60 backdrop-blur-[4px] flex flex-col justify-end p-3 sm:p-5 blu-checkpoint-scrim overflow-y-auto">
-            <div className="w-full max-w-3xl mx-auto bg-white/95 backdrop-blur-xl border border-slate-200/90 text-[#1E242B] rounded-[22px] p-4 sm:p-5 blu-checkpoint-card shadow-2xl shrink-0">
-              {/* Header của Thẻ Câu hỏi ngắt */}
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-3 mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full bg-[#0e7490] text-white font-bold text-xs flex items-center gap-1.5 shadow-xs">
-                    <BoltCheckpointIcon className="w-3.5 h-3.5 text-cyan-200" />
+          <div className="absolute inset-0 z-40 bg-black/35 flex flex-col justify-end p-3 sm:p-5 pointer-events-auto overflow-y-auto">
+            <div className="w-full max-w-3xl mx-auto bg-white border border-stone-200/90 text-[#121712] rounded-[24px] p-4 sm:p-5 shadow-2xl shrink-0 space-y-3.5 animate-in fade-in slide-in-from-bottom-3 duration-150">
+              
+              {/* Header của Thẻ */}
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-100 pb-2.5">
+                <div className="flex items-center gap-2.5">
+                  <span className="px-3.5 py-1.5 rounded-full bg-[#121712] text-[#C8F169] font-bold text-xs flex items-center gap-1.5 shadow-xs border border-[#121712]">
                     <span>
-                      {internalPhase === 'CHECKPOINT_REACHED' && `Điểm dừng tương tác · ${formatTime(lesson.checkpointTimestamp)}`}
-                      {internalPhase === 'BO_DEBATE' && 'Bo phản biện lựa chọn của bạn'}
-                      {(internalPhase === 'BO_CONCEDED' || internalPhase === 'CO_LAM_CLOSURE') && 'Cô Lam chốt quy tắc trọng tâm'}
+                      {effectivePhase === 'CHECKPOINT_REACHED' && 'Điểm dừng tương tác · 37:13'}
+                      {effectivePhase === 'BO_DEBATE' && 'Bo phản biện bạn'}
+                      {(effectivePhase === 'BO_CONCEDED' || effectivePhase === 'CO_LAM_CLOSURE') && 'Cô Lam chốt quy tắc trọng tâm'}
                     </span>
                   </span>
-                  <span className="hidden sm:inline-block text-[11px] font-semibold text-slate-500">
-                    Video đã tự động tạm dừng để cả lớp thảo luận
+                  <span className="text-xs font-medium text-stone-500">
+                    Video đã tạm dừng để cả lớp thảo luận
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                {/* Nút góc phải */}
+                {effectivePhase === 'CHECKPOINT_REACHED' ? (
+                  <button
+                    type="button"
+                    onClick={handleSkipToChat}
+                    className="px-4 py-1.5 rounded-full border border-stone-300 hover:border-stone-400 text-stone-800 text-xs font-bold cursor-pointer transition bg-white"
+                  >
+                    Bỏ qua
+                  </button>
+                ) : (
                   <button
                     type="button"
                     onClick={() => {
                       sound.playPencilTap();
                       onToggleCollapseQuiz?.(true);
                     }}
-                    className="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-cyan-50 border border-slate-200 hover:border-cyan-300 text-slate-700 hover:text-[#0e7490] font-semibold text-xs cursor-pointer flex items-center gap-1.5 transition-all"
+                    className="px-4 py-1.5 rounded-full border border-stone-300 hover:border-stone-400 text-stone-800 text-xs font-bold cursor-pointer transition bg-white"
                   >
-                    <CollapseToChatSvg className="w-3.5 h-3.5 text-[#0e7490]" />
-                    <span>Thu xuống chat · xem video</span>
+                    Thu xuống chat · xem video
                   </button>
-
-                  {internalPhase === 'CHECKPOINT_REACHED' && (
-                    <button
-                      type="button"
-                      onClick={handleSkipToChat}
-                      className="px-2 py-1 text-xs font-medium text-slate-500 hover:text-slate-800 underline cursor-pointer"
-                    >
-                      Bỏ qua
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
 
-              {/* Trạng thái 1: Hiển thị Câu hỏi & 3 Đáp án A, B, C */}
-              {internalPhase === 'CHECKPOINT_REACHED' && (
-                <div className="space-y-3">
-                  <p className="font-bold text-sm sm:text-[15px] text-slate-900 leading-relaxed">
-                    {cleanText(lesson.checkpointQuestion.prompt)}
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                    {lesson.checkpointQuestion.options.map((opt, idx) => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => handleSelectQuizOption(opt)}
-                        className="blu-option-btn p-3 rounded-2xl border border-slate-200/90 bg-white hover:bg-cyan-50/60 hover:border-[#0e7490] text-left text-xs font-medium cursor-pointer flex items-start gap-2.5 group"
-                      >
-                        <span className="w-6 h-6 rounded-lg bg-slate-100 group-hover:bg-[#0e7490] text-slate-700 group-hover:text-white font-mono font-bold text-xs flex items-center justify-center shrink-0 transition-colors">
-                          {idx === 0 ? 'A' : idx === 1 ? 'B' : 'C'}
-                        </span>
-                        <span className="leading-snug text-slate-800 group-hover:text-slate-950 font-medium">
-                          {cleanText(opt.label)}
-                        </span>
-                      </button>
-                    ))}
+              {/* TRẠNG THÁI 1: CÂU HỎI & 3 ĐÁP ÁN A, B, C (ĐỘNG THEO LESSON DATA) */}
+              {effectivePhase === 'CHECKPOINT_REACHED' && (
+                <div className="space-y-3.5">
+                  <h3 className="font-bold text-sm sm:text-[15px] text-[#121712] leading-snug m-0">
+                    <FormattedMathText text={cleanText(lesson.checkpointQuestion?.prompt || '')} />
+                  </h3>
+
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {lesson.checkpointQuestion?.options?.map((opt, idx) => {
+                      const letter = String.fromCharCode(65 + idx);
+                      const isSelected = (selectedQuizOptionId || lesson.checkpointQuestion.options[0]?.id) === opt.id;
+                      const cleanLabel = cleanText(opt.label);
+
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => {
+                            sound.playPencilTap();
+                            setSelectedQuizOptionId(opt.id);
+                          }}
+                          className={`w-full text-left p-3 sm:p-3.5 rounded-2xl text-xs font-medium cursor-pointer flex items-center gap-3 transition-colors ${
+                            isSelected
+                              ? 'bg-[#121712] text-white border border-[#121712] shadow-sm'
+                              : 'bg-white text-[#121712] border border-stone-200 hover:border-stone-400'
+                          }`}
+                        >
+                          <span
+                            className={`w-6 h-6 rounded-lg font-bold text-xs flex items-center justify-center shrink-0 ${
+                              isSelected
+                                ? 'bg-[#C8F169] text-[#121712]'
+                                : 'bg-stone-100 text-stone-700'
+                            }`}
+                          >
+                            {letter}
+                          </span>
+                          <span className="leading-snug flex-1">
+                            <FormattedMathText text={cleanLabel} />
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Thanh nút chân thẻ câu hỏi */}
+                  <div className="flex items-center justify-between pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playPencilTap();
+                        onToggleCollapseQuiz?.(true);
+                      }}
+                      className="px-4 py-2 rounded-full border border-stone-300 hover:border-stone-400 text-stone-800 text-xs font-bold cursor-pointer transition bg-white"
+                    >
+                      Thu xuống chat · xem video
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const chosen = lesson.checkpointQuestion?.options?.find(
+                          (o) => o.id === (selectedQuizOptionId || lesson.checkpointQuestion.options[0]?.id)
+                        ) || lesson.checkpointQuestion?.options?.[0];
+                        if (chosen) handleSelectQuizOption(chosen);
+                      }}
+                      className="px-5 py-2 rounded-full bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] font-bold text-xs cursor-pointer transition-all shadow-xs"
+                    >
+                      Xác nhận đáp án
+                    </button>
                   </div>
                 </div>
               )}
 
-              {/* Trạng thái 2: Bo nhảy ra cãi bướng & Học sinh chọn Sticker phản biện */}
-              {internalPhase === 'BO_DEBATE' && (
-                <div className="space-y-2.5 blu-checkpoint-scrim">
-                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-200/90">
-                    <BoCircleAvatar className="w-8 h-8 shrink-0 mt-0.5" />
-                    <div className="text-xs sm:text-[13px] text-slate-800 leading-relaxed">
-                      <span className="font-bold text-slate-900 mr-1.5">Bo cãi:</span>
-                      “{boDebateSpeech}”
-                    </div>
+              {/* TRẠNG THÁI 2: BO PHẢN BIỆN (ĐỘNG THEO LIVE DIALOGUE & LESSON DATA) */}
+              {effectivePhase === 'BO_DEBATE' && (
+                <div className="space-y-3">
+                  {/* Hộp thoại của Bo */}
+                  <div className="p-3 sm:p-3.5 rounded-2xl bg-[#F8FAF4] border border-[#E2EAD2] text-xs sm:text-[13px] text-stone-800 leading-relaxed">
+                    <span className="font-bold text-[#121712] mr-1.5">Bo cãi:</span>
+                    “<FormattedMathText text={boDebateSpeech} />”
                   </div>
 
+                  {/* Danh sách các phương án phản biện - cả dòng bấm được, viền rõ, không chip */}
                   <div className="grid grid-cols-1 gap-2">
-                    {lesson.rebuttalStickers.map((stk) => (
-                      <button
-                        key={stk.id}
-                        type="button"
-                        disabled={isLoadingAi}
-                        onClick={() => handleStickerClick(stk)}
-                        className="blu-option-btn w-full text-left px-3.5 py-2.5 rounded-xl bg-white hover:bg-cyan-50/70 border border-slate-200 hover:border-[#0e7490] text-xs font-medium text-slate-800 flex items-center justify-between gap-3 cursor-pointer"
-                      >
-                        <span className="flex items-center gap-2 leading-snug">
-                          <TagArgumentIcon className="w-4 h-4 text-[#0e7490] shrink-0" />
-                          <span>“{cleanText(stk.text)}”</span>
-                        </span>
-                        <span className="px-2.5 py-1 rounded-lg bg-cyan-50 text-[11px] font-bold text-[#0e7490] shrink-0">
-                          Phản biện ➔
-                        </span>
-                      </button>
-                    ))}
+                    {lesson.rebuttalStickers?.map((stk, idx) => {
+                      const isSelected = (selectedRebuttalStickerId || lesson.rebuttalStickers[0]?.id) === stk.id;
+                      const text = cleanText(stk.text);
+
+                      return (
+                        <button
+                          key={stk.id}
+                          type="button"
+                          onClick={() => {
+                            sound.playPencilTap();
+                            setSelectedRebuttalStickerId(stk.id);
+                          }}
+                          className={`w-full text-left p-3 rounded-xl text-xs font-medium cursor-pointer transition-all leading-relaxed ${
+                            isSelected
+                              ? 'bg-[#E2F79C] border-2 border-[#121712] text-[#121712]'
+                              : 'bg-white border border-stone-200 hover:border-stone-400 text-stone-800'
+                          }`}
+                        >
+                          <FormattedMathText text={text} />
+                        </button>
+                      );
+                    })}
                   </div>
 
-                  {rebuttalFeedback && (
-                    <div className="text-xs text-rose-600 font-medium px-1">
-                      {rebuttalFeedback}
-                    </div>
-                  )}
-
-                  <form onSubmit={handleCustomRebuttalSubmit} className="flex gap-2 pt-0.5">
+                  {/* Hàng gõ phản biện tự do & Nút Gửi phản biện cố định */}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (customRebuttal.trim()) {
+                        handleCustomRebuttalSubmit(e);
+                      } else {
+                        const chosenStk = lesson.rebuttalStickers?.find(
+                          (s) => s.id === (selectedRebuttalStickerId || lesson.rebuttalStickers[0]?.id)
+                        ) || lesson.rebuttalStickers?.[0];
+                        if (chosenStk) handleStickerClick(chosenStk);
+                      }
+                    }}
+                    className="flex items-center gap-2 pt-0.5"
+                  >
                     <input
                       type="text"
                       value={customRebuttal}
                       onChange={(e) => setCustomRebuttal(e.target.value)}
                       placeholder="Hoặc tự nhập lập luận toán học của bạn..."
-                      className="flex-1 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs outline-none focus:border-[#0e7490] focus:ring-1 focus:ring-[#0e7490]"
+                      className="flex-1 px-4 py-2.5 bg-white border border-stone-300 focus:border-[#121712] focus:ring-1 focus:ring-[#121712] rounded-full text-xs text-stone-900 placeholder:text-stone-400 outline-none transition-all shadow-xs"
                     />
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-[#0e7490] hover:bg-[#0891b2] text-white font-bold text-xs rounded-xl cursor-pointer transition-colors"
+                      className="px-6 py-2.5 bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] font-bold text-xs rounded-full cursor-pointer transition-all shadow-xs shrink-0"
                     >
-                      Gửi
+                      Gửi phản biện
                     </button>
                   </form>
                 </div>
               )}
 
-              {/* Trạng thái 3: Cô Lam đóng dấu chốt Quy tắc vàng & Phát tiếp */}
-              {(internalPhase === 'BO_CONCEDED' || internalPhase === 'CO_LAM_CLOSURE') && (
-                <div className="flex items-center justify-between gap-4 pt-1 blu-checkpoint-scrim">
-                  <div className="flex items-center gap-2.5">
-                    <RubberStampSuccess className="scale-75 shrink-0" />
-                    <span className="font-bold text-xs sm:text-sm text-[#0e7490] leading-snug">
-                      {cleanText(lesson.teacherClosure.goldenRule)}
-                    </span>
+              {/* TRẠNG THÁI 3: CÔ LAM CHỐT (ĐỘNG THEO LESSON DATA) */}
+              {(effectivePhase === 'BO_CONCEDED' || effectivePhase === 'CO_LAM_CLOSURE') && (
+                <div className="space-y-4 pt-1">
+                  <div className="text-sm sm:text-[14px] text-[#121712] leading-relaxed font-medium">
+                    <FormattedMathText text={cleanText(lesson.teacherClosure?.goldenRule || "Quy tắc vàng: Luôn thu gọn biểu thức bên trong thành 1 vectơ duy nhất trước khi tính độ dài!")} />
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleResumeAfterQuiz}
-                    className="px-4 py-2.5 bg-[#0e7490] hover:bg-[#0891b2] text-white font-bold text-xs rounded-xl cursor-pointer shrink-0 transition-all shadow-sm"
-                  >
-                    Tiếp tục bài giảng ➔
-                  </button>
+
+                  <div className="flex items-center justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={handleResumeAfterQuiz}
+                      className="px-5 py-2.5 bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] font-bold text-xs rounded-full cursor-pointer transition-all shadow-xs"
+                    >
+                      Tiếp tục bài giảng ➔
+                    </button>
+                  </div>
                 </div>
               )}
+
             </div>
           </div>
         )}
+
       </div>
 
 

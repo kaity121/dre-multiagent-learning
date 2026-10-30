@@ -11,7 +11,45 @@
  * 4. Gia sư nhí (Protégé Teaching): Học viên giảng lại cho Bo
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { DEMO_LESSON_SCHEMA, DEMO_REASONING_EVENTS, DEMO_INSPECTOR_TURNS } from './demo/demoLesson';
+import { InspectorTurn } from './types/reasoning';
+import { ResizableSplitter } from './components/layout/ResizableSplitter';
+import { DRELessonSchema } from './types/lesson';
+import { ReplaySource } from './services/reasoningSource';
+import { createSSEClient } from './services/sseClient';
+import { WarRoomPanel } from './components/warroom/WarRoomPanel';
+import { TimelineEditor } from './components/timeline/TimelineEditor';
+import { useLessonStore, lessonStore } from './store/lessonStore';
+import { mapReasoningEventsToInspectorTurns, mapBackendToReasoningEvent } from './services/reasoningAdapter';
+import mockReasoningEvents from '../mock/mock_reasoning_events.json';
+import mockLessonSchema from '../mock/lesson.json';
+
+const baseReplayEvents = ((mockReasoningEvents as any[]) || []).map(mapBackendToReasoningEvent);
+const lastReplayTs = baseReplayEvents.length > 0
+  ? baseReplayEvents[baseReplayEvents.length - 1].timestamp
+  : new Date('2026-10-26T09:00:35.000Z').getTime();
+
+const FULL_REPLAY_REASONING_EVENTS = [
+  ...baseReplayEvents,
+  {
+    id: 'ev_019_done',
+    timestamp: lastReplayTs + 1000,
+    agent: 'Assessor',
+    eventType: 'done' as const,
+    phase: 'bloom' as const,
+    content: 'Kết thúc phát lại fixture (18 sự kiện)',
+    metadata: { lesson: mockLessonSchema },
+    normalized: true as const,
+  },
+];
+import {
+  InspectorDrawer,
+} from './components/inspector/InspectorDrawer';
+import { ChevronDown, SlidersHorizontal, Activity, Clock, ArrowLeft, MoreHorizontal, Eye, Zap } from 'lucide-react';
+import { useShowcaseController } from './hooks/useShowcaseController';
+import { SPLIT_LENGTH_TRAP_OPTION_ID } from './types/showcase';
+import { ShowcaseHUD } from './components/showcase/ShowcaseHUD';
 import { 
   DREState, 
   LearnerLevel, 
@@ -29,11 +67,14 @@ import { VideoPlayerSheet } from './components/VideoPlayerSheet';
 import { VideoDebateSheet } from './components/VideoDebateSheet';
 import { AlternativeFlowsSheet } from './components/AlternativeFlowsSheet';
 import { PauseModal } from './components/PauseModal';
+import { adaptLessonToPlayer, hasCheckpoint } from './utils/lessonAdapter';
 import { LessonSelectorDrawer } from './components/LessonSelectorDrawer';
 import { ScenarioPlayerBar } from './components/ScenarioPlayerBar';
 import { LearningFlowGuideModal } from './components/LearningFlowGuideModal';
 import { MaicPeerClassroomDock } from './components/MaicPeerClassroomDock';
 import { PreClassLobbyModal } from './components/PreClassLobbyModal';
+import { OnboardingModal } from './components/OnboardingModal';
+import { MultiAgentInspectorModal } from './components/MultiAgentInspectorModal';
 import dreLogoImg from './assets/dre-logo.png';
 import { sound } from './utils/soundEffects';
 import { 
@@ -59,14 +100,26 @@ import {
   checkBackendHealth, 
   startBackendSession, 
   submitBackendAnswer, 
-  submitBackendRebuttal 
+  submitBackendRebuttal,
+  dispatchRuntimeMessage
 } from './services/dreBackendApi';
 
 const cleanText = (str?: string) => (str ? str.replace(/\u20d7/g, '') : '');
 
 export default function App() {
   // Current active mode (Default to Trạm 1: Video Checkpoint & Bo phản biện)
-  const [currentMode, setCurrentMode] = useState<LearningMode>('video_clash');
+  const [currentMode, setCurrentMode] = useState<LearningMode>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search).get('station');
+      if (s === '1' || s === 'video_clash') return 'video_clash';
+      if (s === '2' || s === 'worksheet') return 'worksheet';
+      if (s === '3' || s === 'predict_poe') return 'predict_poe';
+      if (s === '4' || s === 'protege_teaching') return 'protege_teaching';
+      const sum = new URLSearchParams(window.location.search).get('summary');
+      if (sum) return 'protege_teaching';
+    }
+    return 'video_clash';
+  });
   const [reactionToast, setReactionToast] = useState<string | null>(null);
 
   const handleQuickReaction = (type: 'understood' | 'confused') => {
@@ -82,34 +135,248 @@ export default function App() {
   // Backend Multi-Agent AI States (Connected to dre-backend Express on port 3001)
   const [isBackendLive, setIsBackendLive] = useState<boolean>(false);
   const [backendSessionId, setBackendSessionId] = useState<string | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
+  sessionIdRef.current = backendSessionId;
   const [isLoadingAi, setIsLoadingAi] = useState<boolean>(false);
   const [liveBoDialogue, setLiveBoDialogue] = useState<string | null>(null);
   const [liveCoLamDialogue, setLiveCoLamDialogue] = useState<string | string[] | null>(null);
   const [liveHintDialogue, setLiveHintDialogue] = useState<string | null>(null);
 
   // Worksheet Mode States
-  const [selectedLevel, setSelectedLevel] = useState<LearnerLevel>(MISCONCEPTION_LIBRARY[0].level);
+  const [selectedLevel, setSelectedLevel] = useState<LearnerLevel>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      const lvl = s.get('level');
+      if (lvl === 'beginner' || lvl === 'intermediate' || lvl === 'advanced') return lvl;
+    }
+    return 'intermediate';
+  });
   const [currentLesson, setCurrentLesson] = useState<MisconceptionItem>(MISCONCEPTION_LIBRARY[0]);
-  const [currentState, setCurrentState] = useState<DREState>('IDLE');
-  const [selectedStep, setSelectedStep] = useState<number | null>(null);
+  const [currentState, setCurrentState] = useState<DREState>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search).get('state');
+      if (s === 'idle') return 'IDLE';
+      if (s === 'hint') return 'HINT';
+      if (s === 'challenge') return 'BO_CHALLENGE';
+      if (s === 'close') return 'CLOSE';
+      const p = new URLSearchParams(window.location.search).get('step');
+      if (p) return 'MARKED';
+    }
+    return 'IDLE';
+  });
+  const [selectedStep, setSelectedStep] = useState<number | null>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search).get('state');
+      if (s === 'idle') return null;
+      if (s === 'hint') return 1;
+      const p = new URLSearchParams(window.location.search).get('step');
+      if (p) return parseInt(p, 10);
+    }
+    return null;
+  });
   const [explanationText, setExplanationText] = useState<string>('');
   const [worksheetRebuttalText, setWorksheetRebuttalText] = useState<string>('');
   const [worksheetHintLevel, setWorksheetHintLevel] = useState<number>(0);
 
   // Video Mode States
   const [currentVideoLesson, setCurrentVideoLesson] = useState<VideoLessonItem>(VIDEO_LESSON_LIBRARY[0]);
-  const [videoPhase, setVideoPhase] = useState<VideoCheckpointPhase>('WATCHING');
-  const [videoCurrentTime, setVideoCurrentTime] = useState<number>(0);
+  const [videoPhase, setVideoPhase] = useState<VideoCheckpointPhase>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      const cp = s.get('checkpoint_phase');
+      if (cp === 'question') return 'CHECKPOINT_REACHED';
+      if (cp === 'bo_debate') return 'BO_DEBATE';
+      if (cp === 'co_lam') return 'BO_CONCEDED';
+      if (s.get('banner') === '1' || s.get('collapsed') === '1') return 'CHECKPOINT_REACHED';
+    }
+    return 'WATCHING';
+  });
+  const [videoCurrentTime, setVideoCurrentTime] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const t = new URLSearchParams(window.location.search).get('time');
+      if (t) return parseInt(t, 10);
+    }
+    return 0;
+  });
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
   const [currentPoeTopic, setCurrentPoeTopic] = useState<string>('Toán 12 · Biến thể Vectơ trong không gian (Thầy Nguyễn Phan Tiến)');
-  const [isQuizCollapsedToChat, setIsQuizCollapsedToChat] = useState<boolean>(false);
+  const [isQuizCollapsedToChat, setIsQuizCollapsedToChat] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      if (s.get('collapsed') === '1' || s.get('banner') === '1') return true;
+    }
+    return false;
+  });
   const [isQuizSkipped, setIsQuizSkipped] = useState<boolean>(false);
   const [savedSelectedOptionId, setSavedSelectedOptionId] = useState<string | null>(null);
   const [isChatExpanded, setIsChatExpanded] = useState<boolean>(false);
   const [externalQuestionTrigger, setExternalQuestionTrigger] = useState<{ id: number; text: string } | null>(null);
   const [chatFocusRequest, setChatFocusRequest] = useState<{ id: number; prefix: string } | null>(null);
-  const [showAllTimeline, setShowAllTimeline] = useState<boolean>(false);
+  const [showAllTimeline, setShowAllTimeline] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      if (s.get('all_chat') === '1' || s.get('timeline') === 'all') return true;
+    }
+    return false;
+  });
   const [isPoeCompleted, setIsPoeCompleted] = useState<boolean>(false);
+  const [isSoundEnabled, setIsSoundEnabled] = useState<boolean>(sound.getEnabled());
+
+  // Multi-Agent Studio Views (War Room, Timeline Editor, Inspector)
+  const [activeStudioView, setActiveStudioView] = useState<'classroom' | 'warroom' | 'editor'>(() => {
+    if (typeof window !== 'undefined') {
+      const v = new URLSearchParams(window.location.search).get('view');
+      if (v === 'editor' || v === 'warroom') return v;
+    }
+    return 'classroom';
+  });
+  const [isInternalMenuOpen, setIsInternalMenuOpen] = useState(false);
+  const [lessonStoreState] = useLessonStore();
+  const [currentLessonSchema, setCurrentLessonSchema] = useState<DRELessonSchema>(
+    () => lessonStoreState.currentLessonSchema || DEMO_LESSON_SCHEMA
+  );
+
+  // Tự động đồng bộ state từ store chung khi có cập nhật kịch bản đã duyệt
+  useEffect(() => {
+    if (lessonStoreState.currentLessonSchema) {
+      setCurrentLessonSchema(lessonStoreState.currentLessonSchema);
+    }
+    if (lessonStoreState.currentVideoLesson) {
+      setCurrentVideoLesson(lessonStoreState.currentVideoLesson);
+    }
+  }, [lessonStoreState.currentLessonSchema, lessonStoreState.currentVideoLesson]);
+  const [useLiveSSE, setUseLiveSSE] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      if (s.get('stream') === 'live' || s.get('sse') === '1') return true;
+    }
+    return false;
+  });
+
+  const activeReasoningSource = useMemo(() => {
+    if (useLiveSSE) {
+      return createSSEClient({
+        videoId: currentVideoLesson.id,
+        streamDelayMs: 25,
+      });
+    }
+    const isShowcase = typeof window !== 'undefined' && (new URLSearchParams(window.location.search).get('showcase') === '1');
+    return new ReplaySource(FULL_REPLAY_REASONING_EVENTS as any, isShowcase ? 6.0 : 1.0);
+  }, [useLiveSSE, currentVideoLesson.id]);
+  const [inspectorTurns, setInspectorTurns] = useState<InspectorTurn[]>(() => DEMO_INSPECTOR_TURNS);
+  const [activeTurnIndex, setActiveTurnIndex] = useState<number>(() => Math.max(0, DEMO_INSPECTOR_TURNS.length - 1));
+
+  // Tự động cập nhật activeTurnIndex theo lượt mới nhất khi có thêm turn tương tác
+  useEffect(() => {
+    if (inspectorTurns.length > 0) {
+      setActiveTurnIndex(inspectorTurns.length - 1);
+    }
+  }, [inspectorTurns.length]);
+
+  // Tự động map luồng sự kiện từ reasoning source sang inspector turns (Issue #16)
+  useEffect(() => {
+    const unsub = activeReasoningSource.subscribe(() => {
+      const history = activeReasoningSource.getHistory();
+      if (history && history.length > 0) {
+        const turns = mapReasoningEventsToInspectorTurns(history);
+        if (turns.length > 0) {
+          setInspectorTurns(turns);
+        }
+      }
+    });
+    return () => unsub();
+  }, [activeReasoningSource]);
+
+  // Kích thước co giãn tự do cho Trạm 1 (Mục B Layout Elasticity)
+  const [chatWidth, setChatWidth] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      const l = s.get('layout');
+      if (l === 'video_wide') return 280;
+      if (l === 'chat_wide') return 520;
+      if (l === 'default') return 380;
+      try {
+        const saved = localStorage.getItem('dre_station1_chat_width');
+        if (saved) return Math.max(280, Math.min(700, Number(saved)));
+      } catch (e) {}
+    }
+    return 380;
+  });
+
+  const [inspectorWidth, setInspectorWidth] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      const l = s.get('layout');
+      if (l === 'inspector_wide') return 480;
+      try {
+        const saved = localStorage.getItem('dre_station1_inspector_width');
+        if (saved) return Math.max(360, Math.min(600, Number(saved)));
+      } catch (e) {}
+    }
+    return 380;
+  });
+
+  const handleChatSplitterDelta = (deltaX: number) => {
+    setChatWidth((prev) => {
+      const next = Math.max(280, Math.min(700, prev - deltaX));
+      try {
+        localStorage.setItem('dre_station1_chat_width', String(next));
+      } catch (e) {}
+      return next;
+    });
+  };
+
+  const handleResetChatWidth = () => {
+    sound.playPencilTap();
+    const defaultW = isInspectorDrawerOpen ? 320 : 380;
+    setChatWidth(defaultW);
+    try {
+      localStorage.setItem('dre_station1_chat_width', String(defaultW));
+    } catch (e) {}
+  };
+
+  const handleInspectorSplitterDelta = (deltaX: number) => {
+    setInspectorWidth((prev) => {
+      const next = Math.max(360, Math.min(600, prev - deltaX));
+      try {
+        localStorage.setItem('dre_station1_inspector_width', String(next));
+      } catch (e) {}
+      return next;
+    });
+  };
+
+  const handleResetInspectorWidth = () => {
+    sound.playPencilTap();
+    setInspectorWidth(380);
+    try {
+      localStorage.setItem('dre_station1_inspector_width', '380');
+    } catch (e) {}
+  };
+  const [isInspectorDrawerOpen, setIsInspectorDrawerOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(window.location.search).get('inspector') === '1';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isInput = target && (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
+      );
+      if (isInput) return;
+
+      if (e.altKey && (e.key === 'i' || e.key === 'I')) {
+        e.preventDefault();
+        setIsInspectorDrawerOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleTriggerRaiseHand = () => {
     sound.playStampThud();
@@ -135,8 +402,21 @@ export default function App() {
 
   // Modals & Drawers
   const [isPauseOpen, setIsPauseOpen] = useState(false);
-  const [isLessonDrawerOpen, setIsLessonDrawerOpen] = useState(false);
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [isLessonDrawerOpen, setIsLessonDrawerOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      const l = s.get('lessons');
+      return l === '1' || l === 'bai9' || s.get('drawer') === 'lessons';
+    }
+    return false;
+  });
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      if (s.get('onboarding') === '1') return true;
+    }
+    return false;
+  });
   const [isAiInspectorOpen, setIsAiInspectorOpen] = useState(false);
   const [isFlowGuideOpen, setIsFlowGuideOpen] = useState(false);
   const [isChaptersDrawerOpen, setIsChaptersDrawerOpen] = useState(false);
@@ -200,11 +480,10 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
-      if (searchParams.get('skip_lobby') === '1') return true;
-      // Luôn hiển thị giao diện khảo sát / chọn học trước khi vào học theo yêu cầu
-      return false;
+      if (searchParams.get('lobby') === '1') return false;
+      return true;
     }
-    return false;
+    return true;
   });
   const [learnerProfile, setLearnerProfile] = useState<{ name: string; level: string } | null>(() => {
     if (typeof window !== 'undefined') {
@@ -249,15 +528,25 @@ export default function App() {
         if (saved.boSpeechOverride) setBoSpeechOverride(saved.boSpeechOverride);
         if (saved.tutorFeedbackOverride) setTutorFeedbackOverride(saved.tutorFeedbackOverride);
         if (saved.probeQuestionOverride) setProbeQuestionOverride(saved.probeQuestionOverride);
-        if (saved.currentMode) setCurrentMode(saved.currentMode);
+        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        const hasUrlStation = Boolean(urlParams?.get('station'));
+        if (!hasUrlStation && saved.currentMode) setCurrentMode(saved.currentMode);
         // Khi mới vào app hoặc tải lại trang: Luôn bắt đầu video ở mốc 0:00 chuẩn sư phạm (TC_01A)
         // để người học trải nghiệm bài giảng từ đầu, không bị nảy tin nhắn chat trước khi bấm phát video
-        setVideoCurrentTime(0);
-        setVideoPhase('WATCHING');
-        setIsVideoPlaying(false);
-        setIsQuizCollapsedToChat(false);
-        setIsQuizSkipped(false);
-        setSavedSelectedOptionId(null);
+        const hasUrlOverride = Boolean(
+          urlParams?.get('checkpoint_phase') ||
+          urlParams?.get('banner') ||
+          urlParams?.get('collapsed') ||
+          urlParams?.get('time')
+        );
+        if (!hasUrlOverride) {
+          setVideoCurrentTime(0);
+          setVideoPhase('WATCHING');
+          setIsVideoPlaying(false);
+          setIsQuizCollapsedToChat(false);
+          setIsQuizSkipped(false);
+          setSavedSelectedOptionId(null);
+        }
         if (saved.savedAt) setLastSavedTimestamp(saved.savedAt);
       }
     } catch (e) {
@@ -360,7 +649,7 @@ export default function App() {
         setVideoCurrentTime((prev) => {
           const next = prev + 1;
           // Trigger checkpoint stop
-          if (next >= currentVideoLesson.checkpointTimestamp && videoPhase === 'WATCHING') {
+          if (hasCheckpoint(currentVideoLesson) && next >= currentVideoLesson.checkpointTimestamp && videoPhase === 'WATCHING') {
             setIsVideoPlaying(false);
             setVideoPhase('CHECKPOINT_REACHED');
             return currentVideoLesson.checkpointTimestamp;
@@ -433,7 +722,10 @@ export default function App() {
     if (isBackendLive && !backendSessionId) {
       startBackendSession(currentLesson.id)
         .then((res) => {
-          if (res?.sessionId) setBackendSessionId(res.sessionId);
+          if (res?.sessionId) {
+            sessionIdRef.current = res.sessionId;
+            setBackendSessionId(res.sessionId);
+          }
         })
         .catch(() => {});
     }
@@ -583,11 +875,24 @@ export default function App() {
     setIsVideoPlaying(!isVideoPlaying);
   };
 
-  const handleSeekVideo = (time: number) => {
+  const handleSeekVideo = (time: number, isManualSeek: boolean = false) => {
     setVideoCurrentTime(time);
+    // Chỉ kích hoạt lại Checkpoint khi người dùng chủ động tua (manual seek) đến mốc checkpoint và chưa bị skip
+    // Tránh việc timer phát 400ms tick lại rơi vào [T-3, T+3] tự động mở lại sau khi vừa bấm Bỏ qua (Skip)
+    if (
+      isManualSeek &&
+      !isQuizSkipped &&
+      hasCheckpoint(currentVideoLesson) &&
+      Math.abs(time - currentVideoLesson.checkpointTimestamp) <= 3 &&
+      videoPhase === 'WATCHING'
+    ) {
+      handleJumpToCheckpoint();
+    }
   };
 
   const handleJumpToCheckpoint = () => {
+    // The teacher may have disabled every pause question; there is nothing to jump to.
+    if (!hasCheckpoint(currentVideoLesson)) return;
     sound.playStampThud();
     setIsChaptersDrawerOpen(false);
     setIsRaiseHandModalOpen(false);
@@ -615,6 +920,71 @@ export default function App() {
     setVideoPhase('STUDENT_FREEZE');
   };
 
+  const handleChatMessageProcessed = (chatInfo: { text: string; author: string; reply: any; second: number }) => {
+    const turnNumber = inspectorTurns.length + 1;
+    const rawAuthor = chatInfo.reply?.author || 'Trí';
+    const cleanAgent = rawAuthor.replace(/^(Bạn học|Trợ giảng|Cô|Thầy)\s*/i, '').trim() || 'Trí';
+    const isTa = rawAuthor.includes('Trợ giảng');
+    const isTeacher = rawAuthor.includes('Cô Lam');
+
+    const hasMeasuredDispatcher = Boolean(chatInfo.reply?.verdict);
+    const measuredVerdict = chatInfo.reply?.verdict;
+    const measuredConfidence = typeof measuredVerdict?.confidence === 'number'
+      ? measuredVerdict.confidence
+      : (typeof chatInfo.reply?.confidence === 'number' ? chatInfo.reply.confidence : undefined);
+    const measuredIntent = measuredVerdict?.detectedIntent || chatInfo.reply?.intent || (chatInfo.reply?.kbMatchedId ? `Truy vấn kiến thức (${chatInfo.reply.kbMatchedId})` : undefined);
+    const measuredAgent = measuredVerdict?.dispatchedAgent
+      ? (measuredVerdict.dispatchedAgent === 'colam' ? 'Cô Lam' : measuredVerdict.dispatchedAgent === 'bo' ? 'Bo' : measuredVerdict.dispatchedAgent === 'linhchi' ? 'Linh Chi' : measuredVerdict.dispatchedAgent === 'minhkhang' ? 'Minh Khang' : measuredVerdict.dispatchedAgent === 'an' ? 'An' : rawAuthor)
+      : rawAuthor;
+
+    const newTurn: InspectorTurn = {
+      turnId: `chat-turn-${Date.now()}`,
+      timestamp: Date.now(),
+      turnNumber,
+      timestampStr: `${Math.floor(chatInfo.second / 60)}:${(chatInfo.second % 60).toString().padStart(2, '0')}`,
+      agent: isTeacher ? 'Cô Lam' : isTa ? 'An' : cleanAgent,
+      dispatcher: {
+        intent: measuredIntent || 'Hỏi đáp lớp học',
+        selectedAgent: measuredAgent || cleanAgent,
+        confidence: measuredConfidence,
+        reason: measuredVerdict?.reasoning || `Học sinh trao đổi: "${chatInfo.text.slice(0, 80)}". Điều phối ${rawAuthor} giải đáp trực tiếp.`,
+        isEvaluated: typeof measuredConfidence === 'number',
+      },
+      contextView: {
+        visibleContext: [
+          `Tin nhắn học sinh: "${chatInfo.text}"`,
+          `Thời điểm bài giảng: ${Math.floor(chatInfo.second / 60)}:${(chatInfo.second % 60).toString().padStart(2, '0')}`,
+          chatInfo.reply?.kbMatchedId ? `Tri thức RAG: ${chatInfo.reply.kbMatchedId}` : 'Hỏi đáp tương tác đa tác tử',
+        ],
+        hiddenContext: [
+          'Kịch bản phân tầng trợ giúp',
+          'Lịch sử tương tác lớp học',
+        ],
+        isEvaluated: Boolean(chatInfo.reply?.kbMatchedId || chatInfo.reply?.ragContextUsed),
+        cognitiveMetrics: {
+          hesitationScore: typeof chatInfo.reply?.hesitationScore === 'number' ? chatInfo.reply.hesitationScore : undefined,
+          comprehensionScore: typeof chatInfo.reply?.comprehensionScore === 'number' ? chatInfo.reply.comprehensionScore : undefined,
+          misconceptionDetected: Boolean(chatInfo.reply?.kbMatchedId),
+          isEvaluated: typeof chatInfo.reply?.hesitationScore === 'number' || typeof chatInfo.reply?.comprehensionScore === 'number',
+        },
+      },
+      dialogue: chatInfo.reply?.text || '',
+      toolCalls: chatInfo.reply?.toolCalls || (chatInfo.reply?.toolCall ? [chatInfo.reply.toolCall] : []),
+      assessor: (chatInfo.reply?.assessment || chatInfo.reply?.assessor || chatInfo.reply?.bloomLevel !== undefined || chatInfo.reply?.hesitationScore !== undefined) ? {
+        matchedPoints: chatInfo.reply?.assessment?.matchedPoints || [],
+        missingPoints: chatInfo.reply?.assessment?.missingPoints || [],
+        bloomBefore: chatInfo.reply?.assessment?.bloomBefore,
+        bloomAfter: chatInfo.reply?.assessment?.bloomAfter,
+        bloomLevel: typeof chatInfo.reply?.bloomLevel === 'number' ? chatInfo.reply.bloomLevel : undefined,
+        hesitationScore: typeof chatInfo.reply?.hesitationScore === 'number' ? chatInfo.reply.hesitationScore : undefined,
+        hesitationLabel: typeof chatInfo.reply?.hesitationScore === 'number' ? (chatInfo.reply.hesitationScore < 0.3 ? 'thấp' : chatInfo.reply.hesitationScore < 0.7 ? 'trung bình' : 'cao') : undefined,
+        verdictLabel: chatInfo.reply?.assessment?.verdictLabel || 'Đã đánh giá',
+        isEvaluated: typeof chatInfo.reply?.bloomLevel === 'number' || typeof chatInfo.reply?.hesitationScore === 'number',
+      } : undefined,
+    };
+    setInspectorTurns((prev) => [...prev, newTurn]);
+  };
+
   const handleAnswerCheckpoint = async (optionLabel: string, optionId?: string) => {
     recordUserActivity();
     setLiveHintDialogue(null);
@@ -626,6 +996,101 @@ export default function App() {
       )?.id ||
       'opt_a';
     setSavedSelectedOptionId(resolvedId);
+
+    // Cập nhật lượt Soi não tác nhân tương ứng với câu trả lời thực tế của học sinh (P1 Fix)
+    const turnNumber = inspectorTurns.length + 1;
+    // Identify the misconception by stable option id, never by label text
+    // (the correct option's label also contains "BC").
+    const isOptionB = resolvedId === SPLIT_LENGTH_TRAP_OPTION_ID;
+    const newAnswerTurn: InspectorTurn = {
+      turnId: `live-ans-${Date.now()}`,
+      timestamp: Date.now(),
+      turnNumber,
+      timestampStr: '37:13',
+      agent: 'Bo',
+      dispatcher: {
+        intent: 'Phản biện lỗi nhận thức vectơ',
+        selectedAgent: 'Bo',
+        confidence: undefined,
+        reason: `Học sinh đã chọn phương án "${optionLabel}". Kích hoạt phản biện trực tiếp để kiểm tra độ vững kiến thức.`,
+        isEvaluated: false,
+      },
+      contextView: {
+        visibleContext: [
+          `Câu trả lời của học sinh: ${optionLabel}`,
+          'Phân đoạn bài giảng: Ví dụ 3 - Hình lập phương ABCD.A\'B\'C\'D\'',
+          'Độ dài các cạnh bằng 1',
+        ],
+        hiddenContext: [
+          'Công thức chuẩn Cô Lam chuẩn bị chốt: Tuyệt đối không tách |a + b| = |a| + |b|',
+          'Đáp án bài kiểm tra định kỳ liên quan',
+        ],
+        boardSnippet: "|BC + DD'| = ?",
+        teacherSpeech: 'Cộng độ dài DD\' đấy bằng là 1 + 1 bằng...',
+        ragKnowledge: 'Quy tắc hình hộp & cộng vectơ trong không gian',
+      },
+      thought: `Học sinh đã chọn "${optionLabel}". Mình cần phản biện ngay lập luận này xem bạn có nắm chắc bản chất vectơ hay không!`,
+      speech: currentVideoLesson.boArgument?.speech || 'Ủa sao cậu phải đổi DD\' thành CC\' chi cho cực vậy?! Tớ thấy cứ tách ra là xong!',
+      assessor: {
+        matchedPoints: [
+          'Tương tác kịp thời tại điểm dừng 37:13',
+          'Đưa ra câu trả lời rõ ràng dứt khoát',
+        ],
+        missingPoints: isOptionB
+          ? ['Đang ngộ nhận tách độ dài |a + b| = |a| + |b|']
+          : ['Cần giải thích lý do thế vectơ DD\' = CC\''],
+        bloomBefore: undefined,
+        bloomAfter: undefined,
+        bloomLevel: undefined,
+        hesitationScore: undefined,
+        hesitationLabel: undefined,
+        verdictLabel: 'Kích hoạt tranh luận',
+        matchedSummary: isOptionB ? 'Phát hiện ngộ nhận tách độ dài' : 'Khớp phương án đúng, kích hoạt phản biện kiểm chứng',
+        isEvaluated: false,
+      },
+    };
+    setInspectorTurns((prev) => [...prev, newAnswerTurn]);
+    if (isBackendLive) {
+      dispatchRuntimeMessage({
+        message: `Học sinh chọn đáp án ${optionLabel}`,
+        currentTime: 2233,
+        recipient: 'bo',
+        lessonTitle: currentVideoLesson.title,
+        useLLM: false,
+      }).then((res) => {
+        if (res && res.ok && res.verdict) {
+          setInspectorTurns((prev) =>
+            prev.map((t) =>
+              t.turnId === newAnswerTurn.turnId
+                ? {
+                    ...t,
+                    dispatcher: {
+                      intent: res.verdict.detectedIntent || (res as any).intent || t.dispatcher?.intent || 'Phản biện lỗi nhận thức vectơ',
+                      selectedAgent: res.verdict.dispatchedAgent === 'bo' ? 'Bo' : res.verdict.dispatchedAgent === 'colam' ? 'Cô Lam' : res.verdict.dispatchedAgent === 'linhchi' ? 'Linh Chi' : res.verdict.dispatchedAgent === 'minhkhang' ? 'Minh Khang' : res.verdict.dispatchedAgent === 'an' ? 'An' : ((res as any).selectedAgent || t.dispatcher?.selectedAgent || '—'),
+                      confidence: typeof res.verdict.confidence === 'number' ? res.verdict.confidence : (typeof (res as any).confidence === 'number' ? (res as any).confidence : undefined),
+                      reason: res.verdict.reasoning || t.dispatcher?.reason || '',
+                      isEvaluated: typeof res.verdict.confidence === 'number' || typeof (res as any).confidence === 'number',
+                    },
+                    contextView: {
+                      ...t.contextView!,
+                      isEvaluated: Boolean(res.ragContextUsed),
+                      ragKnowledge: res.ragContextUsed
+                        ? `RAG [${res.ragContextUsed.misconceptionId}]: ${res.ragContextUsed.correction}`
+                        : t.contextView?.ragKnowledge,
+                    },
+                    assessor: t.assessor ? {
+                      ...t.assessor,
+                      isEvaluated: typeof (res as any).bloomLevel === 'number' || typeof (res as any).hesitationScore === 'number',
+                      bloomLevel: typeof (res as any).bloomLevel === 'number' ? (res as any).bloomLevel : undefined,
+                      hesitationScore: typeof (res as any).hesitationScore === 'number' ? (res as any).hesitationScore : undefined,
+                    } : undefined,
+                  }
+                : t
+            )
+          );
+        }
+      }).catch((e) => console.warn('[App] dispatch answer error:', e));
+    }
 
     // Đối với bài 1.1 Thầy Tiến (VID_VECTO_12): Luồng phản biện sư phạm đã được đóng gói chuẩn xác 100%
     if (currentVideoLesson.id === 'VID_VECTO_12') {
@@ -644,6 +1109,7 @@ export default function App() {
           const sessRes = await startBackendSession(miscId);
           if (sessRes) {
             currentSess = sessRes.sessionId;
+            sessionIdRef.current = currentSess;
             setBackendSessionId(currentSess);
           }
         }
@@ -671,6 +1137,108 @@ export default function App() {
   const handleSubmitRebuttal = async (rebuttalText: string, isEffective: boolean) => {
     recordUserActivity();
 
+    // Ghi nhận lượt Soi não tác nhân khi học sinh phản biện thành công (P1 Fix)
+    const liveTurnId = isEffective ? `live-reb-${Date.now()}` : '';
+    if (isEffective) {
+      const rebuttalTurnNumber = inspectorTurns.length + 1;
+      const newRebuttalTurn: InspectorTurn = {
+        turnId: liveTurnId,
+        timestamp: Date.now(),
+        turnNumber: rebuttalTurnNumber,
+        timestampStr: '37:13',
+        agent: 'Cô Lam',
+        dispatcher: {
+          intent: 'Chốt quy tắc vàng & Tổng kết sư phạm',
+          selectedAgent: 'Cô Lam',
+          confidence: undefined,
+          reason: 'Học sinh đã phản biện thành công lập luận sai của Bo. Cô Lam xuất hiện để chuẩn hóa kiến thức.',
+          isEvaluated: false,
+        },
+        contextView: {
+          visibleContext: [
+            'Đề bài Ví dụ 3 câu a',
+            "Biểu thức vectơ BC + DD'",
+            'Quy tắc thế vectơ nối tiếp BC + CC\' = BC\'',
+          ],
+          hiddenContext: [
+            'Nội dung phân đoạn tiếp theo: Quy tắc hình hộp chữ nhật',
+          ],
+          boardSnippet: "|BC + CC'| = |BC'| = √2",
+          teacherSpeech: 'Tuyệt đối không tách độ dài tổng thành tổng độ dài!',
+          ragKnowledge: 'Định lý Pytago tam giác vuông và quy tắc cộng vectơ',
+        },
+        thought: 'Học sinh nắm rất vững bản chất hình học và không bị Bo làm lung lay. Cần khen ngợi và chốt ngay quy tắc vàng!',
+        speech: currentVideoLesson.teacherClosure?.goldenRule || 'Quy tắc vàng: Tuyệt đối không tách |a + b| = |a| + |b|.',
+        assessor: {
+          matchedPoints: [
+            'Giải thích được việc thế DD\' = CC\' để nối tiếp',
+            'Tính đúng độ dài đường chéo bằng căn bậc hai của 2',
+            'Bác bỏ hoàn toàn ngộ nhận tách độ dài của Bo',
+          ],
+          missingPoints: [],
+          bloomBefore: undefined,
+          bloomAfter: undefined,
+          bloomLevel: undefined,
+          hesitationScore: undefined,
+          hesitationLabel: undefined,
+          verdictLabel: 'Phản biện sắc bén',
+          matchedSummary: 'Đạt 3/3 ý cần có',
+          isEvaluated: false,
+        },
+      };
+      setInspectorTurns((prev) => [...prev, newRebuttalTurn]);
+    }
+    if (isBackendLive) {
+      dispatchRuntimeMessage({
+        message: rebuttalText,
+        currentTime: 2233,
+        recipient: 'all',
+        lessonTitle: currentVideoLesson.title,
+        useLLM: false,
+      }).then((res) => {
+        if (res && res.ok && res.verdict) {
+          if (res.primaryResponse?.text && isEffective) {
+            setLiveBoDialogue(res.primaryResponse.text);
+          }
+          if (res.followUpResponse?.text && isEffective) {
+            setLiveCoLamDialogue(res.followUpResponse.text);
+          }
+          if (isEffective && liveTurnId) {
+            setInspectorTurns((prev) =>
+              prev.map((t) =>
+                t.turnId === liveTurnId
+                  ? {
+                      ...t,
+                      dispatcher: {
+                        intent: res.verdict.detectedIntent || 'Chốt quy tắc vàng & Tổng kết sư phạm',
+                        selectedAgent: res.verdict.dispatchedAgent === 'colam' ? 'Cô Lam' : res.verdict.dispatchedAgent === 'bo' ? 'Bo' : (res.verdict.dispatchedAgent || '—'),
+                        confidence: typeof res.verdict.confidence === 'number' ? res.verdict.confidence : undefined,
+                        reason: res.verdict.reasoning || '',
+                        isEvaluated: typeof res.verdict.confidence === 'number',
+                      },
+                      thought: res.primaryResponse?.text
+                        ? `Tác nhân đã phân tích: "${res.verdict.reasoning}"`
+                        : t.thought,
+                      speech: res.followUpResponse?.text || res.primaryResponse?.text || t.speech,
+                      contextView: {
+                        visibleContext: t.contextView?.visibleContext || [],
+                        hiddenContext: t.contextView?.hiddenContext || [],
+                        boardSnippet: t.contextView?.boardSnippet || "|BC + CC'| = √2",
+                        teacherSpeech: t.contextView?.teacherSpeech,
+                        hiddenItem: t.contextView?.hiddenItem,
+                        ragKnowledge: res.ragContextUsed
+                          ? `RAG [${res.ragContextUsed.misconceptionId}]: ${res.ragContextUsed.correction}`
+                          : t.contextView?.ragKnowledge,
+                      },
+                    }
+                  : t
+              )
+            );
+          }
+        }
+      }).catch((e) => console.warn('[App] dispatch rebuttal error:', e));
+    }
+
     // Đối với bài 1.1 Thầy Tiến (VID_VECTO_12): Chốt quy tắc vàng ngay khi phản biện đúng
     if (currentVideoLesson.id === 'VID_VECTO_12') {
       if (isEffective) {
@@ -684,10 +1252,11 @@ export default function App() {
       return;
     }
 
-    if (isBackendLive && backendSessionId) {
+    const activeSess = sessionIdRef.current || backendSessionId;
+    if (isBackendLive && activeSess) {
       setIsLoadingAi(true);
       try {
-        const rebRes = await submitBackendRebuttal(backendSessionId, rebuttalText);
+        const rebRes = await submitBackendRebuttal(activeSess, rebuttalText);
         if (rebRes) {
           if (rebRes.danhGiaPhanBien === 'sac_ben' || rebRes.done) {
             if (rebRes.boDialogue) setLiveBoDialogue(rebRes.boDialogue);
@@ -732,6 +1301,19 @@ export default function App() {
     setLiveCoLamDialogue(null);
     setLiveHintDialogue(null);
   };
+
+  // 1-Click Automated Showcase Controller (Issue #17)
+  const showcase = useShowcaseController({
+    setCurrentMode,
+    setActiveStudioView,
+    handleJumpToCheckpoint,
+    handleAnswerCheckpoint,
+    handleSubmitRebuttal,
+    setIsInspectorDrawerOpen,
+    currentVideoLesson,
+    playTabSound: () => sound.playTabSwitch(),
+    playSuccessSound: () => sound.playSuccessChime(),
+  });
 
   // TỰ ĐỘNG CHẠY LIÊN HOÀN 4 TRẠM (1 CHẠM DEMO TUẦN TỰ)
   const stopAutoWalk = () => {
@@ -820,70 +1402,35 @@ export default function App() {
     stationNumber: string;
     stageLabel: string;
     title: string;
-    color: string;
-    activeBg: string;
-    activeText: string;
-    activeBorder: string;
-    inactiveBg: string;
-    inactiveText: string;
-    inactiveBorder: string;
-    icon: React.ReactNode;
+    shortLabel: string;
   }[] = [
     {
       id: 'video_clash',
-      stationNumber: 'Trạm 1: Video & Bo cãi',
+      stationNumber: '1 · Video',
       stageLabel: 'Khởi động',
-      title: 'Video tương tác & Bo cãi bướng',
-      color: '#4E9B87',
-      activeBg: 'bg-[#1B4338]',
-      activeText: 'text-white',
-      activeBorder: 'border-[#1B4338]',
-      inactiveBg: 'bg-white',
-      inactiveText: 'text-stone-700',
-      inactiveBorder: 'border-stone-200',
-      icon: <VideoPlayIcon className="w-3.5 h-3.5" />,
+      title: 'Trạm 1: Video tương tác & Bo cãi bướng',
+      shortLabel: '1 · Video',
     },
     {
       id: 'worksheet',
-      stationNumber: 'Trạm 2: Sổ tay bắt lỗi',
+      stationNumber: '2 · Sổ tay',
       stageLabel: 'Luyện tập',
-      title: 'Sổ tay bắt lỗi bài giải của Bo',
-      color: '#1B4338',
-      activeBg: 'bg-[#1B4338]',
-      activeText: 'text-white',
-      activeBorder: 'border-[#1B4338]',
-      inactiveBg: 'bg-white',
-      inactiveText: 'text-stone-700',
-      inactiveBorder: 'border-stone-200',
-      icon: <PencilIcon className="w-3.5 h-3.5" />,
+      title: 'Trạm 2: Sổ tay bắt lỗi bài giải của Bo',
+      shortLabel: '2 · Sổ tay',
     },
     {
       id: 'predict_poe',
-      stationNumber: 'Trạm 3: Đoán kết quả (POE)',
+      stationNumber: '3 · Đoán',
       stageLabel: 'Thử thách',
-      title: 'Thử thách dự đoán POE',
-      color: '#1B4338',
-      activeBg: 'bg-[#1B4338]',
-      activeText: 'text-white',
-      activeBorder: 'border-[#1B4338]',
-      inactiveBg: 'bg-white',
-      inactiveText: 'text-stone-700',
-      inactiveBorder: 'border-stone-200',
-      icon: <SparkleIcon className="w-3.5 h-3.5" />,
+      title: 'Trạm 3: Thử thách dự đoán POE',
+      shortLabel: '3 · Đoán',
     },
     {
       id: 'protege_teaching',
-      stationNumber: 'Trạm 4: Dạy kèm Bo',
+      stationNumber: '4 · Dạy kèm',
       stageLabel: 'Làm chủ',
-      title: 'Gia sư dạy kèm Bo & Sáng tạo đề',
-      color: '#1B4338',
-      activeBg: 'bg-[#1B4338]',
-      activeText: 'text-white',
-      activeBorder: 'border-[#1B4338]',
-      inactiveBg: 'bg-white',
-      inactiveText: 'text-stone-700',
-      inactiveBorder: 'border-stone-200',
-      icon: <TeacherHatIcon className="w-3.5 h-3.5" />,
+      title: 'Trạm 4: Gia sư dạy kèm Bo & Sáng tạo đề',
+      shortLabel: '4 · Dạy kèm',
     },
   ];
 
@@ -933,7 +1480,7 @@ export default function App() {
         <div className="w-full bg-slate-900 text-white px-4 py-2 border-b border-cyan-500/40 shadow-lg flex items-center justify-between text-xs sticky top-0 z-40 animate-in slide-in-from-top-1 duration-150">
           <div className="flex items-center gap-2.5 max-w-5xl">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
-            <span className="px-2 py-0.5 rounded bg-cyan-600/60 border border-cyan-400/40 font-mono text-[11px] font-bold shrink-0">
+            <span className="px-2 py-0.5 rounded bg-cyan-600/60 border border-cyan-400/40 font-sans text-xs font-bold shrink-0">
               DEMO LIÊN HOÀN ({autoWalkStep}/6)
             </span>
             <span className="font-semibold text-slate-200 truncate">{autoWalkMessage}</span>
@@ -971,116 +1518,405 @@ export default function App() {
       )}
 
       {/* ====================================================================
-          KHÔNG GIAN HỌC TẬP EDTECH 4 TRẠM (ĐỒNG NHẤT 100% THEO INSPOS ẢNH 3)
+          KHÔNG GIAN HỌC TẬP EDTECH 4 TRẠM - LIME SOFT DESIGN SYSTEM
           ==================================================================== */}
-      <div className="min-h-screen bg-[#F4EFE6] text-stone-900 flex flex-col font-sans select-none">
-        {/* THANH HEADER CHUẨN KHỚP 100% ẢNH THAM CHIẾU FIGMA */}
-        <header className="w-full bg-[#F4EFE6] px-4 sm:px-6 pt-3 pb-2 sticky top-0 z-40">
-          <div className="w-full flex items-center justify-between gap-3 text-xs">
-            {/* CỤM TRÁI: Logo DRE góc trái trên cùng + Dải Station Pills */}
-            <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar">
-              {/* Logo web DRE (Đã tách nền trong suốt) */}
-              <div 
-                className="flex items-center shrink-0 pr-3 border-r border-stone-300/80 cursor-pointer"
-                onClick={() => {
-                  sound.playBubblePop();
-                  setCurrentMode('video_clash');
-                }}
-                title="DRE - Nền tảng học tập đối thoại đa tác nhân"
-              >
-                <img
-                  src={dreLogoImg}
-                  alt="DRE Logo"
-                  className="h-7 sm:h-7.5 w-auto object-contain hover:opacity-80 hover:scale-102 transition-all"
-                />
+      <div className="min-h-screen bg-[#F3F8E8] text-[#121712] flex flex-col font-sans select-none">
+        {/* THANH HEADER 2 TẦNG CHUẨN LIME SOFT - CÙNG MAX-WIDTH 7XL VỚI NỘI DUNG */}
+        <header className="w-full bg-white border-b border-[#E2EAD2] px-4 sm:px-6 py-3 sticky top-0 z-40 shadow-xs">
+          <div className="max-w-7xl mx-auto w-full">
+            {/* TẦNG 1: LOGO + CÔNG CỤ GIÁO VIÊN + CỤM TIỆN ÍCH */}
+            <div className="w-full flex items-center justify-between gap-4 pb-2.5 border-b border-stone-100">
+              {/* Cụm trái: Logo DRE */}
+              <div className="flex items-center gap-3.5">
+                <div 
+                  className="flex items-center shrink-0 cursor-pointer"
+                  onClick={() => {
+                    sound.playBubblePop();
+                    setActiveStudioView('classroom');
+                    setCurrentMode('worksheet');
+                  }}
+                  title="DRE - Nền tảng học tập đối thoại đa tác nhân"
+                >
+                  <img
+                    src={dreLogoImg}
+                    alt="DRE Logo"
+                    className="h-7 sm:h-8 w-auto object-contain hover:opacity-85 transition"
+                  />
+                </div>
               </div>
 
-              {LEARNING_STATIONS.map((station) => {
-                const isActive = currentMode === station.id;
-                return (
-                  <button
-                    key={station.id}
-                    type="button"
-                    onClick={() => {
-                      sound.playPageFlip();
-                      if (station.id !== 'video_clash') {
-                        setIsVideoPlaying(false);
-                      } else {
-                        // Khi bấm vào tab Trạm 1: nếu video trước đó đã ở cuối bài, reset về 0 để người học xem lại
-                        if (videoCurrentTime >= (currentVideoLesson.lectureEndSecond || 9503)) {
-                          setVideoCurrentTime(0);
-                          setVideoPhase('WATCHING');
-                        }
-                      }
-                      setCurrentMode(station.id);
-                    }}
-                    className={`h-8 px-3.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-2xs ${
-                      isActive
-                        ? 'bg-[#1B4338] text-white shadow-xs font-bold'
-                        : 'bg-white hover:bg-stone-50 border border-stone-200 text-stone-700'
-                    }`}
-                    title={station.title}
-                  >
-                    <span className="shrink-0">{station.icon}</span>
-                    <span>{station.stationNumber}</span>
-                  </button>
-                );
-              })}
+              {/* Cụm phải: Tiện ích có Tooltip rõ ràng (Ẩn nút học viên khi ở chế độ Giáo viên) */}
+              <div className="flex items-center gap-2 shrink-0">
+                {/* Nút Demo 1-Click (F2) (Issue #17) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (showcase.status === 'idle') {
+                      showcase.start();
+                    } else {
+                      showcase.stop();
+                    }
+                  }}
+                  className={`h-8 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 cursor-pointer transition shadow-2xs shrink-0 ${
+                    showcase.status !== 'idle'
+                      ? 'bg-[#121712] text-[#C8F169] border border-[#121712] ring-1 ring-[#C8F169]'
+                      : 'bg-[#C8F169] hover:bg-[#BCEB58] text-[#121712] border border-[#B5E350]'
+                  }`}
+                  title={showcase.status !== 'idle' ? 'Dừng Demo 1-Click (Phím tắt: F2 hoặc Esc)' : 'Bật Demo 1-Click 4 Trạm liên hoàn (Phím tắt: F2)'}
+                >
+                  <Zap className={`w-3.5 h-3.5 ${showcase.status !== 'idle' ? 'text-[#C8F169] fill-[#C8F169]' : 'text-[#121712] fill-[#121712]'}`} />
+                  <span className="hidden sm:inline">{showcase.status !== 'idle' ? 'Đang Demo (F2)' : 'Demo 1-Click (F2)'}</span>
+                  <span className="sm:hidden">F2</span>
+                </button>
+                {activeStudioView === 'editor' || activeStudioView === 'warroom' ? (
+                  <>
+                    {/* Nút Bật / Tắt Âm thanh */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = sound.toggle();
+                        setIsSoundEnabled(next);
+                      }}
+                      className={`h-8 px-3 rounded-full border text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition shadow-2xs ${
+                        isSoundEnabled
+                          ? 'bg-[#F3F8E8] text-[#121712] border-[#C8F169]'
+                          : 'bg-white text-stone-500 border-stone-200 hover:bg-stone-50'
+                      }`}
+                      title={isSoundEnabled ? 'Âm thanh: Đang bật (Nhấn để tắt)' : 'Âm thanh: Đang tắt (Nhấn để bật)'}
+                    >
+                      <span className={`w-2 h-2 rounded-full ${isSoundEnabled ? 'bg-[#16A34A] animate-pulse' : 'bg-stone-400'}`} />
+                      <span className="hidden sm:inline">{isSoundEnabled ? 'Âm thanh' : 'Tắt tiếng'}</span>
+                    </button>
+
+                    {/* Nút Quay lại lớp học */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playTabSwitch();
+                        setActiveStudioView('classroom');
+                      }}
+                      className="h-8 px-4 bg-[#121712] hover:bg-black text-white font-bold text-xs rounded-full shadow-2xs flex items-center gap-2 transition cursor-pointer"
+                      title="Quay lại giao diện lớp học học viên"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5 text-[#C8F169]" />
+                      <span>Quay lại lớp học</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {/* Nút Bật / Tắt Âm thanh */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = sound.toggle();
+                        setIsSoundEnabled(next);
+                      }}
+                      className={`h-8 px-3 rounded-full border text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition shadow-2xs ${
+                        isSoundEnabled
+                          ? 'bg-[#F3F8E8] text-[#121712] border-[#C8F169]'
+                          : 'bg-white text-stone-500 border-stone-200 hover:bg-stone-50'
+                      }`}
+                      title={isSoundEnabled ? 'Âm thanh: Đang bật (Nhấn để tắt)' : 'Âm thanh: Đang tắt (Nhấn để bật)'}
+                    >
+                      <span className={`w-2 h-2 rounded-full ${isSoundEnabled ? 'bg-[#16A34A] animate-pulse' : 'bg-stone-400'}`} />
+                      <span className="hidden sm:inline">{isSoundEnabled ? 'Âm thanh' : 'Tắt tiếng'}</span>
+                    </button>
+
+                    <MaicPeerClassroomDock
+                      currentMode={currentMode}
+                      currentState={currentState}
+                      lessonTopic={currentLesson.topic}
+                      errorStepIndex={currentLesson.errorStepIndex}
+                      peerContext={currentVideoLesson.peerContext}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => setIsLobbyOpen(true)}
+                      className="h-8 px-3 bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 font-semibold cursor-pointer text-xs rounded-full shadow-2xs flex items-center gap-1.5"
+                      title="Khảo sát trình độ người học"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                      <span>
+                        {learnerProfile?.level === 'new_learner'
+                          ? 'Mới học'
+                          : learnerProfile?.level === 'reviewing'
+                          ? 'Đang ôn'
+                          : 'Đã học'}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsLessonDrawerOpen(true)}
+                      className="h-8 px-3 bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 font-semibold cursor-pointer text-xs rounded-full shadow-2xs"
+                      title="Đổi bài học khác"
+                    >
+                      Đổi bài
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsPauseOpen(true)}
+                      className="h-8 px-3 bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 font-semibold cursor-pointer text-xs rounded-full shadow-2xs"
+                      title="Tạm dừng phiên học"
+                    >
+                      Tạm dừng
+                    </button>
+
+                    {/* Nút Soi não tác nhân (Alt + I) cho người demo */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playBubblePop();
+                        setIsInspectorDrawerOpen((prev) => !prev);
+                      }}
+                      className={`h-8 px-3.5 rounded-full text-xs font-bold flex items-center gap-2 cursor-pointer transition shadow-2xs shrink-0 whitespace-nowrap ${
+                        isInspectorDrawerOpen
+                          ? 'bg-[#121712] text-[#C8F169] border border-[#121712] ring-1 ring-[#C8F169]'
+                          : 'bg-[#121712] hover:bg-black text-white border border-[#121712]'
+                      }`}
+                      title="Soi não tác nhân (Phím tắt: Alt + I)"
+                    >
+                      <Eye className="w-4 h-4 text-[#C8F169] shrink-0" />
+                      <span className="text-white font-bold tracking-tight whitespace-nowrap inline-block">Soi não</span>
+                      <span className="px-2 py-0.5 bg-[#263126] text-[#C8F169] text-xs font-sans font-bold rounded-full border border-[#3B4D3B] whitespace-nowrap inline-block">
+                        Alt + I
+                      </span>
+                    </button>
+
+                    {/* Menu 3 chấm góc dành cho Công cụ Giáo viên & Kỹ thuật nội bộ */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setIsInternalMenuOpen((prev) => !prev)}
+                        className={`h-8 w-8 rounded-full border text-xs font-semibold flex items-center justify-center transition cursor-pointer shadow-2xs ${
+                          isInternalMenuOpen
+                            ? 'bg-[#121712] text-white border-[#121712]'
+                            : 'bg-white hover:bg-stone-50 text-stone-700 border-stone-200'
+                        }`}
+                        title="Công cụ giáo viên & kỹ thuật nội bộ"
+                      >
+                        <MoreHorizontal className="w-4 h-4 text-inherit" />
+                      </button>
+
+                      {isInternalMenuOpen && (
+                        <>
+                          <div 
+                            className="fixed inset-0 z-40" 
+                            onClick={() => setIsInternalMenuOpen(false)} 
+                          />
+                          <div className="absolute right-0 mt-1.5 w-64 bg-white rounded-2xl shadow-xl border border-[#E2EAD2] py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
+                            <div className="px-3.5 py-1 text-[11px] font-bold text-stone-400 uppercase tracking-wider border-b border-stone-100 mb-1">
+                              Công cụ giáo viên &amp; nội bộ
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                sound.playTabSwitch();
+                                setActiveStudioView('editor');
+                                setIsInternalMenuOpen(false);
+                              }}
+                              className="w-full text-left px-3.5 py-2.5 text-xs flex items-center gap-2.5 transition hover:bg-stone-50 cursor-pointer text-stone-700 font-semibold"
+                            >
+                              <Clock className="w-3.5 h-3.5 text-stone-600 shrink-0" />
+                              <span>Timeline Editor (Giáo viên)</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                sound.playTabSwitch();
+                                setActiveStudioView('warroom');
+                                setIsInternalMenuOpen(false);
+                              }}
+                              className="w-full text-left px-3.5 py-2.5 text-xs flex items-center gap-2.5 transition hover:bg-stone-50 cursor-pointer text-stone-700 font-semibold"
+                            >
+                              <Activity className="w-3.5 h-3.5 text-stone-600 shrink-0" />
+                              <span>Phòng điều hành (War Room)</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                sound.playBubblePop();
+                                setIsInspectorDrawerOpen(true);
+                                setIsInternalMenuOpen(false);
+                              }}
+                              className="w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition hover:bg-stone-50 cursor-pointer text-stone-700 font-semibold"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                                <span>Thanh tra lượt thoại (Inspector)</span>
+                              </div>
+                              <kbd className="px-1.5 py-0.5 text-xs bg-stone-100 rounded text-stone-600 font-sans font-bold">Alt+I</kbd>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                sound.playBubblePop();
+                                setIsAiInspectorOpen(true);
+                                setIsInternalMenuOpen(false);
+                              }}
+                              className="w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition hover:bg-stone-50 cursor-pointer text-stone-700 font-semibold"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                                <span>Soi não Agent &amp; Context Snapshot (#402)</span>
+                              </div>
+                              <kbd className="px-1.5 py-0.5 text-xs bg-stone-100 rounded text-stone-600 font-sans font-bold">#402</kbd>
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
 
-            {/* CỤM PHẢI: Sổ tay & Hỏi riêng 4 bạn + Đổi bài + Tạm dừng + Khảo sát chọn học/ôn */}
-            <div className="flex items-center gap-2 shrink-0">
-              <MaicPeerClassroomDock
-                currentMode={currentMode}
-                currentState={currentState}
-                lessonTopic={currentLesson.topic}
-                errorStepIndex={currentLesson.errorStepIndex}
-                peerContext={currentVideoLesson.peerContext}
-              />
+            {/* TẦNG 2: STEPPER 4 TRẠM HOẶC GÓC NHÌN GIÁO VIÊN / NỘI BỘ */}
+            {activeStudioView === 'editor' ? (
+              <div className="pt-2.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="px-3.5 py-1 rounded-full text-xs font-bold bg-[#121712] text-white flex items-center gap-1.5 shadow-2xs border border-[#121712]">
+                    <span className="w-2 h-2 rounded-full bg-[#C8F169] animate-pulse" />
+                    <span>Góc nhìn giáo viên</span>
+                  </span>
+                  <span className="text-xs text-stone-700 font-medium hidden sm:inline">
+                    Biên tập dòng thời gian bài giảng · Thiết lập câu hỏi dừng & kịch bản sư phạm
+                  </span>
+                </div>
+                <div className="text-xs font-sans font-bold text-[#121712] bg-white px-3.5 py-1 rounded-full border border-stone-300 shadow-2xs">
+                  Chế độ thiết kế giáo án
+                </div>
+              </div>
+            ) : activeStudioView === 'warroom' ? (
+              <div className="pt-2.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="px-3.5 py-1 rounded-full text-xs font-bold bg-[#121712] text-white flex items-center gap-1.5 shadow-2xs border border-[#121712]">
+                    <span className="w-2 h-2 rounded-full bg-[#C8F169] animate-pulse" />
+                    <span>Góc nhìn nội bộ</span>
+                  </span>
+                  <span className="text-xs text-stone-700 font-medium hidden sm:inline">
+                    Theo dõi quy trình 4 pha suy luận · Phản biện chéo giữa Trí, Bo và An
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="pt-2.5 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+                <div className="flex items-center gap-2">
+                  {LEARNING_STATIONS.map((station) => {
+                    const isActive = activeStudioView === 'classroom' && currentMode === station.id;
+                    const isCompleted =
+                      (station.id === 'video_clash' && (videoPhase === 'BO_CONCEDED' || isPoeCompleted)) ||
+                      (station.id === 'worksheet' && currentState === 'CLOSE') ||
+                      (station.id === 'predict_poe' && isPoeCompleted);
+                    return (
+                      <button
+                        key={station.id}
+                        type="button"
+                        onClick={() => {
+                          sound.playTabSwitch();
+                          setActiveStudioView('classroom');
+                          if (station.id !== 'video_clash') {
+                            setIsVideoPlaying(false);
+                          }
+                          setCurrentMode(station.id);
+                        }}
+                        className={`h-9 px-4 rounded-full text-xs sm:text-sm font-bold flex items-center gap-2 transition cursor-pointer shrink-0 ${
+                          isActive
+                            ? 'bg-[#121712] text-white shadow-xs ring-2 ring-[#C8F169]'
+                            : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-200'
+                        }`}
+                        title={station.title}
+                      >
+                        {isCompleted && (
+                          <CheckCircleIcon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#C8F169]' : 'text-emerald-600'}`} />
+                        )}
+                        <span>{station.stationNumber}</span>
+                      </button>
+                    );
+                  })}
+                </div>
 
-              <button
-                type="button"
-                onClick={() => setIsLobbyOpen(true)}
-                className="h-8 px-3 bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 font-semibold cursor-pointer text-xs rounded-xl shadow-2xs flex items-center gap-1.5"
-                title="Khảo sát trình độ & Chọn chế độ học (Mới học / Đã học / Đang ôn luyện)"
-              >
-                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                <span>
-                  {learnerProfile?.level === 'new_learner'
-                    ? 'Mới học'
-                    : learnerProfile?.level === 'reviewing'
-                    ? 'Đang ôn'
-                    : 'Đã học'}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsLessonDrawerOpen(true)}
-                className="h-8 px-3 bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 font-semibold cursor-pointer text-xs rounded-xl shadow-2xs"
-              >
-                Đổi bài
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsPauseOpen(true)}
-                className="h-8 px-3 bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 font-semibold cursor-pointer text-xs rounded-xl shadow-2xs"
-              >
-                Tạm dừng
-              </button>
-            </div>
+                <div className="text-xs text-stone-600 font-medium hidden md:block">
+                  {currentMode === 'worksheet'
+                    ? 'Trạm 2: Chẩn đoán & Bắt lỗi bài giải Bo'
+                    : currentMode === 'video_clash'
+                    ? 'Trạm 1: Xem video & Phản biện bẫy trực giác'
+                    : currentMode === 'predict_poe'
+                    ? 'Trạm 3: Dự đoán & Đối chiếu thực nghiệm 3D'
+                    : 'Trạm 4: Gia sư nhí dạy kèm Bo'}
+                </div>
+              </div>
+            )}
           </div>
         </header>
 
-        {/* MAIN WORKSPACE: CARD CONTAINER BO TRÒN TRẮNG TRÊN NỀN CÁT ẤM ÁP */}
-        <main className="flex-1 w-full px-3 sm:px-5 pt-1 pb-2 flex flex-col">
-          <div className="w-full bg-white rounded-3xl border border-stone-200/90 p-3 sm:p-4 shadow-sm flex-1 flex flex-col min-h-0">
-            {/* TRẠM 1: VIDEO BÀI GIẢNG & THẢO LUẬN LỚP HỌC (2 CỘT CÂN ĐỐI KHỚP ẢNH 3) */}
+        {/* VIEW 1: WAR ROOM VIEW */}
+        {activeStudioView === 'warroom' && (
+          <main className="flex-1 w-full px-3 sm:px-6 py-6 max-w-7xl mx-auto flex flex-col space-y-4">
+            <WarRoomPanel
+              source={activeReasoningSource}
+              autoPlayReplay={showcase.status === 'running'}
+              isLiveStream={useLiveSSE}
+              onToggleStreamMode={() => {
+                sound.playPencilTap();
+                setUseLiveSSE((prev) => !prev);
+              }}
+              defaultCollapsed={false}
+              onTransferDraftToTimeline={(draftLesson) => {
+                sound.playTabSwitch();
+                if (draftLesson) {
+                  setCurrentLessonSchema(draftLesson);
+                  lessonStore.setDraft(draftLesson);
+                } else {
+                  lessonStore.setDraft(currentLessonSchema);
+                }
+                setActiveStudioView('editor');
+              }}
+            />
+          </main>
+        )}
+
+        {/* VIEW 2: TIMELINE EDITOR VIEW */}
+        {activeStudioView === 'editor' && (
+          <main className="flex-1 w-full px-3 sm:px-6 py-6 max-w-7xl mx-auto flex flex-col space-y-6">
+            <TimelineEditor
+              initialLesson={currentLessonSchema}
+              onSeekVideo={(s) => {
+                sound.playPencilTap();
+                setActiveStudioView('classroom');
+                setCurrentMode('video_clash');
+                handleSeekVideo(s);
+              }}
+              onApproveSuccess={(approved) => {
+                sound.playSuccessChime();
+                setCurrentLessonSchema(approved);
+                // Dong bo ngay lap tuc sang Classroom Video Player (P1 Fix)
+                const updatedVideoLesson = adaptLessonToPlayer(approved);
+                setCurrentVideoLesson((prev) => ({
+                  ...prev,
+                  title: approved.title || prev.title,
+                  duration: (approved as any).video_duration_s || updatedVideoLesson.duration || prev.duration,
+                  checkpointTimestamp: updatedVideoLesson.checkpointTimestamp ?? prev.checkpointTimestamp,
+                  checkpointQuestion: updatedVideoLesson.checkpointQuestion || prev.checkpointQuestion,
+                  boArgument: updatedVideoLesson.boArgument || prev.boArgument,
+                  rebuttalStickers: updatedVideoLesson.rebuttalStickers || prev.rebuttalStickers,
+                  teacherClosure: updatedVideoLesson.teacherClosure || prev.teacherClosure,
+                }));
+              }}
+            />
+          </main>
+        )}
+
+        {/* VIEW 3: CLASSROOM 4 STATIONS (TRẠM 1 ĐẾN 4) */}
+        {activeStudioView === 'classroom' && (
+          <main className={`flex-1 w-full ${isInspectorDrawerOpen ? 'max-w-[1920px]' : 'max-w-7xl'} mx-auto px-2 sm:px-3.5 2xl:px-6 py-3.5 sm:py-4 flex flex-col overflow-x-hidden transition-all duration-300`}>
+            {/* TRẠM 1: VIDEO BÀI GIẢNG & THẢO LUẬN LỚP HỌC (3 CỘT CÂN ĐỐI, VỪA KHÍT 1280 & 1366 KHÔNG TRÀN NGANG) */}
             {currentMode === 'video_clash' && (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch flex-1 min-h-0">
-                {/* CỘT TRÁI: VIDEO PLAYER & THANH ĐIỀU KHIỂN (8/12 hoặc 6/12 khi mở rộng chat) */}
-                <div className={`${isChatExpanded ? 'lg:col-span-6' : 'lg:col-span-8'} flex flex-col space-y-2.5 transition-all duration-300`}>
+              <div className="flex flex-col lg:flex-row gap-2.5 2xl:gap-4 items-start flex-1 min-h-0 w-full">
+                {/* CỘT TRÁI: VIDEO PLAYER & THANH ĐIỀU KHIỂN (CỐ ĐỊNH VỊ TRÍ, KHÔNG BỊ TRÔI) */}
+                <div className="flex-1 min-w-[440px] sm:min-w-[480px] 2xl:min-w-[560px] flex flex-col space-y-3.5 transition-all duration-300 lg:sticky lg:top-16">
                   <VideoPlayerSheet
                     lesson={currentVideoLesson}
                     phase={videoPhase}
@@ -1134,13 +1970,13 @@ export default function App() {
                   )}
 
                   {/* THANH ĐIỀU KHIỂN DƯỚI VIDEO (CHUẨN 100% THEO CODE CŨ & ẢNH 2) */}
-                  <div className="bg-white border border-stone-200/90 rounded-2xl p-2 sm:p-2.5 flex items-center justify-between gap-2 shadow-2xs text-xs overflow-x-auto no-scrollbar flex-nowrap whitespace-nowrap">
+                  <div className="bg-white border border-stone-200/90 rounded-2xl p-2 sm:p-2.5 flex flex-wrap items-center justify-between gap-2 shadow-2xs text-xs">
                     {/* Cụm trái: Menu Phân cảnh & Đổi link */}
-                    <div className="flex items-center gap-1.5 min-w-0 shrink-0 flex-nowrap">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <button
                         type="button"
                         onClick={() => setIsChaptersDrawerOpen(prev => !prev)}
-                        className="h-8 px-2.5 sm:px-3 rounded-xl bg-white hover:bg-stone-50 text-stone-700 font-semibold border border-stone-200 flex items-center gap-1.5 max-w-[150px] sm:max-w-[210px] truncate cursor-pointer transition-all shadow-2xs shrink-0"
+                        className="h-8 px-2.5 sm:px-3 rounded-xl bg-white hover:bg-stone-50 text-stone-700 font-semibold border border-stone-200 flex items-center gap-1.5 max-w-[130px] sm:max-w-[170px] truncate cursor-pointer transition-all shadow-2xs shrink-0"
                         title="Xem Phân cảnh & Bản chép lời bài giảng"
                       >
                         <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 text-stone-500 shrink-0">
@@ -1172,7 +2008,7 @@ export default function App() {
                     </div>
 
                     {/* Cụm phải: Combo phản xạ [Đã hiểu | Chưa rõ] + Câu hỏi dừng 37:13 + Giơ tay */}
-                    <div className="flex items-center gap-1.5 shrink-0 flex-nowrap">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       {/* COMBO PILL: [👍 Đã hiểu | ❓ Chưa rõ] */}
                       <div className="h-8 px-1 rounded-xl bg-white border border-stone-200 flex items-center shadow-2xs shrink-0">
                         <button
@@ -1202,14 +2038,14 @@ export default function App() {
                         </button>
                       </div>
 
-                      {/* Nút Câu hỏi dừng (Khớp ảnh 2: nền xanh đậm sang trọng) */}
+                      {/* Nút Câu hỏi dừng */}
                       <button
                         type="button"
                         onClick={() => {
                           setIsQuizCollapsedToChat(false);
                           handleJumpToCheckpoint();
                         }}
-                        className="h-8 px-3 rounded-xl bg-[#1B4338] hover:bg-[#143830] text-white font-bold flex items-center cursor-pointer shadow-xs transition-all shrink-0 text-xs"
+                        className="h-8 px-3.5 rounded-xl bg-[#121712] hover:bg-stone-800 text-white font-bold flex items-center cursor-pointer shadow-xs transition-all shrink-0 text-xs"
                         title="Nhảy tới mốc câu hỏi dừng"
                       >
                         <span>Câu hỏi dừng</span>
@@ -1221,45 +2057,173 @@ export default function App() {
                         onClick={handleTriggerRaiseHand}
                         className={`h-8 px-2.5 sm:px-3 rounded-xl font-bold flex items-center gap-1.5 cursor-pointer border transition-colors shrink-0 shadow-2xs ${
                           isRaiseHandModalOpen
-                            ? 'bg-[#1B4338] text-white border-[#1B4338]'
-                            : 'bg-white hover:bg-stone-50 text-stone-800 border-stone-200'
+                            ? 'bg-[#121712] text-white border-[#121712]'
+                            : 'bg-white hover:bg-stone-50 text-[#121712] border-stone-200'
                         }`}
                         title="Giơ tay hỏi thầy và bạn"
                       >
-                        <svg viewBox="0 0 24 24" fill="none" className={`w-3.5 h-3.5 shrink-0 ${isRaiseHandModalOpen ? 'text-amber-300' : 'text-amber-600'}`}>
+                        <svg viewBox="0 0 24 24" fill="none" className={`w-3.5 h-3.5 shrink-0 ${isRaiseHandModalOpen ? 'text-[#C8F169]' : 'text-stone-700'}`}>
                           <path d="M12 4V13M8 6V13M16 8V13M4 11V14C4 18.4183 7.58172 22 12 22C16.4183 22 20 18.4183 20 14V10C20 8.89543 19.1046 8 18 8C16.8954 8 16 8.89543 16 10M4 11C4 9.89543 4.89543 9 6 9C7.10457 9 8 9.89543 8 11M8 6C8 4.89543 8.89543 4 10 4C11.1046 4 12 4.89543 12 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                         </svg>
                         <span>Giơ tay</span>
                       </button>
                     </div>
                   </div>
+
+                  {/* TIẾN TRÌNH BÀI GIẢNG & GHI CHÚ SƯ PHẠM (LẤP ĐẦY NỬA DƯỚI CỘT TRÁI) */}
+                  <div className="bg-white border border-[#E2EAD2] rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E2EAD2] pb-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#121712] shrink-0" />
+                        <span className="font-bold text-sm text-[#121712] truncate">
+                          Tiến trình bài giảng &amp; Điểm dừng tương tác
+                        </span>
+                      </div>
+                      <span className="text-xs font-semibold text-stone-600 bg-[#F3F8E8] px-2.5 py-0.5 rounded-full border border-[#E2EAD2] shrink-0 ml-auto">
+                        Thầy Nguyễn Phan Tiến · 1h 38m
+                      </span>
+                    </div>
+
+                    {/* Dải tiến độ 4 mốc thời gian (2 cột trên màn nhỏ/1366, 4 cột trên 1920) */}
+                    <div className="grid grid-cols-2 2xl:grid-cols-4 gap-2 sm:gap-2.5">
+                      {[
+                        { time: '00:00', title: 'Khởi động', desc: 'Định nghĩa & Giá vectơ', active: videoCurrentTime < 1260 },
+                        { time: '21:00', title: 'Quy tắc hình', desc: 'Ba điểm & Bình hành', active: videoCurrentTime >= 1260 && videoCurrentTime < 2233 },
+                        { time: '37:13', title: 'Câu hỏi dừng', desc: 'Bẫy độ dài |a+b|', active: videoCurrentTime >= 2233 && videoCurrentTime < 3990, isCheckpoint: true },
+                        { time: '1:06:30', title: 'Quy tắc thế', desc: 'Nhân vectơ với một số', active: videoCurrentTime >= 3990 }
+                      ].map((marker, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            sound.playPencilTap();
+                            if (marker.isCheckpoint) {
+                              setIsQuizCollapsedToChat(false);
+                              handleJumpToCheckpoint();
+                            } else if (marker.time === '00:00') {
+                              handleSeekVideo(0);
+                            } else if (marker.time === '21:00') {
+                              handleSeekVideo(1260);
+                            } else {
+                              handleSeekVideo(3990);
+                            }
+                          }}
+                          className={`p-3 rounded-2xl border text-left cursor-pointer transition-all space-y-1 ${
+                            marker.active
+                              ? 'bg-[#121712] text-white border-[#121712] shadow-xs ring-1 ring-[#121712]'
+                              : 'bg-[#F3F8E8] hover:bg-[#E2EAD2] border-[#E2EAD2] text-[#121712]'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-1 flex-nowrap">
+                            <span className={`font-sans font-bold text-xs tabular-nums shrink-0 ${marker.active ? 'text-[#C8F169]' : 'text-[#121712]'}`}>
+                              {marker.time}
+                            </span>
+                            {marker.isCheckpoint && (
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-bold shrink-0 whitespace-nowrap ${
+                                marker.active ? 'bg-[#C8F169] text-[#121712]' : 'bg-[#121712] text-[#C8F169]'
+                              }`}>
+                                Điểm dừng
+                              </span>
+                            )}
+                          </div>
+                          <div className={`font-bold text-xs ${marker.active ? 'text-white' : 'text-[#121712]'}`}>
+                            {marker.title}
+                          </div>
+                          <p className={`text-xs leading-snug ${marker.active ? 'text-stone-300' : 'text-stone-600'}`}>
+                            {marker.desc}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Thẻ ghi chú sư phạm Cô Lam */}
+                    <div className="p-3.5 rounded-2xl bg-[#F3F8E8] border border-[#E2EAD2] text-xs text-[#121712] leading-relaxed space-y-1">
+                      <span className="font-bold text-[#121712] block">
+                        Ghi chú trọng tâm từ Cô Lam:
+                      </span>
+                      <p className="text-stone-700">
+                        “Tại mốc 37:13, thầy Tiến đưa ra bài toán cộng hai vectơ không cùng gốc trong hình lập phương. Con hãy chú ý quan sát cách xác định hướng và điểm đặt của vectơ trước khi tính độ dài nhé!”
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                {/* CỘT PHẢI: THẢO LUẬN LỚP HỌC (4/12 hoặc 6/12 khi mở rộng chat) */}
-                <div 
-                  style={{ height: 'calc(100vh - 85px)', minHeight: '560px' }}
-                  className={`${isChatExpanded ? 'lg:col-span-6' : 'lg:col-span-4'} bg-white rounded-2xl border border-stone-200/90 overflow-visible flex flex-col shadow-2xs transition-all duration-300 relative group/chatcol`}
-                >
-                  {/* Thanh mở rộng / thu hẹp chat ở mép trái (Interactive Expand Handle Bar) */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      sound.playPencilTap();
-                      setIsChatExpanded((prev) => !prev);
-                    }}
-                    className="hidden lg:flex absolute -left-3.5 top-1/2 -translate-y-1/2 z-30 w-7 h-16 bg-white hover:bg-stone-50 border border-stone-300 rounded-full shadow-md items-center justify-center text-stone-600 hover:text-[#1B4338] transition-all cursor-pointer hover:scale-105 group"
-                    title={isChatExpanded ? 'Thu hẹp khung chat (về 33%)' : 'Thanh mở rộng khung chat (lên 50%)'}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 transition-transform group-hover:scale-110">
-                      {isChatExpanded ? (
-                        <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                      ) : (
-                        <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                      )}
-                    </svg>
-                  </button>
+                {/* THANH KÉO (SPLITTER 1) GIỮA VIDEO VÀ CHAT */}
+                <ResizableSplitter
+                  id="splitter-video-chat"
+                  label="Kéo đổi kích thước giữa Video và Thảo luận lớp"
+                  valueNow={chatWidth}
+                  valueMin={280}
+                  valueMax={700}
+                  onDelta={handleChatSplitterDelta}
+                  onReset={handleResetChatWidth}
+                  onStep={(step) => handleChatSplitterDelta(-step)}
+                />
 
-                  <div className="w-full h-full rounded-2xl overflow-hidden flex flex-col">
+                {/* CỘT GIỮA: THẢO LUẬN LỚP HỌC (CO GIÃN TỰ DO & NÚT PRESET) */}
+                <div 
+                  style={{
+                    height: 'calc(100vh - 120px)',
+                    minHeight: '480px',
+                    maxHeight: 'calc(100vh - 110px)',
+                    width: typeof window !== 'undefined' && window.innerWidth >= 1024 ? `${chatWidth}px` : undefined,
+                  }}
+                  className="w-full lg:w-auto shrink-0 bg-white rounded-3xl border border-[#E2EAD2] overflow-visible flex flex-col shadow-xs transition-all duration-150 relative group/chatcol"
+                >
+                  {/* NÚT PRESET KÍCH THƯỚC GỌN (VIDEO RỘNG / MẶC ĐỊNH / CHAT RỘNG) */}
+                  <div className="hidden lg:flex items-center justify-between px-3 py-1.5 bg-[#F8FAF4] border-b border-[#E2EAD2] rounded-t-3xl text-xs shrink-0 select-none">
+                    <span className="text-[11px] text-stone-500 font-bold uppercase tracking-wider">
+                      Bố cục cột ({chatWidth}px)
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          sound.playPencilTap();
+                          setChatWidth(280);
+                          try { localStorage.setItem('dre_station1_chat_width', '280'); } catch(e){}
+                        }}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition ${
+                          chatWidth <= 300
+                            ? 'bg-[#121712] text-[#C8F169]'
+                            : 'bg-white hover:bg-stone-200 text-stone-700 border border-stone-200'
+                        }`}
+                        title="Thu hẹp chat về tối thiểu (280px) để tối đa diện tích video"
+                      >
+                        Video rộng
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleResetChatWidth}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition ${
+                          chatWidth > 300 && chatWidth < 500
+                            ? 'bg-[#121712] text-[#C8F169]'
+                            : 'bg-white hover:bg-stone-200 text-stone-700 border border-stone-200'
+                        }`}
+                        title="Về kích thước mặc định (Nhấp đúp thanh kéo cũng có thể về mặc định)"
+                      >
+                        Mặc định
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          sound.playPencilTap();
+                          setChatWidth(520);
+                          try { localStorage.setItem('dre_station1_chat_width', '520'); } catch(e){}
+                        }}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition ${
+                          chatWidth >= 500
+                            ? 'bg-[#121712] text-[#C8F169]'
+                            : 'bg-white hover:bg-stone-200 text-stone-700 border border-stone-200'
+                        }`}
+                        title="Mở rộng khung chat (520px)"
+                      >
+                        Chat rộng
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="w-full h-full rounded-3xl overflow-hidden flex flex-col">
                     <VideoDebateSheet
                       lesson={currentVideoLesson}
                       phase={videoPhase}
@@ -1286,7 +2250,7 @@ export default function App() {
                     }}
                     externalQuestionTrigger={externalQuestionTrigger}
                     chatFocusRequest={chatFocusRequest}
-                    onSeekVideo={handleSeekVideo}
+                    onSeekVideo={(sec) => handleSeekVideo(sec, true)}
                     onAnswerCheckpoint={handleAnswerCheckpoint}
                     onSkipCheckpoint={handleSkipCheckpoint}
                     onSubmitRebuttal={handleSubmitRebuttal}
@@ -1301,68 +2265,108 @@ export default function App() {
                       setIsVideoPlaying(false);
                       setCurrentMode('worksheet');
                     }}
+                    onChatMessageProcessed={handleChatMessageProcessed}
                   />
-                  </div>
                 </div>
               </div>
-            )}
 
-            {/* TRẠM 2: SỔ TAY BẮT LỖI (2 CỘT CÂN ĐỐI) */}
+              {/* THANH KÉO (SPLITTER 2) GIỮA CHAT VÀ SOI NÃO (KHI SOI NÃO MỞ) */}
+              {isInspectorDrawerOpen && (
+                <ResizableSplitter
+                  id="splitter-chat-inspector"
+                  label="Kéo đổi kích thước giữa Thảo luận lớp và Soi não tác nhân"
+                  valueNow={inspectorWidth}
+                  valueMin={360}
+                  valueMax={600}
+                  onDelta={handleInspectorSplitterDelta}
+                  onReset={handleResetInspectorWidth}
+                  onStep={(step) => handleInspectorSplitterDelta(-step)}
+                />
+              )}
+
+              {/* CỘT PHẢI: SOI NÃO TÁC NHÂN (INSPECTOR DRAWER) */}
+              {isInspectorDrawerOpen && (
+                <div 
+                  style={{
+                    width: typeof window !== 'undefined' && window.innerWidth >= 1024 ? `${inspectorWidth}px` : undefined,
+                  }}
+                  className="w-full lg:w-auto shrink-0 transition-all duration-150 animate-in fade-in slide-in-from-right-4"
+                >
+                  <InspectorDrawer
+                    isOpen={isInspectorDrawerOpen}
+                    onClose={() => setIsInspectorDrawerOpen(false)}
+                    turns={inspectorTurns}
+                    activeTurnIndex={activeTurnIndex}
+                    isReplay={!useLiveSSE}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+            {/* TRẠM 2: SỔ TAY BẮT LỖI (2 CỘT CÂN ĐỐI, TỐI ĐA 2 TẦNG CARD) */}
             {currentMode === 'worksheet' && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-                <div className="bg-white">
-                  <WorkingObjectSheet
-                    lesson={currentLesson}
-                    currentState={currentState}
-                    selectedStep={selectedStep}
-                    onSelectStep={handleSelectStep}
-                    boSpeechOverride={boSpeechOverride}
-                  />
-                </div>
-                <div className="bg-white">
-                  <InteractionCardSheet
-                    lesson={currentLesson}
-                    currentState={currentState}
-                    selectedStep={selectedStep}
-                    onSelectStep={handleSelectStep}
-                    explanationText={explanationText}
-                    rebuttalText={worksheetRebuttalText}
-                    onExplanationChange={handleExplanationChange}
-                    onRebuttalChange={setWorksheetRebuttalText}
-                    onSubmitExplanation={handleSubmitExplanation}
-                    onSubmitRebuttal={handleSubmitWorksheetRebuttal}
-                    onRequestHint={handleRequestHint}
-                    onNextLesson={handleNextLesson}
-                    onRetryLesson={handleRetryLesson}
-                    onAcceptNudgeHint={() => {
-                      setExplanationText(prev => prev || currentLesson.nudgeStarter || '');
-                      setCurrentState('EXPLAIN_PROMPT');
-                    }}
-                    onDismissNudge={handleDismissNudge}
-                    tutorFeedbackOverride={tutorFeedbackOverride}
-                    probeQuestionOverride={probeQuestionOverride}
-                    boSpeechOverride={boSpeechOverride}
-                    isLoadingAi={isLoadingAi}
-                    hintLevel={worksheetHintLevel}
-                  />
-                </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start w-full">
+                <WorkingObjectSheet
+                  lesson={currentLesson}
+                  currentState={currentState}
+                  selectedStep={selectedStep}
+                  onSelectStep={handleSelectStep}
+                  boSpeechOverride={boSpeechOverride}
+                />
+                <InteractionCardSheet
+                  lesson={currentLesson}
+                  currentState={currentState}
+                  selectedStep={selectedStep}
+                  onSelectStep={handleSelectStep}
+                  explanationText={explanationText}
+                  rebuttalText={worksheetRebuttalText}
+                  onExplanationChange={handleExplanationChange}
+                  onRebuttalChange={setWorksheetRebuttalText}
+                  onSubmitExplanation={handleSubmitExplanation}
+                  onSubmitRebuttal={handleSubmitWorksheetRebuttal}
+                  onRequestHint={handleRequestHint}
+                  onNextLesson={handleNextLesson}
+                  onRetryLesson={handleRetryLesson}
+                  onSwitchToStation3={() => setCurrentMode('predict_poe')}
+                  onAcceptNudgeHint={() => {
+                    setExplanationText(prev => prev || currentLesson.nudgeStarter || '');
+                    setCurrentState('EXPLAIN_PROMPT');
+                  }}
+                  onDismissNudge={handleDismissNudge}
+                  tutorFeedbackOverride={tutorFeedbackOverride}
+                  probeQuestionOverride={probeQuestionOverride}
+                  boSpeechOverride={boSpeechOverride}
+                  isLoadingAi={isLoadingAi}
+                  hintLevel={worksheetHintLevel}
+                />
               </div>
             )}
 
-            {/* TRẠM 3 & TRẠM 4: POE & GIA SƯ NHÍ */}
+            {/* TRẠM 3 & TRẠM 4: POE & GIA SƯ NHÍ (KHÔNG KHUNG TRẮNG NGOÀI CÙNG) */}
             {(currentMode === 'predict_poe' || currentMode === 'protege_teaching') && (
-              <AlternativeFlowsSheet
-                mode={currentMode}
-                onSwitchMode={(mode) => setCurrentMode(mode)}
-                onPoeTopicChange={(topic) => setCurrentPoeTopic(topic)}
-                onPoeCompletedChange={(completed) => setIsPoeCompleted(completed)}
-              />
+              <div className="w-full flex-1 flex flex-col min-h-0">
+                <AlternativeFlowsSheet
+                  mode={currentMode}
+                  onSwitchMode={(mode) => setCurrentMode(mode)}
+                  onPoeTopicChange={(topic) => setCurrentPoeTopic(topic)}
+                  onPoeCompletedChange={(completed) => setIsPoeCompleted(completed)}
+                />
+              </div>
             )}
-          </div>
-        </main>
+          </main>
+        )}
       </div>
 
       {/* Global Modals & Drawers */}
+      <OnboardingModal
+        isOpen={isOnboardingOpen}
+        onClose={() => setIsOnboardingOpen(false)}
+        onStart={() => setIsOnboardingOpen(false)}
+        selectedLevel={selectedLevel}
+        onSelectLevel={setSelectedLevel}
+      />
+
       <LearningFlowGuideModal
         isOpen={isFlowGuideOpen}
         onClose={() => setIsFlowGuideOpen(false)}
@@ -1390,6 +2394,43 @@ export default function App() {
         onClose={() => setIsLessonDrawerOpen(false)}
         currentLessonId={currentLesson.id}
         onSelectLesson={handleSwitchLesson}
+      />
+
+      {/* Turn Inspector Drawer (#16) nếu mở ở các góc nhìn khác ngoài Trạm 1 */}
+      {isInspectorDrawerOpen && (activeStudioView !== 'classroom' || currentMode !== 'video_clash') && (
+        <div className="fixed top-20 right-4 z-50 w-full max-w-md shadow-2xl animate-in fade-in slide-in-from-right-4">
+          <InspectorDrawer
+            isOpen={isInspectorDrawerOpen}
+            onClose={() => setIsInspectorDrawerOpen(false)}
+            turns={inspectorTurns}
+            activeTurnIndex={activeTurnIndex}
+                    isReplay={!useLiveSSE}
+          />
+        </div>
+      )}
+      {/* 1-CLICK AUTOMATED SHOWCASE CONTROLLER HUD (ISSUE #17) */}
+      <ShowcaseHUD
+        status={showcase.status}
+        currentStep={showcase.currentStep}
+        currentStation={showcase.currentStation}
+        progressPercent={showcase.progressPercent}
+        remainingSeconds={showcase.remainingSeconds}
+        onTogglePause={showcase.togglePause}
+        onNextStation={showcase.nextStation}
+        onStop={showcase.stop}
+      />
+
+      {/* Multi-Agent Context Isolation Inspector Modal (#402) */}
+      <MultiAgentInspectorModal
+        isOpen={isAiInspectorOpen}
+        onClose={() => setIsAiInspectorOpen(false)}
+        isBackendLive={isBackendLive}
+        lastSessionId={backendSessionId}
+        lastBoSpeech={liveBoDialogue}
+        lastCoLamSpeech={Array.isArray(liveCoLamDialogue) ? liveCoLamDialogue.join(' ') : liveCoLamDialogue}
+        currentMode={currentMode}
+        currentVideoSecond={videoCurrentTime}
+        onSeekVideo={handleSeekVideo}
       />
     </>
   );

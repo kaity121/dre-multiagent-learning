@@ -29,7 +29,8 @@
 export type TrapRiskLevel = 'none' | 'low' | 'medium' | 'high';
 
 export interface VisualGeometryContext {
-  shapeType: 'cube' | 'cuboid' | 'tetrahedron' | 'plane' | 'general_3d';
+  /** `diagram` covers non-geometry visuals on slides (flowcharts, plots, cell diagrams). */
+  shapeType: 'cube' | 'cuboid' | 'tetrahedron' | 'plane' | 'general_3d' | 'diagram';
   vertices: string[];
   highlightedVectors: string[];
   actionDescription: string;
@@ -44,6 +45,8 @@ export interface CognitiveTimelineSegment {
   blackboardText: string;
   blackboardLatex: string[];
   spatialGeometry?: VisualGeometryContext;
+  /** Short description of a diagram, chart, process or code shown on the board/slide. */
+  diagramDescription?: string;
   trapRiskLevel: TrapRiskLevel;
   pedagogicalTags: string[];
 }
@@ -66,6 +69,8 @@ export interface CognitiveEventStream {
     sttModel?: string;
     visionModel?: string;
     processingLatencyMs?: number;
+    /** Set when live extraction failed and the authored fixture was served instead. */
+    fallbackReason?: string;
   };
   segments: CognitiveTimelineSegment[];
 }
@@ -106,6 +111,7 @@ export interface DeterministicToolCall {
     | 'tool_query_misconception_kb' 
     | 'tool_timeline_collision_checker' 
     | 'tool_evaluate_bloom_level'
+    | 'tool_calculate_dot_product'
     | 'tool_check_source_grounding';
   input: Record<string, any>;
   output: Record<string, any>;
@@ -151,6 +157,7 @@ export interface AgentCitation {
   source: 'video' | 'blackboard' | 'sgk' | 'slide';
   quote?: string;
   url?: string;
+  snippet?: string;
 }
 
 export interface AgentRuntimeContext {
@@ -175,6 +182,8 @@ export interface AgentRuntimeContext {
     currentBloomLevel: 'Remember' | 'Understand' | 'Apply' | 'Analyze' | 'Evaluate' | 'Create';
     activeMisconceptionId?: string;
   };
+  citations?: AgentCitation[];
+  metadata?: Record<string, any>;
 }
 
 // ----------------------------------------------------------------------------

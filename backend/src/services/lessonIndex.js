@@ -3,78 +3,35 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
- * Pre-indexed lessons (CognitiveEventStream) loaded from disk.
- * Supports:
- * 1. backend/src/data/lesson-index/*.json
- * 2. mock/*.json (as fallback for mock_cognitive_stream_vecto12 and mock_short_clip_sample)
+ * Pre-indexed lessons (CognitiveEventStream) loaded once from disk, so the classroom and the
+ * roundtable get a long lecture instantly and offline instead of extracting it live.
+ * Files are produced by `npx tsx scripts/build-lesson-index.ts`.
  */
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const REPO_ROOT = path.resolve(__dirname, '../../../');
-const INDEX_DIR = path.resolve(__dirname, '../data/lesson-index');
-const MOCK_DIR = path.resolve(REPO_ROOT, 'mock');
+const INDEX_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '../data/lesson-index');
 
-const lessons = new Map();
-
-function loadIndexFiles() {
-  lessons.clear();
-
-  // 1. Load from backend/src/data/lesson-index
-  if (fs.existsSync(INDEX_DIR)) {
-    const files = fs.readdirSync(INDEX_DIR).filter((f) => f.endsWith('.json'));
-    for (const f of files) {
-      try {
-        const stream = JSON.parse(fs.readFileSync(path.join(INDEX_DIR, f), 'utf8'));
-        if (stream && stream.videoId && Array.isArray(stream.segments)) {
-          stream.segments.sort((a, b) => (a.second || 0) - (b.second || 0));
-          lessons.set(stream.videoId, stream);
-        }
-      } catch (err) {
-        console.warn(`[LessonIndex] Error reading index file ${f}:`, err);
-      }
-    }
-  }
-
-  // 2. Load mock fallbacks if not already present
-  if (fs.existsSync(MOCK_DIR)) {
-    const mockFiles = ['mock_cognitive_stream_vecto12.json', 'mock_short_clip_sample.json'];
-    for (const mf of mockFiles) {
-      const fullPath = path.join(MOCK_DIR, mf);
-      if (fs.existsSync(fullPath)) {
-        try {
-          const stream = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
-          if (stream && stream.videoId && !lessons.has(stream.videoId) && Array.isArray(stream.segments)) {
-            stream.segments.sort((a, b) => (a.second || 0) - (b.second || 0));
-            lessons.set(stream.videoId, stream);
-          }
-        } catch (_) {}
-      }
-    }
-  }
-}
-
-// Initial load
-loadIndexFiles();
+const lessons = new Map(
+  fs
+    .readdirSync(INDEX_DIR)
+    .filter((f) => f.endsWith('.json'))
+    .map((f) => {
+      const stream = JSON.parse(fs.readFileSync(path.join(INDEX_DIR, f), 'utf8'));
+      stream.segments.sort((a, b) => a.second - b.second);
+      return [stream.videoId, stream];
+    }),
+);
 
 export function listLessons() {
-  loadIndexFiles();
   return [...lessons.values()].map(({ videoId, videoTitle, teacherName, subject, durationSeconds, segments }) => ({
     videoId,
     videoTitle,
     teacherName,
     subject,
     durationSeconds,
-    segmentCount: (segments || []).length,
+    segmentCount: segments.length,
   }));
 }
 
 export function getLessonIndex(videoId) {
-  if (!videoId) return null;
-  const direct = lessons.get(videoId);
-  if (direct) return direct;
-
-  // Reload once in case a new file was written
-  loadIndexFiles();
   return lessons.get(videoId) ?? null;
 }
 
@@ -96,13 +53,15 @@ function segmentIndexAt(segments, second) {
 }
 
 /**
- * What the board shows and what the teacher just said at `second`.
+ * What the board shows and what the teacher just said at `second`, for grounding an agent
+ * answer (context snapshot #12). `recentSpeech` lists segments that started within the
+ * last `windowS` seconds, always including the active one.
  */
 export function getBoardStateAt(videoId, second, windowS = 30) {
-  const stream = getLessonIndex(videoId);
+  const stream = lessons.get(videoId);
   if (!stream) return null;
 
-  const segments = stream.segments || [];
+  const { segments } = stream;
   const i = segmentIndexAt(segments, second);
   if (i === -1) return { second, segment: null, recentSpeech: [] };
 

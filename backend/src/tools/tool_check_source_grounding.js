@@ -1,5 +1,5 @@
 /**
- * backend/src/tools/tool_check_source_grounding.js
+ * tool_check_source_grounding.js
  *
  * AISDLC Issue #27: Trọng tài sự thật kiểm chứng phát biểu theo nguồn bài giảng (dùng cho mọi môn).
  * Xác thực xem một phát biểu (claim) có căn cứ trong bài giảng (CognitiveEventStream / lesson.json) hay không:
@@ -18,7 +18,6 @@ function normalizeText(str) {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[đĐ]/g, 'd')
     .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?'"\[\]+\\|]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -27,62 +26,23 @@ function normalizeText(str) {
 const STOP_WORDS = new Set([
   'la', 'va', 'cua', 'trong', 'co', 'cho', 'cac', 'ban', 'chung', 'ta', 'hom', 'nay',
   'thi', 'duoc', 'nhu', 'nao', 'o', 'tai', 'voi', 'de', 'do', 'nay', 'ay', 'rat',
-  'nhung', 'ma', 'neu', 'the', 'gi', 'sao', 'hoi', 'em', 'minh', 'toi', 'thay', 'co',
-  'mot', 'hai', 'ba', 'bon', 'nam', 'ra', 'vao', 'tren', 'duoi', 'qua', 'lai', 'nhieu'
+  'nhung', 'ma', 'neu', 'the', 'gi', 'sao', 'hoi', 'em', 'minh', 'toi', 'thay', 'co'
 ]);
 
 /**
- * Trả về danh sách từ khoá nội dung (bỏ stop words)
- */
-function getContentWords(normStr) {
-  if (!normStr) return [];
-  return normStr.split(' ').filter((w) => (w.length >= 2 || /\d/.test(w)) && !STOP_WORDS.has(w));
-}
-
-/**
- * Tính tỷ lệ trùng lặp từ khóa chính xác giữa query và target
+ * Kiểm tra xem các từ khóa quan trọng của query có xuất hiện trong target hay không
  */
 function computeOverlapScore(claimNorm, targetNorm) {
   if (!claimNorm || !targetNorm) return 0;
-  const contentWords = getContentWords(claimNorm);
+  const contentWords = claimNorm.split(' ').filter((w) => (w.length >= 2 || /\d/.test(w)) && !STOP_WORDS.has(w));
   if (contentWords.length === 0) return 0;
-  
-  const targetWords = new Set(targetNorm.split(' '));
   let matches = 0;
   for (const w of contentWords) {
-    if (targetWords.has(w)) matches++;
+    if (targetNorm.includes(w)) matches++;
   }
-  // Yêu cầu ít nhất 2 từ nội dung trùng hoặc toàn bộ nếu query rất ngắn
+  // Yêu cầu ít nhất 2 từ nội dung trùng hoặc toàn bộ nếu câu ngắn
   if (contentWords.length >= 2 && matches < 2) return 0;
   return matches / contentWords.length;
-}
-
-/**
- * Trích xuất chuỗi con (substring) có thực trong một chuỗi gốc (sourceText)
- */
-function extractBestSubstring(sourceText, claimNorm, maxLength = 160) {
-  if (!sourceText) return '';
-  if (sourceText.length <= maxLength) return sourceText;
-
-  // Tách câu theo dấu ngắt câu hoặc xuống dòng
-  const rawSentences = sourceText.split(/[\n.!?]+/).map(s => s.trim()).filter(Boolean);
-  let bestSentence = '';
-  let bestScore = -1;
-
-  for (const rawSentence of rawSentences) {
-    const sNorm = normalizeText(rawSentence);
-    const score = computeOverlapScore(claimNorm, sNorm);
-    if (score > bestScore) {
-      bestScore = score;
-      bestSentence = rawSentence;
-    }
-  }
-
-  if (bestSentence && sourceText.includes(bestSentence)) {
-    return bestSentence.slice(0, maxLength);
-  }
-
-  return sourceText.slice(0, maxLength);
 }
 
 /**
@@ -105,7 +65,7 @@ export function checkSourceGrounding(params = {}) {
     return {
       verdict: 'not_in_source',
       citations: [],
-      reason: 'Không có phát biểu để kiểm chứng (ngoài nội dung bài).',
+      reason: 'Không có phát biểu để kiểm chứng.',
       isValid: null,
     };
   }
@@ -115,7 +75,7 @@ export function checkSourceGrounding(params = {}) {
     return {
       verdict: 'not_in_source',
       citations: [],
-      reason: `Không tìm thấy dữ liệu bài giảng cho mã "${lessonId}" (ngoài nội dung bài).`,
+      reason: `Không tìm thấy dữ liệu bài giảng cho mã "${lessonId}".`,
       isValid: null,
     };
   }
@@ -134,7 +94,7 @@ export function checkSourceGrounding(params = {}) {
     // Ưu tiên đoạn quanh aroundSecond
     let recencyBonus = 0;
     if (aroundSecond !== null) {
-      const dist = Math.abs((seg.second || 0) - aroundSecond);
+      const dist = Math.abs(seg.second - aroundSecond);
       if (dist <= windowS) {
         recencyBonus = 0.25 * (1 - dist / windowS);
       }
@@ -152,82 +112,74 @@ export function checkSourceGrounding(params = {}) {
   scoredSegments.sort((a, b) => b.score - a.score);
   const topCandidate = scoredSegments[0];
 
-  // 2. Nếu độ trùng khớp quá thấp (< 0.2) -> Không tìm thấy trong bài giảng
-  if (!topCandidate || topCandidate.overlap < 0.2) {
+  // 2. Nếu độ trùng khớp quá thấp (< 0.30) -> Không tìm thấy trong bài giảng
+  if (!topCandidate || topCandidate.overlap < 0.30) {
     return {
       verdict: 'not_in_source',
       citations: [],
-      reason: 'Phát biểu này không được đề cập trong nguồn bài giảng hiện tại (ngoài nội dung bài).',
+      reason: 'Phát biểu này không được đề cập trong nguồn bài giảng hiện tại.',
       confidence: 0.9,
       isValid: null,
     };
   }
 
   const seg = topCandidate.segment;
+  const rawPool = topCandidate.textPool;
   const normPool = topCandidate.textNorm;
 
   let isContradicted = false;
   let reason = '';
   let citationQuote = '';
 
-  // Nhận diện phát biểu sai lầm / bẫy ngộ nhận (Toán Ví dụ 3)
-  const isMathSumTrap =
-    (claimNorm.includes('1 1 2') || claimNorm.includes('bang 2') || claimNorm.includes('2a')) &&
-    (normPool.includes('tuyet doi khong duoc tach') || normPool.includes('bc') || normPool.includes('dd'));
-
-  const isMathSplitTrap =
-    (claimNorm.includes('cong do dai') || claimNorm.includes('tach do dai')) &&
-    !claimNorm.includes('khong') &&
-    (normPool.includes('tuyet doi khong duoc tach') || normPool.includes('sai'));
-
-  // Nhận diện mâu thuẫn bài AI: Dữ liệu chưa gán nhãn được dùng cho Supervised
-  const isAISupervisedTrap =
-    (claimNorm.includes('chua gan nhan') || claimNorm.includes('chua nhan') || claimNorm.includes('khong nhan') || claimNorm.includes('khong can nhan')) &&
-    (claimNorm.includes('co the dung') || claimNorm.includes('dung de') || claimNorm.includes('huan luyen')) &&
-    normPool.includes('supervised') &&
-    (normPool.includes('khong the') || normPool.includes('canh bao sai lam'));
-
-  if (isMathSumTrap || isMathSplitTrap) {
-    isContradicted = true;
-    reason = 'Nguồn bài giảng khẳng định không được tách độ dài tổng thành tổng độ dài (Ví dụ 3). Phép tính bằng 2 là sai lầm.';
-    citationQuote =
-      seg.audioTranscript && seg.audioTranscript.includes('Tuyệt đối không được tách')
-        ? 'Tuyệt đối không được tách thành |BC| + |DD\'| bằng 1 + 1 = 2!'
-        : '';
-  } else if (isAISupervisedTrap) {
+  // Nhận diện phát biểu sai lầm / bẫy ngộ nhận trong môn Toán (Ví dụ 3):
+  if (
+    claimNorm.includes('1 1 2') ||
+    claimNorm.includes('bang 2') ||
+    (claimNorm.includes('cong do dai') && !claimNorm.includes('khong')) ||
+    (claimNorm.includes('tach do dai') && !claimNorm.includes('khong'))
+  ) {
+    if (normPool.includes('tuyet doi khong duoc tach') || normPool.includes('sai')) {
+      isContradicted = true;
+      reason = 'Nguồn bài giảng khẳng định không được tách độ dài tổng thành tổng độ dài (Ví dụ 3). Phép tính bằng 2 là sai.';
+      citationQuote =
+        seg.audioTranscript && seg.audioTranscript.includes('Tuyệt đối không được tách')
+          ? 'Tuyệt đối không được tách thành |BC| + |DD\'| bằng 1 + 1 = 2!'
+          : seg.blackboardText || seg.audioTranscript;
+    }
+  } else if (
+    (claimNorm.includes('khong can nhan') ||
+      claimNorm.includes('chua can nhan') ||
+      claimNorm.includes('khong can label') ||
+      claimNorm.includes('chua gan nhan van hoc duoc')) &&
+    normPool.includes('supervised')
+  ) {
+    // Phát biểu sai lầm trong môn AI: Cho rằng Supervised Learning không cần nhãn
     isContradicted = true;
     reason = 'Nguồn bài giảng cảnh báo sai lầm: Dữ liệu chưa gán nhãn KHÔNG THỂ dùng để huấn luyện Supervised Learning!';
     citationQuote =
       seg.blackboardText && seg.blackboardText.includes('KHÔNG THỂ')
         ? 'CẢNH BÁO SAI LẦM: Dữ liệu chưa gán nhãn KHÔNG THỂ dùng để huấn luyện Supervised Learning!'
-        : '';
+        : seg.audioTranscript || seg.blackboardText;
   } else {
+    // Trường hợp phát biểu khẳng định đúng nội dung kiến thức
     isContradicted = false;
     reason = 'Phát biểu phù hợp với nội dung lời giảng và bảng phấn của bài học.';
+    citationQuote = seg.audioTranscript || seg.blackboardText;
   }
 
-  // Đảm bảo citationQuote là chuỗi con (substring) có thực 100% trong audioTranscript hoặc blackboardText
-  const primarySourceText = (seg.audioTranscript && seg.audioTranscript.length > 20) 
-    ? seg.audioTranscript 
-    : (seg.blackboardText || seg.audioTranscript || '');
-
+  // Đảm bảo citationQuote là chuỗi con (substring) có thực trong nguồn bài giảng
   let finalQuote = citationQuote;
-  if (!finalQuote || (!primarySourceText.includes(finalQuote) && !seg.blackboardText?.includes(finalQuote))) {
-    finalQuote = extractBestSubstring(primarySourceText, claimNorm, 160);
-  }
-
-  // Fallback đảm bảo substring hợp lệ
-  if (!primarySourceText.includes(finalQuote) && (!seg.blackboardText || !seg.blackboardText.includes(finalQuote))) {
-    finalQuote = primarySourceText.slice(0, Math.min(primarySourceText.length, 120));
+  if (!rawPool.includes(finalQuote)) {
+    finalQuote = (seg.audioTranscript || seg.blackboardText || '').slice(0, 160);
   }
 
   const citations = [
     {
-      second: seg.second || 0,
-      sourceId: seg.id || `seg_${seg.second || 0}`,
-      timeFormatted: seg.timeFormatted || `${Math.floor((seg.second || 0) / 60)}:${((seg.second || 0) % 60).toString().padStart(2, '0')}`,
+      second: seg.second,
+      sourceId: seg.id,
+      timeFormatted: seg.timeFormatted,
       quote: finalQuote,
-      source: seg.blackboardText?.includes(finalQuote) ? 'blackboard' : 'video',
+      source: seg.blackboardText ? 'blackboard' : 'video',
     },
   ];
 

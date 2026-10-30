@@ -1,2 +1,11 @@
 node_modules/
 .env
+
+# Demo clips are fetched locally (scripts/fetch-demo-clip.sh); keep only their metadata in git
+assets/clips/*.mp4
+assets/clips/.cache/
+assets/clips/.work-*/
+
+# Roundtable run recordings are local evidence; keep only the directory placeholder
+src/data/runs/*.json
+!src/data/runs/.gitkeep

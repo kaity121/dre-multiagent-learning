@@ -471,6 +471,25 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
       author: 'Trí',
       role: 'classmate',
       text: '@Bo Cẩn thận mắc bẫy ở [37:13]! Hai vectơ vuông góc nhau không thể cộng đại số độ dài 1 + 1 = 2 được. Thầy Tiến đang dừng lại giải thích trên bảng kìa!',
+      citations: [
+        {
+          source: 'video',
+          label: 'Ví dụ 3 (37:13)',
+          snippet: "Độ dài |BC + DD'| = |BC + CC'| = |BC'| = √2",
+          timestamp: 2233,
+        },
+        {
+          source: 'blackboard',
+          label: 'Bảng phấn 37:13',
+          snippet: "|\\vec{BC} + \\vec{DD'}|",
+          timestamp: 2233,
+        },
+        {
+          source: 'sgk',
+          label: 'SGK Hình học 12',
+          snippet: 'Quy tắc tam giác & vectơ bằng nhau trong không gian',
+        },
+      ],
     },
     {
       id: 'c_19',
@@ -529,7 +548,7 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
 
   // Câu hỏi dừng đột ngột tại mốc 37:13 (Ví dụ 3 câu a)
   checkpointQuestion: {
-    prompt: "Tại [36:44], cho hình lập phương ABCD.A'B'C'D' có cạnh bằng 1. Độ dài của tổng hai vectơ |BC + DD'| bằng bao nhiêu và tính thế nào?",
+    prompt: "Cho hình lập phương ABCD.A'B'C'D' có cạnh bằng 1. Độ dài của tổng hai vectơ |BC + DD'| bằng bao nhiêu và tính thế nào?",
     options: [
       {
         id: 'opt_a',

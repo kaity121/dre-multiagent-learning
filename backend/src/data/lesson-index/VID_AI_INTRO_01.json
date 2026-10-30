@@ -31,9 +31,9 @@
       "id": "ai_seg_03",
       "second": 300,
       "timeFormatted": "05:00",
-      "audioTranscript": "Hiện tượng Quá khớp (Overfitting hay còn gọi là học vẹt): Mô hình ghi nhớ máy móc toàn bộ tập huấn luyện dẫn đến độ chính xác cao nhưng lại dự đoán sai trên dữ liệu thực tế. Để khắc phục, ta cần kỹ thuật Điều chuẩn (Regularization), Dừng sớm (Early Stopping) và kiểm thử chéo (Cross-Validation).",
+      "audioTranscript": "Hiện tượng Quá khớp (Overfitting hay còn gọi là học vẹt): Mô hình ghi nhớ máy móc toàn bộ tập huấn luyện dẫn đến độ chính xác cao nhưng lại dự đoán sai trên dữ liệu thực tế. Để khắc phục, ta cần kỹ thuật điều chuẩn (Regularization) và kiểm thử chéo (Cross-Validation).",
       "speaker": "TS. Hoàng Minh",
-      "blackboardText": "2. HIỆN TƯỢNG QUÁ KHỚP (OVERFITTING):\n- Mô hình học vẹt tập train\n- Train loss rất thấp, Test error rất cao\n- Giải pháp: Điều chuẩn (Regularization, Dropout), Dừng sớm (Early Stopping), Cross-Validation",
+      "blackboardText": "2. HIỆN TƯỢNG QUÁ KHỚP (OVERFITTING):\n- Mô hình học vẹt tập train\n- Train loss rất thấp, Test error rất cao\n- Giải pháp: Điều chuẩn (Regularization, Dropout), Cross-Validation",
       "blackboardLatex": [],
       "trapRiskLevel": "medium",
       "pedagogicalTags": ["overfitting", "generalization"]
