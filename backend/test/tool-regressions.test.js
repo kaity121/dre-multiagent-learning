@@ -265,3 +265,75 @@ describe('LLM-backed Roundtable Instructions and Tool Schema (Review P1 Regressi
     assert.ok(toolCall.output.reason.includes('số hạng chéo'), 'Reason must explain cross term');
   });
 });
+
+describe('Runtime Dispatcher API Endpoints (POST /api/runtime/dispatch & POST /api/dispatcher/evaluate)', () => {
+  it('registers both /api/runtime/dispatch and /api/dispatcher/evaluate on app', async () => {
+    process.env.NODE_ENV = 'test';
+    const { app } = await import('../server.js');
+    const routes = app._router.stack
+      .filter((r) => r.route)
+      .map((r) => ({ path: r.route.path, methods: Object.keys(r.route.methods) }));
+
+    const dispatchRoute = routes.find((r) => r.path === '/api/runtime/dispatch');
+    const evaluateRoute = routes.find((r) => r.path === '/api/dispatcher/evaluate');
+
+    assert.ok(dispatchRoute, 'POST /api/runtime/dispatch must be registered for existing callers');
+    assert.ok(dispatchRoute.methods.includes('post'), 'POST method must be supported on /api/runtime/dispatch');
+
+    assert.ok(evaluateRoute, 'POST /api/dispatcher/evaluate alias must be registered');
+    assert.ok(evaluateRoute.methods.includes('post'), 'POST method must be supported on /api/dispatcher/evaluate');
+  });
+
+  it('handleRuntimeDispatch successfully dispatches valid learner messages and returns 200 payload', async () => {
+    process.env.NODE_ENV = 'test';
+    const { handleRuntimeDispatch } = await import('../server.js');
+
+    let statusCode = 200;
+    let responseData = null;
+    const req = {
+      body: {
+        message: 'Cho mình xin lại công thức cộng vectơ hình bình hành',
+        useLLM: false,
+      },
+    };
+    const res = {
+      status(code) {
+        statusCode = code;
+        return this;
+      },
+      json(data) {
+        responseData = data;
+        return this;
+      },
+    };
+
+    await handleRuntimeDispatch(req, res);
+    assert.equal(statusCode, 200);
+    assert.ok(responseData, 'Response data must not be empty');
+    assert.equal(responseData.verdict.dispatchedAgent, 'linhchi');
+    assert.ok(responseData.primaryResponse.text.length > 0);
+  });
+
+  it('handleRuntimeDispatch returns 400 when message is missing', async () => {
+    process.env.NODE_ENV = 'test';
+    const { handleRuntimeDispatch } = await import('../server.js');
+
+    let statusCode = 200;
+    let responseData = null;
+    const req = { body: {} };
+    const res = {
+      status(code) {
+        statusCode = code;
+        return this;
+      },
+      json(data) {
+        responseData = data;
+        return this;
+      },
+    };
+
+    await handleRuntimeDispatch(req, res);
+    assert.equal(statusCode, 400);
+    assert.equal(responseData.error, 'Thiếu message');
+  });
+});

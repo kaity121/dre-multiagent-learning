@@ -209,10 +209,10 @@ app.post('/api/tools/execute', async (req, res) => {
   }
 });
 
-// POST /api/dispatcher/evaluate — Direct endpoint to evaluate learner queries against the runtime dispatcher
-app.post('/api/dispatcher/evaluate', async (req, res) => {
+// Handler function for runtime dispatcher (#401 & backwards-compatible alias)
+export async function handleRuntimeDispatch(req, res) {
   try {
-    const { message, currentTime = 2233, lessonTitle = 'Toán 12 — Vectơ trong không gian', sessionId = 'test_session', recipient = 'all', useLLM = true } = req.body || {};
+    const { message, currentTime = 2233, lessonTitle = 'Toán 12 — Vectơ trong không gian', sessionId = null, recipient = 'all', useLLM = true } = req.body || {};
     if (!message) {
       return res.status(400).json({ error: 'Thiếu message' });
     }
@@ -222,7 +222,7 @@ app.post('/api/dispatcher/evaluate', async (req, res) => {
       message,
       currentTime,
       lessonTitle,
-      sessionId,
+      sessionId: sessionId || 'test_session',
       recipient,
       useLLM,
     });
@@ -231,7 +231,13 @@ app.post('/api/dispatcher/evaluate', async (req, res) => {
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
-});
+}
+
+// POST /api/runtime/dispatch — OpenMAIC Issue #401: Runtime Intent Classifier & Dynamic Routing Dispatcher
+app.post('/api/runtime/dispatch', handleRuntimeDispatch);
+
+// POST /api/dispatcher/evaluate — Direct endpoint alias to evaluate learner queries against the runtime dispatcher
+app.post('/api/dispatcher/evaluate', handleRuntimeDispatch);
 
 // POST /api/chat/classroom — OpenMAIC: Khung chat lớp học tích hợp Dispatcher, RAG & Multi-Agent Chaining
 app.post('/api/chat/classroom', async (req, res) => {
@@ -367,6 +373,10 @@ app.post('/api/chat/classroom', async (req, res) => {
   }
 });
 
-app.listen(config.port, () => {
-  console.log(`DRE backend đang chạy ở http://localhost:${config.port}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(config.port, () => {
+    console.log(`DRE backend đang chạy ở http://localhost:${config.port}`);
+  });
+}
+
+export { app };
