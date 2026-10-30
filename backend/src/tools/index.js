@@ -70,7 +70,7 @@ export const OPENAI_TOOL_DEFINITIONS = [
           },
           angleDeg: {
             type: 'number',
-            description: 'Góc giữa hai vectơ tính bằng độ (°), ví dụ: 60, 90, 120',
+            description: 'Góc giữa hai vectơ tính bằng độ (°), ví dụ: 60, 90, 120. Bắt buộc khi tính góc đảo (reverse_angle), tích vô hướng hai vectơ khác không, hoặc bình phương độ dài tổng (norm_sum_squared).',
           },
           claimValue: {
             type: 'string',

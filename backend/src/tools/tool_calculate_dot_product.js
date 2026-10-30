@@ -98,6 +98,20 @@ export function calculateDotProduct({
 
     // DẠNG A: Góc đảo chiều angle(-u, v) = 180° - theta (MISC_VEC_017)
     if (effectiveIsReversed) {
+      if (!hasTheta) {
+        return {
+          isValid: false,
+          dotProduct: null,
+          cosValue: null,
+          angleDeg: null,
+          reversedAngleDeg: null,
+          correct: null,
+          error: 'Thiếu tham số angleDeg: cần có góc ban đầu để tính góc sau khi đảo hướng.',
+          reason: 'Cần có góc ban đầu angleDeg để tính góc bù 180° - θ khi đảo chiều vectơ.',
+          formula: '(\\vec{u}, -\\vec{v}) = 180^\\circ - (\\vec{u}, \\vec{v})',
+          steps: [],
+        };
+      }
       correct = `${theta}°`;
 
       if (!isNaN(claimNum)) {
@@ -120,6 +134,23 @@ export function calculateDotProduct({
     }
     // DẠNG B: Bình phương tổng bỏ số hạng chéo (MISC_VEC_020)
     else if (claimType === 'norm_sum_squared' || claimType === 'dot_expansion') {
+      if (!hasTheta || calculatedDot === null) {
+        return {
+          isValid: false,
+          dotProduct: null,
+          cosValue: null,
+          angleDeg: null,
+          reversedAngleDeg: null,
+          correct: null,
+          error: 'Thiếu tham số angleDeg: cần có góc giữa hai vectơ để tính số hạng chéo 2\\vec{u}\\cdot\\vec{v}.',
+          reason: 'Không thể tính bình phương độ dài tổng |\\vec{u}+\\vec{v}|^2 khi chưa biết góc giữa hai vectơ (thiếu angleDeg). Khẳng định |\\vec{u}+\\vec{v}|^2 = |\\vec{u}|^2 + |\\vec{v}|^2 chỉ đúng khi hai vectơ vuông góc (góc 90°); không được tự tiện bỏ qua số hạng chéo khi chưa có góc.',
+          formula: '|\\vec{u}+\\vec{v}|^2 = |\\vec{u}|^2 + |\\vec{v}|^2 + 2\\vec{u}\\cdot\\vec{v}',
+          steps: [
+            `Độ dài các vectơ: |\\vec{u}| = ${u}, |\\vec{v}| = ${v}.`,
+            'Thiếu góc \\theta giữa hai vectơ nên không xác định được số hạng chéo 2\\vec{u}\\cdot\\vec{v}.',
+          ],
+        };
+      }
       const uSq = Math.round(u * u * 1000) / 1000;
       const vSq = Math.round(v * v * 1000) / 1000;
       const crossTerm = Math.round(2 * calculatedDot * 1000) / 1000;
@@ -146,6 +177,20 @@ export function calculateDotProduct({
     }
     // DẠNG C: Kiểm tra góc thông thường
     else if (claimType === 'angle') {
+      if (!hasTheta) {
+        return {
+          isValid: false,
+          dotProduct: null,
+          cosValue: null,
+          angleDeg: null,
+          reversedAngleDeg: null,
+          correct: null,
+          error: 'Thiếu tham số angleDeg để kiểm chứng góc giữa hai vectơ.',
+          reason: 'Chưa có thông tin góc ban đầu giữa hai vectơ để kiểm chứng.',
+          formula: '\\cos(\\vec{u}, \\vec{v}) = \\frac{\\vec{u} \\cdot \\vec{v}}{|\\vec{u}| |\\vec{v}|',
+          steps: [],
+        };
+      }
       correct = `${theta}°`;
       if (!isNaN(claimNum) && theta !== undefined) {
         if (Math.abs(claimNum - theta) < 0.1) {

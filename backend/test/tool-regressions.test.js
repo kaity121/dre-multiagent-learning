@@ -264,6 +264,34 @@ describe('LLM-backed Roundtable Instructions and Tool Schema (Review P1 Regressi
     assert.equal(toolCall.output.correct, '19');
     assert.ok(toolCall.output.reason.includes('số hạng chéo'), 'Reason must explain cross term');
   });
+
+  it('P2: Missing angleDeg in norm_sum_squared does NOT falsely validate Bo\'s claim 13', () => {
+    // 1. Without angleDeg, the tool must return an error and isValid: false (never false-positive true)
+    const resultNoAngle = calculateDotProduct({
+      uMag: 2,
+      vMag: 3,
+      claimValue: '13',
+      claimType: 'norm_sum_squared',
+    });
+    assert.equal(resultNoAngle.isValid, false, 'Missing angle must NOT validate Bo\'s claim of 13');
+    assert.ok(resultNoAngle.error, 'Must report an error about missing angleDeg');
+    assert.ok(resultNoAngle.reason.includes('thiếu angleDeg') || resultNoAngle.reason.includes('chưa biết góc'));
+
+    // 2. Calling via executeTool wrapper preserves isValid: false and returns error
+    const toolCall = executeTool('tool_calculate_dot_product', {
+      uMag: 2,
+      vMag: 3,
+      claimValue: '13',
+      claimType: 'norm_sum_squared',
+    });
+    assert.equal(toolCall.isValid, false);
+    assert.ok(toolCall.output.error);
+
+    // 3. Omitting angle in reversed angle also reports error
+    const revNoAngle = calculateDotProduct({ uMag: 2, vMag: 3, reverseU: true, claimValue: '120' });
+    assert.equal(revNoAngle.isValid, false);
+    assert.ok(revNoAngle.error);
+  });
 });
 
 describe('Runtime Dispatcher API Endpoints (POST /api/runtime/dispatch & POST /api/dispatcher/evaluate)', () => {
