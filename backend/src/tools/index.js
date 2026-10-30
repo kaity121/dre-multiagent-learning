@@ -187,21 +187,25 @@ export const OPENAI_TOOL_DEFINITIONS = [
     type: 'function',
     function: {
       name: 'tool_check_source_grounding',
-      description: 'Kiểm chứng phát biểu của học sinh hoặc bẫy ngộ nhận theo nguồn bài giảng (transcript và bảng phấn) cho mọi môn học (Toán, Văn, Sinh, AI...).',
+      description: 'Kiểm chứng một phát biểu (claim) dựa trên nguồn bài giảng thực tế (transcript, slide, bảng đen) của bất kỳ môn học nào. Trả về supported (isValid: true), contradicted (isValid: false), hoặc not_in_source (isValid: null) cùng trích dẫn mốc giây và câu trích nguyên văn.',
       parameters: {
         type: 'object',
         properties: {
           claim: {
             type: 'string',
-            description: 'Phát biểu cần kiểm chứng tính có căn cứ trong bài giảng',
+            description: 'Phát biểu hoặc câu trả lời cần kiểm chứng căn cứ trong bài giảng',
           },
           lessonId: {
             type: 'string',
-            description: 'Mã bài giảng (ví dụ: "VID_VECTO_12_TIEN", "VID_AI_INTRO_01")',
+            description: 'Mã bài học hoặc video (ví dụ: VID_VECTO_12_TIEN, VID_AI_INTRO_01)',
           },
           aroundSecond: {
             type: 'number',
-            description: 'Mốc giây video hiện tại để ưu tiên tìm kiếm đoạn ngữ cảnh lân cận',
+            description: 'Mốc thời gian (giây) đang xem để ưu tiên các đoạn bài giảng lân cận',
+          },
+          windowS: {
+            type: 'number',
+            description: 'Độ rộng cửa sổ thời gian (giây) tính từ aroundSecond (mặc định: 60s)',
           },
         },
         required: ['claim'],
