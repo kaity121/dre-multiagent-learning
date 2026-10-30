@@ -556,4 +556,53 @@ describe('Review Follow-ups (Zero-vector Angle KB, Vietnamese wording vectơ, Bo
     await handleRuntimeDispatch(call3.req, call3.res);
     assert.equal(call3.getData().sessionState?.id, explicitId, 'Explicit sessionId must be preserved');
   });
+
+  it('P2: Zero-vector norm_sum_squared evaluates |0 + v|^2 = |v|^2', () => {
+    // uMag: 0, vMag: 3 -> |0 + v|^2 = 3^2 = 9
+    const resCorrect = calculateDotProduct({
+      uMag: 0,
+      vMag: 3,
+      claimValue: '9',
+      claimType: 'norm_sum_squared',
+    });
+    assert.equal(resCorrect.isValid, true, '|0 + 3|^2 = 9 must be valid');
+    assert.equal(resCorrect.correct, '9');
+    assert.equal(resCorrect.dotProduct, 0);
+
+    const resWrong = calculateDotProduct({
+      uMag: 0,
+      vMag: 3,
+      claimValue: '0',
+      claimType: 'norm_sum_squared',
+    });
+    assert.equal(resWrong.isValid, false, '|0 + 3|^2 = 0 must be rejected');
+    assert.equal(resWrong.correct, '9');
+
+    // uMag: 4, vMag: 0 -> |4 + 0|^2 = 16
+    const resV0 = calculateDotProduct({
+      uMag: 4,
+      vMag: 0,
+      claimValue: '16',
+      claimType: 'norm_sum_squared',
+    });
+    assert.equal(resV0.isValid, true);
+    assert.equal(resV0.correct, '16');
+  });
+
+  it('P2: Bo-trap correction matches ordinary phrasing "tin bo", "theo bo", "nghe hop ly"', async () => {
+    const { dispatchMessage } = await import('../src/services/dispatcher.js');
+
+    const phrases = ['tin bo', 'theo bo', 'nghe hop ly', 'a ra vay', 'cam on ban ra vay'];
+    for (const phrase of phrases) {
+      const res = await dispatchMessage({
+        message: phrase,
+        useLLM: false,
+      });
+      assert.equal(res.primaryResponse.author, 'Minh Khang', `Phrase "${phrase}" must route to Minh Khang`);
+      assert.ok(
+        res.primaryResponse.text.includes('đừng vội tin'),
+        `Phrase "${phrase}" must trigger "đừng vội tin" warning, got: ${res.primaryResponse.text}`
+      );
+    }
+  });
 });

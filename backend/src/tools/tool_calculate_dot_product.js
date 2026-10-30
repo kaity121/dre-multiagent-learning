@@ -38,7 +38,20 @@ export function calculateDotProduct({
       const claimStr = String(claimValue).trim().toLowerCase();
       const claimNum = parseFloat(claimStr);
 
-      if (claimType === 'angle' || claimType === 'reverse_angle') {
+      if (claimType === 'norm_sum_squared' || claimType === 'dot_expansion') {
+        // |0 + v|^2 = |v|^2 (vì 0 + v = v, hoặc u^2 + v^2 + 2*0 = u^2 + v^2)
+        const expectedNormSq = Math.round((u * u + v * v) * 1000) / 1000;
+        correctVal = String(expectedNormSq);
+        if (!isNaN(claimNum)) {
+          zeroValid = Math.abs(claimNum - expectedNormSq) < 0.05;
+          zeroReason = zeroValid
+            ? `Chính xác! Với vectơ không, |\\vec{u}+\\vec{v}|^2 = ${expectedNormSq}.`
+            : `Với vectơ không, |\\vec{u}+\\vec{v}|^2 = ${expectedNormSq}, không phải ${claimNum}.`;
+        } else {
+          zeroValid = false;
+          zeroReason = `Với vectơ không, |\\vec{u}+\\vec{v}|^2 = ${expectedNormSq}.`;
+        }
+      } else if (claimType === 'angle' || claimType === 'reverse_angle') {
         correctVal = '0° đến 180° (tùy ý)';
         const isArbitraryClaim = /tùy\s*ý|tuy\s*y|0.*180|từ\s*0|tu\s*0/i.test(claimStr);
 
@@ -83,7 +96,9 @@ export function calculateDotProduct({
       reason: zeroReason,
       formula: (claimType === 'angle' || claimType === 'reverse_angle')
         ? '0^\\circ \\le (\\vec{u}, \\vec{v}) \\le 180^\\circ \\text{ (tùy ý theo quy ước SGK)}'
-        : '\\vec{u} \\cdot \\vec{v} = 0',
+        : (claimType === 'norm_sum_squared' || claimType === 'dot_expansion')
+          ? '|\\vec{u}+\\vec{v}|^2 = |\\vec{u}|^2 + |\\vec{v}|^2 + 2\\vec{u}\\cdot\\vec{v}'
+          : '\\vec{u} \\cdot \\vec{v} = 0',
     };
   }
 

@@ -505,7 +505,7 @@ export function classifyHeuristic(message, recipient = 'all') {
   }
 
   // Direct agent targeting (bắt trên norm không dấu để nhận diện chính xác "chào Bo nha", "chào Cô Lam")
-  const isTargetBo = recipient === 'bo' || rawLower.includes('@bo') || /\b(chao bo|hoi bo|bo oi|gap bo|voi bo)\b/.test(norm) || (/\bbo\b/.test(norm) && !norm.includes('sai') && !norm.includes('dung') && !norm.includes('khong bang') && !norm.includes('khong the bang'));
+  const isTargetBo = recipient === 'bo' || rawLower.includes('@bo') || /\b(chao bo|hoi bo|bo oi|gap bo|voi bo)\b/.test(norm) || (/\bbo\b/.test(norm) && !norm.includes('sai') && !norm.includes('dung') && !norm.includes('khong bang') && !norm.includes('khong the bang') && !/\b(tin bo|theo bo)\b/.test(norm));
   if (isTargetBo) {
     return {
       detectedIntent: 'challenge_shortcut_fallacy',
@@ -1465,7 +1465,7 @@ export async function dispatchMessage({
       toolCall: bloomResult,
     };
   } else if (targetAgent === 'minhkhang' || verdict.detectedIntent === 'general_classroom_chitchat') {
-    const isFallingForBoTrap = /(as*ras*vay|cams*on.*ras*vay|this*ras*las*vay|nghes*hops*ly|tins*bo|theos*bo)/i.test(normMessage);
+    const isFallingForBoTrap = /(a\s*ra\s*vay|cam\s*on.*ra\s*vay|thi\s*ra\s*la\s*vay|nghe\s*hop\s*ly|tin\s*bo|theo\s*bo)/i.test(normMessage);
     let mkText = (isFallingForBoTrap && kbMatch?.misconception && session && !session.done)
       ? `Khoan đã bạn ơi, đừng vội tin mẹo làm tắt của Bo nhé! ${kbMatch.misconception.correction || 'Đó là ngộ nhận sai lầm phổ biến đấy!'}`
       : normMessage.includes('khong bang ban tri') || normMessage.includes('khong bang tri')
