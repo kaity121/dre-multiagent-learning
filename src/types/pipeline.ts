@@ -105,7 +105,8 @@ export interface DeterministicToolCall {
     | 'tool_verify_vector_algebra' 
     | 'tool_query_misconception_kb' 
     | 'tool_timeline_collision_checker' 
-    | 'tool_evaluate_bloom_level';
+    | 'tool_evaluate_bloom_level'
+    | 'tool_check_source_grounding';
   input: Record<string, any>;
   output: Record<string, any>;
   /** null = the tool could not judge the input (e.g. unparseable claim), not that it is wrong. */
