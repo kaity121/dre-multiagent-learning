@@ -128,6 +128,8 @@ export interface TimelineComment {
     partId?: string;
   }> | null;
   contextSnapshot?: any | null;
+  /** Set when someone other than the addressed agent answered a private message. */
+  onBehalfOf?: string;
 }
 
 export interface PeerContextData {

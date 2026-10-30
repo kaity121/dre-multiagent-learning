@@ -115,6 +115,9 @@ interface VideoDebateSheetProps {
   onChatMessageProcessed?: (chatInfo: { text: string; author: string; reply: any; second: number; messageId?: string }) => void;
   /** Open the Agent Map focused on the turn behind this message. */
   onOpenEvidence?: (msg: TimelineComment) => void;
+  /** The pause question lives in the task card; the chat only points to it. */
+  questionInTaskCard?: boolean;
+  onFocusTaskCard?: () => void;
 }
 
 const cleanText = (str?: string) =>
@@ -176,6 +179,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   onSwitchToStation2,
   onChatMessageProcessed,
   onOpenEvidence,
+  questionInTaskCard = false,
+  onFocusTaskCard,
 }) => {
   const [liveChatMessages, setLiveChatMessages] = useState<TimelineComment[]>([]);
   const [toolCallThinking, setToolCallThinking] = useState<string[]>([]);
@@ -191,7 +196,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   const [activePeerNote, setActivePeerNote] = useState<'bo' | 'tri' | 'linhchi' | 'minhkhang' | null>(null);
   const [selectedFreezeIntent, setSelectedFreezeIntent] = useState<'not_understand' | 'too_fast' | 'take_notes'>('not_understand');
   const [taHintTier, setTaHintTier] = useState<number>(0);
-  const [isRosterCollapsed, setIsRosterCollapsed] = useState<boolean>(false);
+  const [isRosterCollapsed, setIsRosterCollapsed] = useState<boolean>(true);
 
   const chatStreamEndRef = useRef<HTMLDivElement | null>(null);
   const prevCommentsCountRef = useRef<number>(0);
@@ -641,6 +646,10 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       }
     }
 
+    const directTarget = target !== 'all' ? RECIPIENT_OPTIONS.find((o) => o.id === target)?.label : undefined;
+    const standInFor = (author: string) =>
+      directTarget && !author.toLowerCase().includes(directTarget.toLowerCase()) ? directTarget : undefined;
+
     // Xác định tên bạn học AI sẽ trả lời trước để hiển thị trạng thái đang soạn tin (Live Typing Indicator)
     const initialRespondentName =
       target === 'bo'
@@ -711,6 +720,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               id: replyId,
               second: replySecond,
               author: aiRes.author,
+              onBehalfOf: standInFor(aiRes.author),
               role: primaryRole,
               text: aiRes.text,
               toolCall: attachedToolCalls[0],
@@ -856,6 +866,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             id: `reply_${Date.now()}`,
             second: effectiveSecond,
             author: replyAuthor,
+            onBehalfOf: standInFor(replyAuthor),
             role: primaryRole,
             text: replyText,
             toolCall: attachedToolCall,
@@ -1028,6 +1039,9 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                 {isCoLam ? 'Giáo viên AI' : isTaAn ? 'Trợ giảng AI' : 'Bạn học AI'}
               </span>
             )}
+            {msg.onBehalfOf && (
+              <span className="shrink-0 text-[11px] font-medium text-[#4A5546]">trả lời thay {msg.onBehalfOf}</span>
+            )}
             <button
               type="button"
               onClick={() => onSeekVideo?.(msg.second)}
@@ -1092,7 +1106,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             {msg.citations && msg.citations.length > 0 && (
               <div className="mt-2 pt-2 border-t border-slate-200/70 flex flex-wrap items-center gap-1.5">
                 <span className="text-[11px] font-semibold text-stone-600">Nguồn:</span>
-                {msg.citations.map((c, cIdx) => {
+                {msg.citations.filter((c) => c.label && c.label.trim()).map((c, cIdx) => {
                   const isVideo = c.source === 'video';
                   const isBlackboard = c.source === 'blackboard';
                   const hasSeek = typeof c.timestamp === 'number';
@@ -1211,7 +1225,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                     setRecipient((prev) => (prev === p.id ? 'all' : p.id));
                     setActivePeerNote((prev) => (prev === p.id ? null : p.id));
                   }}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer whitespace-nowrap ${
                     isSelected
                       ? 'bg-[#121712] text-white border-[#121712] shadow-2xs'
                       : 'bg-white border-[#E2EAD2] text-stone-700 hover:bg-stone-50'
@@ -1436,7 +1450,23 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             {preCheckpointComments.map(renderChatMessage)}
 
             {/* THẺ CÂU HỎI KIỂM TRA NHANH ĐƯỢC CHÈN CỐ ĐỊNH TẠI ĐÚNG MỐC 37:13 NGAY SAU TIN NHẮN 37:05 CỦA TRÍ */}
-            {shouldShowSavedQuizInChat && (
+            {shouldShowSavedQuizInChat && questionInTaskCard && (
+              <div className="flex items-center justify-between gap-2 rounded-xl border border-[#E2EAD2] bg-[#F7FBEF] px-3 py-2 text-[13px] text-[#121712]">
+                <span>
+                  <span className="font-semibold">Câu hỏi dừng {formatSec(lesson.checkpointTimestamp)}</span> đang ở thẻ “Việc của bạn bây giờ”.
+                </span>
+                {onFocusTaskCard && (
+                  <button
+                    type="button"
+                    onClick={onFocusTaskCard}
+                    className="shrink-0 rounded-lg px-2 py-1 text-[13px] font-semibold text-[#1F4D12] underline underline-offset-2 hover:bg-[#EDF6DA] focus-visible:outline-2 focus-visible:outline-[#121712]"
+                  >
+                    Tới thẻ
+                  </button>
+                )}
+              </div>
+            )}
+            {shouldShowSavedQuizInChat && !questionInTaskCard && (
               <ChatSavedQuizBlock
                 lesson={lesson}
                 status={quizStatus}
@@ -1629,8 +1659,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               type="button"
               onClick={() => {
                 sound.playPencilTap();
-                setUserChatInput(item.full);
-                handleSendUserChatMessage(item.full, 'all');
+                handleSendUserChatMessage(item.full);
               }}
               className="h-7 px-3 rounded-full text-xs font-medium cursor-pointer transition-all border border-[#E2EAD2] bg-white hover:bg-[#C8F169]/40 text-[#121712] shadow-2xs whitespace-nowrap shrink-0 inline-flex items-center justify-center leading-none"
               title={item.full}
