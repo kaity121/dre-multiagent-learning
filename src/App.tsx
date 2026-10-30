@@ -14,6 +14,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { DEMO_LESSON_SCHEMA, DEMO_REASONING_EVENTS, DEMO_INSPECTOR_TURNS } from './demo/demoLesson';
 import { InspectorTurn } from './types/reasoning';
+import type { BoMode } from './components/journey/journeyModel';
 import type { TimelineComment } from './types/dre';
 import { ResizableSplitter } from './components/layout/ResizableSplitter';
 import { DRELessonSchema } from './types/lesson';
@@ -83,7 +84,8 @@ import { deriveJourneyStops, deriveTaskBeat, formatClock, lessonIdentity, type S
 import { AgentMapDialog } from './components/agentmap/AgentMapDialog';
 import dreLogoImg from './assets/dre-logo.png';
 import { sound } from './utils/soundEffects';
-import { withTimeout, CHECKPOINT_BACKEND_TIMEOUT_MS } from './utils/withTimeout';
+import { withTimeout, CHECKPOINT_CALL_TIMEOUT_MS, SESSION_START_TIMEOUT_MS } from './utils/withTimeout';
+import { backendMisconceptionId } from './utils/backendMisconception';
 import { 
   evaluateStepAndExplanation, 
   getBoChallenge, 
@@ -203,6 +205,10 @@ export default function App() {
   const [isPeerNotebookOpen, setIsPeerNotebookOpen] = useState<boolean>(false);
   const [showVideoInFaceOff, setShowVideoInFaceOff] = useState<boolean>(false);
   const [lastRebuttalText, setLastRebuttalText] = useState<string | null>(null);
+  // Bo's stance after the first answer (product FSM): wrong answer → he sides with it,
+  // right answer → he sets a trap.
+  const [boMode, setBoMode] = useState<BoMode | null>(null);
+  const sessionPrefetchRef = useRef<{ miscId: string; promise: Promise<string | null> } | null>(null);
   const stationTopRef = useRef<HTMLDivElement | null>(null);
   const taskCardRef = useRef<HTMLDivElement | null>(null);
 
@@ -885,6 +891,7 @@ export default function App() {
     setLiveBoDialogue(null);
     setLiveCoLamDialogue(null);
     setLiveHintDialogue(null);
+    setBoMode(null);
     setVideoPhase('CHECKPOINT_REACHED');
   };
 
@@ -970,6 +977,38 @@ export default function App() {
     setInspectorTurns((prev) => [...prev, newTurn]);
   };
 
+  // Start the checkpoint session ahead of the answer (it is the slow call), once per lesson.
+  const ensureCheckpointSession = (): Promise<string | null> => {
+    if (sessionIdRef.current) return Promise.resolve(sessionIdRef.current);
+    const miscId = backendMisconceptionId(currentVideoLesson);
+    if (sessionPrefetchRef.current?.miscId === miscId) return sessionPrefetchRef.current.promise;
+    const promise = withTimeout(startBackendSession(miscId), SESSION_START_TIMEOUT_MS).then((res) => {
+      if (res?.sessionId) {
+        sessionIdRef.current = res.sessionId;
+        setBackendSessionId(res.sessionId);
+        return res.sessionId;
+      }
+      sessionPrefetchRef.current = null;
+      return null;
+    });
+    sessionPrefetchRef.current = { miscId, promise };
+    return promise;
+  };
+
+  const usesBackendCheckpoint =
+    isBackendLive && currentVideoLesson.id !== 'VID_VECTO_12' && hasCheckpoint(currentVideoLesson);
+  useEffect(() => {
+    if (!usesBackendCheckpoint || currentMode !== 'video_clash') return;
+    if (isVideoPlaying || videoPhase === 'CHECKPOINT_REACHED') void ensureCheckpointSession();
+  }, [usesBackendCheckpoint, currentMode, isVideoPlaying, videoPhase, currentVideoLesson.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Local stand-in for the backend's trap choice and Bo's opening line. */
+  const localBoOpening = (isCorrect: boolean, optionLabel: string): { mode: BoMode; line: string } =>
+    isCorrect
+      ? // Bo's trap is shown by his struck steps; a scripted speech may argue something else.
+        { mode: 'shortcut_fallacy', line: '' }
+      : { mode: 'misconception_ally', line: `Chuẩn luôn! Tớ cũng chọn “${optionLabel}”. Làm vậy là nhanh nhất mà.` };
+
   const handleAnswerCheckpoint = async (optionLabel: string, optionId?: string) => {
     recordUserActivity();
     setLiveHintDialogue(null);
@@ -981,6 +1020,9 @@ export default function App() {
       )?.id ||
       'opt_a';
     setSavedSelectedOptionId(resolvedId);
+    const answeredOption = currentVideoLesson.checkpointQuestion.options.find((o) => o.id === resolvedId);
+    const hasAnswerKey = currentVideoLesson.checkpointQuestion.options.some((o) => o.isStandardBest);
+    const localOpening = localBoOpening(!hasAnswerKey || Boolean(answeredOption?.isStandardBest), optionLabel);
 
     // Cập nhật lượt Soi não tác nhân tương ứng với câu trả lời thực tế của học sinh (P1 Fix)
     const turnNumber = inspectorTurns.length + 1;
@@ -1080,30 +1122,16 @@ export default function App() {
     }
 
     // Đối với bài 1.1 Thầy Tiến (VID_VECTO_12): Luồng phản biện sư phạm đã được đóng gói chuẩn xác 100%
-    if (currentVideoLesson.id === 'VID_VECTO_12') {
-      sound.playStampThud();
-      setLiveBoDialogue(currentVideoLesson.boArgument.speech);
-      setVideoPhase('BO_DEBATE');
-      return;
-    }
-
-    if (isBackendLive) {
+    if (usesBackendCheckpoint) {
       setIsLoadingAi(true);
       try {
-        const miscId = currentVideoLesson.id === 'VID_002' ? 'MISC_002' : currentVideoLesson.id === 'VID_003' ? 'MISC_008' : 'MISC_001';
-        let currentSess = backendSessionId;
-        if (!currentSess) {
-          const sessRes = await withTimeout(startBackendSession(miscId), CHECKPOINT_BACKEND_TIMEOUT_MS);
-          if (sessRes) {
-            currentSess = sessRes.sessionId;
-            sessionIdRef.current = currentSess;
-            setBackendSessionId(currentSess);
-          }
-        }
-
+        // Usually ready already (prefetched); otherwise wait no longer than one answer call.
+        const currentSess = await withTimeout(ensureCheckpointSession(), CHECKPOINT_CALL_TIMEOUT_MS);
         if (currentSess) {
-          const ansRes = await withTimeout(submitBackendAnswer(currentSess, optionLabel), CHECKPOINT_BACKEND_TIMEOUT_MS);
+          const ansRes = await withTimeout(submitBackendAnswer(currentSess, optionLabel), CHECKPOINT_CALL_TIMEOUT_MS);
           if (ansRes && ansRes.boDialogue) {
+            sound.playStampThud();
+            setBoMode(ansRes.mode || localOpening.mode);
             setLiveBoDialogue(ansRes.boDialogue);
             setVideoPhase('BO_DEBATE');
             setIsLoadingAi(false);
@@ -1116,9 +1144,10 @@ export default function App() {
       setIsLoadingAi(false);
     }
 
-    // Backend unreachable, slow or failed: Bo debates with the lesson's own argument.
+    // Bundled lesson, or backend unreachable / slow / failed: same FSM with the lesson's own data.
     sound.playStampThud();
-    setLiveBoDialogue(null);
+    setBoMode(localOpening.mode);
+    setLiveBoDialogue(localOpening.line || null);
     setVideoPhase('BO_DEBATE');
   };
 
@@ -1249,7 +1278,7 @@ export default function App() {
     if (isBackendLive && activeSess) {
       setIsLoadingAi(true);
       try {
-        const rebRes = await withTimeout(submitBackendRebuttal(activeSess, rebuttalText), CHECKPOINT_BACKEND_TIMEOUT_MS);
+        const rebRes = await withTimeout(submitBackendRebuttal(activeSess, rebuttalText), CHECKPOINT_CALL_TIMEOUT_MS);
         if (rebRes) {
           if (rebRes.danhGiaPhanBien === 'sac_ben' || rebRes.done) {
             if (rebRes.boDialogue) setLiveBoDialogue(rebRes.boDialogue);
@@ -1289,6 +1318,9 @@ export default function App() {
 
   const handleSwitchVideoLesson = (lesson: VideoLessonItem) => {
     setCurrentVideoLesson(lesson);
+    sessionPrefetchRef.current = null;
+    sessionIdRef.current = null;
+    setBoMode(null);
     setCheckpointResolved(false);
     setVideoCurrentTime(0);
     setVideoPhase('WATCHING');
@@ -1428,8 +1460,8 @@ export default function App() {
     if (taskBeat === 'watch') return;
     // Wait for the layout change (video strip) before scrolling.
     const raf = requestAnimationFrame(() => {
-      const target = taskBeat === 'rebut' || taskBeat === 'closure' ? stationTopRef.current : taskCardRef.current;
-      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Station top: video (or its strip) and the task card fit the first viewport together.
+      stationTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
     return () => cancelAnimationFrame(raf);
   }, [taskBeat]);
@@ -1795,6 +1827,8 @@ export default function App() {
                       onAnswer={(label, id) => handleAnswerCheckpoint(label, id)}
                       onSkip={handleSkipCheckpoint}
                       submittedRebuttal={lastRebuttalText}
+                      boMode={boMode}
+                      answeredOptionId={savedSelectedOptionId}
                       onRebut={(text, isEffective) => {
                         setLastRebuttalText(text);
                         handleSubmitRebuttal(text, isEffective);

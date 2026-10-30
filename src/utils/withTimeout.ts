@@ -1,5 +1,7 @@
-/** Backend calls in the checkpoint flow must never hold the learner: give up after this long. */
-export const CHECKPOINT_BACKEND_TIMEOUT_MS = 6000;
+/** Answer and rebuttal calls in the checkpoint flow give up after this long and fall back locally. */
+export const CHECKPOINT_CALL_TIMEOUT_MS = 12000;
+/** Starting a checkpoint session runs in the background ahead of the answer, so it may take longer. */
+export const SESSION_START_TIMEOUT_MS = 20000;
 
 /**
  * Resolves with the promise's value, or with null when it rejects or does not settle within `ms`.
