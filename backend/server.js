@@ -16,6 +16,12 @@ import { config } from './src/config.js';
 import { listMisconceptionIds } from './src/contentLibrary.js';
 import { startSession, submitAnswer, submitRebuttal } from './src/orchestrator.js';
 import { chatJSON } from './src/openaiClient.js';
+import { saveRun, getRun, listRuns, streamReplayEvents, sanitizeRunId } from './src/services/runRecorder.js';
+
+function sanitizeVideoId(videoId) {
+  if (!videoId || typeof videoId !== 'string') return 'VID_DEFAULT';
+  return videoId.trim().replace(/[^a-zA-Z0-9_-]/g, '') || 'VID_DEFAULT';
+}
 
 const app = express();
 app.use(cors());
@@ -172,28 +178,6 @@ app.post('/api/peer/:peerId/chat', async (req, res) => {
   }
 });
 
-// POST /api/roundtable/run  { misconceptionId } — OpenMAIC Issue #302: Buồng họp A2A Scriptwriting
-app.post('/api/roundtable/run', async (req, res) => {
-  try {
-    const { runRoundtable } = await import('./src/services/roundtable.js');
-    const { misconceptionId = 'MISC_VEC_005' } = req.body || {};
-    const draft = await runRoundtable(misconceptionId);
-    res.json({ ok: true, draft });
-  } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-// GET /api/tools — Danh sách & JSON Schema của Deterministic Tools (#8)
-app.get('/api/tools', async (req, res) => {
-  try {
-    const { OPENAI_TOOL_DEFINITIONS } = await import('./src/tools/index.js');
-    res.json({ ok: true, tools: OPENAI_TOOL_DEFINITIONS });
-  } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
 // POST /api/roundtable/run & /api/roundtable/generate — OpenMAIC Issue #302: Buồng họp A2A Scriptwriting Roundtable
 app.post(['/api/roundtable/run', '/api/roundtable/generate'], async (req, res) => {
   try {
@@ -254,34 +238,43 @@ app.post(['/api/roundtable/run', '/api/roundtable/generate'], async (req, res) =
 
 // GET & POST /api/roundtable/stream — Real-time Server-Sent Events (SSE) Stream for War Room Demo (< 30-60s) (#302)
 const handleRoundtableStream = async (req, res) => {
-  try {
-    const isPost = req.method === 'POST';
-    const params = isPost ? (req.body || {}) : (req.query || {});
-    const {
-      videoId = 'VID_VECTO_12_TIEN',
-      partNumber,
-      streamDelayMs = 20,
-      useLLM = false,
-      cognitiveStream: customStream,
-    } = params;
+  const isPost = req.method === 'POST';
+  const params = isPost ? (req.body || {}) : (req.query || {});
+  const {
+    videoId = 'VID_VECTO_12_TIEN',
+    partNumber,
+    streamDelayMs = 20,
+    useLLM = false,
+    cognitiveStream: customStream,
+    mode = 'live',
+    runId,
+    speed = 1,
+    fixture = false,
+  } = params;
 
-    // Thiết lập SSE Headers chuẩn
-    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-cache, no-transform');
-    res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('X-Accel-Buffering', 'no');
-    if (typeof res.flushHeaders === 'function') {
-      res.flushHeaders();
-    }
+  // Thiết lập SSE Headers chuẩn
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('X-Accel-Buffering', 'no');
+  if (typeof res.flushHeaders === 'function') {
+    res.flushHeaders();
+  }
 
-    let isAborted = false;
-    req.on('close', () => {
+  let isAborted = false;
+  req.on('aborted', () => {
+    isAborted = true;
+  });
+  res.on('close', () => {
+    if (!res.writableEnded) {
       isAborted = true;
-    });
+    }
+  });
 
-    const sendSSE = (eventName, data) => {
-      if (isAborted || res.writableEnded) return;
+  const sendSSE = (eventName, data) => {
+    if (isAborted || res.writableEnded) return;
+    try {
       if (eventName && eventName !== 'message') {
         res.write(`event: ${eventName}\n`);
       }
@@ -289,7 +282,40 @@ const handleRoundtableStream = async (req, res) => {
       if (typeof res.flush === 'function') {
         res.flush();
       }
-    };
+    } catch (sseErr) {
+      console.warn('[SSE Roundtable] Write error or serialization error:', sseErr);
+    }
+  };
+
+  const isReplayMode = String(fixture) === 'true' || fixture === true || mode === 'replay' || (runId && (runId === 'fixture' || runId === 'mock'));
+
+  try {
+    // -------------------------------------------------------------------------
+    // CHẾ ĐỘ REPLAY STREAM (Nạp từ run recorder hoặc fixture)
+    // -------------------------------------------------------------------------
+    if (isReplayMode) {
+      const targetRunId = runId || 'fixture';
+      const runData = getRun(targetRunId);
+      if (!runData) {
+        sendSSE('error', { error: `Không tìm thấy runId: ${targetRunId}`, runId: targetRunId });
+        return res.end();
+      }
+
+      await streamReplayEvents(runData, {
+        speed: Number(speed) || 1,
+        streamDelayMs: Number(streamDelayMs) || 40,
+        sendSSE,
+        isAborted: () => isAborted,
+      });
+
+      return res.end();
+    }
+
+    // -------------------------------------------------------------------------
+    // CHẾ ĐỘ LIVE STREAM (Tự động biên kịch và lưu vào run recorder)
+    // -------------------------------------------------------------------------
+    const activeRunId = runId || `run_${Date.now()}`;
+    const recordedEvents = [];
 
     // Chuẩn bị cognitiveStream
     const { runRoundtableForPart, runFullLessonRoundtable, partitionTimelineIntoParts } =
@@ -314,6 +340,8 @@ const handleRoundtableStream = async (req, res) => {
     }
 
     sendSSE('session_start', {
+      runId: activeRunId,
+      mode: 'live',
       videoId,
       partNumber: partNumber ? Number(partNumber) : 'all',
       timestamp: new Date().toISOString(),
@@ -321,8 +349,14 @@ const handleRoundtableStream = async (req, res) => {
 
     const onEvent = async (event) => {
       if (isAborted) return;
-      // Phát sự kiện chuẩn reasoning_event và message cho EventSource
+      recordedEvents.push(event);
+
+      // Phát đầy đủ các định dạng SSE event
+      sendSSE('reasoning', event);
       sendSSE('reasoning_event', event);
+      if (event.eventType) {
+        sendSSE(event.eventType, event);
+      }
       sendSSE('message', event);
     };
 
@@ -333,12 +367,71 @@ const handleRoundtableStream = async (req, res) => {
         useLLM: String(useLLM) === 'true',
         onEvent,
         streamDelayMs: Number(streamDelayMs) || 0,
+        isAborted: () => isAborted,
+      });
+
+      if (isAborted) return res.end();
+
+      // Tự động record live run vào run recorder
+      const lessonDraftPayload = {
+        lessonId: videoId,
+        title: stream.videoTitle || 'Bài 1.1: Vectơ Trong Không Gian',
+        videoUrl: stream.videoUrl || 'https://www.youtube.com/watch?v=sample_vecto12',
+        durationSeconds: stream.durationSeconds || 3480,
+        checkpoints: partResult.checkpoints || (partResult.checkpoint ? [partResult.checkpoint] : []),
+        timelineComments: partResult.timelineComments || (partResult.scriptScenario ? partResult.scriptScenario.map((sc, idx) => ({
+          id: `cmt_${partResult.checkpointSecond}_${sc.actor}_${idx}`,
+          second: (partResult.checkpointSecond || 0) + idx,
+          author: sc.actor === 'colam' ? 'Cô Lam' : sc.actor === 'bo' ? 'Bo' : sc.actor === 'tri' ? 'Trí' : sc.actor === 'linhchi' ? 'Linh Chi' : 'Minh Khang',
+          role: sc.actor === 'colam' ? 'teacher' : 'classmate',
+          avatarId: sc.actor,
+          text: sc.speech,
+          isPinned: sc.actor === 'colam' || sc.actor === 'tri',
+        })) : []),
+        pedagogicalSummary: {
+          totalTrapsIdentified: (partResult.checkpoints?.length || (partResult.checkpoint ? 1 : 0)),
+          bloomMasteryTarget: 'Analyze',
+          approvedByTeacher: true,
+          approvalTimestamp: new Date().toISOString(),
+        },
+      };
+
+      try {
+        saveRun({
+          runId: activeRunId,
+          videoId,
+          videoTitle: stream.videoTitle,
+          partNumber: Number(partNumber),
+          createdAt: new Date().toISOString(),
+          stats: {
+            totalEvents: recordedEvents.length,
+            crossCheckCorrectionOccurred: Boolean(partResult?.crossCheckCorrectionOccurred),
+            bloomLevel: 'Analyze',
+            partTitle: targetPart.title,
+          },
+          reasoning_events: recordedEvents,
+          lessonDraft: lessonDraftPayload,
+        });
+      } catch (recErr) {
+        console.warn('[Roundtable] Run recording warning:', recErr);
+      }
+
+      sendSSE('done', {
+        runId: activeRunId,
+        mode: 'live',
+        totalEvents: recordedEvents.length,
+        lesson: lessonDraftPayload,
+        lessonDraft: lessonDraftPayload,
+        timestamp: new Date().toISOString(),
       });
 
       sendSSE('complete', {
         ok: true,
         mode: 'part',
+        runId: activeRunId,
         part: partResult,
+        draft: lessonDraftPayload,
+        lesson: lessonDraftPayload,
         timestamp: new Date().toISOString(),
       });
       return res.end();
@@ -348,25 +441,107 @@ const handleRoundtableStream = async (req, res) => {
       useLLM: String(useLLM) === 'true',
       onEvent,
       streamDelayMs: Number(streamDelayMs) || 0,
+      isAborted: () => isAborted,
+    });
+
+    if (isAborted) return res.end();
+
+    // Tự động record full lesson run vào run recorder
+    try {
+      saveRun({
+        runId: activeRunId,
+        videoId,
+        videoTitle: stream.videoTitle,
+        partNumber: 'all',
+        createdAt: new Date().toISOString(),
+        stats: {
+          totalEvents: recordedEvents.length,
+          crossCheckCorrectionOccurred: Boolean(fullDraft.crossCheckLogs?.length > 0),
+          bloomLevel: 'Analyze',
+        },
+        reasoning_events: recordedEvents,
+        lessonDraft: fullDraft,
+      });
+    } catch (recErr) {
+      console.warn('[Roundtable] Run recording warning:', recErr);
+    }
+
+    sendSSE('done', {
+      runId: activeRunId,
+      mode: 'live',
+      totalEvents: recordedEvents.length,
+      lesson: fullDraft,
+      lessonDraft: fullDraft,
+      timestamp: new Date().toISOString(),
     });
 
     sendSSE('complete', {
       ok: true,
       mode: 'full_lesson',
+      runId: activeRunId,
       draft: fullDraft,
+      lesson: fullDraft,
       timestamp: new Date().toISOString(),
     });
     res.end();
   } catch (err) {
     console.error('[SSE Roundtable] Lỗi stream:', err);
+    const activeRunId = params.runId || 'unknown';
     if (!res.headersSent) {
-      res.status(500).json({ ok: false, error: err.message });
+      res.status(500).json({ ok: false, error: err.message, runId: activeRunId });
     } else {
-      res.write(`event: error\ndata: ${JSON.stringify({ error: err.message })}\n\n`);
+      sendSSE('error', { error: err.message, runId: activeRunId });
       res.end();
     }
   }
 };
+
+// GET /api/roundtable/runs — Danh sách tất cả các run đã lưu
+app.get('/api/roundtable/runs', (req, res) => {
+  try {
+    const runs = listRuns();
+    res.json({ ok: true, runs });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// GET /api/roundtable/runs/:runId — Chi tiết một run cụ thể
+app.get('/api/roundtable/runs/:runId', (req, res) => {
+  try {
+    const safeRunId = sanitizeRunId(req.params.runId);
+    if (!safeRunId && req.params.runId !== 'fixture' && req.params.runId !== 'mock') {
+      return res.status(400).json({ ok: false, error: 'runId không hợp lệ' });
+    }
+    const run = getRun(req.params.runId);
+    if (!run) {
+      return res.status(404).json({ ok: false, error: `Run không tồn tại: ${req.params.runId}` });
+    }
+    res.json({ ok: true, run });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/roundtable/runs — Lưu thủ công một run
+app.post('/api/roundtable/runs', (req, res) => {
+  try {
+    const result = saveRun(req.body);
+    res.json({ ok: true, ...result });
+  } catch (err) {
+    res.status(400).json({ ok: false, error: err.message });
+  }
+});
+
+// GET /api/roundtable/:runId/stream — Replay hoặc Live stream theo runId cụ thể
+app.get('/api/roundtable/:runId/stream', (req, res) => {
+  const safeRunId = sanitizeRunId(req.params.runId);
+  const runId = safeRunId || req.params.runId;
+  const existingRun = getRun(runId);
+  const defaultMode = (existingRun || runId === 'fixture' || runId === 'mock') ? 'replay' : 'live';
+  req.query = { ...req.query, runId, mode: req.query?.mode || defaultMode };
+  return handleRoundtableStream(req, res);
+});
 
 app.get('/api/roundtable/stream', handleRoundtableStream);
 app.post('/api/roundtable/stream', handleRoundtableStream);
@@ -376,11 +551,18 @@ app.get('/api/roundtable/drafts/:videoId', async (req, res) => {
   try {
     const fs = await import('fs');
     const path = await import('path');
-    const { videoId } = req.params;
-    const draftPath = path.resolve(process.cwd(), `backend/src/data/drafts/lesson_draft_${videoId}.json`);
+    const safeVideoId = sanitizeVideoId(req.params.videoId);
+    const draftsBase = path.resolve(process.cwd(), 'backend/src/data/drafts');
+    const draftPath = path.resolve(draftsBase, `lesson_draft_${safeVideoId}.json`);
+
+    // Path containment check
+    const rel = path.relative(draftsBase, draftPath);
+    if (rel.startsWith('..') || path.isAbsolute(rel)) {
+      return res.status(400).json({ ok: false, error: 'videoId không hợp lệ' });
+    }
 
     if (!fs.existsSync(draftPath)) {
-      return res.status(404).json({ ok: false, error: `Không tìm thấy draft cho videoId: ${videoId}` });
+      return res.status(404).json({ ok: false, error: `Không tìm thấy draft cho videoId: ${safeVideoId}` });
     }
 
     const content = JSON.parse(fs.readFileSync(draftPath, 'utf-8'));
@@ -434,7 +616,6 @@ app.get('/api/tools', async (req, res) => {
   }
 });
 
-
 // POST /api/tools/execute — Gọi thực thi trực tiếp Deterministic Tool (#8 -> #10 -> #14)
 app.post('/api/tools/execute', async (req, res) => {
   try {
@@ -474,32 +655,62 @@ app.post('/api/runtime/dispatch', async (req, res) => {
   }
 });
 
-// POST /api/chat/classroom — OpenMAIC: Khung chat lớp học tích hợp Dispatcher, RAG & Multi-Agent Chaining
+// POST /api/chat/classroom — OpenMAIC: Khung chat lớp học tích hợp RAG Knowledge Base & 4 AI Peers
 app.post('/api/chat/classroom', async (req, res) => {
   try {
-    const { message, currentTime = 2233, recipient = 'all', lessonTitle = 'Toán 12 — Vectơ trong không gian', useLLM = true, sessionId = null } = req.body || {};
+    const { message, currentTime = 0, recipient = 'all', lessonTitle = 'Toán 12 — Vectơ trong không gian' } = req.body || {};
     if (!message) {
       return res.status(400).json({ error: 'Thiếu message' });
     }
 
+    // 0. Khởi tạo & chuẩn hóa chuỗi ngay từ đầu (TRÁNH TDZ CRASH)
     const lower = String(message).toLowerCase().trim();
-    const { search, getById } = await import('./src/services/knowledgeBase.js');
-    const { executeTool } = await import('./src/tools/index.js');
-    const { extractVectorExpr, extractClaimFromText, extractSideFromText } = await import('./src/tools/tool_verify_vector_algebra.js');
-    const toolCalls = [];
 
-    // 1. RAG Search trên Knowledge Base DRE
+    // Xác định mốc thời gian bài giảng: ưu tiên tiền tố tường minh ^\[(?:Tại\s+)?(\d{1,2}):(\d{2})\] hoặc trung thực theo currentTime
+    const timePrefixMatch = String(message).trim().match(/^\[(?:Tại\s+)?(\d{1,2}):(\d{2})\]/i);
+    let effectiveTime = Number(currentTime);
+    if (timePrefixMatch) {
+      effectiveTime = parseInt(timePrefixMatch[1], 10) * 60 + parseInt(timePrefixMatch[2], 10);
+    } else if (isNaN(effectiveTime) || effectiveTime < 0) {
+      effectiveTime = 0;
+    }
+
+    const { search, getById } = await import('./src/services/knowledgeBase.js');
+    const { chatJSON } = await import('./src/openaiClient.js');
+
+    // 1. RAG Search trên Knowledge Base DRE — chỉ thực hiện khi câu hỏi liên quan kiến thức toán
     let kbMatch = null;
     if (isMathKnowledgeQuery(message)) {
       const searchHits = search(message, 1);
       if (searchHits && searchHits.length > 0 && searchHits[0].score >= 2) {
         kbMatch = searchHits[0];
-      } else if (currentTime >= 2100 && currentTime <= 2400 && 
+      } else if (effectiveTime >= 2100 && effectiveTime <= 2400 && 
                 (lower.includes('2a') || lower.includes('bc') || lower.includes('dd') || lower.includes('1+1') || lower.includes('bẫy') || lower.includes('độ dài') || lower.includes('do dai'))) {
         kbMatch = getById('MISC_VEC_005');
       }
     }
 
+    // 2. Xác định vai trả lời (Routing)
+    let targetPeer = recipient;
+    if (targetPeer === 'all') {
+      if (lower.includes('@bo') || lower.includes(' bo ') || lower.endsWith(' bo') || lower.startsWith('bo ')) {
+        targetPeer = 'bo';
+      } else if (lower.includes('@linhchi') || lower.includes('linh chi') || lower.includes('công thức') || lower.includes('quy tắc')) {
+        targetPeer = 'linhchi';
+      } else if (lower.includes('@minhkhang') || lower.includes('minh khang') || lower.includes('đời sống') || lower.includes('hình dung')) {
+        targetPeer = 'minhkhang';
+      } else if (lower.includes('@colam') || lower.includes('cô lam') || lower.includes('thưa cô')) {
+        targetPeer = 'colam';
+      } else {
+        targetPeer = 'tri'; // Default deep thinker
+      }
+    }
+
+    // 3. Thực thi Deterministic Tools TRƯỚC KHI gọi model để model có số liệu thực tế
+    const { executeTool } = await import('./src/tools/index.js');
+    const toolCalls = [];
+
+    // 3.1 Tool RAG Knowledge Base Retrieval
     if (kbMatch) {
       const ragTool = executeTool('tool_query_misconception_kb', {
         misconceptionId: kbMatch.misconception.id,
@@ -517,52 +728,50 @@ app.post('/api/chat/classroom', async (req, res) => {
       });
     }
 
-    // 2. Vector Algebra Tool (Dynamic Parsing)
-    const detectedExpr = extractVectorExpr(message);
-    const detectedClaim = extractClaimFromText(message);
-    const detectedSide = extractSideFromText(message);
-    const hasAlgebraClaim = detectedExpr || lower.includes('bc') || lower.includes('dd') || lower.includes('2a') ||
-      lower.includes('a√2') || lower.includes('√2') || lower.includes('căn 2') || lower.includes('1+1') ||
-      (kbMatch?.misconception?.id === 'MISC_VEC_005' && (lower.includes('độ dài') || lower.includes('do dai')));
-
+    // 3.2 Tool kiểm chứng đại số hình học: Dynamic parser trích xuất expr và claim từ câu hỏi
+    const { extractVectorExpr, extractClaimFromText } = await import('./src/tools/tool_verify_vector_algebra.js');
     let vectorAlgebraTool = null;
-    if (hasAlgebraClaim) {
-      const exprToVerify = detectedExpr || "|BC + DD'|";
-      let finalClaim = detectedClaim;
-      if (!finalClaim) {
-        if (lower.includes('a√2') || lower.includes('√2') || lower.includes('căn 2')) {
-          finalClaim = detectedSide !== 'a' ? `${detectedSide}√2` : 'a√2';
-        } else if (lower.includes("bc'")) {
-          finalClaim = "BC'";
-        } else if (lower.includes('2a')) {
-          finalClaim = '2a';
-        } else if (lower.includes('1+1')) {
-          finalClaim = '2';
-        }
-      }
+    
+    // Tự động phân tích biểu thức vectơ từ câu hỏi học sinh (hoặc fallback về |BC + DD'| nếu đang ở checkpoint 37:13)
+    let parsedExpr = extractVectorExpr(message);
+    if (!parsedExpr && effectiveTime >= 2100 && effectiveTime <= 2400 && (lower.includes('bc') || lower.includes('dd') || lower.includes('độ dài') || lower.includes('do dai'))) {
+      parsedExpr = "|BC + DD'|";
+    }
+
+    if (parsedExpr) {
+      // Trích xuất claim thực tế từ câu hỏi học sinh
+      // Nếu câu hỏi có tính chất phản biện / nghi vấn về phát biểu của Bo (vd: "Bo nói ... sai đúng không?"),
+      // không coi đó là claim khẳng định của học sinh!
+      const isQuestioningBo = /(?:bo\s+nói|bo\s+bảo|có\s+phải|sai\s+đúng\s+không|đúng\s+không\s*\?)/i.test(message);
+      const parsedClaim = isQuestioningBo ? null : extractClaimFromText(message);
+
+      // Trích xuất độ dài cạnh linh hoạt: "cạnh 2", "cạnh bằng 2", "cạnh = 2", "cạnh là 2"
+      const sideMatch = lower.match(/(?:cạnh|side)\s*(?:bằng|=|là)?\s*(\d+(?:\.\d+)?)/i);
+      const detectedSide = sideMatch ? sideMatch[1] : (lower.includes('cạnh 2') ? '2' : 'a');
 
       vectorAlgebraTool = executeTool('tool_verify_vector_algebra', {
         shape: 'cube',
         side: detectedSide,
-        expr: exprToVerify,
-        claim: finalClaim,
+        expr: parsedExpr,
+        claim: parsedClaim,
       });
 
-      const isCalcOnly = vectorAlgebraTool.output?.isValid === null;
-      const badgeText = isCalcOnly
-        ? `Đã tính toán: ${vectorAlgebraTool.output?.correct || ''}`
-        : (vectorAlgebraTool.isValid === true
-            ? `Đã kiểm chứng hình học: Khớp chuẩn (${vectorAlgebraTool.output?.correct || 'a√2'})`
-            : vectorAlgebraTool.isValid === false
-              ? `Đã kiểm chứng hình học: Sai lệch (${vectorAlgebraTool.input.claim} ≠ ${vectorAlgebraTool.output?.correct || 'a√2'})`
-              : `Đã kiểm chứng hình học: ${vectorAlgebraTool.output?.correct || 'a√2'}`);
+      let badgeText = '';
+      if (vectorAlgebraTool.isValid === true) {
+        badgeText = `Đã kiểm chứng hình học: Khớp chuẩn (${vectorAlgebraTool.output.correct})`;
+      } else if (vectorAlgebraTool.isValid === false) {
+        badgeText = `Đã kiểm chứng hình học: Sai lệch (${vectorAlgebraTool.input.claim} ≠ ${vectorAlgebraTool.output.correct})`;
+      } else {
+        // Học sinh chỉ hỏi tính toán, không đưa claim sai -> không phán sai lệch!
+        badgeText = `Đã tính toán hình học: ${vectorAlgebraTool.input.expr} = ${vectorAlgebraTool.output.correct}`;
+      }
 
       toolCalls.push({
         toolName: vectorAlgebraTool.toolName,
         status: 'completed',
-        label: isCalcOnly ? 'Trí đang tính toán độ dài vectơ...' : 'Trí đang kiểm chứng hình học...',
+        label: 'Trí đang kiểm chứng hình học...',
         badgeText,
-        category: isCalcOnly ? 'math_calc' : 'math_verify',
+        category: 'math_verify',
         input: vectorAlgebraTool.input,
         output: vectorAlgebraTool.output,
         isValid: vectorAlgebraTool.isValid,
@@ -570,49 +779,104 @@ app.post('/api/chat/classroom', async (req, res) => {
       });
     }
 
-    // 3. Dispatch qua Dynamic Dispatcher (Issue #401)
-    const { dispatchMessage } = await import('./src/services/dispatcher.js');
-    const activeSessionId = sessionId || `classroom_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-    const dispatchResult = await dispatchMessage({
-      message,
-      currentTime,
-      lessonTitle,
-      sessionId: activeSessionId,
-      recipient,
-      useLLM,
-      toolCalls,
-      vectorAlgebraTool,
-      kbMatch,
+    // 3.3 Tool thẩm định Bloom (Cô Lam)
+    let bloomTool = null;
+    if (targetPeer === 'colam') {
+      bloomTool = executeTool('tool_evaluate_bloom_level', {
+        question: message,
+        expected_points: kbMatch?.misconception?.resolution_criteria || [],
+      });
+      toolCalls.push({
+        toolName: 'tool_evaluate_bloom_level',
+        status: 'completed',
+        label: 'Cô Lam đang thẩm định chuẩn Bloom...',
+        badgeText: `Chuẩn Bloom: ${bloomTool.output.level} (${bloomTool.output.score}/6)`,
+        category: 'bloom',
+        input: bloomTool.input,
+        output: bloomTool.output,
+        isValid: bloomTool.isValid,
+        timestampMs: bloomTool.timestampMs,
+      });
+    }
+
+    const m = Math.floor(effectiveTime / 60);
+    const s = Math.floor(effectiveTime % 60);
+    const timeStr = `${m}:${s.toString().padStart(2, '0')}`;
+
+    const systemPrompt = `Bạn là bạn học "${targetPeer.toUpperCase()}" trong lớp học thông minh DRE Toán 12 (Bài giảng Thầy Nguyễn Phan Tiến).
+Thời điểm video hiện tại: [${timeStr}].
+Chủ đề: ${lessonTitle}.
+${kbMatch ? `
+Tri thức nền tảng (KB RAG):
+- Ngộ nhận liên quan: ${kbMatch.misconception.title} (${kbMatch.misconception.incorrect_claim})
+- Kiến thức đúng: ${kbMatch.misconception.correction}
+- Phản ví dụ: ${kbMatch.misconception.counterexample?.setup} -> ${kbMatch.misconception.counterexample?.result}
+- Gợi ý phân tầng: 
+  + Mức 1: ${kbMatch.misconception.scaffolding[0]?.question || ''}
+  + Mức 2: ${kbMatch.misconception.scaffolding[1]?.question || ''}
+` : ''}
+${vectorAlgebraTool ? `
+Dữ liệu kiểm chứng từ Deterministic Tool (Toạ độ 3D):
+- Biểu thức: ${vectorAlgebraTool.input.expr}
+- Phát biểu kiểm tra: ${vectorAlgebraTool.input.claim}
+- Kết quả kiểm chứng (isValid): ${vectorAlgebraTool.isValid}
+- Giá trị đúng chuẩn: ${vectorAlgebraTool.output.correct}
+- Căn cứ hình học: ${vectorAlgebraTool.output.reason}
+` : ''}
+
+Quy tắc ứng xử:
+1. Giữ đúng persona của ${targetPeer} (Bo: lém lỉnh; Trí: trầm tĩnh, đào sâu bản chất; Linh Chi: cẩn thận, tóm tắt công thức; Minh Khang: ví dụ trực quan đời thực; Cô Lam: ấm áp, dẫn dắt Socratic "nudges, not answers").
+2. Khi học sinh hỏi về bẫy tổng 1+1=2 hoặc cộng độ dài: Trí giải thích bản chất bất đẳng thức tam giác và Pytago ra a√2, không bằng 2a.
+3. Không xả ngay đáp án chi tiết nếu học sinh đang hỏi gợi ý; gợi ý từng nấc nhẹ nhàng (1-2 câu).
+4. QUY TẮC BẢO VỆ PHẠM VI (SCOPE & OUT-OF-DOMAIN GUARDRAIL):
+- Bạn đang tham gia lớp học Toán 12 bài "${lessonTitle}".
+- Khi học sinh hỏi câu hỏi ngoài lề, lạc đề, câu hỏi đời sống không thuộc môn Toán (ví dụ: con chó có mấy chân, thời tiết, chơi game...):
+  + Phải phản hồi ngắn gọn, hóm hỉnh đúng phong cách bạn học/cô giáo, NHƯNG BẮT BUỘC phải khéo léo bẻ lái / nhắc bạn học quay trở lại bài toán vectơ trong không gian của thầy Tiến đang học (ví dụ: "Con chó thường có 4 chân nhé 🐶! Cơ mà nhắc tới số 4, tụi mình quay lại bài vectơ của thầy Tiến thôi: cậu đã nắm được quy tắc hình hộp 8 đỉnh 4 đường chéo chưa?")!
+5. Luôn trả về JSON:
+{
+  "author": "${targetPeer === 'bo' ? 'Bo' : targetPeer === 'tri' ? 'Trí' : targetPeer === 'linhchi' ? 'Linh Chi' : targetPeer === 'minhkhang' ? 'Minh Khang' : 'Cô Lam'}",
+  "text": "Câu trả lời của bạn",
+  "followUpBoText": "Nếu câu hỏi liên quan đến bẫy của Bo mà Trí trả lời, Bo nói thêm 1 câu đồng tình/sáng tỏ (hoặc rỗng nếu không cần)"
+}`;
+
+    const modelToUse = targetPeer === 'colam' 
+      ? config.models.coLam 
+      : targetPeer === 'tri' 
+        ? (config.models.tri || config.models.bo)
+        : config.models.bo;
+
+    const reply = await chatJSON({
+      model: modelToUse,
+      systemPrompt,
+      userPayload: {
+        student_question: message,
+        currentTime: timeStr,
+      },
     });
 
     res.json({
       ok: true,
-      author: dispatchResult.primaryResponse.author,
-      text: dispatchResult.primaryResponse.text,
-      avatarId: dispatchResult.primaryResponse.avatarId,
-      followUpBoText: dispatchResult.followUpResponse?.text || null,
-      followUpResponse: dispatchResult.followUpResponse || null,
-      peerId: dispatchResult.verdict.dispatchedAgent,
-      verdict: dispatchResult.verdict,
-      sessionId: activeSessionId,
-      sessionState: dispatchResult.sessionState || null,
-      kbMatchedId: dispatchResult.ragContextUsed?.misconceptionId || kbMatch?.misconception?.id || null,
+      author: reply.author,
+      text: reply.text,
+      followUpBoText: reply.followUpBoText || null,
+      peerId: targetPeer,
+      kbMatchedId: kbMatch?.misconception?.id || null,
       toolCall: toolCalls[0] || null,
       toolCalls,
-      timeStr: dispatchResult.currentTimeStr,
-      latencyMs: dispatchResult.latencyMs,
+      timeStr,
+      second: effectiveTime,
     });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
 });
 
+export { app };
+export default app;
+
 const isMainModule = Boolean(process.argv[1] && (process.argv[1].endsWith('server.js') || process.argv[1].endsWith('server')));
-if (isMainModule && process.env.NODE_ENV !== 'test') {
+if (isMainModule) {
   app.listen(config.port, () => {
     console.log(`DRE backend đang chạy ở http://localhost:${config.port}`);
   });
 }
-
-export { app };
-export default app;

@@ -5,7 +5,8 @@
  */
 
 import { AgentReasoningEvent, ApprovedLessonPackage } from '../types/pipeline';
-import fallbackFixture from '../../mock/mock_reasoning_events.json';
+import fallbackFixtureData from '../../mock/mock_roundtable_run_fixture.json';
+const fallbackFixture = fallbackFixtureData as any;
 
 const API_BASE_URL = (import.meta as any).env?.VITE_DRE_API_URL || 'http://localhost:3001';
 
@@ -137,6 +138,10 @@ export interface ClassroomChatResponse {
   toolCalls?: DeterministicToolCallInfo[] | null;
   timeStr: string;
   second?: number;
+  sessionId?: string;
+  sessionState?: any;
+  citations?: any;
+  contextSnapshot?: any;
 }
 
 /**
@@ -145,7 +150,8 @@ export interface ClassroomChatResponse {
 export async function sendClassroomChat(
   message: string,
   currentTime: number,
-  recipient: string = 'all'
+  recipient: string = 'all',
+  sessionId?: string
 ): Promise<ClassroomChatResponse | null> {
   try {
     const controller = new AbortController();
@@ -153,7 +159,7 @@ export async function sendClassroomChat(
     const res = await fetch(`${API_BASE_URL}/api/chat/classroom`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, currentTime, recipient }),
+      body: JSON.stringify({ message, currentTime, recipient, sessionId }),
       signal: controller.signal,
     });
     clearTimeout(timeoutId);
