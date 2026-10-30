@@ -116,6 +116,7 @@ export function friendlyToolName(toolName: string): string {
   return TOOL_NAMES[bare] ?? bare.replace(/_/g, ' ');
 }
 
+const clock = (sec: number) => `${Math.floor(sec / 60)}:${Math.floor(sec % 60).toString().padStart(2, '0')}`;
 const str = (v: unknown): string | undefined => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
 
 // Replay data sometimes records only that a transcript exists ("Đã chép lời"), not the words.
@@ -266,6 +267,22 @@ export function buildAgentMapTurn(turn: InspectorTurn): AgentMapTurn {
   }
 
   const citations = (turn.citations ?? []).filter((c) => str(c.label));
+  // The sources an answer cites are the context it drew on: one block per source.
+  const SOURCE_TITLES: Record<string, string> = { video: 'Bài giảng', blackboard: 'Bảng phấn', sgk: 'Sách giáo khoa', slide: 'Slide' };
+  citations.forEach((c, i) => {
+    const at = typeof c.timestamp === 'number' ? clock(c.timestamp) : undefined;
+    const title = [SOURCE_TITLES[c.source] ?? 'Nguồn', at].filter(Boolean).join(' ');
+    lanes.context.push({
+      id: `${turn.turnId}-cite-${i}`,
+      lane: 'context',
+      kind: 'context',
+      title,
+      subtitle: str(c.snippet) ?? c.label,
+      input: fields(['Nguồn', c.label], ['Mốc bài giảng', at]),
+      output: fields(['Trích', str(c.snippet)]),
+    });
+    contextItems.push(str(c.snippet) ? `${c.label}: ${c.snippet}` : c.label);
+  });
   lanes.answer.push({
     id: `${turn.turnId}-agent`,
     lane: 'answer',

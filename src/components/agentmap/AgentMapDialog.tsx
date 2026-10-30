@@ -279,20 +279,27 @@ const LaneCanvas: React.FC<{ turn: AgentMapTurn; selectedId: string | null; onSe
       ref={canvasRef}
       className="relative rounded-2xl border border-[#E2EAD2] bg-white [background-image:linear-gradient(#EEF3E4_1px,transparent_1px),linear-gradient(90deg,#EEF3E4_1px,transparent_1px)] [background-size:24px_24px]"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-4">
+      <div className="flex flex-col lg:flex-row">
         {LANES.map((lane, li) => {
           const blocks = turn.lanes[lane.id];
+          const empty = blocks.length === 0;
+          // Staircase offset counts only lanes that have blocks, so the line reads left to right.
+          const step = LANES.slice(0, li).filter((l) => turn.lanes[l.id].length > 0).length;
           return (
-            <section key={lane.id} aria-label={lane.title} className={`border-[#E2EAD2] ${li > 0 ? 'border-t lg:border-l lg:border-t-0' : ''}`}>
+            <section
+              key={lane.id}
+              aria-label={lane.title}
+              className={`border-[#E2EAD2] ${li > 0 ? 'border-t lg:border-l lg:border-t-0' : ''} ${empty ? 'lg:w-[150px] lg:flex-none' : 'lg:min-w-0 lg:flex-1'}`}
+            >
               <h3 className="flex items-center justify-center gap-2 border-b border-[#E2EAD2] bg-[#FBFDF7]/90 px-3 py-3 text-[15px] font-bold text-[#121712]">
                 {LANE_ICON[lane.id]}
                 {lane.title}
               </h3>
               <div className="flex flex-col gap-3 p-3 lg:min-h-[260px]">
-                <div className="hidden lg:block" style={{ height: li * 52 }} aria-hidden="true" />
-                {blocks.length === 0 ? (
-                  <p className="rounded-xl border border-dashed border-[#D5DFC4] bg-white/80 px-3 py-3 text-center text-[13px] text-[#5B6657]">
-                    Không dùng ở lượt này
+                {!empty && <div className="hidden lg:block" style={{ height: step * 52 }} aria-hidden="true" />}
+                {empty ? (
+                  <p className="rounded-lg border border-dashed border-[#D5DFC4] bg-white/80 px-2 py-1.5 text-center text-[12px] text-[#5B6657]">
+                    Không dùng
                   </p>
                 ) : (
                   blocks.map((block) => (

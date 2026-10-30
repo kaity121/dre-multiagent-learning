@@ -30,7 +30,11 @@ test('builds four lanes from the fields the turn carries', () => {
   assert.equal(t.lanes.understand[0].title, 'Dispatcher');
   assert.match(t.lanes.understand[0].metric ?? '', /0\.98/);
   assert.match(t.lanes.understand[0].metric ?? '', /120 ms/);
-  assert.equal(t.lanes.context.length, 1, '"Không dùng" knowledge is not a context block');
+  assert.deepEqual(
+    t.lanes.context.map((b) => b.title),
+    ['Bảng phấn 37:13', 'Bài giảng 37:13'],
+    '"Không dùng" knowledge is not a context block; the cited lecture second is',
+  );
   assert.equal(t.lanes.verify[0].title, 'tool_verify_vector_algebra');
   assert.equal(t.lanes.verify[0].tone, 'ok');
   assert.equal(t.lanes.answer[0].metric, '1 trích dẫn');
@@ -71,4 +75,19 @@ test('dispatcher intent ids are shown in plain Vietnamese', async () => {
   assert.equal(intentLabel('Phản biện lỗi nhận thức vectơ'), 'Phản biện lỗi nhận thức vectơ');
   const t = buildAgentMapTurn({ ...chatTurn, dispatcher: { ...chatTurn.dispatcher!, intent: 'ask_deep_concept' } });
   assert.equal(t.lanes.understand[0].subtitle, 'Ý định: Hỏi bản chất');
+});
+
+test('a turn with only citations still shows what context it drew on', () => {
+  const t = buildAgentMapTurn({
+    turnId: 't4',
+    timestamp: 0,
+    agent: 'Trí',
+    dialogue: 'Hai vectơ vuông góc.',
+    citations: [
+      { source: 'video', label: 'Ví dụ 3', snippet: "|BC + DD'| = √2", timestamp: 2233 },
+      { source: 'sgk', label: 'SGK Hình học 12' },
+    ],
+  });
+  assert.deepEqual(t.lanes.context.map((b) => b.title), ['Bài giảng 37:13', 'Sách giáo khoa']);
+  assert.deepEqual(t.contextItems, ["Ví dụ 3: |BC + DD'| = √2", 'SGK Hình học 12']);
 });
