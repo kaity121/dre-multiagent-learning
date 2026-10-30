@@ -113,9 +113,12 @@ export const FormattedMathText: React.FC<{
 }> = React.memo(({ text, className = '' }) => {
   const tokens = useMemo(() => {
     if (!text) return [];
+    const normalized = text
+      .replace(/d6c2([A-Za-z0-9'′]+)/gi, '\\overrightarrow{$1}')
+      .replace(/d6c2/gi, '\\vec{}');
     // Tách theo các khối phân cách KaTeX chuẩn
     const regex = /(\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|\$\$[\s\S]*?\$\$|\$(?:\\.|[^$\n])+\$)/g;
-    const rawParts = text.split(regex);
+    const rawParts = normalized.split(regex);
     const result: Array<{ type: 'text' | 'inline' | 'display' | 'raw_latex'; content: string }> = [];
 
     for (const part of rawParts) {

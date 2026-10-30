@@ -115,6 +115,11 @@ export interface TimelineComment {
     isValid?: boolean | null;
     correct?: string;
   }> | null;
+  replyTo?: {
+    id?: string;
+    author: string;
+    text?: string;
+  } | null;
 }
 
 export interface PeerContextData {

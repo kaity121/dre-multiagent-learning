@@ -12,7 +12,7 @@
  */
 
 // Hàm sinh toạ độ đỉnh theo cạnh s
-function buildCubeVertices(s = 1) {
+export function buildCubeVertices(s = 1) {
   return {
     A:  [0, 0, 0],
     B:  [s, 0, 0],
@@ -46,7 +46,7 @@ export function parseVectorName(raw) {
 /**
  * Lấy tọa độ vector XY = Y - X
  */
-function getVectorCoords(startPoint, endPoint, vertices = CUBE_VERTICES) {
+export function getVectorCoords(startPoint, endPoint, vertices = CUBE_VERTICES) {
   const p1 = vertices[startPoint];
   const p2 = vertices[endPoint];
   if (!p1 || !p2) {
@@ -154,7 +154,7 @@ export function parseClaimValue(claim, sideNum = 1) {
 /**
  * Chuyển đổi giá trị số sang biểu thức LaTeX đẹp có tính đến tham số side
  */
-function formatLatexResult(lengthSquared, isMagnitude, side = 'a') {
+export function formatLatexResult(lengthSquared, isMagnitude, side = 'a') {
   if (!isMagnitude) return null;
   const isNumericSide = typeof side === 'number' || (!isNaN(parseFloat(side)) && !String(side).includes('a'));
   const s = isNumericSide ? parseFloat(side) : 1;
@@ -199,6 +199,19 @@ export function extractVectorExpr(text) {
     return cleanExpr.includes('|') ? cleanExpr : `|${cleanExpr}|`;
   }
   return null;
+}
+
+/**
+ * Trích xuất độ dài cạnh nếu người dùng có nêu trong câu (vd: "cạnh bằng 2", "cạnh là 2", "cạnh 2")
+ */
+export function extractSideFromText(text) {
+  if (!text) return 'a';
+  const m = String(text).match(/\b(?:cạnh|canh|side)\s*(?:bằng|=|la|là)?\s*(\d+(?:[.,]\d+)?)/i);
+  if (m) {
+    const val = parseFloat(m[1].replace(',', '.'));
+    if (!isNaN(val) && val > 0) return val;
+  }
+  return 'a';
 }
 
 /**
@@ -281,75 +294,82 @@ export function verifyVectorAlgebra({ shape = 'cube', side = 'a', expr, claim })
     };
   }
 
-  // TRƯỜNG HỢP 2: Có claim đưa ra
-  const parsedClaim = parseClaimValue(claim, sideNum);
-
-  // Kiểm tra trường hợp claim là tên vectơ tương đương (ví dụ: claim là "BC'", "A'B'")
+  // TRƯỜNG HỢP 2: Có claim cần kiểm chứng
+  const claimNum = parseClaimValue(claim, sideNum);
   const cleanClaim = String(claim).trim().toUpperCase().replace(/1/g, "'").replace(/′/g, "'");
-  let isEquivalentVector = false;
-  let isVectorFormat = false;
   const vectorPoints = parseVectorName(cleanClaim);
+  const epsilon = 0.05;
+
+  let isValid = null;
+  let reason = '';
+  const steps = [];
+
+  // 2.1 Claim là tên một vectơ tương đương (ví dụ: "BC'", "AD'")
   if (vectorPoints) {
     try {
-      const claimCoords = getVectorCoords(vectorPoints[0], vectorPoints[1], vertices);
-      isVectorFormat = true;
-      if (
-        claimCoords[0] === evalResult.vector[0] &&
-        claimCoords[1] === evalResult.vector[1] &&
-        claimCoords[2] === evalResult.vector[2]
-      ) {
-        isEquivalentVector = true;
+      const vCoords = getVectorCoords(vectorPoints[0], vectorPoints[1], vertices);
+      const vLenSquared = vCoords[0] ** 2 + vCoords[1] ** 2 + vCoords[2] ** 2;
+      const vLen = Math.sqrt(vLenSquared);
+
+      const coordsMatch = Math.abs(vCoords[0] - evalResult.vector[0]) < epsilon &&
+                          Math.abs(vCoords[1] - evalResult.vector[1]) < epsilon &&
+                          Math.abs(vCoords[2] - evalResult.vector[2]) < epsilon;
+      const lenMatch = Math.abs(vLen - evalResult.length) < epsilon;
+
+      if (coordsMatch || lenMatch) {
+        isValid = true;
+        reason = `Phát biểu hoàn toàn chính xác. Biểu thức ${expr} có vectơ tổng tương đương vectơ ${cleanClaim}, với độ dài ${correctLatex}.`;
+        steps.push(`Vectơ tương đương: \\vec{${vectorPoints[0]}${vectorPoints[1]}} có tọa độ [${vCoords.join(', ')}].`);
+        steps.push(`Độ dài tương ứng: |\\vec{${vectorPoints[0]}${vectorPoints[1]}}| = ${correctLatex}.`);
+      } else {
+        isValid = false;
+        reason = `Vectơ ${cleanClaim} có tọa độ [${vCoords.join(', ')}] (độ dài ${vLen.toFixed(2)}), không khớp với vectơ tổng của ${expr} (độ dài ${correctLatex}).`;
+        steps.push(`Tính toán tọa độ biểu thức: [${evalResult.vector.join(', ')}].`);
+        steps.push(`Tọa độ vectơ được nêu: [${vCoords.join(', ')}].`);
       }
-    } catch (_) {
-      // Bỏ qua nếu claim không khớp đỉnh
+    } catch {
+      isValid = null;
+      reason = `unparseable_claim: Ký hiệu vectơ '${cleanClaim}' không thuộc cấu trúc hình lập phương đang xét.`;
+      steps.push(`Không thể xác định tọa độ các điểm trong tên vectơ '${cleanClaim}'.`);
     }
   }
-
-  let isValid = false;
-  let reason = '';
-
-  if (isVectorFormat) {
-    if (isEquivalentVector) {
+  // 2.2 Claim phân tích được thành giá trị số hoặc căn số (hỗ trợ cả 2√2 lẫn a√2)
+  else if (claimNum !== null) {
+    if (Math.abs(evalResult.length - claimNum) < epsilon) {
       isValid = true;
-      reason = `Chính xác! Vectơ tổng tương đương với vectơ ${cleanClaim}, có độ dài chính xác là ${correctLatex}.`;
+      reason = `Phát biểu hoàn toàn chính xác. Giá trị ${claim} khớp với kết quả hình học ${correctLatex}.`;
+      steps.push(`Độ dài biểu thức ${expr} bằng ${correctLatex}.`);
     } else {
       isValid = false;
-      reason = `Sai lệch: Vectơ tổng không tương đương với vectơ ${cleanClaim}. Kết quả chính xác phải là ${correctLatex}.`;
-    }
-  } else if (parsedClaim !== null) {
-    // So khớp độ dài với ngưỡng dung sai số học (epsilon = 0.05)
-    const isClose = Math.abs(parsedClaim - evalResult.length) < 0.05;
-    isValid = isClose;
-
-    if (isValid) {
-      reason = `Chính xác! Biểu thức ${expr} có độ dài chính xác là ${correctLatex}.`;
-    } else {
-      // Phân tích bẫy ngộ nhận cụ thể (VD: cộng độ dài |BC| + |DD'| = 2a)
-      const sanitized = expr.replace(/[|()]/g, '').trim();
-      if (sanitized === "BC + DD'" || sanitized === "BC+DD'") {
-        reason = `Sai lầm ngộ nhận cộng trực tiếp độ dài: |BC| + |DD'| = ${isNumericSide ? `${2*sideNum}` : '2a'} là SAI! Vì DD' = CC', nên BC + DD' = BC + CC' = BC'. Do đó độ dài là đường chéo hình vuông BC' = ${correctLatex}.`;
+      const cleanExprStr = expr.replace(/[|()]/g, '');
+      if ((claim === '2a' || claimNum === 2 * sideNum) && cleanExprStr.includes('BC') && cleanExprStr.includes("DD'")) {
+        const doubleSideStr = isNumericSide ? `${2 * sideNum}` : '2a';
+        reason = `BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là ${correctLatex}, không thể cộng trực tiếp độ dài ${side} + ${side} = ${doubleSideStr}.`;
+        steps.push("1. Vectơ DD' bằng vectơ CC' (hai cạnh bên cùng hướng trong hình lập phương).");
+        steps.push("2. Thay thế: \\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}.");
+        steps.push(`3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = ${correctLatex}.`);
+        steps.push("4. Sai lầm mắc phải: cộng trực tiếp độ dài hai vectơ vuông góc |\\vec{u} + \\vec{v}| = |\\vec{u}| + |\\vec{v}| là sai.");
       } else {
-        reason = `Sai lệch: Giá trị tính toán chuẩn là ${correctLatex} (xấp xỉ ${calculatedVal}), trong khi phát biểu đưa ra là ${claim}.`;
+        reason = `Độ dài đúng của biểu thức ${expr} là ${correctLatex}, trong khi phát biểu cho rằng là ${claim}.`;
+        steps.push(`Tính toán tọa độ: vectơ tổng = [${evalResult.vector.join(', ')}].`);
+        steps.push(`Độ dài chính xác = ${evalResult.length.toFixed(4)}.`);
       }
     }
-  } else {
-    // Không phân tích được biểu thức toán học hoặc phát biểu chung chung
+  }
+  // 2.3 Claim là định tính hoặc không parse được
+  else {
     isValid = null;
-    reason = `Không phân tích được giá trị cụ thể từ phát biểu "${claim}" (unparseable_claim). Biểu thức chuẩn là ${correctLatex}.`;
+    reason = `unparseable_claim: Không thể phân tích giá trị số hoặc ký hiệu từ phát biểu '${claim}' để kiểm chứng tự động.`;
+    steps.push(`Phát biểu mang tính định tính hoặc công thức tổng quát, không thể kiểm chứng trực tiếp bằng tọa độ số.`);
   }
 
   return {
     isValid,
     correct: correctLatex,
     calculatedValue: calculatedVal,
-    claimValue: parsedClaim,
+    claimValue: claimNum,
     reason,
-    steps: [
-      `1. Dựng vectơ: ${evalResult.parsedTerms.map(t => `${t.sign} ${t.name}`).join(' ')}`,
-      `2. Toạ độ vectơ tổng: (${evalResult.vector.join(', ')})`,
-      `3. Độ dài tính toán: ${calculatedVal} ~ ${correctLatex}`,
-      `4. Kết luận kiểm chứng: ${isValid === true ? 'ĐÚNG' : isValid === false ? 'SAI' : 'CHƯA XÁC ĐỊNH'}`,
-    ],
+    steps,
   };
 }
 
