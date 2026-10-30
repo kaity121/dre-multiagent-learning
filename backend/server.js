@@ -12,12 +12,17 @@ function isMathKnowledgeQuery(text = '') {
 
 import express from 'express';
 import cors from 'cors';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import { config } from './src/config.js';
 import { listMisconceptionIds } from './src/contentLibrary.js';
 import { startSession, submitAnswer, submitRebuttal } from './src/orchestrator.js';
 import { chatJSON } from './src/openaiClient.js';
 import { lessonsRouter } from './src/routes/lessons.js';
 import { extractRouter } from './src/routes/extract.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 app.use(cors());
@@ -173,6 +178,69 @@ app.post('/api/peer/:peerId/chat', async (req, res) => {
     res.json({ ok: true, peerId, result, toolCalls: peerToolCalls });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// GET /api/roundtable/stream — Server-Sent Events (SSE) Live Stream (Blu P2-5b)
+app.get('/api/roundtable/stream', async (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+  });
+  res.flushHeaders();
+
+  const streamDelayMs = Math.max(10, parseInt(req.query.streamDelayMs, 10) || 40);
+  let isClosed = false;
+  let timer = null;
+
+  req.on('close', () => {
+    isClosed = true;
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  });
+
+  try {
+    const fsMod = await import('fs');
+    const pathMod = await import('path');
+    const eventsPath = pathMod.resolve(__dirname, '../mock/mock_reasoning_events.json');
+    const lessonPath = pathMod.resolve(__dirname, '../mock/lesson.json');
+
+    const rawEvents = fsMod.existsSync(eventsPath)
+      ? JSON.parse(fsMod.readFileSync(eventsPath, 'utf8'))
+      : [];
+    const lesson = fsMod.existsSync(lessonPath)
+      ? JSON.parse(fsMod.readFileSync(lessonPath, 'utf8'))
+      : null;
+
+    let index = 0;
+
+    const sendNext = () => {
+      if (isClosed) return;
+
+      if (index < rawEvents.length) {
+        const evt = rawEvents[index++];
+        res.write(`event: reasoning_event\ndata: ${JSON.stringify(evt)}\n\n`);
+        timer = setTimeout(sendNext, streamDelayMs);
+      } else {
+        const completeData = {
+          status: 'completed',
+          lesson: lesson,
+          totalEvents: rawEvents.length,
+        };
+        res.write(`event: complete\ndata: ${JSON.stringify(completeData)}\n\n`);
+        res.end();
+      }
+    };
+
+    sendNext();
+  } catch (err) {
+    if (!isClosed) {
+      res.write(`event: error\ndata: ${JSON.stringify({ error: err.message })}\n\n`);
+      res.end();
+    }
   }
 });
 

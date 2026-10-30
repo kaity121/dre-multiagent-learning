@@ -155,6 +155,7 @@ export interface AgentCitation {
   source: 'video' | 'blackboard' | 'sgk' | 'slide';
   quote?: string;
   url?: string;
+  snippet?: string;
 }
 
 export interface AgentRuntimeContext {
