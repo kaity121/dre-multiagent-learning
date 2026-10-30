@@ -10,6 +10,7 @@ import { FormattedMathText } from './MathVector';
 import { ChatSavedQuizBlock } from './ChatSavedQuizBlock';
 import { sound } from '../utils/soundEffects';
 import { sendClassroomChat } from '../services/dreBackendApi';
+import { BookOpen, Check, Ruler } from 'lucide-react';
 import { hasCheckpoint } from '../utils/lessonAdapter';
 
 // ============================================================================
@@ -118,6 +119,8 @@ interface VideoDebateSheetProps {
   /** The pause question lives in the task card; the chat only points to it. */
   questionInTaskCard?: boolean;
   onFocusTaskCard?: () => void;
+  /** Messages produced outside the chat (the checkpoint session), merged into the stream. */
+  extraMessages?: TimelineComment[];
 }
 
 const cleanText = (str?: string) =>
@@ -181,6 +184,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   onOpenEvidence,
   questionInTaskCard = false,
   onFocusTaskCard,
+  extraMessages,
 }) => {
   const [liveChatMessages, setLiveChatMessages] = useState<TimelineComment[]>([]);
   const [toolCallThinking, setToolCallThinking] = useState<string[]>([]);
@@ -245,7 +249,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   const visibleTimelineComments = showAllTimeline ? unpinnedComments : progressiveComments;
 
   const allStreamComments = useMemo(() => {
-    const combined = [...visibleTimelineComments, ...liveChatMessages];
+    const combined = [...visibleTimelineComments, ...(extraMessages || []), ...liveChatMessages];
     // Sắp xếp tin nhắn theo tiến trình thời gian video: mốc giây nhỏ hơn nằm trên, mốc giây lớn hơn nằm dưới
     return combined.slice().sort((a, b) => {
       if (a.second !== b.second) {
@@ -253,7 +257,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       }
       return 0; // Giữ nguyên thứ tự nếu cùng mốc giây (tin nhắn của Bạn trước, AI trả lời sau)
     });
-  }, [visibleTimelineComments, liveChatMessages]);
+  }, [visibleTimelineComments, liveChatMessages, extraMessages]);
   const pinnedComment = defaultComments.find((c) => c.isPinned);
 
   // Mốc giây kết thúc bài học được cấu hình trong JSON (lesson.lectureEndSecond, mặc định 9503 = 2:38:23)
@@ -686,10 +690,10 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     const thinkingSteps: string[] = [];
 
     if (isMathQuery) {
-      thinkingSteps.push('Đang truy xuất kho tri thức RAG (Pedagogical KB)...');
+      thinkingSteps.push('Đang tra lại bài giảng…');
     }
     if (isMathVerificationNeeded) {
-      thinkingSteps.push('Trí đang kiểm chứng hình học (Tọa độ 3D)...');
+      thinkingSteps.push('Trí đang kiểm tra bằng tọa độ…');
     }
     setToolCallThinking(thinkingSteps);
 
@@ -1105,10 +1109,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             {/* Structured Citations Chips (#402 / #12) */}
             {msg.citations && msg.citations.length > 0 && (
               <div className="mt-2 pt-2 border-t border-slate-200/70 flex flex-wrap items-center gap-1.5">
-                <span className="text-[11px] font-semibold text-stone-600">Nguồn:</span>
+                <span className="text-[12px] font-semibold text-[#3D4739]">Nguồn:</span>
                 {msg.citations.filter((c) => c.label && c.label.trim()).map((c, cIdx) => {
-                  const isVideo = c.source === 'video';
-                  const isBlackboard = c.source === 'blackboard';
                   const hasSeek = typeof c.timestamp === 'number';
                   return (
                     <button
@@ -1120,23 +1122,13 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                           onSeekVideo(c.timestamp!);
                         }
                       }}
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-medium border transition-colors shadow-2xs ${
-                        hasSeek
-                          ? isVideo
-                            ? 'bg-rose-50 border-rose-200 text-rose-800 hover:bg-rose-100 cursor-pointer'
-                            : isBlackboard
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100 cursor-pointer'
-                            : 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100 cursor-pointer'
-                          : 'bg-amber-50 border-amber-200 text-amber-800 cursor-default'
-                      }`}
-                      title={c.snippet ? `${c.label}: "${c.snippet}"` : c.label}
+                      disabled={!hasSeek || !onSeekVideo}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-[#B7DB6A] bg-white px-2 py-0.5 text-[12px] font-medium text-[#1F4D12] transition-colors hover:bg-[#F7FBEF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#121712] disabled:cursor-default disabled:hover:bg-white"
+                      title={hasSeek ? `Tua bài giảng tới ${formatSec(c.timestamp!)}` : undefined}
                     >
-                      <span className="font-semibold">{c.label}</span>
-                      {hasSeek && (
-                        <span className="font-mono text-[9.5px] opacity-75">
-                          ({formatSec(c.timestamp!)})
-                        </span>
-                      )}
+                      <Check className="h-3 w-3 shrink-0 text-[#2F7A3B]" strokeWidth={3} aria-hidden="true" />
+                      <FormattedMathText text={cleanText(c.label)} className="font-semibold" />
+                      {hasSeek && <span className="tabular-nums text-[#3D4739]">· {formatSec(c.timestamp!)}</span>}
                     </button>
                   );
                 })}
@@ -1421,7 +1413,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                 <span className="text-xs font-bold text-[#121712]">Trợ giảng An · {formatSec(pinnedComment.second)}</span>
               </div>
               <p className="leading-relaxed text-[#121712] font-normal text-xs pl-8">
-                {cleanText(pinnedComment.text)}
+                <FormattedMathText text={cleanText(pinnedComment.text)} />
               </p>
               {taHintTier > 0 && (
                 <div className="mt-2 ml-8 p-2.5 bg-white text-[#121712] rounded-xl font-medium text-xs border border-[#E2EAD2] shadow-2xs">
@@ -1490,19 +1482,16 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             {toolCallThinking.length > 0 && (
               <div className="flex flex-col gap-1.5 p-2 rounded-xl animate-in fade-in duration-200">
                 {toolCallThinking.map((step, sIdx) => {
-                  const isRag = step.includes('RAG');
+                  const isLookup = step.startsWith('Đang tra');
+                  const Icon = isLookup ? BookOpen : Ruler;
                   return (
                     <div
                       key={sIdx}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold shadow-2xs animate-pulse w-fit ${
-                        isRag ? 'bg-purple-50 border-purple-200 text-purple-800' : 'bg-blue-50 border-blue-200 text-blue-800'
-                      }`}
+                      role="status"
+                      className="flex w-fit items-center gap-2 rounded-full border border-[#D5DFC4] bg-[#F7FAF0] px-3 py-1.5 text-[12px] font-semibold text-[#121712]"
                     >
-                      <span className={`w-2 h-2 rounded-full animate-ping ${isRag ? 'bg-purple-600' : 'bg-blue-600'}`} />
-                      <svg className={`w-3.5 h-3.5 animate-spin shrink-0 ${isRag ? 'text-purple-600' : 'text-blue-600'}`} viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeDasharray="14 28" />
-                      </svg>
-                      <span>{isRag ? '📚' : '📐'} {step}</span>
+                      <Icon className="h-3.5 w-3.5 shrink-0 text-[#2F7A3B]" aria-hidden="true" />
+                      <span>{step}</span>
                     </div>
                   );
                 })}
