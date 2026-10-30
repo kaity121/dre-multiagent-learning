@@ -41,14 +41,27 @@ export const STAGES = [
   { id: 'fuse', label: 'Hợp nhất timeline' },
 ];
 
-export function listClips() {
-  if (!fs.existsSync(CLIPS_DIR)) return [];
-  return fs.readdirSync(CLIPS_DIR).filter((f) => f.endsWith('.mp4'));
+export const CLIP_EXTENSIONS = ['.mp4'];
+
+function isClipFile(file) {
+  if (!CLIP_EXTENSIONS.includes(path.extname(file).toLowerCase())) return false;
+  try {
+    return fs.statSync(file).isFile();
+  } catch {
+    return false;
+  }
 }
 
+export function listClips() {
+  if (!fs.existsSync(CLIPS_DIR)) return [];
+  return fs.readdirSync(CLIPS_DIR).filter((f) => isClipFile(path.join(CLIPS_DIR, f)));
+}
+
+/** Absolute path of a regular, supported clip file inside CLIPS_DIR, or null. */
 export function resolveClip(name) {
+  if (typeof name !== 'string' || !name.trim()) return null;
   const file = path.join(CLIPS_DIR, path.basename(name));
-  return fs.existsSync(file) ? file : null;
+  return isClipFile(file) ? file : null;
 }
 
 async function ffmpeg(args, options = {}) {
@@ -60,8 +73,8 @@ async function ffmpeg(args, options = {}) {
   return stdout;
 }
 
-async function extractAudio(clipPath, outFile) {
-  await ffmpeg(['-y', '-i', clipPath, '-vn', '-ac', '1', '-ar', '16000', '-b:a', '48k', outFile]);
+async function extractAudio(clipPath, outFile, { signal } = {}) {
+  await ffmpeg(['-y', '-i', clipPath, '-vn', '-ac', '1', '-ar', '16000', '-b:a', '48k', outFile], { signal });
   return outFile;
 }
 
@@ -101,21 +114,36 @@ export function pickKeyframeSeconds(regions) {
   return [0, ...picked.slice(-(MAX_KEYFRAMES - 1))];
 }
 
-async function boardThumbnails(clipPath, xFrom = DEFAULT_BOARD_X_FROM) {
+async function boardThumbnails(clipPath, xFrom = DEFAULT_BOARD_X_FROM, { signal } = {}) {
   const raw = await ffmpeg([
     '-i', clipPath,
     '-vf', `fps=1,scale=${THUMB_W}:${THUMB_H},format=gray`,
     '-f', 'rawvideo', '-',
-  ]);
+  ], { signal });
   const size = THUMB_W * THUMB_H;
   const regions = [];
   for (let i = 0; i + size <= raw.length; i += size) regions.push(boardRegion(raw.subarray(i, i + size), xFrom));
   return regions;
 }
 
-async function grabFrameJpeg(clipPath, second) {
-  return ffmpeg(['-ss', String(second), '-i', clipPath, '-frames:v', '1', '-vf', 'scale=1024:-1', '-f', 'image2', '-c:v', 'mjpeg', '-']);
+async function grabFrameJpeg(clipPath, second, { signal } = {}) {
+  return ffmpeg(
+    ['-ss', String(second), '-i', clipPath, '-frames:v', '1', '-vf', 'scale=1024:-1', '-f', 'image2', '-c:v', 'mjpeg', '-'],
+    { signal },
+  );
 }
+
+async function probeDuration(clipPath, { signal } = {}) {
+  const ffprobe = process.env.FFPROBE_PATH || 'ffprobe';
+  const { stdout } = await execFileAsync(
+    ffprobe,
+    ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', clipPath],
+    { signal },
+  );
+  return stdout.trim();
+}
+
+const FFMPEG_MEDIA = { extractAudio, boardThumbnails, grabFrame: grabFrameJpeg, probeDuration };
 
 let client = null;
 function openai() {
@@ -125,14 +153,17 @@ function openai() {
 }
 
 /** Whisper transcript as [{ start, end, text }] in clip seconds. */
-export async function transcribeWithWhisper(audioFile) {
-  const result = await openai().audio.transcriptions.create({
-    file: fs.createReadStream(audioFile),
-    model: config.models.stt,
-    language: 'vi',
-    response_format: 'verbose_json',
-    timestamp_granularities: ['segment'],
-  });
+export async function transcribeWithWhisper(audioFile, { signal } = {}) {
+  const result = await openai().audio.transcriptions.create(
+    {
+      file: fs.createReadStream(audioFile),
+      model: config.models.stt,
+      language: 'vi',
+      response_format: 'verbose_json',
+      timestamp_granularities: ['segment'],
+    },
+    { signal },
+  );
   return (result.segments ?? []).map((s) => ({ start: s.start, end: s.end, text: s.text.trim() }));
 }
 
@@ -165,10 +196,10 @@ Quy tắc sư phạm:
 export const BOARD_PROMPT = buildVisionPrompt();
 
 /** Blackboard/slide reading of one keyframe, shaped as the board fields of CognitiveTimelineSegment. */
-export async function readBoardWithVision(jpeg, meta = {}) {
+export async function readBoardWithVision(jpeg, meta = {}, { signal } = {}) {
   const model = config.models.vision;
   const promptContent = buildVisionPrompt(meta);
-  const response = await openai().chat.completions.create({
+  const request = {
     model,
     // gpt-6 reasoning adds ~8s per frame without improving the board reading on the demo clip
     ...(model.startsWith('gpt-6') ? { reasoning_effort: config.visionReasoningEffort } : {}),
@@ -183,7 +214,8 @@ export async function readBoardWithVision(jpeg, meta = {}) {
         ],
       },
     ],
-  });
+  };
+  const response = await openai().chat.completions.create(request, { signal });
   return JSON.parse(response.choices?.[0]?.message?.content ?? '{}');
 }
 
@@ -244,8 +276,9 @@ function fallbackStream(reason) {
  * @param {(e: {stage: string, status: 'running'|'done'|'error', detail?: string}) => void} [options.onStage]
  * @param {object} [options.meta] videoId/videoTitle/teacherName/subject/sourceClip/roi for the output
  * @param {boolean} [options.useCache=true]
- * @param {Function} [options.transcribe] override for tests
- * @param {Function} [options.readBoard] override for tests
+ * @param {Function} [options.transcribe] (audioFile, { signal }) => transcript; override for tests
+ * @param {Function} [options.readBoard] (jpeg, meta, { signal }) => board; override for tests
+ * @param {object} [options.media] overrides for the ffmpeg steps (extractAudio, boardThumbnails, grabFrame, probeDuration)
  * @returns {Promise<import('../../../src/types/pipeline').CognitiveEventStream>}
  */
 export async function extractClip(clipPath, options = {}) {
@@ -256,47 +289,78 @@ export async function extractClip(clipPath, options = {}) {
     transcribe = transcribeWithWhisper,
     readBoard = readBoardWithVision,
   } = options;
-
-  const cacheFile = path.join(CACHE_DIR, `${hashFile(clipPath)}.json`);
-  if (useCache && fs.existsSync(cacheFile)) {
-    for (const s of STAGES) onStage({ stage: s.id, status: 'done', detail: 'cached' });
-    return JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
-  }
+  const media = { ...FFMPEG_MEDIA, ...options.media };
 
   const started = Date.now();
-  const workDir = fs.mkdtempSync(path.join(CLIPS_DIR, '.work-'));
-  let failedStage = null;
+  // The first failure cancels every other in-flight step; the run only ends once all of them settle.
+  const controller = new AbortController();
+  const { signal } = controller;
+  let failure = null;
+  const fail = (stage, err) => {
+    if (failure) return;
+    failure = { stage, err };
+    controller.abort(err);
+  };
+  // Wait for every promise to settle, cancelling the rest as soon as one rejects.
+  const settleAll = async (stage, promises) => {
+    const results = await Promise.allSettled(
+      promises.map((p) => p.catch((err) => {
+        fail(stage, err);
+        throw err;
+      })),
+    );
+    const rejected = results.find((r) => r.status === 'rejected');
+    if (rejected) throw failure?.err ?? rejected.reason;
+    return results.map((r) => r.value);
+  };
   // Report each stage when it really starts and ends; stages may overlap and finish out of order.
+  // No stage starts once the run is cancelled.
   const run = async (id, fn) => {
+    signal.throwIfAborted();
     onStage({ stage: id, status: 'running' });
     try {
       const result = await fn();
       onStage({ stage: id, status: 'done' });
       return result;
     } catch (err) {
-      failedStage ??= id;
+      fail(id, err);
       throw err;
     }
   };
 
+  let workDir = null;
   try {
+    const cacheFile = path.join(CACHE_DIR, `${hashFile(clipPath)}.json`);
+    if (useCache && fs.existsSync(cacheFile)) {
+      const cached = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+      for (const s of STAGES) onStage({ stage: s.id, status: 'done', detail: 'cached' });
+      return cached;
+    }
+    workDir = fs.mkdtempSync(path.join(CLIPS_DIR, '.work-'));
+    const audioFile = path.join(workDir, 'audio.mp3');
+
     // Configurable ROI: default to 0.45 only when specifically marked or subject is math blackboard, else 0.0 (full screen)
-    const xFrom = options.roi?.xFrom ?? meta.roi?.xFrom ?? (meta.subject?.includes('Toán') ? DEFAULT_BOARD_X_FROM : 0.0);
+    const isMathBoard = typeof meta.subject === 'string' && meta.subject.includes('Toán');
+    const xFrom = [options.roi?.xFrom, meta.roi?.xFrom].find(Number.isFinite) ?? (isMathBoard ? DEFAULT_BOARD_X_FROM : 0.0);
 
     // Speech and board reading do not depend on each other, so both branches run concurrently.
-    const transcriptPromise = run('split_audio', () =>
-      extractAudio(clipPath, path.join(workDir, 'audio.mp3')).then(transcribe),
+    const transcriptPromise = run('split_audio', async () =>
+      transcribe(await media.extractAudio(clipPath, audioFile, { signal }), { signal }),
     );
-    const boardsPromise = run('keyframes', async () => pickKeyframeSeconds(await boardThumbnails(clipPath, xFrom))).then(
-      (seconds) =>
-        run('board_ocr', async () => ({
-          seconds,
-          boards: await Promise.all(seconds.map(async (s) => readBoard(await grabFrameJpeg(clipPath, s), meta))),
-        })),
+    const boardsPromise = run('keyframes', async () =>
+      pickKeyframeSeconds(await media.boardThumbnails(clipPath, xFrom, { signal })),
+    ).then((seconds) =>
+      run('board_ocr', async () => ({
+        seconds,
+        boards: await settleAll(
+          'board_ocr',
+          seconds.map(async (s) => readBoard(await media.grabFrame(clipPath, s, { signal }), meta, { signal })),
+        ),
+      })),
     );
-    const [transcript, { seconds: keyframeSeconds, boards }] = await Promise.all([transcriptPromise, boardsPromise]);
+    const [transcript, { seconds: keyframeSeconds, boards }] = await settleAll('fuse', [transcriptPromise, boardsPromise]);
     const stream = await run('fuse', async () => {
-      const durationSeconds = Math.round(Number(await probeDuration(clipPath)));
+      const durationSeconds = Math.round(Number(await media.probeDuration(clipPath, { signal })));
       const fileName = path.basename(clipPath, path.extname(clipPath));
       return {
         videoId: meta.videoId ?? fileName,
@@ -320,24 +384,23 @@ export async function extractClip(clipPath, options = {}) {
       };
     });
 
-    fs.mkdirSync(CACHE_DIR, { recursive: true });
-    fs.writeFileSync(cacheFile, `${JSON.stringify(stream, null, 2)}\n`);
+    try {
+      fs.mkdirSync(CACHE_DIR, { recursive: true });
+      fs.writeFileSync(cacheFile, `${JSON.stringify(stream, null, 2)}\n`);
+    } catch (err) {
+      // A live result is still valid when it cannot be cached; the next run just extracts again.
+      console.warn(`[clipExtractor] could not cache ${path.basename(clipPath)}: ${err.message}`);
+    }
     return stream;
   } catch (err) {
-    const stage = failedStage ?? 'fuse';
-    onStage({ stage, status: 'error', detail: err.message });
-    return fallbackStream(`${stage}: ${err.message}`);
+    // Every branch has settled here, so nothing reports progress after this terminal event.
+    const stage = failure?.stage ?? 'fuse';
+    const message = (failure?.err ?? err)?.message ?? String(failure?.err ?? err);
+    onStage({ stage, status: 'error', detail: message });
+    return fallbackStream(`${stage}: ${message}`);
   } finally {
-    fs.rmSync(workDir, { recursive: true, force: true });
+    if (workDir) fs.rmSync(workDir, { recursive: true, force: true });
   }
-}
-
-async function probeDuration(clipPath) {
-  const ffprobe = process.env.FFPROBE_PATH || 'ffprobe';
-  const { stdout } = await execFileAsync(ffprobe, [
-    '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', clipPath,
-  ]);
-  return stdout.trim();
 }
 
 export default { extractClip, listClips, resolveClip, STAGES, buildVisionPrompt, boardRegion };
