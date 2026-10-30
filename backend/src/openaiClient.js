@@ -2,7 +2,22 @@ import OpenAI from 'openai';
 import { config } from './config.js';
 import { executeTool, OPENAI_TOOL_DEFINITIONS } from './tools/index.js';
 
-const client = new OpenAI({ apiKey: config.openaiApiKey });
+let client = null;
+
+/**
+ * Tạo OpenAI client khi thật sự cần gọi API (lazy), để các luồng tất định
+ * (useLLM=false, test offline) import module này mà không cần OPENAI_API_KEY.
+ * Thiếu key thì lỗi rõ ràng ngay tại lời gọi, khớp với cảnh báo trong config.js.
+ */
+function getClient() {
+  if (!client) {
+    if (!config.openaiApiKey) {
+      throw new Error('OPENAI_API_KEY chưa được cấu hình — không thể gọi OpenAI.');
+    }
+    client = new OpenAI({ apiKey: config.openaiApiKey });
+  }
+  return client;
+}
 
 /**
  * Gọi Chat Completions với response_format ép JSON, trả về object đã parse.
@@ -30,7 +45,7 @@ export async function chatJSON({ model, systemPrompt, userPayload, temperature =
     requestBody.temperature = temperature;
   }
 
-  const response = await client.chat.completions.create(requestBody);
+  const response = await getClient().chat.completions.create(requestBody);
   const raw = response.choices?.[0]?.message?.content ?? '{}';
 
   return parseJSONSafe(raw, model);
@@ -82,7 +97,7 @@ export async function chatWithTools({
       requestBody.temperature = temperature;
     }
 
-    const response = await client.chat.completions.create(requestBody);
+    const response = await getClient().chat.completions.create(requestBody);
     const choice = response.choices?.[0];
     const message = choice?.message;
 
