@@ -2,7 +2,7 @@
 // checkpoint beat (watch → diagnose → rebut Bo → Cô Lam's rule → next station). At the rebut
 // beat it expands into the three-panel face-off. All answers go through the existing App
 // handlers; this card only decides how each beat is presented.
-import React, { useEffect, useId, useState } from 'react';
+import React, { useId, useState } from 'react';
 import { ArrowRight, Lightbulb, Lock, Play, RotateCcw, Send, SkipForward, Target, X } from 'lucide-react';
 import type { VideoLessonItem } from '../../types/dre';
 import { SPLIT_LENGTH_TRAP_OPTION_ID } from '../../types/showcase';
@@ -30,6 +30,8 @@ export interface Station1TaskCardProps {
   onRebut: (text: string, isEffective: boolean) => void;
   onResumeLecture: () => void;
   onNextStation: () => void;
+  /** The learner's last rebuttal, shown once Bo has conceded. */
+  submittedRebuttal?: string | null;
 }
 
 const secondaryBtn =
@@ -100,7 +102,7 @@ export const Station1TaskCard: React.FC<Station1TaskCardProps> = (props) => {
         <>
           <CardHeading id={headingId} title="Bạn đã bác được Bo. Việc tiếp theo: Trạm 2 · Sổ tay">
             <span className="font-semibold text-[#121712]">Quy tắc Cô Lam chốt: </span>
-            <FormattedMathText text={cleanText(joinDialogue(props.liveCoLamDialogue) || props.lesson.teacherClosure?.goldenRule)} />
+            <FormattedMathText text={cleanText(props.lesson.teacherClosure?.goldenRule || joinDialogue(props.liveCoLamDialogue))} />
           </CardHeading>
           <div className="mt-4 flex flex-wrap justify-end gap-2.5">
             <button type="button" onClick={props.onNextStation} className={primaryBtn}>
@@ -124,9 +126,24 @@ const DiagnoseBeat: React.FC<Station1TaskCardProps & { headingId: string }> = ({
   headingId,
 }) => {
   const [selected, setSelected] = useState<string | null>(null);
+  const [wrongIds, setWrongIds] = useState<string[]>([]);
   const options = lesson.checkpointQuestion?.options ?? [];
   const chosen = options.find((o) => o.id === selected);
   const cp = checkpointTimestamp !== null ? formatClock(checkpointTimestamp) : '';
+  const hasKey = options.some((o) => o.isStandardBest);
+  const lastWrong = options.find((o) => o.id === wrongIds[wrongIds.length - 1]);
+
+  // A wrong choice is named as wrong right away, with the lesson's own feedback, and the learner
+  // tries again; the right choice moves the class on to Bo's challenge.
+  const confirm = () => {
+    if (!chosen) return;
+    if (hasKey && !chosen.isStandardBest) {
+      setWrongIds((prev) => (prev.includes(chosen.id) ? prev : [...prev, chosen.id]));
+      setSelected(null);
+      return;
+    }
+    onAnswer(cleanText(chosen.label), chosen.id);
+  };
 
   return (
     <>
@@ -139,6 +156,7 @@ const DiagnoseBeat: React.FC<Station1TaskCardProps & { headingId: string }> = ({
         <div role="radiogroup" aria-label="Các cách tính" className="grid gap-2">
           {options.map((opt, idx) => {
             const isSelected = selected === opt.id;
+            const wasWrong = wrongIds.includes(opt.id);
             return (
               <button
                 key={opt.id}
@@ -160,11 +178,24 @@ const DiagnoseBeat: React.FC<Station1TaskCardProps & { headingId: string }> = ({
                 <span className="flex-1">
                   <FormattedMathText text={cleanText(opt.label)} />
                 </span>
+                {wasWrong && !isSelected && (
+                  <span className="shrink-0 rounded-full border border-[#E8B4AC] px-2 py-0.5 text-[12px] font-semibold text-[#8A2A1F]">Chưa đúng</span>
+                )}
               </button>
             );
           })}
         </div>
       </fieldset>
+
+      {lastWrong && (
+        <p role="status" className="mt-3 flex items-start gap-2.5 rounded-xl border border-[#F2C9C4] bg-[#FDF3F1] p-3 text-[15px] leading-snug text-[#5A1F17]">
+          <X className="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#C2412D] p-0.5 text-white" strokeWidth={3} aria-hidden="true" />
+          <span>
+            <span className="font-bold">Chưa đúng. </span>
+            <FormattedMathText text={cleanText(lastWrong.feedback)} /> Chọn lại nhé.
+          </span>
+        </p>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center gap-2.5">
         <button type="button" onClick={onReplayBeforeCheckpoint} className={secondaryBtn}>
@@ -177,7 +208,7 @@ const DiagnoseBeat: React.FC<Station1TaskCardProps & { headingId: string }> = ({
         <button
           type="button"
           disabled={!chosen || isLoadingAi}
-          onClick={() => chosen && onAnswer(cleanText(chosen.label), chosen.id)}
+          onClick={confirm}
           className={`${primaryBtn} ml-auto`}
         >
           {isLoadingAi ? 'Đang gửi…' : 'Xác nhận đáp án'}
@@ -220,22 +251,20 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
   onNextStation,
   headingId,
   resolved,
+  submittedRebuttal,
 }) => {
   const [text, setText] = useState('');
-  const [submitted, setSubmitted] = useState<string | null>(null);
   const [hintsShown, setHintsShown] = useState(0);
   const editorId = useId();
 
   const options = lesson.checkpointQuestion?.options ?? [];
   const trap = options.find((o) => o.id === SPLIT_LENGTH_TRAP_OPTION_ID) ?? options.find((o) => !o.isStandardBest);
-  const boSpeech = cleanText(resolved ? liveBoDialogue || lesson.boConcession?.speech : liveBoDialogue || lesson.boArgument?.speech);
+  // Bo's claim and the struck step come from one source, so the quote is the step being refuted.
+  const boClaim = cleanText(lesson.boArgument?.shortcutClaim || trap?.label);
+  const boConcession = cleanText(liveBoDialogue || lesson.boConcession?.speech);
   const hints = [trap?.feedback, lesson.freezeNote].map((h) => cleanText(h)).filter(Boolean);
-  const rule = cleanText(joinDialogue(liveCoLamDialogue) || lesson.teacherClosure?.goldenRule);
-
-  // A rebuttal that Bo did not accept comes back as a hint; let the learner edit and resend.
-  useEffect(() => {
-    if (liveHintDialogue) setSubmitted(null);
-  }, [liveHintDialogue]);
+  // The rule Cô Lam locks in is the lesson's golden rule; a live line is only a fallback.
+  const rule = cleanText(lesson.teacherClosure?.goldenRule || joinDialogue(liveCoLamDialogue));
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -244,7 +273,6 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
     // Same grading as the video overlay: a prepared argument keeps its own verdict,
     // free text is forwarded as a rebuttal to the existing handler.
     const sticker = lesson.rebuttalStickers?.find((s) => cleanText(s.text).trim() === value);
-    setSubmitted(value);
     onRebut(value, sticker ? sticker.isEffective : true);
   };
 
@@ -257,19 +285,26 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
         {/* Bo nói */}
         <article className="flex flex-col gap-3 rounded-3xl border border-[#E2EAD2] bg-white p-4 sm:p-5">
           <PanelHeader role="bo" title="Bo nói" subtitle={resolved ? 'Bo đã nhận ra chỗ sai.' : 'Đây là cách Bo làm, theo Bo thì đúng.'} tag="Bạn học AI" />
-          <blockquote className="text-[15px] leading-relaxed text-[#121712]">
-            “<FormattedMathText text={boSpeech} />”
-          </blockquote>
-          {trap && (
-            <div className="mt-auto rounded-xl border border-[#F2C9C4] bg-[#FDF3F1] p-3">
-              <p className="mb-1.5 text-[12px] font-semibold text-[#8A2A1F]">Bước Bo làm sai</p>
+          {resolved && boConcession && (
+            <blockquote className="text-[15px] leading-relaxed text-[#121712]">
+              “<FormattedMathText text={boConcession} />”
+            </blockquote>
+          )}
+          {boClaim && (
+            <div className={`rounded-xl border border-[#F2C9C4] bg-[#FDF3F1] p-3 ${resolved ? 'mt-auto' : ''}`}>
+              <p className="mb-1.5 text-[12px] font-semibold text-[#8A2A1F]">{resolved ? 'Bước Bo đã làm sai' : 'Bo nói, và đây là bước sai'}</p>
               <div className="flex items-start gap-2.5">
                 <X className="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#C2412D] p-0.5 text-white" strokeWidth={3} aria-hidden="true" />
-                <s className="text-[15px] leading-snug text-[#5A1F17] decoration-[#C2412D] decoration-2">
-                  <FormattedMathText text={cleanText(trap.label)} />
+                <s className="text-[16px] leading-snug text-[#5A1F17] decoration-[#C2412D] decoration-2">
+                  “<FormattedMathText text={boClaim} />”
                 </s>
               </div>
             </div>
+          )}
+          {!resolved && (
+            <p className="mt-auto text-[14px] leading-snug text-[#3D4739]">
+              Bo tin rằng cách này đúng. Việc của bạn: chỉ ra vì sao không được làm như vậy.
+            </p>
           )}
         </article>
 
@@ -279,10 +314,14 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
         >
           <PanelHeader role="classmate" title="Lượt của bạn" subtitle="Bác lại cách làm của Bo bằng lập luận của bạn." tag="Bạn" />
           {resolved ? (
-            <div className="rounded-xl bg-[#F3F8E8] p-3 text-[15px] leading-relaxed text-[#121712]">
-              <p className="mb-1 text-[12px] font-semibold text-[#3D4739]">Phản biện bạn đã gửi</p>
-              <FormattedMathText text={submitted || 'Bạn đã chọn một lập luận để bác Bo.'} />
-            </div>
+            submittedRebuttal ? (
+              <div className="rounded-xl bg-[#F3F8E8] p-3 text-[15px] leading-relaxed text-[#121712]">
+                <p className="mb-1 text-[12px] font-semibold text-[#3D4739]">Phản biện bạn đã gửi</p>
+                <FormattedMathText text={submittedRebuttal} />
+              </div>
+            ) : (
+              <p className="text-[15px] leading-relaxed text-[#3D4739]">Bạn đã bác được Bo.</p>
+            )
           ) : (
             <form onSubmit={submit} className="flex flex-1 flex-col gap-3">
               <label htmlFor={editorId} className="sr-only">
