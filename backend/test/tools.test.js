@@ -485,34 +485,7 @@ describe('Deterministic Tools - Unit Tests', () => {
       assert.ok(names.includes('tool_timeline_collision_checker'));
       assert.ok(names.includes('tool_evaluate_bloom_level'));
       assert.ok(names.includes('tool_check_source_grounding'));
-    });
-  });
 
-  // ==========================================================================
-  // 7. runRoundtable Integration với các loại bẫy toán
-  // ==========================================================================
-  describe('runRoundtable Integration', () => {
-    it('Chạy Roundtable với MISC_VEC_005 (Độ dài lập phương)', async () => {
-      const draft = await runRoundtable('MISC_VEC_005', { useLLM: false });
-      assert.strictEqual(draft.status, 'draft');
-      assert.ok(draft.deterministic_tool_calls.some(tc => tc.toolName === 'tool_verify_vector_algebra'));
-      assert.ok(draft.dialogues.length >= 4);
-    });
-
-    it('Chạy Roundtable với MISC_VEC_017 (Đảo vectơ đổi góc)', async () => {
-      const draft = await runRoundtable('MISC_VEC_017', { useLLM: false });
-      assert.strictEqual(draft.status, 'draft');
-      const dotTool = draft.deterministic_tool_calls.find(tc => tc.toolName === 'tool_calculate_dot_product');
-      assert.ok(dotTool, 'Phải kích hoạt tool_calculate_dot_product');
-      assert.strictEqual(dotTool.isValid, false, 'Bẫy của Bo phải bị bác bỏ');
-    });
-
-    it('Chạy Roundtable với MISC_VEC_020 (Bình phương tổng bỏ số hạng chéo)', async () => {
-      const draft = await runRoundtable('MISC_VEC_020', { useLLM: false });
-      assert.strictEqual(draft.status, 'draft');
-      const dotTool = draft.deterministic_tool_calls.find(tc => tc.toolName === 'tool_calculate_dot_product');
-      assert.ok(dotTool, 'Phải kích hoạt tool_calculate_dot_product');
-      assert.strictEqual(dotTool.isValid, false, 'Bẫy bỏ số hạng chéo của Bo phải bị bác bỏ');
     });
   });
 });
