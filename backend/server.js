@@ -237,29 +237,73 @@ app.post('/api/runtime/dispatch', async (req, res) => {
   }
 });
 
+
+// GET /api/runtime/context-snapshot — AISDLC Issue #402: Lấy Context Isolation Snapshot bám sát bảng phấn
+app.get('/api/runtime/context-snapshot', async (req, res) => {
+  try {
+    const { agentId = 'tri', second = 2233, sessionId = 'session_001', videoId = 'VID_VECTO_12_TIEN' } = req.query;
+    const { buildRuntimeContext } = await import('./src/services/contextSnapshot.js');
+    const snapshot = buildRuntimeContext({
+      agentId: String(agentId),
+      second: Number(second),
+      sessionId: String(sessionId),
+      videoId: String(videoId),
+    });
+    res.json({ ok: true, snapshot });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/runtime/context-snapshot — AISDLC Issue #402: Đóng gói Context Isolation Snapshot theo yêu cầu
+app.post('/api/runtime/context-snapshot', async (req, res) => {
+  try {
+    const {
+      agentId = 'tri',
+      second = 2233,
+      sessionId = 'session_001',
+      videoId = 'VID_VECTO_12_TIEN',
+      userMessage = '',
+      chatHistory = [],
+    } = req.body || {};
+    const { buildRuntimeContext } = await import('./src/services/contextSnapshot.js');
+    const snapshot = buildRuntimeContext({
+      agentId: String(agentId),
+      second: Number(second),
+      sessionId: String(sessionId),
+      videoId: String(videoId),
+      userMessage: String(userMessage),
+      chatHistory: Array.isArray(chatHistory) ? chatHistory : [],
+    });
+    res.json({ ok: true, snapshot });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 // POST /api/chat/classroom — OpenMAIC: Khung chat lớp học tích hợp Dispatcher, RAG & Multi-Agent Chaining
 app.post('/api/chat/classroom', async (req, res) => {
   try {
-    const { message, currentTime = 2233, recipient = 'all', lessonTitle = 'Toán 12 — Vectơ trong không gian', useLLM = true, sessionId = null } = req.body || {};
+    const { message, currentTime = 2233, recipient = 'all', lessonTitle = 'Toán 12 — Vectơ trong không gian', videoId: reqVideoId, useLLM = true, sessionId = null } = req.body || {};
     if (!message) {
       return res.status(400).json({ error: 'Thiếu message' });
     }
 
     const lower = String(message).toLowerCase().trim();
+    const { resolveLessonSubject } = await import('./src/services/contextSnapshot.js');
+    const { videoId, isMathLesson } = resolveLessonSubject({ videoId: reqVideoId, lessonTitle });
+
     const { search, getById } = await import('./src/services/knowledgeBase.js');
     const { executeTool } = await import('./src/tools/index.js');
     const { extractVectorExpr, extractClaimFromText, extractSideFromText } = await import('./src/tools/tool_verify_vector_algebra.js');
     const toolCalls = [];
 
-    // 1. RAG Search trên Knowledge Base DRE
+    // 1. RAG Search trên Knowledge Base DRE (Chỉ áp dụng khi bài giảng là môn Toán có KB)
     let kbMatch = null;
-    if (isMathKnowledgeQuery(message)) {
+    if (isMathLesson && isMathKnowledgeQuery(message)) {
       const searchHits = search(message, 1);
       if (searchHits && searchHits.length > 0 && searchHits[0].score >= 2) {
         kbMatch = searchHits[0];
-      } else if (currentTime >= 2100 && currentTime <= 2400 && 
-                (lower.includes('2a') || lower.includes('bc') || lower.includes('dd') || lower.includes('1+1') || lower.includes('bẫy') || lower.includes('độ dài') || lower.includes('do dai'))) {
-        kbMatch = getById('MISC_VEC_005');
       }
     }
 
@@ -280,16 +324,16 @@ app.post('/api/chat/classroom', async (req, res) => {
       });
     }
 
-    // 2. Vector Algebra Tool (Dynamic Parsing)
+    // 2. Vector Algebra Tool (Chỉ gọi khi bài giảng là môn Toán và có biểu thức đại số vectơ)
+    let vectorAlgebraTool = null;
     const detectedExpr = extractVectorExpr(message);
     const detectedClaim = extractClaimFromText(message);
     const detectedSide = extractSideFromText(message);
-    const hasAlgebraClaim = detectedExpr || lower.includes('bc') || lower.includes('dd') || lower.includes('2a') ||
+    const hasAlgebraClaim = detectedExpr || (isMathLesson && (lower.includes('bc') || lower.includes('dd') || lower.includes('2a') ||
       lower.includes('a√2') || lower.includes('√2') || lower.includes('căn 2') || lower.includes('1+1') ||
-      (kbMatch?.misconception?.id === 'MISC_VEC_005' && (lower.includes('độ dài') || lower.includes('do dai')));
+      (kbMatch?.misconception?.id === 'MISC_VEC_005' && (lower.includes('độ dài') || lower.includes('do dai')))));
 
-    let vectorAlgebraTool = null;
-    if (hasAlgebraClaim) {
+    if (isMathLesson && hasAlgebraClaim) {
       const exprToVerify = detectedExpr || "|BC + DD'|";
       let finalClaim = detectedClaim;
       if (!finalClaim) {
@@ -333,18 +377,40 @@ app.post('/api/chat/classroom', async (req, res) => {
       });
     }
 
-    // 3. Dispatch qua Dynamic Dispatcher (Issue #401)
+    // 3. Trọng tài sự thật kiểm chứng bám nguồn bài giảng (Issue #27 & #30 - dùng cho mọi môn)
+    const groundingTool = executeTool('tool_check_source_grounding', {
+      claim: message,
+      lessonId: videoId,
+      aroundSecond: currentTime,
+    });
+    if (groundingTool.output?.verdict !== 'not_in_source' && groundingTool.output?.citations?.length > 0) {
+      toolCalls.push({
+        toolName: 'tool_check_source_grounding',
+        status: 'completed',
+        label: 'Đang kiểm chứng đối chiếu nguồn bài giảng...',
+        badgeText: groundingTool.output.verdict === 'supported' ? 'Bám nguồn: Khớp bài giảng' : 'Bám nguồn: Cảnh báo sai lệch',
+        category: 'grounding',
+        input: groundingTool.input,
+        output: groundingTool.output,
+        isValid: groundingTool.isValid,
+        timestampMs: groundingTool.timestampMs,
+      });
+    }
+
+    // 4. Dispatch qua Dynamic Dispatcher (Issue #401 & #30)
     const { dispatchMessage } = await import('./src/services/dispatcher.js');
     const activeSessionId = sessionId || `classroom_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const dispatchResult = await dispatchMessage({
       message,
       currentTime,
       lessonTitle,
+      videoId,
       sessionId: activeSessionId,
       recipient,
       useLLM,
       toolCalls,
       vectorAlgebraTool,
+      groundingTool,
       kbMatch,
     });
 
@@ -362,12 +428,115 @@ app.post('/api/chat/classroom', async (req, res) => {
       kbMatchedId: dispatchResult.ragContextUsed?.misconceptionId || kbMatch?.misconception?.id || null,
       toolCall: toolCalls[0] || null,
       toolCalls,
+      citations: dispatchResult.citations || (dispatchResult.primaryResponse?.citations) || null,
+      contextSnapshot: dispatchResult.contextSnapshot || null,
       timeStr: dispatchResult.currentTimeStr,
       latencyMs: dispatchResult.latencyMs,
     });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
+});
+
+// ============================================================================
+// AISDLC EPIC 4 - Issue #403: Cognitive Metrics & Bloom Certification Endpoints
+// ============================================================================
+
+// POST /api/evaluator/assess — Tính toán Hesitation Index & chấm chất lượng phản biện
+app.post('/api/evaluator/assess', async (req, res) => {
+  try {
+    const {
+      answer = '',
+      expectedPoints = [],
+      currentTime = 2233,
+      misconceptionId = null,
+      deltaSeconds = 0,
+      characterCount = 10,
+      backspaceCount = 0,
+    } = req.body || {};
+
+    const { calculateHesitationIndex, evaluateRebuttalQuality } = await import('./src/services/evaluator.js');
+    const hesitation = calculateHesitationIndex({ deltaSeconds, characterCount, backspaceCount });
+    const assessment = evaluateRebuttalQuality({
+      answer,
+      expectedPoints,
+      currentTime,
+      misconceptionId,
+    });
+
+    res.json({
+      ok: true,
+      hesitation,
+      assessment,
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/evaluator/action — Thực thi 3 Action sư phạm: create_learning_record, update_mastery_state, create_review_task
+app.post('/api/evaluator/action', async (req, res) => {
+  try {
+    const { sessionId = 'session_001', action, payload = {} } = req.body || {};
+    const evaluator = await import('./src/services/evaluator.js');
+
+    let result;
+    if (action === 'create_learning_record') {
+      result = evaluator.createLearningRecord(sessionId, payload);
+    } else if (action === 'update_mastery_state') {
+      result = evaluator.updateMasteryState(sessionId, payload);
+    } else if (action === 'create_review_task') {
+      result = evaluator.createReviewTask(sessionId, payload);
+    } else {
+      return res.status(400).json({ ok: false, error: `Action '${action}' không hợp lệ` });
+    }
+
+    res.json({ ok: true, action, result });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/evaluator/certify-station4 — Thẩm định chứng nhận Tháp Bloom ở Trạm 4
+app.post('/api/evaluator/certify-station4', async (req, res) => {
+  try {
+    const { sessionId = 'session_001', teachingAnswer = '', createdProblem = null, videoTimeS = 2300 } = req.body || {};
+    const { certifyBloomStation4 } = await import('./src/services/evaluator.js');
+
+    const result = certifyBloomStation4(sessionId, {
+      teachingAnswer,
+      createdProblem,
+      videoTimeS,
+    });
+
+    res.json({ ok: true, result });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// GET /api/session/:id/export — Xuất toàn bộ session document chuẩn DRESessionSchema
+app.get('/api/session/:id/export', async (req, res) => {
+  try {
+    const { exportSessionDocument } = await import('./src/services/evaluator.js');
+    const sessionDoc = exportSessionDocument(req.params.id);
+    res.json({ ok: true, session: sessionDoc });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Error handling middleware (bắt lỗi cú pháp JSON payload từ body-parser và lỗi hệ thống)
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    console.warn('[Backend] Bỏ qua lỗi cú pháp JSON payload:', err.message);
+    return res.status(400).json({ ok: false, error: 'Malformed JSON payload' });
+  }
+  console.error('[Backend Server Error]:', err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  res.status(err.status || 500).json({ ok: false, error: err.message || 'Internal Server Error' });
 });
 
 app.listen(config.port, () => {

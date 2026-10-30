@@ -5,10 +5,15 @@
  * Đảm bảo mọi lượt gọi trả về đúng hợp đồng DeterministicToolCall (src/types/pipeline.ts):
  *
  * export interface DeterministicToolCall {
- *   toolName: 'tool_verify_vector_algebra' | 'tool_query_misconception_kb' | 'tool_timeline_collision_checker' | 'tool_evaluate_bloom_level';
+ *   toolName: 
+ *     | 'tool_verify_vector_algebra' 
+ *     | 'tool_query_misconception_kb' 
+ *     | 'tool_timeline_collision_checker' 
+ *     | 'tool_evaluate_bloom_level'
+ *     | 'tool_check_source_grounding';
  *   input: Record<string, any>;
  *   output: Record<string, any>;
- *   isValid: boolean;
+ *   isValid: boolean | null;
  *   timestampMs: number;
  * }
  */
@@ -17,12 +22,14 @@ import { verifyVectorAlgebra } from './tool_verify_vector_algebra.js';
 import { queryMisconceptionKB } from './tool_query_misconception_kb.js';
 import { checkTimelineCollision } from './tool_timeline_collision_checker.js';
 import { evaluateBloomLevel } from './tool_evaluate_bloom_level.js';
+import { checkSourceGrounding } from './tool_check_source_grounding.js';
 
 export const TOOLS_REGISTRY = {
   tool_verify_vector_algebra: verifyVectorAlgebra,
   tool_query_misconception_kb: queryMisconceptionKB,
   tool_timeline_collision_checker: checkTimelineCollision,
   tool_evaluate_bloom_level: evaluateBloomLevel,
+  tool_check_source_grounding: checkSourceGrounding,
 };
 
 /**
@@ -138,6 +145,31 @@ export const OPENAI_TOOL_DEFINITIONS = [
           },
         },
         required: ['question'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'tool_check_source_grounding',
+      description: 'Kiểm chứng phát biểu của học sinh hoặc bẫy ngộ nhận theo nguồn bài giảng (transcript và bảng phấn) cho mọi môn học (Toán, Văn, Sinh, AI...).',
+      parameters: {
+        type: 'object',
+        properties: {
+          claim: {
+            type: 'string',
+            description: 'Phát biểu cần kiểm chứng tính có căn cứ trong bài giảng',
+          },
+          lessonId: {
+            type: 'string',
+            description: 'Mã bài giảng (ví dụ: "VID_VECTO_12_TIEN", "VID_AI_INTRO_01")',
+          },
+          aroundSecond: {
+            type: 'number',
+            description: 'Mốc giây video hiện tại để ưu tiên tìm kiếm đoạn ngữ cảnh lân cận',
+          },
+        },
+        required: ['claim'],
       },
     },
   },

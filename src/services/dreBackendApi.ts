@@ -120,10 +120,10 @@ export interface DeterministicToolCallInfo {
   status: 'running' | 'completed';
   label: string;
   badgeText: string;
-  category?: 'rag' | 'math_verify' | 'bloom' | 'timeline';
+  category?: 'rag' | 'math_verify' | 'math_calc' | 'grounding' | 'bloom' | 'timeline';
   input?: Record<string, any>;
   output?: Record<string, any>;
-  isValid?: boolean;
+  isValid?: boolean | null;
   timestampMs?: number;
 }
 
