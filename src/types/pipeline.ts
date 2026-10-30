@@ -174,6 +174,8 @@ export interface AgentRuntimeContext {
     currentBloomLevel: 'Remember' | 'Understand' | 'Apply' | 'Analyze' | 'Evaluate' | 'Create';
     activeMisconceptionId?: string;
   };
+  citations?: AgentCitation[];
+  metadata?: Record<string, any>;
 }
 
 // ----------------------------------------------------------------------------

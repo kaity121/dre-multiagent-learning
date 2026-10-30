@@ -34,6 +34,7 @@ import { ScenarioPlayerBar } from './components/ScenarioPlayerBar';
 import { LearningFlowGuideModal } from './components/LearningFlowGuideModal';
 import { MaicPeerClassroomDock } from './components/MaicPeerClassroomDock';
 import { PreClassLobbyModal } from './components/PreClassLobbyModal';
+import { MultiAgentInspectorModal } from './components/MultiAgentInspectorModal';
 import dreLogoImg from './assets/dre-logo.png';
 import { sound } from './utils/soundEffects';
 import { 
@@ -1040,6 +1041,16 @@ export default function App() {
 
               <button
                 type="button"
+                onClick={() => setIsAiInspectorOpen(true)}
+                className="h-8 px-3 bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 font-semibold cursor-pointer text-xs rounded-xl shadow-2xs flex items-center gap-1.5"
+                title="Soi não Multi-Agent AI & Snapshot cách ly ngữ cảnh (#402)"
+              >
+                <span>🔍</span>
+                <span>Soi não Agent</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setIsLobbyOpen(true)}
                 className="h-8 px-3 bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 font-semibold cursor-pointer text-xs rounded-xl shadow-2xs flex items-center gap-1.5"
                 title="Khảo sát trình độ & Chọn chế độ học (Mới học / Đã học / Đang ôn luyện)"
@@ -1390,6 +1401,18 @@ export default function App() {
         onClose={() => setIsLessonDrawerOpen(false)}
         currentLessonId={currentLesson.id}
         onSelectLesson={handleSwitchLesson}
+      />
+
+      <MultiAgentInspectorModal
+        isOpen={isAiInspectorOpen}
+        onClose={() => setIsAiInspectorOpen(false)}
+        isBackendLive={isBackendLive}
+        lastSessionId={backendSessionId}
+        lastBoSpeech={liveBoDialogue}
+        lastCoLamSpeech={Array.isArray(liveCoLamDialogue) ? liveCoLamDialogue.join(' ') : liveCoLamDialogue}
+        currentMode={currentMode}
+        currentVideoSecond={videoCurrentTime}
+        onSeekVideo={handleSeekVideo}
       />
     </>
   );

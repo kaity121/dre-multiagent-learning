@@ -733,6 +733,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               text: aiRes.text,
               toolCall: attachedToolCalls[0],
               toolCalls: attachedToolCalls,
+              citations: (aiRes as any)?.citations || null,
+              contextSnapshot: (aiRes as any)?.contextSnapshot || null,
               replyTo: {
                 id: newMsg.id,
                 author: newMsg.author,
@@ -761,6 +763,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                   author: followUpAuthor,
                   role: followUpRole,
                   text: followUpText,
+                  citations: followUp?.citations || null,
+                  contextSnapshot: followUp?.contextSnapshot || null,
                   replyTo: {
                     id: newMsg.id,
                     author: newMsg.author,
@@ -838,6 +842,26 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
         const isPrimaryTa = replyAuthor.includes('Trợ giảng');
         const primaryRole = isPrimaryTeacher ? 'teacher' : isPrimaryTa ? 'ta' : 'classmate';
 
+        const fallbackCitations = (Math.abs(currentTime - 2233) <= 120 || text.toLowerCase().includes('cộng thẳng') || text.toLowerCase().includes('độ dài')) ? [
+          {
+            source: 'video' as const,
+            label: 'Ví dụ 3 (37:13)',
+            snippet: "Độ dài |BC + DD'| = |BC + CC'| = |BC'| = √2",
+            timestamp: 2233,
+          },
+          {
+            source: 'blackboard' as const,
+            label: 'Bảng phấn 37:13',
+            snippet: "|\\vec{BC} + \\vec{DD'}|",
+            timestamp: 2233,
+          },
+          {
+            source: 'sgk' as const,
+            label: 'SGK Hình học 12',
+            snippet: 'Quy tắc tam giác & vectơ bằng nhau trong không gian',
+          },
+        ] : null;
+
         setLiveChatMessages((prev) => [
           ...prev,
           {
@@ -847,6 +871,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             role: primaryRole,
             text: replyText,
             toolCall: attachedToolCall,
+            citations: fallbackCitations,
             replyTo: {
               id: newMsg.id,
               author: newMsg.author,
@@ -1096,6 +1121,50 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             <div>
               <FormattedMathText text={cleanText(msg.text)} />
             </div>
+            {/* Structured Citations Chips (#402 / #12) */}
+            {msg.citations && msg.citations.length > 0 && (
+              <div className="mt-2 pt-2 border-t border-slate-200/70 flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-semibold text-stone-500 uppercase tracking-wider flex items-center gap-1">
+                  <span>📌 Nguồn trích dẫn:</span>
+                </span>
+                {msg.citations.map((c, cIdx) => {
+                  const isVideo = c.source === 'video';
+                  const isBlackboard = c.source === 'blackboard';
+                  const isSgk = c.source === 'sgk';
+                  const hasSeek = typeof c.timestamp === 'number';
+                  return (
+                    <button
+                      key={cIdx}
+                      type="button"
+                      onClick={() => {
+                        if (hasSeek && onSeekVideo) {
+                          sound.playPencilTap();
+                          onSeekVideo(c.timestamp!);
+                        }
+                      }}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-medium border transition-colors shadow-2xs ${
+                        hasSeek
+                          ? isVideo
+                            ? 'bg-rose-50 border-rose-200 text-rose-800 hover:bg-rose-100 cursor-pointer'
+                            : isBlackboard
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100 cursor-pointer'
+                            : 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100 cursor-pointer'
+                          : 'bg-amber-50 border-amber-200 text-amber-800 cursor-default'
+                      }`}
+                      title={c.snippet ? `${c.label}: "${c.snippet}"` : c.label}
+                    >
+                      <span>{isVideo ? '🎬' : isBlackboard ? '📋' : isSgk ? '📖' : '📌'}</span>
+                      <span className="font-semibold">{c.label}</span>
+                      {hasSeek && (
+                        <span className="font-mono text-[9.5px] opacity-75">
+                          ({formatSec(c.timestamp!)})
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>
