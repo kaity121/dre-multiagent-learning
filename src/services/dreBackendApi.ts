@@ -139,6 +139,7 @@ export interface ClassroomChatResponse {
   citations?: AgentCitation[] | null;
   contextSnapshot?: any | null;
   timeStr: string;
+  second?: number;
   sessionId?: string;
   sessionState?: any;
 }
@@ -213,6 +214,68 @@ export async function sendPeerChat(
     console.warn('[DRE API] sendPeerChat error, will fall back to local simulation:', err);
     return null;
   }
+}
+
+export interface RoundtableStreamOptions {
+  videoId?: string;
+  partNumber?: number;
+  streamDelayMs?: number;
+  useLLM?: boolean;
+  onEvent?: (event: any) => void;
+  onComplete?: (data: any) => void;
+  onError?: (err: any) => void;
+}
+
+/**
+ * Open real-time SSE stream for A2A Roundtable War Room Demo (#302)
+ * Returns an unsubscribe / close function.
+ */
+export function streamRoundtable({
+  videoId = 'VID_VECTO_12_TIEN',
+  partNumber,
+  streamDelayMs = 20,
+  useLLM = false,
+  onEvent,
+  onComplete,
+  onError,
+}: RoundtableStreamOptions): () => void {
+  const query = new URLSearchParams();
+  if (videoId) query.append('videoId', videoId);
+  if (partNumber !== undefined) query.append('partNumber', String(partNumber));
+  if (streamDelayMs) query.append('streamDelayMs', String(streamDelayMs));
+  if (useLLM) query.append('useLLM', 'true');
+
+  const url = `${API_BASE_URL}/api/roundtable/stream?${query.toString()}`;
+  const eventSource = new EventSource(url);
+
+  eventSource.addEventListener('reasoning_event', (e: MessageEvent) => {
+    try {
+      const data = JSON.parse(e.data);
+      onEvent?.(data);
+    } catch (err) {
+      console.warn('[DRE API] Parse error in SSE reasoning_event:', err);
+    }
+  });
+
+  eventSource.addEventListener('complete', (e: MessageEvent) => {
+    try {
+      const data = JSON.parse(e.data);
+      onComplete?.(data);
+    } catch (err) {
+      console.warn('[DRE API] Parse error in SSE complete:', err);
+    }
+    eventSource.close();
+  });
+
+  eventSource.onerror = (err) => {
+    console.warn('[DRE API] EventSource error:', err);
+    onError?.(err);
+    eventSource.close();
+  };
+
+  return () => {
+    eventSource.close();
+  };
 }
 
 

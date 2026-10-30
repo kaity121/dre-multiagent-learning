@@ -408,6 +408,10 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
     if (ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
       ytPlayerRef.current.seekTo(validSec, true);
     }
+    // Tự động kích hoạt điểm dừng khi tua trúng mốc 37:13 (+/- 3s)
+    if (Math.abs(validSec - lesson.checkpointTimestamp) <= 3 && !hasAutoPausedAtCheckpointRef.current) {
+      setTimeout(() => handleTriggerCheckpointNow(), 50);
+    }
   };
 
   const handleTriggerCheckpointNow = () => {

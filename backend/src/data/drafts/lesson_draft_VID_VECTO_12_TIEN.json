@@ -1,0 +1,4223 @@
+{
+  "lessonId": "LESSON_VID_VECTO_12_TIEN_DRAFT",
+  "status": "draft",
+  "title": "Bài 1.1: Vectơ Trong Không Gian - Toán 12 (SGK Mới) || Thầy Nguyễn Phan Tiến",
+  "teacherName": "Thầy Nguyễn Phan Tiến",
+  "subject": "Hình học 12 (Chương trình GDPT 2018)",
+  "durationSeconds": 9503,
+  "parts": [
+    {
+      "partNumber": 1,
+      "title": "Phần 1: Khái niệm & Phương hướng Vectơ trong không gian",
+      "startSecond": 0,
+      "endSecond": 900,
+      "checkpointSecond": 282,
+      "status": "draft",
+      "checkpoint": {
+        "id": "chk_1_282",
+        "second": 282,
+        "timeFormatted": "04:42",
+        "title": "Checkpoint 1: Phần 1: Khái niệm & Phương hướng Vectơ trong không gian",
+        "questionText": "Tại mốc 04:42, em hãy phân tích và chỉ ra lỗi sai trong phát biểu của Bo về mối quan hệ giữa hai đường thẳng chéo nhau và hai vectơ cùng phương:",
+        "blackboardFormula": "\\vec{a} \\parallel \\vec{b} \\iff \\text{Giá}(\\vec{a}) \\parallel \\text{Giá}(\\vec{b})",
+        "options": [
+          {
+            "id": "opt_A",
+            "label": "Giá của chúng không đồng phẳng nên không cùng phương",
+            "isCorrect": true,
+            "feedbackNote": "Chính xác! Định nghĩa SGK chỉ rõ giá phải song song hoặc trùng nhau mới cùng phương."
+          },
+          {
+            "id": "opt_B",
+            "label": "Vẫn xét cùng phương được nếu độ dài bằng nhau",
+            "isCorrect": false,
+            "misconceptionLinked": "MISC_VEC_001",
+            "feedbackNote": "Sai lầm! Cùng phương chỉ phụ thuộc vào phương của giá, không liên quan độ dài."
+          },
+          {
+            "id": "opt_C",
+            "label": "Hai đường thẳng chéo nhau luôn cùng hướng",
+            "isCorrect": false,
+            "feedbackNote": "Sai lầm! Không cùng phương thì không thể xét cùng hướng."
+          },
+          {
+            "id": "opt_D",
+            "label": "Hai vectơ đó có tích vô hướng bằng 0",
+            "isCorrect": false,
+            "feedbackNote": "Chưa chắc, chéo nhau không nhất thiết phải vuông góc."
+          }
+        ],
+        "boInitialChallenge": "Hai đường thẳng chéo nhau thì tớ thấy giá của chúng vẫn xét cùng phương được mà!",
+        "linhChiCheatSheetSnippet": {
+          "ruleTitle": "Điều kiện Vectơ cùng phương",
+          "rules": [
+            "Giá song song hoặc trùng nhau <=> Cùng phương.",
+            "Chéo nhau => Không đồng phẳng => KHÔNG cùng phương."
+          ],
+          "mnemonicTrap": "Chéo nhau thì không cùng phương, đừng đoán mò!"
+        }
+      },
+      "scenarios": [
+        {
+          "actor": "colam",
+          "role": "Pedagogical Director",
+          "dialogue": "Cô phê duyệt checkpoint dừng tại giây thứ 282 (04:42). Nắm vững định nghĩa cùng phương là nền tảng để không bị nhầm lẫn trong hình học không gian."
+        },
+        {
+          "actor": "bo",
+          "role": "Sparring Partner (Hệ 1)",
+          "dialogue": "Hai đường thẳng chéo nhau thì tớ thấy giá của chúng vẫn xét cùng phương được mà!",
+          "claim": "cùng phương",
+          "intentional_error": true
+        },
+        {
+          "actor": "tri",
+          "role": "Deep Thinker (Hệ 2)",
+          "dialogue": "Không được đâu Bo! SGK định nghĩa hai vectơ cùng phương khi và chỉ khi giá của chúng song song hoặc trùng nhau. Chéo nhau là hai đường thẳng không đồng phẳng, không thể cùng phương!",
+          "counter_claim": "không cùng phương"
+        },
+        {
+          "actor": "linhchi",
+          "role": "Note Taker",
+          "dialogue": "Linh Chi ghi nhớ: Hai vectơ cùng phương bắt buộc giá phải song song hoặc trùng nhau, đường thẳng chéo nhau không bao giờ cùng phương!"
+        },
+        {
+          "actor": "minhkhang",
+          "role": "Visualizer",
+          "dialogue": "Minh Khang hình dung: Giống như một cây cầu vượt và con đường bên dưới, xe chạy trên cầu và xe chạy dưới đường không bao giờ song song hay cắt nhau, nên hướng di chuyển của chúng hoàn toàn độc lập!"
+        }
+      ],
+      "deterministic_tool_calls": [
+        {
+          "toolName": "tool_query_misconception_kb",
+          "input": {
+            "misconceptionId": "MISC_VEC_001"
+          },
+          "output": {
+            "isValid": true,
+            "output": [
+              {
+                "id": "MISC_VEC_001",
+                "topic": "vector_equality",
+                "grade": 12,
+                "standardFormula": "\\|\\overrightarrow{AB}\\|=AB",
+                "theoremSummary": "Vectơ biểu diễn đoạn thẳng có hướng; độ dài là khoảng cách hai đầu. Với vectơ khác không, giá là đường thẳng đi qua hai đầu.",
+                "misconceptionId": "MISC_VEC_001",
+                "misconceptionName": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                "misconceptionFrequency": 0.85,
+                "boTrapPattern": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                "rebuttalAnchor": "Cần cùng hướng và cùng độ dài.",
+                "scaffoldingNudges": [
+                  "Em đang so sánh độ dài hay vectơ?",
+                  "Hai mũi tên có cùng hướng không?",
+                  "Nêu đủ hai điều kiện để bằng nhau."
+                ]
+              }
+            ],
+            "count": 1,
+            "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
+          },
+          "isValid": true,
+          "timestampMs": 1793364334438
+        },
+        {
+          "toolName": "tool_query_misconception_kb",
+          "input": {
+            "misconceptionId": "MISC_VEC_001"
+          },
+          "output": {
+            "isValid": true,
+            "output": [
+              {
+                "id": "MISC_VEC_001",
+                "topic": "vector_equality",
+                "grade": 12,
+                "standardFormula": "\\|\\overrightarrow{AB}\\|=AB",
+                "theoremSummary": "Vectơ biểu diễn đoạn thẳng có hướng; độ dài là khoảng cách hai đầu. Với vectơ khác không, giá là đường thẳng đi qua hai đầu.",
+                "misconceptionId": "MISC_VEC_001",
+                "misconceptionName": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                "misconceptionFrequency": 0.85,
+                "boTrapPattern": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                "rebuttalAnchor": "Cần cùng hướng và cùng độ dài.",
+                "scaffoldingNudges": [
+                  "Em đang so sánh độ dài hay vectơ?",
+                  "Hai mũi tên có cùng hướng không?",
+                  "Nêu đủ hai điều kiện để bằng nhau."
+                ]
+              }
+            ],
+            "count": 1,
+            "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
+          },
+          "isValid": true,
+          "timestampMs": 1793364334438
+        },
+        {
+          "toolName": "tool_query_misconception_kb",
+          "input": {
+            "misconceptionId": "MISC_VEC_001"
+          },
+          "output": {
+            "isValid": true,
+            "output": [
+              {
+                "id": "MISC_VEC_001",
+                "topic": "vector_equality",
+                "grade": 12,
+                "standardFormula": "\\|\\overrightarrow{AB}\\|=AB",
+                "theoremSummary": "Vectơ biểu diễn đoạn thẳng có hướng; độ dài là khoảng cách hai đầu. Với vectơ khác không, giá là đường thẳng đi qua hai đầu.",
+                "misconceptionId": "MISC_VEC_001",
+                "misconceptionName": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                "misconceptionFrequency": 0.85,
+                "boTrapPattern": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                "rebuttalAnchor": "Cần cùng hướng và cùng độ dài.",
+                "scaffoldingNudges": [
+                  "Em đang so sánh độ dài hay vectơ?",
+                  "Hai mũi tên có cùng hướng không?",
+                  "Nêu đủ hai điều kiện để bằng nhau."
+                ]
+              }
+            ],
+            "count": 1,
+            "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
+          },
+          "isValid": true,
+          "timestampMs": 1793364334438
+        },
+        {
+          "toolName": "tool_query_misconception_kb",
+          "input": {
+            "misconceptionId": "MISC_VEC_001"
+          },
+          "output": {
+            "isValid": true,
+            "output": [
+              {
+                "id": "MISC_VEC_001",
+                "topic": "vector_equality",
+                "grade": 12,
+                "standardFormula": "\\|\\overrightarrow{AB}\\|=AB",
+                "theoremSummary": "Vectơ biểu diễn đoạn thẳng có hướng; độ dài là khoảng cách hai đầu. Với vectơ khác không, giá là đường thẳng đi qua hai đầu.",
+                "misconceptionId": "MISC_VEC_001",
+                "misconceptionName": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                "misconceptionFrequency": 0.85,
+                "boTrapPattern": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                "rebuttalAnchor": "Cần cùng hướng và cùng độ dài.",
+                "scaffoldingNudges": [
+                  "Em đang so sánh độ dài hay vectơ?",
+                  "Hai mũi tên có cùng hướng không?",
+                  "Nêu đủ hai điều kiện để bằng nhau."
+                ]
+              }
+            ],
+            "count": 1,
+            "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
+          },
+          "isValid": true,
+          "timestampMs": 1793364334438
+        },
+        {
+          "toolName": "tool_query_misconception_kb",
+          "input": {
+            "misconceptionId": "MISC_VEC_001"
+          },
+          "output": {
+            "isValid": true,
+            "output": [
+              {
+                "id": "MISC_VEC_001",
+                "topic": "vector_equality",
+                "grade": 12,
+                "standardFormula": "\\|\\overrightarrow{AB}\\|=AB",
+                "theoremSummary": "Vectơ biểu diễn đoạn thẳng có hướng; độ dài là khoảng cách hai đầu. Với vectơ khác không, giá là đường thẳng đi qua hai đầu.",
+                "misconceptionId": "MISC_VEC_001",
+                "misconceptionName": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                "misconceptionFrequency": 0.85,
+                "boTrapPattern": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                "rebuttalAnchor": "Cần cùng hướng và cùng độ dài.",
+                "scaffoldingNudges": [
+                  "Em đang so sánh độ dài hay vectơ?",
+                  "Hai mũi tên có cùng hướng không?",
+                  "Nêu đủ hai điều kiện để bằng nhau."
+                ]
+              }
+            ],
+            "count": 1,
+            "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
+          },
+          "isValid": true,
+          "timestampMs": 1793364334438
+        },
+        {
+          "toolName": "tool_evaluate_bloom_level",
+          "input": {
+            "question": "Tại mốc 04:42, em hãy phân tích và chỉ ra lỗi sai trong phát biểu của Bo về mối quan hệ giữa hai đường thẳng chéo nhau và hai vectơ cùng phương:",
+            "expected_points": [
+              "Phân tích bẫy ngộ nhận",
+              "Hai đường thẳng chéo nhau không đồng phẳng nên giá không song song/trùng nhau"
+            ]
+          },
+          "output": {
+            "isValid": true,
+            "level": "Analyze",
+            "score": 4,
+            "indicatorsFound": [
+              "Remember: [phát biểu]",
+              "Analyze: [phân tích, chỉ ra lỗi, bẫy, ngộ nhận]"
+            ],
+            "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+            "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+          },
+          "isValid": true,
+          "timestampMs": 1793364334438
+        },
+        {
+          "toolName": "tool_evaluate_bloom_level",
+          "input": {
+            "question": "Tại mốc 04:42, em hãy phân tích và chỉ ra lỗi sai trong phát biểu của Bo về mối quan hệ giữa hai đường thẳng chéo nhau và hai vectơ cùng phương:",
+            "expected_points": [
+              "Phân tích bẫy ngộ nhận",
+              "Hai đường thẳng chéo nhau không đồng phẳng nên giá không song song/trùng nhau"
+            ]
+          },
+          "output": {
+            "isValid": true,
+            "level": "Analyze",
+            "score": 4,
+            "indicatorsFound": [
+              "Remember: [phát biểu]",
+              "Analyze: [phân tích, chỉ ra lỗi, bẫy, ngộ nhận]"
+            ],
+            "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+            "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+          },
+          "isValid": true,
+          "timestampMs": 1793364334438
+        },
+        {
+          "toolName": "tool_timeline_collision_checker",
+          "input": {
+            "events": [
+              {
+                "id": "stop_282",
+                "at_s": 282,
+                "actor_id": "colam",
+                "type": "checkpoint"
+              },
+              {
+                "id": "bo_challenge_284",
+                "at_s": 284,
+                "actor_id": "bo",
+                "type": "comment",
+                "isChained": true
+              }
+            ],
+            "minGapS": 20,
+            "warmupPeriodS": 15,
+            "maxCheckpoints": 1
+          },
+          "output": {
+            "isValid": true,
+            "collisions": [],
+            "warnings": [],
+            "suggestions": [],
+            "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+          },
+          "isValid": true,
+          "timestampMs": 1793364334438
+        },
+        {
+          "toolName": "tool_timeline_collision_checker",
+          "input": {
+            "events": [
+              {
+                "id": "stop_282",
+                "at_s": 282,
+                "actor_id": "colam",
+                "type": "checkpoint"
+              },
+              {
+                "id": "bo_challenge_284",
+                "at_s": 284,
+                "actor_id": "bo",
+                "type": "comment",
+                "isChained": true
+              }
+            ],
+            "minGapS": 20,
+            "warmupPeriodS": 15,
+            "maxCheckpoints": 1
+          },
+          "output": {
+            "isValid": true,
+            "collisions": [],
+            "warnings": [],
+            "suggestions": [],
+            "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+          },
+          "isValid": true,
+          "timestampMs": 1793364334438
+        }
+      ],
+      "reasoning_events": [
+        {
+          "id": "EVT_1793364334438_3ury9",
+          "eventType": "thought",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 282,
+          "content": "Cô Lam đang phân tích phân đoạn \"Phần 1: Khái niệm & Phương hướng Vectơ trong không gian\". Kiểm tra điều kiện sư phạm: Mốc thời gian 04:42 (282s) cách điểm bắt đầu 282s (>= 15s), an toàn không rơi vào warmup. Mức độ rủi ro ngộ nhận: medium. Bắt đầu phiên họp Roundtable biên kịch.",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_0uqd1",
+          "eventType": "debate_turn",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 282,
+          "content": "Chào cả lớp! Tại mốc 04:42, thầy Tiến đang giảng về Hai vectơ được gọi là cùng phương nếu giá của chúng song song hoặc trùng nhau. C. Bo ơi, cậu tra cứu kho tri thức ngộ nhận xem đoạn này học sinh hay vướng bẫy gì nhất?",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_lussl",
+          "eventType": "thought",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 282,
+          "content": "Bo đang tra cứu tri thức ngộ nhận từ Knowledge Base để chọn bẫy thách đố.",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_29ovx",
+          "eventType": "tool_call",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 282,
+          "content": "Bo tra cứu tri thức ngộ nhận từ KB: tool_query_misconception_kb",
+          "toolCall": {
+            "toolName": "tool_query_misconception_kb",
+            "input": {
+              "misconceptionId": "MISC_VEC_001"
+            },
+            "output": {
+              "isValid": true,
+              "output": [
+                {
+                  "id": "MISC_VEC_001",
+                  "topic": "vector_equality",
+                  "grade": 12,
+                  "standardFormula": "\\|\\overrightarrow{AB}\\|=AB",
+                  "theoremSummary": "Vectơ biểu diễn đoạn thẳng có hướng; độ dài là khoảng cách hai đầu. Với vectơ khác không, giá là đường thẳng đi qua hai đầu.",
+                  "misconceptionId": "MISC_VEC_001",
+                  "misconceptionName": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                  "misconceptionFrequency": 0.85,
+                  "boTrapPattern": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                  "rebuttalAnchor": "Cần cùng hướng và cùng độ dài.",
+                  "scaffoldingNudges": [
+                    "Em đang so sánh độ dài hay vectơ?",
+                    "Hai mũi tên có cùng hướng không?",
+                    "Nêu đủ hai điều kiện để bằng nhau."
+                  ]
+                }
+              ],
+              "count": 1,
+              "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
+            },
+            "isValid": true,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_dbnho",
+          "eventType": "tool_result",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 282,
+          "content": "Kết quả tra cứu KB: Tìm thấy tri thức chuẩn Ngộ nhận vectơ",
+          "toolCall": {
+            "toolName": "tool_query_misconception_kb",
+            "input": {
+              "misconceptionId": "MISC_VEC_001"
+            },
+            "output": {
+              "isValid": true,
+              "output": [
+                {
+                  "id": "MISC_VEC_001",
+                  "topic": "vector_equality",
+                  "grade": 12,
+                  "standardFormula": "\\|\\overrightarrow{AB}\\|=AB",
+                  "theoremSummary": "Vectơ biểu diễn đoạn thẳng có hướng; độ dài là khoảng cách hai đầu. Với vectơ khác không, giá là đường thẳng đi qua hai đầu.",
+                  "misconceptionId": "MISC_VEC_001",
+                  "misconceptionName": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                  "misconceptionFrequency": 0.85,
+                  "boTrapPattern": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                  "rebuttalAnchor": "Cần cùng hướng và cùng độ dài.",
+                  "scaffoldingNudges": [
+                    "Em đang so sánh độ dài hay vectơ?",
+                    "Hai mũi tên có cùng hướng không?",
+                    "Nêu đủ hai điều kiện để bằng nhau."
+                  ]
+                }
+              ],
+              "count": 1,
+              "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
+            },
+            "isValid": true,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_1gcud",
+          "eventType": "thought",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 282,
+          "content": "Bo đưa ra trực giác nhầm lẫn giữa đường thẳng chéo nhau và cùng phương.",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_zs1sp",
+          "eventType": "debate_turn",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 282,
+          "content": "Hai đường thẳng chéo nhau thì tớ thấy giá của chúng vẫn xét cùng phương được mà!",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_t8ggu",
+          "eventType": "tool_call",
+          "agentId": "tri",
+          "agentDisplayName": "Trí (Hệ 2 - Logic)",
+          "secondTarget": 282,
+          "content": "Truy xuất SGK qua tool_query_misconception_kb",
+          "toolCall": {
+            "toolName": "tool_query_misconception_kb",
+            "input": {
+              "misconceptionId": "MISC_VEC_001"
+            },
+            "output": {
+              "isValid": true,
+              "output": [
+                {
+                  "id": "MISC_VEC_001",
+                  "topic": "vector_equality",
+                  "grade": 12,
+                  "standardFormula": "\\|\\overrightarrow{AB}\\|=AB",
+                  "theoremSummary": "Vectơ biểu diễn đoạn thẳng có hướng; độ dài là khoảng cách hai đầu. Với vectơ khác không, giá là đường thẳng đi qua hai đầu.",
+                  "misconceptionId": "MISC_VEC_001",
+                  "misconceptionName": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                  "misconceptionFrequency": 0.85,
+                  "boTrapPattern": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                  "rebuttalAnchor": "Cần cùng hướng và cùng độ dài.",
+                  "scaffoldingNudges": [
+                    "Em đang so sánh độ dài hay vectơ?",
+                    "Hai mũi tên có cùng hướng không?",
+                    "Nêu đủ hai điều kiện để bằng nhau."
+                  ]
+                }
+              ],
+              "count": 1,
+              "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
+            },
+            "isValid": true,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_ngw7x",
+          "eventType": "tool_result",
+          "agentId": "tri",
+          "agentDisplayName": "Trí (Hệ 2 - Logic)",
+          "secondTarget": 282,
+          "content": "Tìm thấy định nghĩa chuẩn",
+          "toolCall": {
+            "toolName": "tool_query_misconception_kb",
+            "input": {
+              "misconceptionId": "MISC_VEC_001"
+            },
+            "output": {
+              "isValid": true,
+              "output": [
+                {
+                  "id": "MISC_VEC_001",
+                  "topic": "vector_equality",
+                  "grade": 12,
+                  "standardFormula": "\\|\\overrightarrow{AB}\\|=AB",
+                  "theoremSummary": "Vectơ biểu diễn đoạn thẳng có hướng; độ dài là khoảng cách hai đầu. Với vectơ khác không, giá là đường thẳng đi qua hai đầu.",
+                  "misconceptionId": "MISC_VEC_001",
+                  "misconceptionName": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                  "misconceptionFrequency": 0.85,
+                  "boTrapPattern": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                  "rebuttalAnchor": "Cần cùng hướng và cùng độ dài.",
+                  "scaffoldingNudges": [
+                    "Em đang so sánh độ dài hay vectơ?",
+                    "Hai mũi tên có cùng hướng không?",
+                    "Nêu đủ hai điều kiện để bằng nhau."
+                  ]
+                }
+              ],
+              "count": 1,
+              "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
+            },
+            "isValid": true,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_4u2lw",
+          "eventType": "cross_check_verdict",
+          "agentId": "tri",
+          "agentDisplayName": "Trí (Hệ 2 - Logic)",
+          "secondTarget": 282,
+          "content": "Không được đâu Bo! SGK định nghĩa hai vectơ cùng phương khi và chỉ khi giá của chúng song song hoặc trùng nhau. Chéo nhau là hai đường thẳng không đồng phẳng, không thể cùng phương!",
+          "toolCall": {
+            "toolName": "tool_query_misconception_kb",
+            "input": {
+              "misconceptionId": "MISC_VEC_001"
+            },
+            "output": {
+              "isValid": true,
+              "output": [
+                {
+                  "id": "MISC_VEC_001",
+                  "topic": "vector_equality",
+                  "grade": 12,
+                  "standardFormula": "\\|\\overrightarrow{AB}\\|=AB",
+                  "theoremSummary": "Vectơ biểu diễn đoạn thẳng có hướng; độ dài là khoảng cách hai đầu. Với vectơ khác không, giá là đường thẳng đi qua hai đầu.",
+                  "misconceptionId": "MISC_VEC_001",
+                  "misconceptionName": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                  "misconceptionFrequency": 0.85,
+                  "boTrapPattern": "Hai vectơ dài bằng nhau thì bằng nhau.",
+                  "rebuttalAnchor": "Cần cùng hướng và cùng độ dài.",
+                  "scaffoldingNudges": [
+                    "Em đang so sánh độ dài hay vectơ?",
+                    "Hai mũi tên có cùng hướng không?",
+                    "Nêu đủ hai điều kiện để bằng nhau."
+                  ]
+                }
+              ],
+              "count": 1,
+              "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
+            },
+            "isValid": true,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_dmsm6",
+          "eventType": "thought",
+          "agentId": "linhchi",
+          "agentDisplayName": "Linh Chi (Note Taker)",
+          "secondTarget": 282,
+          "content": "Linh Chi trích xuất quy tắc sư phạm và lập bảng ghi chú bỏ túi cho học sinh.",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_cat4v",
+          "eventType": "debate_turn",
+          "agentId": "linhchi",
+          "agentDisplayName": "Linh Chi (Note Taker)",
+          "secondTarget": 282,
+          "content": "Linh Chi ghi nhớ: Hai vectơ cùng phương bắt buộc giá phải song song hoặc trùng nhau, đường thẳng chéo nhau không bao giờ cùng phương!",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_ngxpz",
+          "eventType": "thought",
+          "agentId": "minhkhang",
+          "agentDisplayName": "Minh Khang (Trực quan)",
+          "secondTarget": 282,
+          "content": "Minh Khang liên hệ bài toán với hiện tượng đời sống hàng ngày để học sinh dễ nhớ.",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_agjud",
+          "eventType": "debate_turn",
+          "agentId": "minhkhang",
+          "agentDisplayName": "Minh Khang (Trực quan)",
+          "secondTarget": 282,
+          "content": "Minh Khang hình dung: Giống như một cây cầu vượt và con đường bên dưới, xe chạy trên cầu và xe chạy dưới đường không bao giờ song song hay cắt nhau, nên hướng di chuyển của chúng hoàn toàn độc lập!",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_tfgja",
+          "eventType": "tool_call",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 282,
+          "content": "Thẩm định bậc Bloom cho câu hỏi checkpoint: tool_evaluate_bloom_level",
+          "toolCall": {
+            "toolName": "tool_evaluate_bloom_level",
+            "input": {
+              "question": "Tại mốc 04:42, em hãy phân tích và chỉ ra lỗi sai trong phát biểu của Bo về mối quan hệ giữa hai đường thẳng chéo nhau và hai vectơ cùng phương:",
+              "expected_points": [
+                "Phân tích bẫy ngộ nhận",
+                "Hai đường thẳng chéo nhau không đồng phẳng nên giá không song song/trùng nhau"
+              ]
+            },
+            "output": {
+              "isValid": true,
+              "level": "Analyze",
+              "score": 4,
+              "indicatorsFound": [
+                "Remember: [phát biểu]",
+                "Analyze: [phân tích, chỉ ra lỗi, bẫy, ngộ nhận]"
+              ],
+              "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+              "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+            },
+            "isValid": true,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_wkjgm",
+          "eventType": "tool_result",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 282,
+          "content": "Mức Bloom thẩm định: Analyze (Điểm: 4/6)",
+          "toolCall": {
+            "toolName": "tool_evaluate_bloom_level",
+            "input": {
+              "question": "Tại mốc 04:42, em hãy phân tích và chỉ ra lỗi sai trong phát biểu của Bo về mối quan hệ giữa hai đường thẳng chéo nhau và hai vectơ cùng phương:",
+              "expected_points": [
+                "Phân tích bẫy ngộ nhận",
+                "Hai đường thẳng chéo nhau không đồng phẳng nên giá không song song/trùng nhau"
+              ]
+            },
+            "output": {
+              "isValid": true,
+              "level": "Analyze",
+              "score": 4,
+              "indicatorsFound": [
+                "Remember: [phát biểu]",
+                "Analyze: [phân tích, chỉ ra lỗi, bẫy, ngộ nhận]"
+              ],
+              "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+              "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+            },
+            "isValid": true,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_n0fvo",
+          "eventType": "tool_call",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 282,
+          "content": "Kiểm tra nhịp thời gian bài giảng và chống va chạm (Pacing Checker)",
+          "toolCall": {
+            "toolName": "tool_timeline_collision_checker",
+            "input": {
+              "events": [
+                {
+                  "id": "stop_282",
+                  "at_s": 282,
+                  "actor_id": "colam",
+                  "type": "checkpoint"
+                },
+                {
+                  "id": "bo_challenge_284",
+                  "at_s": 284,
+                  "actor_id": "bo",
+                  "type": "comment",
+                  "isChained": true
+                }
+              ],
+              "minGapS": 20,
+              "warmupPeriodS": 15,
+              "maxCheckpoints": 1
+            },
+            "output": {
+              "isValid": true,
+              "collisions": [],
+              "warnings": [],
+              "suggestions": [],
+              "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+            },
+            "isValid": true,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_h8tip",
+          "eventType": "tool_result",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 282,
+          "content": "Kết quả Pacing: Hợp lệ (Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt.)",
+          "toolCall": {
+            "toolName": "tool_timeline_collision_checker",
+            "input": {
+              "events": [
+                {
+                  "id": "stop_282",
+                  "at_s": 282,
+                  "actor_id": "colam",
+                  "type": "checkpoint"
+                },
+                {
+                  "id": "bo_challenge_284",
+                  "at_s": 284,
+                  "actor_id": "bo",
+                  "type": "comment",
+                  "isChained": true
+                }
+              ],
+              "minGapS": 20,
+              "warmupPeriodS": 15,
+              "maxCheckpoints": 1
+            },
+            "output": {
+              "isValid": true,
+              "collisions": [],
+              "warnings": [],
+              "suggestions": [],
+              "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+            },
+            "isValid": true,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_y6jcc",
+          "eventType": "checkpoint_created",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 282,
+          "content": "Cô phê duyệt checkpoint dừng tại giây thứ 282 (04:42). Nắm vững định nghĩa cùng phương là nền tảng để không bị nhầm lẫn trong hình học không gian.",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        }
+      ],
+      "crossCheckCorrectionOccurred": false
+    },
+    {
+      "partNumber": 2,
+      "title": "Phần 2: Phép toán Vectơ & Quy tắc Hình hộp",
+      "startSecond": 900,
+      "endSecond": 2000,
+      "checkpointSecond": 1813,
+      "status": "draft",
+      "checkpoint": {
+        "id": "chk_2_1813",
+        "second": 1813,
+        "timeFormatted": "30:13",
+        "title": "Checkpoint 2: Phần 2: Phép toán Vectơ & Quy tắc Hình hộp",
+        "questionText": "Cho hình hộp ABCD.A'B'C'D'. Hãy áp dụng quy tắc hình hộp để xác định vectơ tổng AB + AD + AA' và phân tích tại sao không thể bằng đường chéo đáy AC:",
+        "blackboardFormula": "\\vec{AB} + \\vec{AD} + \\vec{AA'} = \\vec{AC'}",
+        "options": [
+          {
+            "id": "opt_A",
+            "label": "AC'",
+            "isCorrect": true,
+            "feedbackNote": "Chính xác! Theo quy tắc hình hộp: AB + AD + AA' = AC' (đường chéo xuyên tâm không gian)."
+          },
+          {
+            "id": "opt_B",
+            "label": "AC",
+            "isCorrect": false,
+            "misconceptionLinked": "MISC_VEC_006",
+            "feedbackNote": "Sai lầm! AC chỉ là đường chéo đáy từ AB + AD, chưa cộng vectơ chiều cao AA'."
+          },
+          {
+            "id": "opt_C",
+            "label": "BD'",
+            "isCorrect": false,
+            "feedbackNote": "Chưa đúng đỉnh xuất phát. Quy tắc hình hộp xuất phát từ gốc A."
+          },
+          {
+            "id": "opt_D",
+            "label": "AA'",
+            "isCorrect": false,
+            "feedbackNote": "Chưa chính xác. Tổng 3 cạnh độc lập không thể bằng 1 cạnh."
+          }
+        ],
+        "boInitialChallenge": "Quy tắc hình hộp: Xuất phát từ gốc A thì AB + AD + AA' ra đường chéo đáy AC chứ nhỉ!",
+        "linhChiCheatSheetSnippet": {
+          "ruleTitle": "Quy tắc hình hộp 8 đỉnh",
+          "rules": [
+            "Bước 1: Nhận diện 3 vectơ xuất phát từ cùng một đỉnh: AB, AD, AA'.",
+            "Bước 2: AB + AD = AC (đường chéo mặt đáy).",
+            "Bước 3: AC + AA' = AC' (đường chéo không gian xuyên tâm)."
+          ],
+          "mnemonicTrap": "Đừng quên vectơ chiều cao! AB + AD + AA' ra đỉnh đối diện AC', không dừng lại ở AC!"
+        }
+      },
+      "scenarios": [
+        {
+          "actor": "colam",
+          "role": "Pedagogical Director",
+          "dialogue": "Cô phê duyệt checkpoint dừng tại giây thứ 1813 (30:13). Phép cộng vectơ trong không gian mở rộng quy tắc hình bình hành thành quy tắc hình hộp rất đẹp mắt."
+        },
+        {
+          "actor": "bo",
+          "role": "Sparring Partner (Hệ 1)",
+          "dialogue": "Quy tắc hình hộp: Xuất phát từ gốc A thì AB + AD + AA' ra đường chéo đáy AC chứ nhỉ!",
+          "claim": "AC",
+          "intentional_error": true
+        },
+        {
+          "actor": "tri",
+          "role": "Deep Thinker (Hệ 2)",
+          "dialogue": "Bo quên mất vectơ chiều cao AA' rồi! AB + AD mới ra AC ở đáy. Thêm AA' phải vươn lên đỉnh đối diện tạo thành đường chéo không gian AC' với độ dài a√3!",
+          "counter_claim": "AC'"
+        },
+        {
+          "actor": "linhchi",
+          "role": "Note Taker",
+          "dialogue": "Linh Chi ghi nhớ: Đưa về chung gốc xuất phát từ một đỉnh, AB + AD + AA' = AC' (đường chéo đối diện xuyên tâm)!"
+        },
+        {
+          "actor": "minhkhang",
+          "role": "Visualizer",
+          "dialogue": "Minh Khang hình dung: Giống như một cái thùng carton lớn, bạn nối một sợi dây từ góc sàn dưới phòng lên thẳng góc trần đối diện, đó chính là đường chéo không gian dài nhất!"
+        }
+      ],
+      "deterministic_tool_calls": [
+        {
+          "toolName": "tool_query_misconception_kb",
+          "input": {
+            "misconceptionId": "MISC_VEC_006"
+          },
+          "output": {
+            "isValid": true,
+            "output": [
+              {
+                "id": "MISC_VEC_006",
+                "topic": "box_rule",
+                "grade": 12,
+                "standardFormula": "\\overrightarrow{AB}+\\overrightarrow{AD}+\\overrightarrow{AA\\prime}=\\overrightarrow{AC\\prime}",
+                "theoremSummary": "Tổng ba vectơ cạnh xuất phát từ một đỉnh của hình hộp bằng vectơ đường chéo không gian xuất phát từ đỉnh đó.",
+                "misconceptionId": "MISC_VEC_006",
+                "misconceptionName": "AB+AD+AA′ cho đường chéo không gian của mọi cấu hình tám điểm.",
+                "misconceptionFrequency": 0.85,
+                "boTrapPattern": "AB+AD+AA′ cho đường chéo không gian của mọi cấu hình tám điểm.",
+                "rebuttalAnchor": "Quy tắc cần hình hộp với đỉnh tương ứng; tại gốc A dùng AB, AD, AA′.",
+                "scaffoldingNudges": [
+                  "Hình đang có giả thiết hình hộp chưa?",
+                  "Ba cạnh đi ra từ đỉnh nào?",
+                  "Đỉnh đối diện tương ứng là đỉnh nào?"
+                ]
+              }
+            ],
+            "count": 1,
+            "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_006"
+          },
+          "isValid": true,
+          "timestampMs": 1793364334438
+        },
+        {
+          "toolName": "tool_query_misconception_kb",
+          "input": {
+            "misconceptionId": "MISC_VEC_006"
+          },
+          "output": {
+            "isValid": true,
+            "output": [
+              {
+                "id": "MISC_VEC_006",
+                "topic": "box_rule",
+                "grade": 12,
+                "standardFormula": "\\overrightarrow{AB}+\\overrightarrow{AD}+\\overrightarrow{AA\\prime}=\\overrightarrow{AC\\prime}",
+                "theoremSummary": "Tổng ba vectơ cạnh xuất phát từ một đỉnh của hình hộp bằng vectơ đường chéo không gian xuất phát từ đỉnh đó.",
+                "misconceptionId": "MISC_VEC_006",
+                "misconceptionName": "AB+AD+AA′ cho đường chéo không gian của mọi cấu hình tám điểm.",
+                "misconceptionFrequency": 0.85,
+                "boTrapPattern": "AB+AD+AA′ cho đường chéo không gian của mọi cấu hình tám điểm.",
+                "rebuttalAnchor": "Quy tắc cần hình hộp với đỉnh tương ứng; tại gốc A dùng AB, AD, AA′.",
+                "scaffoldingNudges": [
+                  "Hình đang có giả thiết hình hộp chưa?",
+                  "Ba cạnh đi ra từ đỉnh nào?",
+                  "Đỉnh đối diện tương ứng là đỉnh nào?"
+                ]
+              }
+            ],
+            "count": 1,
+            "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_006"
+          },
+          "isValid": true,
+          "timestampMs": 1793364334438
+        },
+        {
+          "toolName": "tool_verify_vector_algebra",
+          "input": {
+            "shape": "cube",
+            "side": "a",
+            "expr": "|AB + AD + AA'|",
+            "claim": "AC"
+          },
+          "output": {
+            "isValid": false,
+            "correct": "a\\sqrt{3}",
+            "calculatedValue": 1.732,
+            "claimValue": null,
+            "reason": "Vectơ AC có tọa độ [1, 1, 0] (độ dài 1.41), không khớp với vectơ tổng của |AB + AD + AA'| (độ dài a\\sqrt{3}).",
+            "steps": [
+              "Tính toán tọa độ biểu thức: [1, 1, 1].",
+              "Tọa độ vectơ được nêu: [1, 1, 0]."
+            ]
+          },
+          "isValid": false,
+          "timestampMs": 1793364334438
+        },
+        {
+          "toolName": "tool_verify_vector_algebra",
+          "input": {
+            "shape": "cube",
+            "side": "a",
+            "expr": "|AB + AD + AA'|",
+            "claim": "AC"
+          },
+          "output": {
+            "isValid": false,
+            "correct": "a\\sqrt{3}",
+            "calculatedValue": 1.732,
+            "claimValue": null,
+            "reason": "Vectơ AC có tọa độ [1, 1, 0] (độ dài 1.41), không khớp với vectơ tổng của |AB + AD + AA'| (độ dài a\\sqrt{3}).",
+            "steps": [
+              "Tính toán tọa độ biểu thức: [1, 1, 1].",
+              "Tọa độ vectơ được nêu: [1, 1, 0]."
+            ]
+          },
+          "isValid": false,
+          "timestampMs": 1793364334438
+        },
+        {
+          "toolName": "tool_verify_vector_algebra",
+          "input": {
+            "shape": "cube",
+            "side": "a",
+            "expr": "|AB + AD + AA'|",
+            "claim": "AC"
+          },
+          "output": {
+            "isValid": false,
+            "correct": "a\\sqrt{3}",
+            "calculatedValue": 1.732,
+            "claimValue": null,
+            "reason": "Vectơ AC có tọa độ [1, 1, 0] (độ dài 1.41), không khớp với vectơ tổng của |AB + AD + AA'| (độ dài a\\sqrt{3}).",
+            "steps": [
+              "Tính toán tọa độ biểu thức: [1, 1, 1].",
+              "Tọa độ vectơ được nêu: [1, 1, 0]."
+            ]
+          },
+          "isValid": false,
+          "timestampMs": 1793364334438
+        },
+        {
+          "toolName": "tool_evaluate_bloom_level",
+          "input": {
+            "question": "Cho hình hộp ABCD.A'B'C'D'. Hãy áp dụng quy tắc hình hộp để xác định vectơ tổng AB + AD + AA' và phân tích tại sao không thể bằng đường chéo đáy AC:",
+            "expected_points": [
+              "Áp dụng quy tắc hình hộp",
+              "Xác định vectơ đường chéo xuyên tâm AC'",
+              "Phân tích bẫy nhầm với đường chéo đáy AC"
+            ]
+          },
+          "output": {
+            "isValid": true,
+            "level": "Analyze",
+            "score": 4,
+            "indicatorsFound": [
+              "Understand: [tại sao]",
+              "Apply: [áp dụng, xác định vectơ]",
+              "Analyze: [phân tích, bẫy]"
+            ],
+            "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+            "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+          },
+          "isValid": true,
+          "timestampMs": 1793364334438
+        },
+        {
+          "toolName": "tool_evaluate_bloom_level",
+          "input": {
+            "question": "Cho hình hộp ABCD.A'B'C'D'. Hãy áp dụng quy tắc hình hộp để xác định vectơ tổng AB + AD + AA' và phân tích tại sao không thể bằng đường chéo đáy AC:",
+            "expected_points": [
+              "Áp dụng quy tắc hình hộp",
+              "Xác định vectơ đường chéo xuyên tâm AC'",
+              "Phân tích bẫy nhầm với đường chéo đáy AC"
+            ]
+          },
+          "output": {
+            "isValid": true,
+            "level": "Analyze",
+            "score": 4,
+            "indicatorsFound": [
+              "Understand: [tại sao]",
+              "Apply: [áp dụng, xác định vectơ]",
+              "Analyze: [phân tích, bẫy]"
+            ],
+            "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+            "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+          },
+          "isValid": true,
+          "timestampMs": 1793364334438
+        },
+        {
+          "toolName": "tool_timeline_collision_checker",
+          "input": {
+            "events": [
+              {
+                "id": "stop_1813",
+                "at_s": 1813,
+                "actor_id": "colam",
+                "type": "checkpoint"
+              },
+              {
+                "id": "bo_challenge_1815",
+                "at_s": 1815,
+                "actor_id": "bo",
+                "type": "comment",
+                "isChained": true
+              }
+            ],
+            "minGapS": 20,
+            "warmupPeriodS": 15,
+            "maxCheckpoints": 1
+          },
+          "output": {
+            "isValid": true,
+            "collisions": [],
+            "warnings": [],
+            "suggestions": [],
+            "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+          },
+          "isValid": true,
+          "timestampMs": 1793364334438
+        },
+        {
+          "toolName": "tool_timeline_collision_checker",
+          "input": {
+            "events": [
+              {
+                "id": "stop_1813",
+                "at_s": 1813,
+                "actor_id": "colam",
+                "type": "checkpoint"
+              },
+              {
+                "id": "bo_challenge_1815",
+                "at_s": 1815,
+                "actor_id": "bo",
+                "type": "comment",
+                "isChained": true
+              }
+            ],
+            "minGapS": 20,
+            "warmupPeriodS": 15,
+            "maxCheckpoints": 1
+          },
+          "output": {
+            "isValid": true,
+            "collisions": [],
+            "warnings": [],
+            "suggestions": [],
+            "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+          },
+          "isValid": true,
+          "timestampMs": 1793364334438
+        }
+      ],
+      "reasoning_events": [
+        {
+          "id": "EVT_1793364334438_bzmqp",
+          "eventType": "thought",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 1813,
+          "content": "Cô Lam đang phân tích phân đoạn \"Phần 2: Phép toán Vectơ & Quy tắc Hình hộp\". Kiểm tra điều kiện sư phạm: Mốc thời gian 30:13 (1813s) cách điểm bắt đầu 913s (>= 15s), an toàn không rơi vào warmup. Mức độ rủi ro ngộ nhận: medium. Bắt đầu phiên họp Roundtable biên kịch.",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_rw254",
+          "eventType": "debate_turn",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 1813,
+          "content": "Chào cả lớp! Tại mốc 30:13, thầy Tiến đang giảng về Quy tắc hình hộp: Xuất phát từ gốc A, tổng 3 cạnh AB cộng AD cộng AA' bằng đường. Bo ơi, cậu tra cứu kho tri thức ngộ nhận xem đoạn này học sinh hay vướng bẫy gì nhất?",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_vcjgo",
+          "eventType": "thought",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 1813,
+          "content": "Bo đang tra cứu tri thức ngộ nhận từ Knowledge Base để chọn bẫy thách đố.",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_nskpt",
+          "eventType": "tool_call",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 1813,
+          "content": "Bo tra cứu tri thức ngộ nhận từ KB: tool_query_misconception_kb",
+          "toolCall": {
+            "toolName": "tool_query_misconception_kb",
+            "input": {
+              "misconceptionId": "MISC_VEC_006"
+            },
+            "output": {
+              "isValid": true,
+              "output": [
+                {
+                  "id": "MISC_VEC_006",
+                  "topic": "box_rule",
+                  "grade": 12,
+                  "standardFormula": "\\overrightarrow{AB}+\\overrightarrow{AD}+\\overrightarrow{AA\\prime}=\\overrightarrow{AC\\prime}",
+                  "theoremSummary": "Tổng ba vectơ cạnh xuất phát từ một đỉnh của hình hộp bằng vectơ đường chéo không gian xuất phát từ đỉnh đó.",
+                  "misconceptionId": "MISC_VEC_006",
+                  "misconceptionName": "AB+AD+AA′ cho đường chéo không gian của mọi cấu hình tám điểm.",
+                  "misconceptionFrequency": 0.85,
+                  "boTrapPattern": "AB+AD+AA′ cho đường chéo không gian của mọi cấu hình tám điểm.",
+                  "rebuttalAnchor": "Quy tắc cần hình hộp với đỉnh tương ứng; tại gốc A dùng AB, AD, AA′.",
+                  "scaffoldingNudges": [
+                    "Hình đang có giả thiết hình hộp chưa?",
+                    "Ba cạnh đi ra từ đỉnh nào?",
+                    "Đỉnh đối diện tương ứng là đỉnh nào?"
+                  ]
+                }
+              ],
+              "count": 1,
+              "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_006"
+            },
+            "isValid": true,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_mpndc",
+          "eventType": "tool_result",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 1813,
+          "content": "Kết quả tra cứu KB: Tìm thấy tri thức chuẩn Ngộ nhận vectơ",
+          "toolCall": {
+            "toolName": "tool_query_misconception_kb",
+            "input": {
+              "misconceptionId": "MISC_VEC_006"
+            },
+            "output": {
+              "isValid": true,
+              "output": [
+                {
+                  "id": "MISC_VEC_006",
+                  "topic": "box_rule",
+                  "grade": 12,
+                  "standardFormula": "\\overrightarrow{AB}+\\overrightarrow{AD}+\\overrightarrow{AA\\prime}=\\overrightarrow{AC\\prime}",
+                  "theoremSummary": "Tổng ba vectơ cạnh xuất phát từ một đỉnh của hình hộp bằng vectơ đường chéo không gian xuất phát từ đỉnh đó.",
+                  "misconceptionId": "MISC_VEC_006",
+                  "misconceptionName": "AB+AD+AA′ cho đường chéo không gian của mọi cấu hình tám điểm.",
+                  "misconceptionFrequency": 0.85,
+                  "boTrapPattern": "AB+AD+AA′ cho đường chéo không gian của mọi cấu hình tám điểm.",
+                  "rebuttalAnchor": "Quy tắc cần hình hộp với đỉnh tương ứng; tại gốc A dùng AB, AD, AA′.",
+                  "scaffoldingNudges": [
+                    "Hình đang có giả thiết hình hộp chưa?",
+                    "Ba cạnh đi ra từ đỉnh nào?",
+                    "Đỉnh đối diện tương ứng là đỉnh nào?"
+                  ]
+                }
+              ],
+              "count": 1,
+              "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_006"
+            },
+            "isValid": true,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_1fe4x",
+          "eventType": "thought",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 1813,
+          "content": "Bo muốn gài bẫy nhầm lẫn giữa quy tắc hình bình hành (ở đáy) và quy tắc hình hộp không gian.",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_0ryol",
+          "eventType": "debate_turn",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 1813,
+          "content": "Quy tắc hình hộp: Xuất phát từ gốc A thì AB + AD + AA' ra đường chéo đáy AC chứ nhỉ!",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_d2vgy",
+          "eventType": "thought",
+          "agentId": "tri",
+          "agentDisplayName": "Trí (Hệ 2 - Logic)",
+          "secondTarget": 1813,
+          "content": "Trí kích hoạt tool_verify_vector_algebra để kiểm tra quy tắc hình hộp 8 đỉnh.",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_hb3bf",
+          "eventType": "tool_call",
+          "agentId": "tri",
+          "agentDisplayName": "Trí (Hệ 2 - Logic)",
+          "secondTarget": 1813,
+          "content": "Kiểm chứng quy tắc hình hộp qua tool_verify_vector_algebra",
+          "toolCall": {
+            "toolName": "tool_verify_vector_algebra",
+            "input": {
+              "shape": "cube",
+              "side": "a",
+              "expr": "|AB + AD + AA'|",
+              "claim": "AC"
+            },
+            "output": {
+              "isValid": false,
+              "correct": "a\\sqrt{3}",
+              "calculatedValue": 1.732,
+              "claimValue": null,
+              "reason": "Vectơ AC có tọa độ [1, 1, 0] (độ dài 1.41), không khớp với vectơ tổng của |AB + AD + AA'| (độ dài a\\sqrt{3}).",
+              "steps": [
+                "Tính toán tọa độ biểu thức: [1, 1, 1].",
+                "Tọa độ vectơ được nêu: [1, 1, 0]."
+              ]
+            },
+            "isValid": false,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_q1qmn",
+          "eventType": "tool_result",
+          "agentId": "tri",
+          "agentDisplayName": "Trí (Hệ 2 - Logic)",
+          "secondTarget": 1813,
+          "content": "Kết quả kiểm chứng: Vectơ AC có tọa độ [1, 1, 0] (độ dài 1.41), không khớp với vectơ tổng của |AB + AD + AA'| (độ dài a\\sqrt{3}).",
+          "toolCall": {
+            "toolName": "tool_verify_vector_algebra",
+            "input": {
+              "shape": "cube",
+              "side": "a",
+              "expr": "|AB + AD + AA'|",
+              "claim": "AC"
+            },
+            "output": {
+              "isValid": false,
+              "correct": "a\\sqrt{3}",
+              "calculatedValue": 1.732,
+              "claimValue": null,
+              "reason": "Vectơ AC có tọa độ [1, 1, 0] (độ dài 1.41), không khớp với vectơ tổng của |AB + AD + AA'| (độ dài a\\sqrt{3}).",
+              "steps": [
+                "Tính toán tọa độ biểu thức: [1, 1, 1].",
+                "Tọa độ vectơ được nêu: [1, 1, 0]."
+              ]
+            },
+            "isValid": false,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_z35s6",
+          "eventType": "cross_check_verdict",
+          "agentId": "tri",
+          "agentDisplayName": "Trí (Hệ 2 - Logic)",
+          "secondTarget": 1813,
+          "content": "Bo quên mất vectơ chiều cao AA' rồi! AB + AD mới ra AC ở đáy. Thêm AA' phải vươn lên đỉnh đối diện tạo thành đường chéo không gian AC' với độ dài a√3!",
+          "toolCall": {
+            "toolName": "tool_verify_vector_algebra",
+            "input": {
+              "shape": "cube",
+              "side": "a",
+              "expr": "|AB + AD + AA'|",
+              "claim": "AC"
+            },
+            "output": {
+              "isValid": false,
+              "correct": "a\\sqrt{3}",
+              "calculatedValue": 1.732,
+              "claimValue": null,
+              "reason": "Vectơ AC có tọa độ [1, 1, 0] (độ dài 1.41), không khớp với vectơ tổng của |AB + AD + AA'| (độ dài a\\sqrt{3}).",
+              "steps": [
+                "Tính toán tọa độ biểu thức: [1, 1, 1].",
+                "Tọa độ vectơ được nêu: [1, 1, 0]."
+              ]
+            },
+            "isValid": false,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_e5wfm",
+          "eventType": "thought",
+          "agentId": "linhchi",
+          "agentDisplayName": "Linh Chi (Note Taker)",
+          "secondTarget": 1813,
+          "content": "Linh Chi trích xuất quy tắc sư phạm và lập bảng ghi chú bỏ túi cho học sinh.",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_gznpn",
+          "eventType": "debate_turn",
+          "agentId": "linhchi",
+          "agentDisplayName": "Linh Chi (Note Taker)",
+          "secondTarget": 1813,
+          "content": "Linh Chi ghi nhớ: Đưa về chung gốc xuất phát từ một đỉnh, AB + AD + AA' = AC' (đường chéo đối diện xuyên tâm)!",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_z2e29",
+          "eventType": "thought",
+          "agentId": "minhkhang",
+          "agentDisplayName": "Minh Khang (Trực quan)",
+          "secondTarget": 1813,
+          "content": "Minh Khang liên hệ bài toán với hiện tượng đời sống hàng ngày để học sinh dễ nhớ.",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_nejcl",
+          "eventType": "debate_turn",
+          "agentId": "minhkhang",
+          "agentDisplayName": "Minh Khang (Trực quan)",
+          "secondTarget": 1813,
+          "content": "Minh Khang hình dung: Giống như một cái thùng carton lớn, bạn nối một sợi dây từ góc sàn dưới phòng lên thẳng góc trần đối diện, đó chính là đường chéo không gian dài nhất!",
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_chqte",
+          "eventType": "tool_call",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 1813,
+          "content": "Thẩm định bậc Bloom cho câu hỏi checkpoint: tool_evaluate_bloom_level",
+          "toolCall": {
+            "toolName": "tool_evaluate_bloom_level",
+            "input": {
+              "question": "Cho hình hộp ABCD.A'B'C'D'. Hãy áp dụng quy tắc hình hộp để xác định vectơ tổng AB + AD + AA' và phân tích tại sao không thể bằng đường chéo đáy AC:",
+              "expected_points": [
+                "Áp dụng quy tắc hình hộp",
+                "Xác định vectơ đường chéo xuyên tâm AC'",
+                "Phân tích bẫy nhầm với đường chéo đáy AC"
+              ]
+            },
+            "output": {
+              "isValid": true,
+              "level": "Analyze",
+              "score": 4,
+              "indicatorsFound": [
+                "Understand: [tại sao]",
+                "Apply: [áp dụng, xác định vectơ]",
+                "Analyze: [phân tích, bẫy]"
+              ],
+              "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+              "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+            },
+            "isValid": true,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_re59b",
+          "eventType": "tool_result",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 1813,
+          "content": "Mức Bloom thẩm định: Analyze (Điểm: 4/6)",
+          "toolCall": {
+            "toolName": "tool_evaluate_bloom_level",
+            "input": {
+              "question": "Cho hình hộp ABCD.A'B'C'D'. Hãy áp dụng quy tắc hình hộp để xác định vectơ tổng AB + AD + AA' và phân tích tại sao không thể bằng đường chéo đáy AC:",
+              "expected_points": [
+                "Áp dụng quy tắc hình hộp",
+                "Xác định vectơ đường chéo xuyên tâm AC'",
+                "Phân tích bẫy nhầm với đường chéo đáy AC"
+              ]
+            },
+            "output": {
+              "isValid": true,
+              "level": "Analyze",
+              "score": 4,
+              "indicatorsFound": [
+                "Understand: [tại sao]",
+                "Apply: [áp dụng, xác định vectơ]",
+                "Analyze: [phân tích, bẫy]"
+              ],
+              "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+              "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+            },
+            "isValid": true,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.438Z"
+        },
+        {
+          "id": "EVT_1793364334438_u1tyl",
+          "eventType": "tool_call",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 1813,
+          "content": "Kiểm tra nhịp thời gian bài giảng và chống va chạm (Pacing Checker)",
+          "toolCall": {
+            "toolName": "tool_timeline_collision_checker",
+            "input": {
+              "events": [
+                {
+                  "id": "stop_1813",
+                  "at_s": 1813,
+                  "actor_id": "colam",
+                  "type": "checkpoint"
+                },
+                {
+                  "id": "bo_challenge_1815",
+                  "at_s": 1815,
+                  "actor_id": "bo",
+                  "type": "comment",
+                  "isChained": true
+                }
+              ],
+              "minGapS": 20,
+              "warmupPeriodS": 15,
+              "maxCheckpoints": 1
+            },
+            "output": {
+              "isValid": true,
+              "collisions": [],
+              "warnings": [],
+              "suggestions": [],
+              "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+            },
+            "isValid": true,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_slyba",
+          "eventType": "tool_result",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 1813,
+          "content": "Kết quả Pacing: Hợp lệ (Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt.)",
+          "toolCall": {
+            "toolName": "tool_timeline_collision_checker",
+            "input": {
+              "events": [
+                {
+                  "id": "stop_1813",
+                  "at_s": 1813,
+                  "actor_id": "colam",
+                  "type": "checkpoint"
+                },
+                {
+                  "id": "bo_challenge_1815",
+                  "at_s": 1815,
+                  "actor_id": "bo",
+                  "type": "comment",
+                  "isChained": true
+                }
+              ],
+              "minGapS": 20,
+              "warmupPeriodS": 15,
+              "maxCheckpoints": 1
+            },
+            "output": {
+              "isValid": true,
+              "collisions": [],
+              "warnings": [],
+              "suggestions": [],
+              "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+            },
+            "isValid": true,
+            "timestampMs": 1793364334438
+          },
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_8bt0v",
+          "eventType": "checkpoint_created",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 1813,
+          "content": "Cô phê duyệt checkpoint dừng tại giây thứ 1813 (30:13). Phép cộng vectơ trong không gian mở rộng quy tắc hình bình hành thành quy tắc hình hộp rất đẹp mắt.",
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        }
+      ],
+      "crossCheckCorrectionOccurred": false
+    },
+    {
+      "partNumber": 3,
+      "title": "Phần 3: Bài tập Tính toán độ dài & Bẫy cộng độ dài (Trọng tâm)",
+      "startSecond": 2000,
+      "endSecond": 9503,
+      "checkpointSecond": 2233,
+      "status": "draft",
+      "checkpoint": {
+        "id": "chk_3_2233",
+        "second": 2233,
+        "timeFormatted": "37:13",
+        "title": "Checkpoint 3: Phần 3: Bài tập Tính toán độ dài & Bẫy cộng độ dài (Trọng tâm)",
+        "questionText": "Cho hình lập phương ABCD.A'B'C'D' cạnh a. Hãy tính độ dài của vectơ tổng BC + DD' và phân tích sai lầm trong cách tính của bạn Bo. Phát biểu nào sau đây chính xác?",
+        "blackboardFormula": "|\\vec{BC} + \\vec{DD'}|",
+        "options": [
+          {
+            "id": "opt_A",
+            "label": "a√2",
+            "isCorrect": true,
+            "feedbackNote": "Chính xác! Vì DD' = CC' nên BC + DD' = BC', tam giác BCC' vuông tại C có đường chéo a√2."
+          },
+          {
+            "id": "opt_B",
+            "label": "2a",
+            "isCorrect": false,
+            "misconceptionLinked": "MISC_VEC_005",
+            "feedbackNote": "Sai lầm! Em đang cộng trực tiếp độ dài |BC| + |DD'| = 2a giống bạn Bo. Cần quy về vectơ tổng trước!"
+          },
+          {
+            "id": "opt_C",
+            "label": "a",
+            "isCorrect": false,
+            "feedbackNote": "Chưa chính xác. Độ dài tổng hai vectơ vuông góc không thể bằng độ dài một cạnh."
+          },
+          {
+            "id": "opt_D",
+            "label": "a√3",
+            "isCorrect": false,
+            "feedbackNote": "Sai lầm. a√3 là độ dài đường chéo không gian của hình lập phương (quy tắc hình hộp), không phải đường chéo mặt bên."
+          }
+        ],
+        "boInitialChallenge": "À tớ nhìn nhầm đỉnh! Nhưng về độ dài thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!",
+        "linhChiCheatSheetSnippet": {
+          "ruleTitle": "Quy tắc cộng & Tính độ dài Vectơ",
+          "rules": [
+            "Bước 1: Tìm vectơ thay thế bằng nhau để đưa về chung gốc hoặc nối đuôi.",
+            "Bước 2: Gom thành một vectơ tổng duy nhất.",
+            "Bước 3: Dùng hình học (Pytago/Tam giác) để tính độ dài vectơ kết quả."
+          ],
+          "mnemonicTrap": "TUYỆT ĐỐI không lấy độ dài cộng độ dài: |u + v| ≠ |u| + |v| khi hai vectơ không cùng hướng!"
+        }
+      },
+      "scenarios": [
+        {
+          "actor": "colam",
+          "role": "Pedagogical Director",
+          "dialogue": "Cô phê duyệt checkpoint dừng tại giây thứ 2233 (37:13). Bẫy ngộ nhận của Bo rất chân thực, Trí đã chỉ rõ căn cứ hình học và Linh Chi có mẹo ghi nhớ rất tuyệt vời. Các em hãy chú ý: không bao giờ cộng độ dài trực tiếp mà phải quy về một vectơ tổng trước!"
+        },
+        {
+          "actor": "bo",
+          "role": "Sparring Partner (Hệ 1)",
+          "dialogue": "À tớ nhìn nhầm đỉnh! Nhưng về độ dài thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!",
+          "claim": "2a",
+          "intentional_error": true
+        },
+        {
+          "actor": "tri",
+          "role": "Deep Thinker (Hệ 2)",
+          "dialogue": "Bẫy này rất tự nhiên! Học sinh thường lấy ngay |BC| + |DD'| = a + a = 2a do thói quen đại số, quên mất bất đẳng thức tam giác và định lý Pytago đường chéo BC' = a√2. Tớ đồng ý chọn bẫy này!",
+          "counter_claim": "a√2"
+        },
+        {
+          "actor": "linhchi",
+          "role": "Note Taker",
+          "dialogue": "Linh Chi note vào sổ tay nè: Muốn tính độ dài vectơ tổng, bước 1 là tìm vectơ thay thế để gom về một vectơ duy nhất (DD' = CC' => BC + CC' = BC'), sau đó mới tính Pytago đường chéo ra a√2!"
+        },
+        {
+          "actor": "minhkhang",
+          "role": "Visualizer",
+          "dialogue": "Minh Khang ví von đời sống nè: Giống như bạn đi bộ từ nhà ra đầu ngõ a mét rồi rẽ vuông góc đi tiếp a mét. Khoảng cách đường chim bay từ nhà đến điểm cuối là cạnh huyền a√2, làm sao mà lấy a + a = 2a được!"
+        }
+      ],
+      "deterministic_tool_calls": [
+        {
+          "toolName": "tool_query_misconception_kb",
+          "input": {
+            "misconceptionId": "MISC_VEC_005"
+          },
+          "output": {
+            "isValid": true,
+            "output": [
+              {
+                "id": "MISC_VEC_005",
+                "topic": "norm_sum",
+                "grade": 12,
+                "standardFormula": "\\overrightarrow{AB}+\\overrightarrow{BC}=\\overrightarrow{AC}",
+                "theoremSummary": "Dựng hai vectơ nối đuôi; vectơ từ đầu thứ nhất tới cuối thứ hai là tổng.",
+                "misconceptionId": "MISC_VEC_005",
+                "misconceptionName": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+                "misconceptionFrequency": 0.85,
+                "boTrapPattern": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+                "rebuttalAnchor": "Phải dựng vectơ tổng rồi tính độ dài; bằng tổng độ dài chỉ khi hai vectơ khác không cùng hướng, hoặc có vectơ không.",
+                "scaffoldingNudges": [
+                  "Em đang cộng vectơ hay cộng độ dài?",
+                  "Dời hai vectơ để dựng đường chéo được không?",
+                  "Dùng định lý nào cho đường chéo hình vuông?"
+                ]
+              }
+            ],
+            "count": 1,
+            "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_005"
+          },
+          "isValid": true,
+          "timestampMs": 1793364334439
+        },
+        {
+          "toolName": "tool_query_misconception_kb",
+          "input": {
+            "misconceptionId": "MISC_VEC_005"
+          },
+          "output": {
+            "isValid": true,
+            "output": [
+              {
+                "id": "MISC_VEC_005",
+                "topic": "norm_sum",
+                "grade": 12,
+                "standardFormula": "\\overrightarrow{AB}+\\overrightarrow{BC}=\\overrightarrow{AC}",
+                "theoremSummary": "Dựng hai vectơ nối đuôi; vectơ từ đầu thứ nhất tới cuối thứ hai là tổng.",
+                "misconceptionId": "MISC_VEC_005",
+                "misconceptionName": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+                "misconceptionFrequency": 0.85,
+                "boTrapPattern": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+                "rebuttalAnchor": "Phải dựng vectơ tổng rồi tính độ dài; bằng tổng độ dài chỉ khi hai vectơ khác không cùng hướng, hoặc có vectơ không.",
+                "scaffoldingNudges": [
+                  "Em đang cộng vectơ hay cộng độ dài?",
+                  "Dời hai vectơ để dựng đường chéo được không?",
+                  "Dùng định lý nào cho đường chéo hình vuông?"
+                ]
+              }
+            ],
+            "count": 1,
+            "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_005"
+          },
+          "isValid": true,
+          "timestampMs": 1793364334439
+        },
+        {
+          "toolName": "tool_verify_vector_algebra",
+          "input": {
+            "shape": "cube",
+            "side": "1",
+            "expr": "|BC + DD'|",
+            "claim": "AB"
+          },
+          "output": {
+            "isValid": false,
+            "correct": "\\sqrt{2}",
+            "calculatedValue": 1.414,
+            "claimValue": null,
+            "reason": "Vectơ AB có tọa độ [1, 0, 0] (độ dài 1.00), không khớp với vectơ tổng của |BC + DD'| (độ dài \\sqrt{2}).",
+            "steps": [
+              "Tính toán tọa độ biểu thức: [0, 1, 1].",
+              "Tọa độ vectơ được nêu: [1, 0, 0]."
+            ]
+          },
+          "isValid": false,
+          "timestampMs": 1793364334439
+        },
+        {
+          "toolName": "tool_verify_vector_algebra",
+          "input": {
+            "shape": "cube",
+            "side": "1",
+            "expr": "|BC + DD'|",
+            "claim": "AB"
+          },
+          "output": {
+            "isValid": false,
+            "correct": "\\sqrt{2}",
+            "calculatedValue": 1.414,
+            "claimValue": null,
+            "reason": "Vectơ AB có tọa độ [1, 0, 0] (độ dài 1.00), không khớp với vectơ tổng của |BC + DD'| (độ dài \\sqrt{2}).",
+            "steps": [
+              "Tính toán tọa độ biểu thức: [0, 1, 1].",
+              "Tọa độ vectơ được nêu: [1, 0, 0]."
+            ]
+          },
+          "isValid": false,
+          "timestampMs": 1793364334439
+        },
+        {
+          "toolName": "tool_verify_vector_algebra",
+          "input": {
+            "shape": "cube",
+            "side": "1",
+            "expr": "|BC + DD'|",
+            "claim": "AB"
+          },
+          "output": {
+            "isValid": false,
+            "correct": "\\sqrt{2}",
+            "calculatedValue": 1.414,
+            "claimValue": null,
+            "reason": "Vectơ AB có tọa độ [1, 0, 0] (độ dài 1.00), không khớp với vectơ tổng của |BC + DD'| (độ dài \\sqrt{2}).",
+            "steps": [
+              "Tính toán tọa độ biểu thức: [0, 1, 1].",
+              "Tọa độ vectơ được nêu: [1, 0, 0]."
+            ]
+          },
+          "isValid": false,
+          "timestampMs": 1793364334439
+        },
+        {
+          "toolName": "tool_verify_vector_algebra",
+          "input": {
+            "shape": "cube",
+            "side": "a",
+            "expr": "|BC + DD'|",
+            "claim": "2a"
+          },
+          "output": {
+            "isValid": false,
+            "correct": "a\\sqrt{2}",
+            "calculatedValue": 1.414,
+            "claimValue": 2,
+            "reason": "BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài a + a = 2a.",
+            "steps": [
+              "1. Vectơ DD' bằng vectơ CC' (hai cạnh bên cùng hướng trong hình lập phương).",
+              "2. Thay thế: \\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}.",
+              "3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = a\\sqrt{2}.",
+              "4. Sai lầm mắc phải: cộng trực tiếp độ dài hai vectơ vuông góc |\\vec{u} + \\vec{v}| = |\\vec{u}| + |\\vec{v}| là sai."
+            ]
+          },
+          "isValid": false,
+          "timestampMs": 1793364334439
+        },
+        {
+          "toolName": "tool_verify_vector_algebra",
+          "input": {
+            "shape": "cube",
+            "side": "a",
+            "expr": "|BC + DD'|",
+            "claim": "2a"
+          },
+          "output": {
+            "isValid": false,
+            "correct": "a\\sqrt{2}",
+            "calculatedValue": 1.414,
+            "claimValue": 2,
+            "reason": "BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài a + a = 2a.",
+            "steps": [
+              "1. Vectơ DD' bằng vectơ CC' (hai cạnh bên cùng hướng trong hình lập phương).",
+              "2. Thay thế: \\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}.",
+              "3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = a\\sqrt{2}.",
+              "4. Sai lầm mắc phải: cộng trực tiếp độ dài hai vectơ vuông góc |\\vec{u} + \\vec{v}| = |\\vec{u}| + |\\vec{v}| là sai."
+            ]
+          },
+          "isValid": false,
+          "timestampMs": 1793364334439
+        },
+        {
+          "toolName": "tool_verify_vector_algebra",
+          "input": {
+            "shape": "cube",
+            "side": "a",
+            "expr": "|BC + DD'|",
+            "claim": "2a"
+          },
+          "output": {
+            "isValid": false,
+            "correct": "a\\sqrt{2}",
+            "calculatedValue": 1.414,
+            "claimValue": 2,
+            "reason": "BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài a + a = 2a.",
+            "steps": [
+              "1. Vectơ DD' bằng vectơ CC' (hai cạnh bên cùng hướng trong hình lập phương).",
+              "2. Thay thế: \\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}.",
+              "3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = a\\sqrt{2}.",
+              "4. Sai lầm mắc phải: cộng trực tiếp độ dài hai vectơ vuông góc |\\vec{u} + \\vec{v}| = |\\vec{u}| + |\\vec{v}| là sai."
+            ]
+          },
+          "isValid": false,
+          "timestampMs": 1793364334439
+        },
+        {
+          "toolName": "tool_evaluate_bloom_level",
+          "input": {
+            "question": "Cho hình lập phương ABCD.A'B'C'D' cạnh a. Hãy tính độ dài của vectơ tổng BC + DD' và phân tích sai lầm trong cách tính của bạn Bo. Phát biểu nào sau đây chính xác?",
+            "expected_points": [
+              "Chỉ ra DD' = CC'",
+              "Tính độ dài đường chéo bằng Pytago",
+              "Phân tích bẫy ngộ nhận cộng độ dài đại số"
+            ]
+          },
+          "output": {
+            "isValid": true,
+            "level": "Analyze",
+            "score": 4,
+            "indicatorsFound": [
+              "Remember: [phát biểu]",
+              "Apply: [tính]",
+              "Analyze: [phân tích, bẫy, ngộ nhận]"
+            ],
+            "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+            "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+          },
+          "isValid": true,
+          "timestampMs": 1793364334439
+        },
+        {
+          "toolName": "tool_evaluate_bloom_level",
+          "input": {
+            "question": "Cho hình lập phương ABCD.A'B'C'D' cạnh a. Hãy tính độ dài của vectơ tổng BC + DD' và phân tích sai lầm trong cách tính của bạn Bo. Phát biểu nào sau đây chính xác?",
+            "expected_points": [
+              "Chỉ ra DD' = CC'",
+              "Tính độ dài đường chéo bằng Pytago",
+              "Phân tích bẫy ngộ nhận cộng độ dài đại số"
+            ]
+          },
+          "output": {
+            "isValid": true,
+            "level": "Analyze",
+            "score": 4,
+            "indicatorsFound": [
+              "Remember: [phát biểu]",
+              "Apply: [tính]",
+              "Analyze: [phân tích, bẫy, ngộ nhận]"
+            ],
+            "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+            "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+          },
+          "isValid": true,
+          "timestampMs": 1793364334439
+        },
+        {
+          "toolName": "tool_timeline_collision_checker",
+          "input": {
+            "events": [
+              {
+                "id": "stop_2233",
+                "at_s": 2233,
+                "actor_id": "colam",
+                "type": "checkpoint"
+              },
+              {
+                "id": "bo_challenge_2235",
+                "at_s": 2235,
+                "actor_id": "bo",
+                "type": "comment",
+                "isChained": true
+              }
+            ],
+            "minGapS": 20,
+            "warmupPeriodS": 15,
+            "maxCheckpoints": 1
+          },
+          "output": {
+            "isValid": true,
+            "collisions": [],
+            "warnings": [],
+            "suggestions": [],
+            "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+          },
+          "isValid": true,
+          "timestampMs": 1793364334439
+        },
+        {
+          "toolName": "tool_timeline_collision_checker",
+          "input": {
+            "events": [
+              {
+                "id": "stop_2233",
+                "at_s": 2233,
+                "actor_id": "colam",
+                "type": "checkpoint"
+              },
+              {
+                "id": "bo_challenge_2235",
+                "at_s": 2235,
+                "actor_id": "bo",
+                "type": "comment",
+                "isChained": true
+              }
+            ],
+            "minGapS": 20,
+            "warmupPeriodS": 15,
+            "maxCheckpoints": 1
+          },
+          "output": {
+            "isValid": true,
+            "collisions": [],
+            "warnings": [],
+            "suggestions": [],
+            "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+          },
+          "isValid": true,
+          "timestampMs": 1793364334439
+        }
+      ],
+      "reasoning_events": [
+        {
+          "id": "EVT_1793364334439_b0kgf",
+          "eventType": "thought",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 2233,
+          "content": "Cô Lam đang phân tích phân đoạn \"Phần 3: Bài tập Tính toán độ dài & Bẫy cộng độ dài (Trọng tâm)\". Kiểm tra điều kiện sư phạm: Mốc thời gian 37:13 (2233s) cách điểm bắt đầu 233s (>= 15s), an toàn không rơi vào warmup. Mức độ rủi ro ngộ nhận: high. Bắt đầu phiên họp Roundtable biên kịch.",
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_dcccy",
+          "eventType": "debate_turn",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 2233,
+          "content": "Chào cả lớp! Tại mốc 37:13, thầy Tiến đang giảng về Ví dụ 3: Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính độ dài tổng vectơ B. Bo ơi, cậu tra cứu kho tri thức ngộ nhận xem đoạn này học sinh hay vướng bẫy gì nhất?",
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_ii78i",
+          "eventType": "thought",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 2233,
+          "content": "Bo đang tra cứu tri thức ngộ nhận từ Knowledge Base để chọn bẫy thách đố.",
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_fsfnf",
+          "eventType": "tool_call",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 2233,
+          "content": "Bo tra cứu tri thức ngộ nhận từ KB: tool_query_misconception_kb",
+          "toolCall": {
+            "toolName": "tool_query_misconception_kb",
+            "input": {
+              "misconceptionId": "MISC_VEC_005"
+            },
+            "output": {
+              "isValid": true,
+              "output": [
+                {
+                  "id": "MISC_VEC_005",
+                  "topic": "norm_sum",
+                  "grade": 12,
+                  "standardFormula": "\\overrightarrow{AB}+\\overrightarrow{BC}=\\overrightarrow{AC}",
+                  "theoremSummary": "Dựng hai vectơ nối đuôi; vectơ từ đầu thứ nhất tới cuối thứ hai là tổng.",
+                  "misconceptionId": "MISC_VEC_005",
+                  "misconceptionName": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+                  "misconceptionFrequency": 0.85,
+                  "boTrapPattern": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+                  "rebuttalAnchor": "Phải dựng vectơ tổng rồi tính độ dài; bằng tổng độ dài chỉ khi hai vectơ khác không cùng hướng, hoặc có vectơ không.",
+                  "scaffoldingNudges": [
+                    "Em đang cộng vectơ hay cộng độ dài?",
+                    "Dời hai vectơ để dựng đường chéo được không?",
+                    "Dùng định lý nào cho đường chéo hình vuông?"
+                  ]
+                }
+              ],
+              "count": 1,
+              "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_005"
+            },
+            "isValid": true,
+            "timestampMs": 1793364334439
+          },
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_l258a",
+          "eventType": "tool_result",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 2233,
+          "content": "Kết quả tra cứu KB: Tìm thấy tri thức chuẩn Ngộ nhận vectơ",
+          "toolCall": {
+            "toolName": "tool_query_misconception_kb",
+            "input": {
+              "misconceptionId": "MISC_VEC_005"
+            },
+            "output": {
+              "isValid": true,
+              "output": [
+                {
+                  "id": "MISC_VEC_005",
+                  "topic": "norm_sum",
+                  "grade": 12,
+                  "standardFormula": "\\overrightarrow{AB}+\\overrightarrow{BC}=\\overrightarrow{AC}",
+                  "theoremSummary": "Dựng hai vectơ nối đuôi; vectơ từ đầu thứ nhất tới cuối thứ hai là tổng.",
+                  "misconceptionId": "MISC_VEC_005",
+                  "misconceptionName": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+                  "misconceptionFrequency": 0.85,
+                  "boTrapPattern": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+                  "rebuttalAnchor": "Phải dựng vectơ tổng rồi tính độ dài; bằng tổng độ dài chỉ khi hai vectơ khác không cùng hướng, hoặc có vectơ không.",
+                  "scaffoldingNudges": [
+                    "Em đang cộng vectơ hay cộng độ dài?",
+                    "Dời hai vectơ để dựng đường chéo được không?",
+                    "Dùng định lý nào cho đường chéo hình vuông?"
+                  ]
+                }
+              ],
+              "count": 1,
+              "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_005"
+            },
+            "isValid": true,
+            "timestampMs": 1793364334439
+          },
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_dh38m",
+          "eventType": "thought",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 2233,
+          "content": "Bo muốn đề xuất bẫy shortcut tính nhanh và đoán mò vectơ tổng là AB.",
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_e8xha",
+          "eventType": "debate_turn",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 2233,
+          "content": "Cộng độ dài cho lẹ: |BC + DD'| = 1 + 1 = 2! Với lại vectơ BC cộng DD' chắc chắn ra luôn vectơ AB rồi!",
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_naxyf",
+          "eventType": "thought",
+          "agentId": "tri",
+          "agentDisplayName": "Trí (Hệ 2 - Logic)",
+          "secondTarget": 2233,
+          "content": "Trí kích hoạt tool_verify_vector_algebra để kiểm chứng toạ độ 3D và đại số vectơ cho claim \"AB\" của Bo.",
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_s0f5u",
+          "eventType": "tool_call",
+          "agentId": "tri",
+          "agentDisplayName": "Trí (Hệ 2 - Logic)",
+          "secondTarget": 2233,
+          "content": "Kích hoạt tool_verify_vector_algebra với claim \"AB\"",
+          "toolCall": {
+            "toolName": "tool_verify_vector_algebra",
+            "input": {
+              "shape": "cube",
+              "side": "1",
+              "expr": "|BC + DD'|",
+              "claim": "AB"
+            },
+            "output": {
+              "isValid": false,
+              "correct": "\\sqrt{2}",
+              "calculatedValue": 1.414,
+              "claimValue": null,
+              "reason": "Vectơ AB có tọa độ [1, 0, 0] (độ dài 1.00), không khớp với vectơ tổng của |BC + DD'| (độ dài \\sqrt{2}).",
+              "steps": [
+                "Tính toán tọa độ biểu thức: [0, 1, 1].",
+                "Tọa độ vectơ được nêu: [1, 0, 0]."
+              ]
+            },
+            "isValid": false,
+            "timestampMs": 1793364334439
+          },
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_zv6uo",
+          "eventType": "tool_result",
+          "agentId": "tri",
+          "agentDisplayName": "Trí (Hệ 2 - Logic)",
+          "secondTarget": 2233,
+          "content": "Tool trả về isValid: false — Vectơ AB có tọa độ [1, 0, 0] (độ dài 1.00), không khớp với vectơ tổng của |BC + DD'| (độ dài \\sqrt{2}).",
+          "toolCall": {
+            "toolName": "tool_verify_vector_algebra",
+            "input": {
+              "shape": "cube",
+              "side": "1",
+              "expr": "|BC + DD'|",
+              "claim": "AB"
+            },
+            "output": {
+              "isValid": false,
+              "correct": "\\sqrt{2}",
+              "calculatedValue": 1.414,
+              "claimValue": null,
+              "reason": "Vectơ AB có tọa độ [1, 0, 0] (độ dài 1.00), không khớp với vectơ tổng của |BC + DD'| (độ dài \\sqrt{2}).",
+              "steps": [
+                "Tính toán tọa độ biểu thức: [0, 1, 1].",
+                "Tọa độ vectơ được nêu: [1, 0, 0]."
+              ]
+            },
+            "isValid": false,
+            "timestampMs": 1793364334439
+          },
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_8sbcd",
+          "eventType": "cross_check_verdict",
+          "agentId": "tri",
+          "agentDisplayName": "Trí (Hệ 2 - Logic)",
+          "secondTarget": 2233,
+          "content": "Bo nhầm to rồi! Tớ vừa chạy toạ độ kiểm chứng: BC + DD' = BC + CC' = BC', phương hướng hoàn toàn khác vectơ AB! Bẫy như vậy là \"sai kiểu không có thật\", học sinh sẽ thấy vô lý ngay. Cậu hãy giữ đúng bản chất ngộ nhận cộng độ dài đại số thôi!",
+          "toolCall": {
+            "toolName": "tool_verify_vector_algebra",
+            "input": {
+              "shape": "cube",
+              "side": "1",
+              "expr": "|BC + DD'|",
+              "claim": "AB"
+            },
+            "output": {
+              "isValid": false,
+              "correct": "\\sqrt{2}",
+              "calculatedValue": 1.414,
+              "claimValue": null,
+              "reason": "Vectơ AB có tọa độ [1, 0, 0] (độ dài 1.00), không khớp với vectơ tổng của |BC + DD'| (độ dài \\sqrt{2}).",
+              "steps": [
+                "Tính toán tọa độ biểu thức: [0, 1, 1].",
+                "Tọa độ vectơ được nêu: [1, 0, 0]."
+              ]
+            },
+            "isValid": false,
+            "timestampMs": 1793364334439
+          },
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_1sw70",
+          "eventType": "thought",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 2233,
+          "content": "Bo rút kinh nghiệm từ tool kiểm chứng của Trí, chuyển sang gài bẫy ngộ nhận cộng trực tiếp độ dài 1+1=2.",
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_zd69l",
+          "eventType": "debate_turn",
+          "agentId": "bo",
+          "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+          "secondTarget": 2233,
+          "content": "À tớ nhìn nhầm đỉnh! Nhưng về độ dài thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!",
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_h0u3i",
+          "eventType": "thought",
+          "agentId": "tri",
+          "agentDisplayName": "Trí (Hệ 2 - Logic)",
+          "secondTarget": 2233,
+          "content": "Trí kích hoạt tool_verify_vector_algebra để kiểm chứng toạ độ 3D và đại số vectơ cho claim \"2a\" của Bo.",
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_rzjfe",
+          "eventType": "tool_call",
+          "agentId": "tri",
+          "agentDisplayName": "Trí (Hệ 2 - Logic)",
+          "secondTarget": 2233,
+          "content": "Kích hoạt tool_verify_vector_algebra với claim \"2a\"",
+          "toolCall": {
+            "toolName": "tool_verify_vector_algebra",
+            "input": {
+              "shape": "cube",
+              "side": "a",
+              "expr": "|BC + DD'|",
+              "claim": "2a"
+            },
+            "output": {
+              "isValid": false,
+              "correct": "a\\sqrt{2}",
+              "calculatedValue": 1.414,
+              "claimValue": 2,
+              "reason": "BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài a + a = 2a.",
+              "steps": [
+                "1. Vectơ DD' bằng vectơ CC' (hai cạnh bên cùng hướng trong hình lập phương).",
+                "2. Thay thế: \\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}.",
+                "3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = a\\sqrt{2}.",
+                "4. Sai lầm mắc phải: cộng trực tiếp độ dài hai vectơ vuông góc |\\vec{u} + \\vec{v}| = |\\vec{u}| + |\\vec{v}| là sai."
+              ]
+            },
+            "isValid": false,
+            "timestampMs": 1793364334439
+          },
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_xn4es",
+          "eventType": "tool_result",
+          "agentId": "tri",
+          "agentDisplayName": "Trí (Hệ 2 - Logic)",
+          "secondTarget": 2233,
+          "content": "Tool trả về isValid: false — BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài a + a = 2a.",
+          "toolCall": {
+            "toolName": "tool_verify_vector_algebra",
+            "input": {
+              "shape": "cube",
+              "side": "a",
+              "expr": "|BC + DD'|",
+              "claim": "2a"
+            },
+            "output": {
+              "isValid": false,
+              "correct": "a\\sqrt{2}",
+              "calculatedValue": 1.414,
+              "claimValue": 2,
+              "reason": "BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài a + a = 2a.",
+              "steps": [
+                "1. Vectơ DD' bằng vectơ CC' (hai cạnh bên cùng hướng trong hình lập phương).",
+                "2. Thay thế: \\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}.",
+                "3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = a\\sqrt{2}.",
+                "4. Sai lầm mắc phải: cộng trực tiếp độ dài hai vectơ vuông góc |\\vec{u} + \\vec{v}| = |\\vec{u}| + |\\vec{v}| là sai."
+              ]
+            },
+            "isValid": false,
+            "timestampMs": 1793364334439
+          },
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_xt0pp",
+          "eventType": "cross_check_verdict",
+          "agentId": "tri",
+          "agentDisplayName": "Trí (Hệ 2 - Logic)",
+          "secondTarget": 2233,
+          "content": "Bẫy này rất tự nhiên! Học sinh thường lấy ngay |BC| + |DD'| = a + a = 2a do thói quen đại số, quên mất bất đẳng thức tam giác và định lý Pytago đường chéo BC' = a√2. Tớ đồng ý chọn bẫy này!",
+          "toolCall": {
+            "toolName": "tool_verify_vector_algebra",
+            "input": {
+              "shape": "cube",
+              "side": "a",
+              "expr": "|BC + DD'|",
+              "claim": "2a"
+            },
+            "output": {
+              "isValid": false,
+              "correct": "a\\sqrt{2}",
+              "calculatedValue": 1.414,
+              "claimValue": 2,
+              "reason": "BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài a + a = 2a.",
+              "steps": [
+                "1. Vectơ DD' bằng vectơ CC' (hai cạnh bên cùng hướng trong hình lập phương).",
+                "2. Thay thế: \\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}.",
+                "3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = a\\sqrt{2}.",
+                "4. Sai lầm mắc phải: cộng trực tiếp độ dài hai vectơ vuông góc |\\vec{u} + \\vec{v}| = |\\vec{u}| + |\\vec{v}| là sai."
+              ]
+            },
+            "isValid": false,
+            "timestampMs": 1793364334439
+          },
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_qzsrt",
+          "eventType": "thought",
+          "agentId": "linhchi",
+          "agentDisplayName": "Linh Chi (Note Taker)",
+          "secondTarget": 2233,
+          "content": "Linh Chi trích xuất quy tắc sư phạm và lập bảng ghi chú bỏ túi cho học sinh.",
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_kcyld",
+          "eventType": "debate_turn",
+          "agentId": "linhchi",
+          "agentDisplayName": "Linh Chi (Note Taker)",
+          "secondTarget": 2233,
+          "content": "Linh Chi note vào sổ tay nè: Muốn tính độ dài vectơ tổng, bước 1 là tìm vectơ thay thế để gom về một vectơ duy nhất (DD' = CC' => BC + CC' = BC'), sau đó mới tính Pytago đường chéo ra a√2!",
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_4lkwn",
+          "eventType": "thought",
+          "agentId": "minhkhang",
+          "agentDisplayName": "Minh Khang (Trực quan)",
+          "secondTarget": 2233,
+          "content": "Minh Khang liên hệ bài toán với hiện tượng đời sống hàng ngày để học sinh dễ nhớ.",
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_9efd2",
+          "eventType": "debate_turn",
+          "agentId": "minhkhang",
+          "agentDisplayName": "Minh Khang (Trực quan)",
+          "secondTarget": 2233,
+          "content": "Minh Khang ví von đời sống nè: Giống như bạn đi bộ từ nhà ra đầu ngõ a mét rồi rẽ vuông góc đi tiếp a mét. Khoảng cách đường chim bay từ nhà đến điểm cuối là cạnh huyền a√2, làm sao mà lấy a + a = 2a được!",
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_fzw57",
+          "eventType": "tool_call",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 2233,
+          "content": "Thẩm định bậc Bloom cho câu hỏi checkpoint: tool_evaluate_bloom_level",
+          "toolCall": {
+            "toolName": "tool_evaluate_bloom_level",
+            "input": {
+              "question": "Cho hình lập phương ABCD.A'B'C'D' cạnh a. Hãy tính độ dài của vectơ tổng BC + DD' và phân tích sai lầm trong cách tính của bạn Bo. Phát biểu nào sau đây chính xác?",
+              "expected_points": [
+                "Chỉ ra DD' = CC'",
+                "Tính độ dài đường chéo bằng Pytago",
+                "Phân tích bẫy ngộ nhận cộng độ dài đại số"
+              ]
+            },
+            "output": {
+              "isValid": true,
+              "level": "Analyze",
+              "score": 4,
+              "indicatorsFound": [
+                "Remember: [phát biểu]",
+                "Apply: [tính]",
+                "Analyze: [phân tích, bẫy, ngộ nhận]"
+              ],
+              "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+              "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+            },
+            "isValid": true,
+            "timestampMs": 1793364334439
+          },
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_71yb0",
+          "eventType": "tool_result",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 2233,
+          "content": "Mức Bloom thẩm định: Analyze (Điểm: 4/6)",
+          "toolCall": {
+            "toolName": "tool_evaluate_bloom_level",
+            "input": {
+              "question": "Cho hình lập phương ABCD.A'B'C'D' cạnh a. Hãy tính độ dài của vectơ tổng BC + DD' và phân tích sai lầm trong cách tính của bạn Bo. Phát biểu nào sau đây chính xác?",
+              "expected_points": [
+                "Chỉ ra DD' = CC'",
+                "Tính độ dài đường chéo bằng Pytago",
+                "Phân tích bẫy ngộ nhận cộng độ dài đại số"
+              ]
+            },
+            "output": {
+              "isValid": true,
+              "level": "Analyze",
+              "score": 4,
+              "indicatorsFound": [
+                "Remember: [phát biểu]",
+                "Apply: [tính]",
+                "Analyze: [phân tích, bẫy, ngộ nhận]"
+              ],
+              "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+              "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+            },
+            "isValid": true,
+            "timestampMs": 1793364334439
+          },
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_nyc6o",
+          "eventType": "tool_call",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 2233,
+          "content": "Kiểm tra nhịp thời gian bài giảng và chống va chạm (Pacing Checker)",
+          "toolCall": {
+            "toolName": "tool_timeline_collision_checker",
+            "input": {
+              "events": [
+                {
+                  "id": "stop_2233",
+                  "at_s": 2233,
+                  "actor_id": "colam",
+                  "type": "checkpoint"
+                },
+                {
+                  "id": "bo_challenge_2235",
+                  "at_s": 2235,
+                  "actor_id": "bo",
+                  "type": "comment",
+                  "isChained": true
+                }
+              ],
+              "minGapS": 20,
+              "warmupPeriodS": 15,
+              "maxCheckpoints": 1
+            },
+            "output": {
+              "isValid": true,
+              "collisions": [],
+              "warnings": [],
+              "suggestions": [],
+              "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+            },
+            "isValid": true,
+            "timestampMs": 1793364334439
+          },
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_jfkp0",
+          "eventType": "tool_result",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 2233,
+          "content": "Kết quả Pacing: Hợp lệ (Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt.)",
+          "toolCall": {
+            "toolName": "tool_timeline_collision_checker",
+            "input": {
+              "events": [
+                {
+                  "id": "stop_2233",
+                  "at_s": 2233,
+                  "actor_id": "colam",
+                  "type": "checkpoint"
+                },
+                {
+                  "id": "bo_challenge_2235",
+                  "at_s": 2235,
+                  "actor_id": "bo",
+                  "type": "comment",
+                  "isChained": true
+                }
+              ],
+              "minGapS": 20,
+              "warmupPeriodS": 15,
+              "maxCheckpoints": 1
+            },
+            "output": {
+              "isValid": true,
+              "collisions": [],
+              "warnings": [],
+              "suggestions": [],
+              "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+            },
+            "isValid": true,
+            "timestampMs": 1793364334439
+          },
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        },
+        {
+          "id": "EVT_1793364334439_dixot",
+          "eventType": "checkpoint_created",
+          "agentId": "colam",
+          "agentDisplayName": "Cô Lam (Director)",
+          "secondTarget": 2233,
+          "content": "Cô phê duyệt checkpoint dừng tại giây thứ 2233 (37:13). Bẫy ngộ nhận của Bo rất chân thực, Trí đã chỉ rõ căn cứ hình học và Linh Chi có mẹo ghi nhớ rất tuyệt vời. Các em hãy chú ý: không bao giờ cộng độ dài trực tiếp mà phải quy về một vectơ tổng trước!",
+          "timestamp": "2026-10-30T12:45:34.439Z"
+        }
+      ],
+      "crossCheckCorrectionOccurred": true
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "chk_1_282",
+      "second": 282,
+      "timeFormatted": "04:42",
+      "title": "Checkpoint 1: Phần 1: Khái niệm & Phương hướng Vectơ trong không gian",
+      "questionText": "Tại mốc 04:42, em hãy phân tích và chỉ ra lỗi sai trong phát biểu của Bo về mối quan hệ giữa hai đường thẳng chéo nhau và hai vectơ cùng phương:",
+      "blackboardFormula": "\\vec{a} \\parallel \\vec{b} \\iff \\text{Giá}(\\vec{a}) \\parallel \\text{Giá}(\\vec{b})",
+      "options": [
+        {
+          "id": "opt_A",
+          "label": "Giá của chúng không đồng phẳng nên không cùng phương",
+          "isCorrect": true,
+          "feedbackNote": "Chính xác! Định nghĩa SGK chỉ rõ giá phải song song hoặc trùng nhau mới cùng phương."
+        },
+        {
+          "id": "opt_B",
+          "label": "Vẫn xét cùng phương được nếu độ dài bằng nhau",
+          "isCorrect": false,
+          "misconceptionLinked": "MISC_VEC_001",
+          "feedbackNote": "Sai lầm! Cùng phương chỉ phụ thuộc vào phương của giá, không liên quan độ dài."
+        },
+        {
+          "id": "opt_C",
+          "label": "Hai đường thẳng chéo nhau luôn cùng hướng",
+          "isCorrect": false,
+          "feedbackNote": "Sai lầm! Không cùng phương thì không thể xét cùng hướng."
+        },
+        {
+          "id": "opt_D",
+          "label": "Hai vectơ đó có tích vô hướng bằng 0",
+          "isCorrect": false,
+          "feedbackNote": "Chưa chắc, chéo nhau không nhất thiết phải vuông góc."
+        }
+      ],
+      "boInitialChallenge": "Hai đường thẳng chéo nhau thì tớ thấy giá của chúng vẫn xét cùng phương được mà!",
+      "linhChiCheatSheetSnippet": {
+        "ruleTitle": "Điều kiện Vectơ cùng phương",
+        "rules": [
+          "Giá song song hoặc trùng nhau <=> Cùng phương.",
+          "Chéo nhau => Không đồng phẳng => KHÔNG cùng phương."
+        ],
+        "mnemonicTrap": "Chéo nhau thì không cùng phương, đừng đoán mò!"
+      }
+    },
+    {
+      "id": "chk_2_1813",
+      "second": 1813,
+      "timeFormatted": "30:13",
+      "title": "Checkpoint 2: Phần 2: Phép toán Vectơ & Quy tắc Hình hộp",
+      "questionText": "Cho hình hộp ABCD.A'B'C'D'. Hãy áp dụng quy tắc hình hộp để xác định vectơ tổng AB + AD + AA' và phân tích tại sao không thể bằng đường chéo đáy AC:",
+      "blackboardFormula": "\\vec{AB} + \\vec{AD} + \\vec{AA'} = \\vec{AC'}",
+      "options": [
+        {
+          "id": "opt_A",
+          "label": "AC'",
+          "isCorrect": true,
+          "feedbackNote": "Chính xác! Theo quy tắc hình hộp: AB + AD + AA' = AC' (đường chéo xuyên tâm không gian)."
+        },
+        {
+          "id": "opt_B",
+          "label": "AC",
+          "isCorrect": false,
+          "misconceptionLinked": "MISC_VEC_006",
+          "feedbackNote": "Sai lầm! AC chỉ là đường chéo đáy từ AB + AD, chưa cộng vectơ chiều cao AA'."
+        },
+        {
+          "id": "opt_C",
+          "label": "BD'",
+          "isCorrect": false,
+          "feedbackNote": "Chưa đúng đỉnh xuất phát. Quy tắc hình hộp xuất phát từ gốc A."
+        },
+        {
+          "id": "opt_D",
+          "label": "AA'",
+          "isCorrect": false,
+          "feedbackNote": "Chưa chính xác. Tổng 3 cạnh độc lập không thể bằng 1 cạnh."
+        }
+      ],
+      "boInitialChallenge": "Quy tắc hình hộp: Xuất phát từ gốc A thì AB + AD + AA' ra đường chéo đáy AC chứ nhỉ!",
+      "linhChiCheatSheetSnippet": {
+        "ruleTitle": "Quy tắc hình hộp 8 đỉnh",
+        "rules": [
+          "Bước 1: Nhận diện 3 vectơ xuất phát từ cùng một đỉnh: AB, AD, AA'.",
+          "Bước 2: AB + AD = AC (đường chéo mặt đáy).",
+          "Bước 3: AC + AA' = AC' (đường chéo không gian xuyên tâm)."
+        ],
+        "mnemonicTrap": "Đừng quên vectơ chiều cao! AB + AD + AA' ra đỉnh đối diện AC', không dừng lại ở AC!"
+      }
+    },
+    {
+      "id": "chk_3_2233",
+      "second": 2233,
+      "timeFormatted": "37:13",
+      "title": "Checkpoint 3: Phần 3: Bài tập Tính toán độ dài & Bẫy cộng độ dài (Trọng tâm)",
+      "questionText": "Cho hình lập phương ABCD.A'B'C'D' cạnh a. Hãy tính độ dài của vectơ tổng BC + DD' và phân tích sai lầm trong cách tính của bạn Bo. Phát biểu nào sau đây chính xác?",
+      "blackboardFormula": "|\\vec{BC} + \\vec{DD'}|",
+      "options": [
+        {
+          "id": "opt_A",
+          "label": "a√2",
+          "isCorrect": true,
+          "feedbackNote": "Chính xác! Vì DD' = CC' nên BC + DD' = BC', tam giác BCC' vuông tại C có đường chéo a√2."
+        },
+        {
+          "id": "opt_B",
+          "label": "2a",
+          "isCorrect": false,
+          "misconceptionLinked": "MISC_VEC_005",
+          "feedbackNote": "Sai lầm! Em đang cộng trực tiếp độ dài |BC| + |DD'| = 2a giống bạn Bo. Cần quy về vectơ tổng trước!"
+        },
+        {
+          "id": "opt_C",
+          "label": "a",
+          "isCorrect": false,
+          "feedbackNote": "Chưa chính xác. Độ dài tổng hai vectơ vuông góc không thể bằng độ dài một cạnh."
+        },
+        {
+          "id": "opt_D",
+          "label": "a√3",
+          "isCorrect": false,
+          "feedbackNote": "Sai lầm. a√3 là độ dài đường chéo không gian của hình lập phương (quy tắc hình hộp), không phải đường chéo mặt bên."
+        }
+      ],
+      "boInitialChallenge": "À tớ nhìn nhầm đỉnh! Nhưng về độ dài thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!",
+      "linhChiCheatSheetSnippet": {
+        "ruleTitle": "Quy tắc cộng & Tính độ dài Vectơ",
+        "rules": [
+          "Bước 1: Tìm vectơ thay thế bằng nhau để đưa về chung gốc hoặc nối đuôi.",
+          "Bước 2: Gom thành một vectơ tổng duy nhất.",
+          "Bước 3: Dùng hình học (Pytago/Tam giác) để tính độ dài vectơ kết quả."
+        ],
+        "mnemonicTrap": "TUYỆT ĐỐI không lấy độ dài cộng độ dài: |u + v| ≠ |u| + |v| khi hai vectơ không cùng hướng!"
+      }
+    }
+  ],
+  "timelineComments": [
+    {
+      "id": "cmt_1_colam_1793364334438",
+      "second": 282,
+      "author": "COLAM",
+      "role": "teacher",
+      "avatarId": "colam",
+      "text": "Cô phê duyệt checkpoint dừng tại giây thứ 282 (04:42). Nắm vững định nghĩa cùng phương là nền tảng để không bị nhầm lẫn trong hình học không gian.",
+      "isPinned": true
+    },
+    {
+      "id": "cmt_1_bo_1793364334438",
+      "second": 284,
+      "author": "BO",
+      "role": "classmate",
+      "avatarId": "bo",
+      "text": "Hai đường thẳng chéo nhau thì tớ thấy giá của chúng vẫn xét cùng phương được mà!",
+      "isPinned": false
+    },
+    {
+      "id": "cmt_1_tri_1793364334438",
+      "second": 286,
+      "author": "TRI",
+      "role": "classmate",
+      "avatarId": "tri",
+      "text": "Không được đâu Bo! SGK định nghĩa hai vectơ cùng phương khi và chỉ khi giá của chúng song song hoặc trùng nhau. Chéo nhau là hai đường thẳng không đồng phẳng, không thể cùng phương!",
+      "isPinned": false
+    },
+    {
+      "id": "cmt_1_linhchi_1793364334438",
+      "second": 286,
+      "author": "LINHCHI",
+      "role": "classmate",
+      "avatarId": "linhchi",
+      "text": "Linh Chi ghi nhớ: Hai vectơ cùng phương bắt buộc giá phải song song hoặc trùng nhau, đường thẳng chéo nhau không bao giờ cùng phương!",
+      "isPinned": false
+    },
+    {
+      "id": "cmt_1_minhkhang_1793364334438",
+      "second": 286,
+      "author": "MINHKHANG",
+      "role": "classmate",
+      "avatarId": "minhkhang",
+      "text": "Minh Khang hình dung: Giống như một cây cầu vượt và con đường bên dưới, xe chạy trên cầu và xe chạy dưới đường không bao giờ song song hay cắt nhau, nên hướng di chuyển của chúng hoàn toàn độc lập!",
+      "isPinned": false
+    },
+    {
+      "id": "cmt_2_colam_1793364334439",
+      "second": 1813,
+      "author": "COLAM",
+      "role": "teacher",
+      "avatarId": "colam",
+      "text": "Cô phê duyệt checkpoint dừng tại giây thứ 1813 (30:13). Phép cộng vectơ trong không gian mở rộng quy tắc hình bình hành thành quy tắc hình hộp rất đẹp mắt.",
+      "isPinned": true
+    },
+    {
+      "id": "cmt_2_bo_1793364334439",
+      "second": 1815,
+      "author": "BO",
+      "role": "classmate",
+      "avatarId": "bo",
+      "text": "Quy tắc hình hộp: Xuất phát từ gốc A thì AB + AD + AA' ra đường chéo đáy AC chứ nhỉ!",
+      "isPinned": false
+    },
+    {
+      "id": "cmt_2_tri_1793364334439",
+      "second": 1817,
+      "author": "TRI",
+      "role": "classmate",
+      "avatarId": "tri",
+      "text": "Bo quên mất vectơ chiều cao AA' rồi! AB + AD mới ra AC ở đáy. Thêm AA' phải vươn lên đỉnh đối diện tạo thành đường chéo không gian AC' với độ dài a√3!",
+      "isPinned": false
+    },
+    {
+      "id": "cmt_2_linhchi_1793364334439",
+      "second": 1817,
+      "author": "LINHCHI",
+      "role": "classmate",
+      "avatarId": "linhchi",
+      "text": "Linh Chi ghi nhớ: Đưa về chung gốc xuất phát từ một đỉnh, AB + AD + AA' = AC' (đường chéo đối diện xuyên tâm)!",
+      "isPinned": false
+    },
+    {
+      "id": "cmt_2_minhkhang_1793364334439",
+      "second": 1817,
+      "author": "MINHKHANG",
+      "role": "classmate",
+      "avatarId": "minhkhang",
+      "text": "Minh Khang hình dung: Giống như một cái thùng carton lớn, bạn nối một sợi dây từ góc sàn dưới phòng lên thẳng góc trần đối diện, đó chính là đường chéo không gian dài nhất!",
+      "isPinned": false
+    },
+    {
+      "id": "cmt_3_colam_1793364334439",
+      "second": 2233,
+      "author": "COLAM",
+      "role": "teacher",
+      "avatarId": "colam",
+      "text": "Cô phê duyệt checkpoint dừng tại giây thứ 2233 (37:13). Bẫy ngộ nhận của Bo rất chân thực, Trí đã chỉ rõ căn cứ hình học và Linh Chi có mẹo ghi nhớ rất tuyệt vời. Các em hãy chú ý: không bao giờ cộng độ dài trực tiếp mà phải quy về một vectơ tổng trước!",
+      "isPinned": true
+    },
+    {
+      "id": "cmt_3_bo_1793364334439",
+      "second": 2235,
+      "author": "BO",
+      "role": "classmate",
+      "avatarId": "bo",
+      "text": "À tớ nhìn nhầm đỉnh! Nhưng về độ dài thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!",
+      "isPinned": false
+    },
+    {
+      "id": "cmt_3_tri_1793364334439",
+      "second": 2237,
+      "author": "TRI",
+      "role": "classmate",
+      "avatarId": "tri",
+      "text": "Bẫy này rất tự nhiên! Học sinh thường lấy ngay |BC| + |DD'| = a + a = 2a do thói quen đại số, quên mất bất đẳng thức tam giác và định lý Pytago đường chéo BC' = a√2. Tớ đồng ý chọn bẫy này!",
+      "isPinned": false
+    },
+    {
+      "id": "cmt_3_linhchi_1793364334439",
+      "second": 2237,
+      "author": "LINHCHI",
+      "role": "classmate",
+      "avatarId": "linhchi",
+      "text": "Linh Chi note vào sổ tay nè: Muốn tính độ dài vectơ tổng, bước 1 là tìm vectơ thay thế để gom về một vectơ duy nhất (DD' = CC' => BC + CC' = BC'), sau đó mới tính Pytago đường chéo ra a√2!",
+      "isPinned": false
+    },
+    {
+      "id": "cmt_3_minhkhang_1793364334439",
+      "second": 2237,
+      "author": "MINHKHANG",
+      "role": "classmate",
+      "avatarId": "minhkhang",
+      "text": "Minh Khang ví von đời sống nè: Giống như bạn đi bộ từ nhà ra đầu ngõ a mét rồi rẽ vuông góc đi tiếp a mét. Khoảng cách đường chim bay từ nhà đến điểm cuối là cạnh huyền a√2, làm sao mà lấy a + a = 2a được!",
+      "isPinned": false
+    }
+  ],
+  "crossCheckLogs": [
+    {
+      "partNumber": 3,
+      "checkpointSecond": 2233,
+      "description": "Trí kích hoạt tool kiểm chứng bác bỏ bẫy sai phi thực tế của Bo, yêu cầu Bo sửa bẫy thành ngộ nhận tự nhiên."
+    }
+  ],
+  "allReasoningEvents": [
+    {
+      "id": "EVT_1793364334438_3ury9",
+      "eventType": "thought",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 282,
+      "content": "Cô Lam đang phân tích phân đoạn \"Phần 1: Khái niệm & Phương hướng Vectơ trong không gian\". Kiểm tra điều kiện sư phạm: Mốc thời gian 04:42 (282s) cách điểm bắt đầu 282s (>= 15s), an toàn không rơi vào warmup. Mức độ rủi ro ngộ nhận: medium. Bắt đầu phiên họp Roundtable biên kịch.",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_0uqd1",
+      "eventType": "debate_turn",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 282,
+      "content": "Chào cả lớp! Tại mốc 04:42, thầy Tiến đang giảng về Hai vectơ được gọi là cùng phương nếu giá của chúng song song hoặc trùng nhau. C. Bo ơi, cậu tra cứu kho tri thức ngộ nhận xem đoạn này học sinh hay vướng bẫy gì nhất?",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_lussl",
+      "eventType": "thought",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 282,
+      "content": "Bo đang tra cứu tri thức ngộ nhận từ Knowledge Base để chọn bẫy thách đố.",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_29ovx",
+      "eventType": "tool_call",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 282,
+      "content": "Bo tra cứu tri thức ngộ nhận từ KB: tool_query_misconception_kb",
+      "toolCall": {
+        "toolName": "tool_query_misconception_kb",
+        "input": {
+          "misconceptionId": "MISC_VEC_001"
+        },
+        "output": {
+          "isValid": true,
+          "output": [
+            {
+              "id": "MISC_VEC_001",
+              "topic": "vector_equality",
+              "grade": 12,
+              "standardFormula": "\\|\\overrightarrow{AB}\\|=AB",
+              "theoremSummary": "Vectơ biểu diễn đoạn thẳng có hướng; độ dài là khoảng cách hai đầu. Với vectơ khác không, giá là đường thẳng đi qua hai đầu.",
+              "misconceptionId": "MISC_VEC_001",
+              "misconceptionName": "Hai vectơ dài bằng nhau thì bằng nhau.",
+              "misconceptionFrequency": 0.85,
+              "boTrapPattern": "Hai vectơ dài bằng nhau thì bằng nhau.",
+              "rebuttalAnchor": "Cần cùng hướng và cùng độ dài.",
+              "scaffoldingNudges": [
+                "Em đang so sánh độ dài hay vectơ?",
+                "Hai mũi tên có cùng hướng không?",
+                "Nêu đủ hai điều kiện để bằng nhau."
+              ]
+            }
+          ],
+          "count": 1,
+          "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
+        },
+        "isValid": true,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_dbnho",
+      "eventType": "tool_result",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 282,
+      "content": "Kết quả tra cứu KB: Tìm thấy tri thức chuẩn Ngộ nhận vectơ",
+      "toolCall": {
+        "toolName": "tool_query_misconception_kb",
+        "input": {
+          "misconceptionId": "MISC_VEC_001"
+        },
+        "output": {
+          "isValid": true,
+          "output": [
+            {
+              "id": "MISC_VEC_001",
+              "topic": "vector_equality",
+              "grade": 12,
+              "standardFormula": "\\|\\overrightarrow{AB}\\|=AB",
+              "theoremSummary": "Vectơ biểu diễn đoạn thẳng có hướng; độ dài là khoảng cách hai đầu. Với vectơ khác không, giá là đường thẳng đi qua hai đầu.",
+              "misconceptionId": "MISC_VEC_001",
+              "misconceptionName": "Hai vectơ dài bằng nhau thì bằng nhau.",
+              "misconceptionFrequency": 0.85,
+              "boTrapPattern": "Hai vectơ dài bằng nhau thì bằng nhau.",
+              "rebuttalAnchor": "Cần cùng hướng và cùng độ dài.",
+              "scaffoldingNudges": [
+                "Em đang so sánh độ dài hay vectơ?",
+                "Hai mũi tên có cùng hướng không?",
+                "Nêu đủ hai điều kiện để bằng nhau."
+              ]
+            }
+          ],
+          "count": 1,
+          "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
+        },
+        "isValid": true,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_1gcud",
+      "eventType": "thought",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 282,
+      "content": "Bo đưa ra trực giác nhầm lẫn giữa đường thẳng chéo nhau và cùng phương.",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_zs1sp",
+      "eventType": "debate_turn",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 282,
+      "content": "Hai đường thẳng chéo nhau thì tớ thấy giá của chúng vẫn xét cùng phương được mà!",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_t8ggu",
+      "eventType": "tool_call",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 282,
+      "content": "Truy xuất SGK qua tool_query_misconception_kb",
+      "toolCall": {
+        "toolName": "tool_query_misconception_kb",
+        "input": {
+          "misconceptionId": "MISC_VEC_001"
+        },
+        "output": {
+          "isValid": true,
+          "output": [
+            {
+              "id": "MISC_VEC_001",
+              "topic": "vector_equality",
+              "grade": 12,
+              "standardFormula": "\\|\\overrightarrow{AB}\\|=AB",
+              "theoremSummary": "Vectơ biểu diễn đoạn thẳng có hướng; độ dài là khoảng cách hai đầu. Với vectơ khác không, giá là đường thẳng đi qua hai đầu.",
+              "misconceptionId": "MISC_VEC_001",
+              "misconceptionName": "Hai vectơ dài bằng nhau thì bằng nhau.",
+              "misconceptionFrequency": 0.85,
+              "boTrapPattern": "Hai vectơ dài bằng nhau thì bằng nhau.",
+              "rebuttalAnchor": "Cần cùng hướng và cùng độ dài.",
+              "scaffoldingNudges": [
+                "Em đang so sánh độ dài hay vectơ?",
+                "Hai mũi tên có cùng hướng không?",
+                "Nêu đủ hai điều kiện để bằng nhau."
+              ]
+            }
+          ],
+          "count": 1,
+          "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
+        },
+        "isValid": true,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_ngw7x",
+      "eventType": "tool_result",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 282,
+      "content": "Tìm thấy định nghĩa chuẩn",
+      "toolCall": {
+        "toolName": "tool_query_misconception_kb",
+        "input": {
+          "misconceptionId": "MISC_VEC_001"
+        },
+        "output": {
+          "isValid": true,
+          "output": [
+            {
+              "id": "MISC_VEC_001",
+              "topic": "vector_equality",
+              "grade": 12,
+              "standardFormula": "\\|\\overrightarrow{AB}\\|=AB",
+              "theoremSummary": "Vectơ biểu diễn đoạn thẳng có hướng; độ dài là khoảng cách hai đầu. Với vectơ khác không, giá là đường thẳng đi qua hai đầu.",
+              "misconceptionId": "MISC_VEC_001",
+              "misconceptionName": "Hai vectơ dài bằng nhau thì bằng nhau.",
+              "misconceptionFrequency": 0.85,
+              "boTrapPattern": "Hai vectơ dài bằng nhau thì bằng nhau.",
+              "rebuttalAnchor": "Cần cùng hướng và cùng độ dài.",
+              "scaffoldingNudges": [
+                "Em đang so sánh độ dài hay vectơ?",
+                "Hai mũi tên có cùng hướng không?",
+                "Nêu đủ hai điều kiện để bằng nhau."
+              ]
+            }
+          ],
+          "count": 1,
+          "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
+        },
+        "isValid": true,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_4u2lw",
+      "eventType": "cross_check_verdict",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 282,
+      "content": "Không được đâu Bo! SGK định nghĩa hai vectơ cùng phương khi và chỉ khi giá của chúng song song hoặc trùng nhau. Chéo nhau là hai đường thẳng không đồng phẳng, không thể cùng phương!",
+      "toolCall": {
+        "toolName": "tool_query_misconception_kb",
+        "input": {
+          "misconceptionId": "MISC_VEC_001"
+        },
+        "output": {
+          "isValid": true,
+          "output": [
+            {
+              "id": "MISC_VEC_001",
+              "topic": "vector_equality",
+              "grade": 12,
+              "standardFormula": "\\|\\overrightarrow{AB}\\|=AB",
+              "theoremSummary": "Vectơ biểu diễn đoạn thẳng có hướng; độ dài là khoảng cách hai đầu. Với vectơ khác không, giá là đường thẳng đi qua hai đầu.",
+              "misconceptionId": "MISC_VEC_001",
+              "misconceptionName": "Hai vectơ dài bằng nhau thì bằng nhau.",
+              "misconceptionFrequency": 0.85,
+              "boTrapPattern": "Hai vectơ dài bằng nhau thì bằng nhau.",
+              "rebuttalAnchor": "Cần cùng hướng và cùng độ dài.",
+              "scaffoldingNudges": [
+                "Em đang so sánh độ dài hay vectơ?",
+                "Hai mũi tên có cùng hướng không?",
+                "Nêu đủ hai điều kiện để bằng nhau."
+              ]
+            }
+          ],
+          "count": 1,
+          "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_001"
+        },
+        "isValid": true,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_dmsm6",
+      "eventType": "thought",
+      "agentId": "linhchi",
+      "agentDisplayName": "Linh Chi (Note Taker)",
+      "secondTarget": 282,
+      "content": "Linh Chi trích xuất quy tắc sư phạm và lập bảng ghi chú bỏ túi cho học sinh.",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_cat4v",
+      "eventType": "debate_turn",
+      "agentId": "linhchi",
+      "agentDisplayName": "Linh Chi (Note Taker)",
+      "secondTarget": 282,
+      "content": "Linh Chi ghi nhớ: Hai vectơ cùng phương bắt buộc giá phải song song hoặc trùng nhau, đường thẳng chéo nhau không bao giờ cùng phương!",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_ngxpz",
+      "eventType": "thought",
+      "agentId": "minhkhang",
+      "agentDisplayName": "Minh Khang (Trực quan)",
+      "secondTarget": 282,
+      "content": "Minh Khang liên hệ bài toán với hiện tượng đời sống hàng ngày để học sinh dễ nhớ.",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_agjud",
+      "eventType": "debate_turn",
+      "agentId": "minhkhang",
+      "agentDisplayName": "Minh Khang (Trực quan)",
+      "secondTarget": 282,
+      "content": "Minh Khang hình dung: Giống như một cây cầu vượt và con đường bên dưới, xe chạy trên cầu và xe chạy dưới đường không bao giờ song song hay cắt nhau, nên hướng di chuyển của chúng hoàn toàn độc lập!",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_tfgja",
+      "eventType": "tool_call",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 282,
+      "content": "Thẩm định bậc Bloom cho câu hỏi checkpoint: tool_evaluate_bloom_level",
+      "toolCall": {
+        "toolName": "tool_evaluate_bloom_level",
+        "input": {
+          "question": "Tại mốc 04:42, em hãy phân tích và chỉ ra lỗi sai trong phát biểu của Bo về mối quan hệ giữa hai đường thẳng chéo nhau và hai vectơ cùng phương:",
+          "expected_points": [
+            "Phân tích bẫy ngộ nhận",
+            "Hai đường thẳng chéo nhau không đồng phẳng nên giá không song song/trùng nhau"
+          ]
+        },
+        "output": {
+          "isValid": true,
+          "level": "Analyze",
+          "score": 4,
+          "indicatorsFound": [
+            "Remember: [phát biểu]",
+            "Analyze: [phân tích, chỉ ra lỗi, bẫy, ngộ nhận]"
+          ],
+          "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+          "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+        },
+        "isValid": true,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_wkjgm",
+      "eventType": "tool_result",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 282,
+      "content": "Mức Bloom thẩm định: Analyze (Điểm: 4/6)",
+      "toolCall": {
+        "toolName": "tool_evaluate_bloom_level",
+        "input": {
+          "question": "Tại mốc 04:42, em hãy phân tích và chỉ ra lỗi sai trong phát biểu của Bo về mối quan hệ giữa hai đường thẳng chéo nhau và hai vectơ cùng phương:",
+          "expected_points": [
+            "Phân tích bẫy ngộ nhận",
+            "Hai đường thẳng chéo nhau không đồng phẳng nên giá không song song/trùng nhau"
+          ]
+        },
+        "output": {
+          "isValid": true,
+          "level": "Analyze",
+          "score": 4,
+          "indicatorsFound": [
+            "Remember: [phát biểu]",
+            "Analyze: [phân tích, chỉ ra lỗi, bẫy, ngộ nhận]"
+          ],
+          "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+          "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+        },
+        "isValid": true,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_n0fvo",
+      "eventType": "tool_call",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 282,
+      "content": "Kiểm tra nhịp thời gian bài giảng và chống va chạm (Pacing Checker)",
+      "toolCall": {
+        "toolName": "tool_timeline_collision_checker",
+        "input": {
+          "events": [
+            {
+              "id": "stop_282",
+              "at_s": 282,
+              "actor_id": "colam",
+              "type": "checkpoint"
+            },
+            {
+              "id": "bo_challenge_284",
+              "at_s": 284,
+              "actor_id": "bo",
+              "type": "comment",
+              "isChained": true
+            }
+          ],
+          "minGapS": 20,
+          "warmupPeriodS": 15,
+          "maxCheckpoints": 1
+        },
+        "output": {
+          "isValid": true,
+          "collisions": [],
+          "warnings": [],
+          "suggestions": [],
+          "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+        },
+        "isValid": true,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_h8tip",
+      "eventType": "tool_result",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 282,
+      "content": "Kết quả Pacing: Hợp lệ (Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt.)",
+      "toolCall": {
+        "toolName": "tool_timeline_collision_checker",
+        "input": {
+          "events": [
+            {
+              "id": "stop_282",
+              "at_s": 282,
+              "actor_id": "colam",
+              "type": "checkpoint"
+            },
+            {
+              "id": "bo_challenge_284",
+              "at_s": 284,
+              "actor_id": "bo",
+              "type": "comment",
+              "isChained": true
+            }
+          ],
+          "minGapS": 20,
+          "warmupPeriodS": 15,
+          "maxCheckpoints": 1
+        },
+        "output": {
+          "isValid": true,
+          "collisions": [],
+          "warnings": [],
+          "suggestions": [],
+          "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+        },
+        "isValid": true,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_y6jcc",
+      "eventType": "checkpoint_created",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 282,
+      "content": "Cô phê duyệt checkpoint dừng tại giây thứ 282 (04:42). Nắm vững định nghĩa cùng phương là nền tảng để không bị nhầm lẫn trong hình học không gian.",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_bzmqp",
+      "eventType": "thought",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 1813,
+      "content": "Cô Lam đang phân tích phân đoạn \"Phần 2: Phép toán Vectơ & Quy tắc Hình hộp\". Kiểm tra điều kiện sư phạm: Mốc thời gian 30:13 (1813s) cách điểm bắt đầu 913s (>= 15s), an toàn không rơi vào warmup. Mức độ rủi ro ngộ nhận: medium. Bắt đầu phiên họp Roundtable biên kịch.",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_rw254",
+      "eventType": "debate_turn",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 1813,
+      "content": "Chào cả lớp! Tại mốc 30:13, thầy Tiến đang giảng về Quy tắc hình hộp: Xuất phát từ gốc A, tổng 3 cạnh AB cộng AD cộng AA' bằng đường. Bo ơi, cậu tra cứu kho tri thức ngộ nhận xem đoạn này học sinh hay vướng bẫy gì nhất?",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_vcjgo",
+      "eventType": "thought",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 1813,
+      "content": "Bo đang tra cứu tri thức ngộ nhận từ Knowledge Base để chọn bẫy thách đố.",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_nskpt",
+      "eventType": "tool_call",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 1813,
+      "content": "Bo tra cứu tri thức ngộ nhận từ KB: tool_query_misconception_kb",
+      "toolCall": {
+        "toolName": "tool_query_misconception_kb",
+        "input": {
+          "misconceptionId": "MISC_VEC_006"
+        },
+        "output": {
+          "isValid": true,
+          "output": [
+            {
+              "id": "MISC_VEC_006",
+              "topic": "box_rule",
+              "grade": 12,
+              "standardFormula": "\\overrightarrow{AB}+\\overrightarrow{AD}+\\overrightarrow{AA\\prime}=\\overrightarrow{AC\\prime}",
+              "theoremSummary": "Tổng ba vectơ cạnh xuất phát từ một đỉnh của hình hộp bằng vectơ đường chéo không gian xuất phát từ đỉnh đó.",
+              "misconceptionId": "MISC_VEC_006",
+              "misconceptionName": "AB+AD+AA′ cho đường chéo không gian của mọi cấu hình tám điểm.",
+              "misconceptionFrequency": 0.85,
+              "boTrapPattern": "AB+AD+AA′ cho đường chéo không gian của mọi cấu hình tám điểm.",
+              "rebuttalAnchor": "Quy tắc cần hình hộp với đỉnh tương ứng; tại gốc A dùng AB, AD, AA′.",
+              "scaffoldingNudges": [
+                "Hình đang có giả thiết hình hộp chưa?",
+                "Ba cạnh đi ra từ đỉnh nào?",
+                "Đỉnh đối diện tương ứng là đỉnh nào?"
+              ]
+            }
+          ],
+          "count": 1,
+          "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_006"
+        },
+        "isValid": true,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_mpndc",
+      "eventType": "tool_result",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 1813,
+      "content": "Kết quả tra cứu KB: Tìm thấy tri thức chuẩn Ngộ nhận vectơ",
+      "toolCall": {
+        "toolName": "tool_query_misconception_kb",
+        "input": {
+          "misconceptionId": "MISC_VEC_006"
+        },
+        "output": {
+          "isValid": true,
+          "output": [
+            {
+              "id": "MISC_VEC_006",
+              "topic": "box_rule",
+              "grade": 12,
+              "standardFormula": "\\overrightarrow{AB}+\\overrightarrow{AD}+\\overrightarrow{AA\\prime}=\\overrightarrow{AC\\prime}",
+              "theoremSummary": "Tổng ba vectơ cạnh xuất phát từ một đỉnh của hình hộp bằng vectơ đường chéo không gian xuất phát từ đỉnh đó.",
+              "misconceptionId": "MISC_VEC_006",
+              "misconceptionName": "AB+AD+AA′ cho đường chéo không gian của mọi cấu hình tám điểm.",
+              "misconceptionFrequency": 0.85,
+              "boTrapPattern": "AB+AD+AA′ cho đường chéo không gian của mọi cấu hình tám điểm.",
+              "rebuttalAnchor": "Quy tắc cần hình hộp với đỉnh tương ứng; tại gốc A dùng AB, AD, AA′.",
+              "scaffoldingNudges": [
+                "Hình đang có giả thiết hình hộp chưa?",
+                "Ba cạnh đi ra từ đỉnh nào?",
+                "Đỉnh đối diện tương ứng là đỉnh nào?"
+              ]
+            }
+          ],
+          "count": 1,
+          "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_006"
+        },
+        "isValid": true,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_1fe4x",
+      "eventType": "thought",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 1813,
+      "content": "Bo muốn gài bẫy nhầm lẫn giữa quy tắc hình bình hành (ở đáy) và quy tắc hình hộp không gian.",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_0ryol",
+      "eventType": "debate_turn",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 1813,
+      "content": "Quy tắc hình hộp: Xuất phát từ gốc A thì AB + AD + AA' ra đường chéo đáy AC chứ nhỉ!",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_d2vgy",
+      "eventType": "thought",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 1813,
+      "content": "Trí kích hoạt tool_verify_vector_algebra để kiểm tra quy tắc hình hộp 8 đỉnh.",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_hb3bf",
+      "eventType": "tool_call",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 1813,
+      "content": "Kiểm chứng quy tắc hình hộp qua tool_verify_vector_algebra",
+      "toolCall": {
+        "toolName": "tool_verify_vector_algebra",
+        "input": {
+          "shape": "cube",
+          "side": "a",
+          "expr": "|AB + AD + AA'|",
+          "claim": "AC"
+        },
+        "output": {
+          "isValid": false,
+          "correct": "a\\sqrt{3}",
+          "calculatedValue": 1.732,
+          "claimValue": null,
+          "reason": "Vectơ AC có tọa độ [1, 1, 0] (độ dài 1.41), không khớp với vectơ tổng của |AB + AD + AA'| (độ dài a\\sqrt{3}).",
+          "steps": [
+            "Tính toán tọa độ biểu thức: [1, 1, 1].",
+            "Tọa độ vectơ được nêu: [1, 1, 0]."
+          ]
+        },
+        "isValid": false,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_q1qmn",
+      "eventType": "tool_result",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 1813,
+      "content": "Kết quả kiểm chứng: Vectơ AC có tọa độ [1, 1, 0] (độ dài 1.41), không khớp với vectơ tổng của |AB + AD + AA'| (độ dài a\\sqrt{3}).",
+      "toolCall": {
+        "toolName": "tool_verify_vector_algebra",
+        "input": {
+          "shape": "cube",
+          "side": "a",
+          "expr": "|AB + AD + AA'|",
+          "claim": "AC"
+        },
+        "output": {
+          "isValid": false,
+          "correct": "a\\sqrt{3}",
+          "calculatedValue": 1.732,
+          "claimValue": null,
+          "reason": "Vectơ AC có tọa độ [1, 1, 0] (độ dài 1.41), không khớp với vectơ tổng của |AB + AD + AA'| (độ dài a\\sqrt{3}).",
+          "steps": [
+            "Tính toán tọa độ biểu thức: [1, 1, 1].",
+            "Tọa độ vectơ được nêu: [1, 1, 0]."
+          ]
+        },
+        "isValid": false,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_z35s6",
+      "eventType": "cross_check_verdict",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 1813,
+      "content": "Bo quên mất vectơ chiều cao AA' rồi! AB + AD mới ra AC ở đáy. Thêm AA' phải vươn lên đỉnh đối diện tạo thành đường chéo không gian AC' với độ dài a√3!",
+      "toolCall": {
+        "toolName": "tool_verify_vector_algebra",
+        "input": {
+          "shape": "cube",
+          "side": "a",
+          "expr": "|AB + AD + AA'|",
+          "claim": "AC"
+        },
+        "output": {
+          "isValid": false,
+          "correct": "a\\sqrt{3}",
+          "calculatedValue": 1.732,
+          "claimValue": null,
+          "reason": "Vectơ AC có tọa độ [1, 1, 0] (độ dài 1.41), không khớp với vectơ tổng của |AB + AD + AA'| (độ dài a\\sqrt{3}).",
+          "steps": [
+            "Tính toán tọa độ biểu thức: [1, 1, 1].",
+            "Tọa độ vectơ được nêu: [1, 1, 0]."
+          ]
+        },
+        "isValid": false,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_e5wfm",
+      "eventType": "thought",
+      "agentId": "linhchi",
+      "agentDisplayName": "Linh Chi (Note Taker)",
+      "secondTarget": 1813,
+      "content": "Linh Chi trích xuất quy tắc sư phạm và lập bảng ghi chú bỏ túi cho học sinh.",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_gznpn",
+      "eventType": "debate_turn",
+      "agentId": "linhchi",
+      "agentDisplayName": "Linh Chi (Note Taker)",
+      "secondTarget": 1813,
+      "content": "Linh Chi ghi nhớ: Đưa về chung gốc xuất phát từ một đỉnh, AB + AD + AA' = AC' (đường chéo đối diện xuyên tâm)!",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_z2e29",
+      "eventType": "thought",
+      "agentId": "minhkhang",
+      "agentDisplayName": "Minh Khang (Trực quan)",
+      "secondTarget": 1813,
+      "content": "Minh Khang liên hệ bài toán với hiện tượng đời sống hàng ngày để học sinh dễ nhớ.",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_nejcl",
+      "eventType": "debate_turn",
+      "agentId": "minhkhang",
+      "agentDisplayName": "Minh Khang (Trực quan)",
+      "secondTarget": 1813,
+      "content": "Minh Khang hình dung: Giống như một cái thùng carton lớn, bạn nối một sợi dây từ góc sàn dưới phòng lên thẳng góc trần đối diện, đó chính là đường chéo không gian dài nhất!",
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_chqte",
+      "eventType": "tool_call",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 1813,
+      "content": "Thẩm định bậc Bloom cho câu hỏi checkpoint: tool_evaluate_bloom_level",
+      "toolCall": {
+        "toolName": "tool_evaluate_bloom_level",
+        "input": {
+          "question": "Cho hình hộp ABCD.A'B'C'D'. Hãy áp dụng quy tắc hình hộp để xác định vectơ tổng AB + AD + AA' và phân tích tại sao không thể bằng đường chéo đáy AC:",
+          "expected_points": [
+            "Áp dụng quy tắc hình hộp",
+            "Xác định vectơ đường chéo xuyên tâm AC'",
+            "Phân tích bẫy nhầm với đường chéo đáy AC"
+          ]
+        },
+        "output": {
+          "isValid": true,
+          "level": "Analyze",
+          "score": 4,
+          "indicatorsFound": [
+            "Understand: [tại sao]",
+            "Apply: [áp dụng, xác định vectơ]",
+            "Analyze: [phân tích, bẫy]"
+          ],
+          "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+          "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+        },
+        "isValid": true,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_re59b",
+      "eventType": "tool_result",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 1813,
+      "content": "Mức Bloom thẩm định: Analyze (Điểm: 4/6)",
+      "toolCall": {
+        "toolName": "tool_evaluate_bloom_level",
+        "input": {
+          "question": "Cho hình hộp ABCD.A'B'C'D'. Hãy áp dụng quy tắc hình hộp để xác định vectơ tổng AB + AD + AA' và phân tích tại sao không thể bằng đường chéo đáy AC:",
+          "expected_points": [
+            "Áp dụng quy tắc hình hộp",
+            "Xác định vectơ đường chéo xuyên tâm AC'",
+            "Phân tích bẫy nhầm với đường chéo đáy AC"
+          ]
+        },
+        "output": {
+          "isValid": true,
+          "level": "Analyze",
+          "score": 4,
+          "indicatorsFound": [
+            "Understand: [tại sao]",
+            "Apply: [áp dụng, xác định vectơ]",
+            "Analyze: [phân tích, bẫy]"
+          ],
+          "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+          "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+        },
+        "isValid": true,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.438Z"
+    },
+    {
+      "id": "EVT_1793364334438_u1tyl",
+      "eventType": "tool_call",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 1813,
+      "content": "Kiểm tra nhịp thời gian bài giảng và chống va chạm (Pacing Checker)",
+      "toolCall": {
+        "toolName": "tool_timeline_collision_checker",
+        "input": {
+          "events": [
+            {
+              "id": "stop_1813",
+              "at_s": 1813,
+              "actor_id": "colam",
+              "type": "checkpoint"
+            },
+            {
+              "id": "bo_challenge_1815",
+              "at_s": 1815,
+              "actor_id": "bo",
+              "type": "comment",
+              "isChained": true
+            }
+          ],
+          "minGapS": 20,
+          "warmupPeriodS": 15,
+          "maxCheckpoints": 1
+        },
+        "output": {
+          "isValid": true,
+          "collisions": [],
+          "warnings": [],
+          "suggestions": [],
+          "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+        },
+        "isValid": true,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_slyba",
+      "eventType": "tool_result",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 1813,
+      "content": "Kết quả Pacing: Hợp lệ (Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt.)",
+      "toolCall": {
+        "toolName": "tool_timeline_collision_checker",
+        "input": {
+          "events": [
+            {
+              "id": "stop_1813",
+              "at_s": 1813,
+              "actor_id": "colam",
+              "type": "checkpoint"
+            },
+            {
+              "id": "bo_challenge_1815",
+              "at_s": 1815,
+              "actor_id": "bo",
+              "type": "comment",
+              "isChained": true
+            }
+          ],
+          "minGapS": 20,
+          "warmupPeriodS": 15,
+          "maxCheckpoints": 1
+        },
+        "output": {
+          "isValid": true,
+          "collisions": [],
+          "warnings": [],
+          "suggestions": [],
+          "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+        },
+        "isValid": true,
+        "timestampMs": 1793364334438
+      },
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_8bt0v",
+      "eventType": "checkpoint_created",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 1813,
+      "content": "Cô phê duyệt checkpoint dừng tại giây thứ 1813 (30:13). Phép cộng vectơ trong không gian mở rộng quy tắc hình bình hành thành quy tắc hình hộp rất đẹp mắt.",
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_b0kgf",
+      "eventType": "thought",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 2233,
+      "content": "Cô Lam đang phân tích phân đoạn \"Phần 3: Bài tập Tính toán độ dài & Bẫy cộng độ dài (Trọng tâm)\". Kiểm tra điều kiện sư phạm: Mốc thời gian 37:13 (2233s) cách điểm bắt đầu 233s (>= 15s), an toàn không rơi vào warmup. Mức độ rủi ro ngộ nhận: high. Bắt đầu phiên họp Roundtable biên kịch.",
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_dcccy",
+      "eventType": "debate_turn",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 2233,
+      "content": "Chào cả lớp! Tại mốc 37:13, thầy Tiến đang giảng về Ví dụ 3: Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính độ dài tổng vectơ B. Bo ơi, cậu tra cứu kho tri thức ngộ nhận xem đoạn này học sinh hay vướng bẫy gì nhất?",
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_ii78i",
+      "eventType": "thought",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 2233,
+      "content": "Bo đang tra cứu tri thức ngộ nhận từ Knowledge Base để chọn bẫy thách đố.",
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_fsfnf",
+      "eventType": "tool_call",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 2233,
+      "content": "Bo tra cứu tri thức ngộ nhận từ KB: tool_query_misconception_kb",
+      "toolCall": {
+        "toolName": "tool_query_misconception_kb",
+        "input": {
+          "misconceptionId": "MISC_VEC_005"
+        },
+        "output": {
+          "isValid": true,
+          "output": [
+            {
+              "id": "MISC_VEC_005",
+              "topic": "norm_sum",
+              "grade": 12,
+              "standardFormula": "\\overrightarrow{AB}+\\overrightarrow{BC}=\\overrightarrow{AC}",
+              "theoremSummary": "Dựng hai vectơ nối đuôi; vectơ từ đầu thứ nhất tới cuối thứ hai là tổng.",
+              "misconceptionId": "MISC_VEC_005",
+              "misconceptionName": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+              "misconceptionFrequency": 0.85,
+              "boTrapPattern": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+              "rebuttalAnchor": "Phải dựng vectơ tổng rồi tính độ dài; bằng tổng độ dài chỉ khi hai vectơ khác không cùng hướng, hoặc có vectơ không.",
+              "scaffoldingNudges": [
+                "Em đang cộng vectơ hay cộng độ dài?",
+                "Dời hai vectơ để dựng đường chéo được không?",
+                "Dùng định lý nào cho đường chéo hình vuông?"
+              ]
+            }
+          ],
+          "count": 1,
+          "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_005"
+        },
+        "isValid": true,
+        "timestampMs": 1793364334439
+      },
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_l258a",
+      "eventType": "tool_result",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 2233,
+      "content": "Kết quả tra cứu KB: Tìm thấy tri thức chuẩn Ngộ nhận vectơ",
+      "toolCall": {
+        "toolName": "tool_query_misconception_kb",
+        "input": {
+          "misconceptionId": "MISC_VEC_005"
+        },
+        "output": {
+          "isValid": true,
+          "output": [
+            {
+              "id": "MISC_VEC_005",
+              "topic": "norm_sum",
+              "grade": 12,
+              "standardFormula": "\\overrightarrow{AB}+\\overrightarrow{BC}=\\overrightarrow{AC}",
+              "theoremSummary": "Dựng hai vectơ nối đuôi; vectơ từ đầu thứ nhất tới cuối thứ hai là tổng.",
+              "misconceptionId": "MISC_VEC_005",
+              "misconceptionName": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+              "misconceptionFrequency": 0.85,
+              "boTrapPattern": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+              "rebuttalAnchor": "Phải dựng vectơ tổng rồi tính độ dài; bằng tổng độ dài chỉ khi hai vectơ khác không cùng hướng, hoặc có vectơ không.",
+              "scaffoldingNudges": [
+                "Em đang cộng vectơ hay cộng độ dài?",
+                "Dời hai vectơ để dựng đường chéo được không?",
+                "Dùng định lý nào cho đường chéo hình vuông?"
+              ]
+            }
+          ],
+          "count": 1,
+          "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_005"
+        },
+        "isValid": true,
+        "timestampMs": 1793364334439
+      },
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_dh38m",
+      "eventType": "thought",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 2233,
+      "content": "Bo muốn đề xuất bẫy shortcut tính nhanh và đoán mò vectơ tổng là AB.",
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_e8xha",
+      "eventType": "debate_turn",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 2233,
+      "content": "Cộng độ dài cho lẹ: |BC + DD'| = 1 + 1 = 2! Với lại vectơ BC cộng DD' chắc chắn ra luôn vectơ AB rồi!",
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_naxyf",
+      "eventType": "thought",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 2233,
+      "content": "Trí kích hoạt tool_verify_vector_algebra để kiểm chứng toạ độ 3D và đại số vectơ cho claim \"AB\" của Bo.",
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_s0f5u",
+      "eventType": "tool_call",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 2233,
+      "content": "Kích hoạt tool_verify_vector_algebra với claim \"AB\"",
+      "toolCall": {
+        "toolName": "tool_verify_vector_algebra",
+        "input": {
+          "shape": "cube",
+          "side": "1",
+          "expr": "|BC + DD'|",
+          "claim": "AB"
+        },
+        "output": {
+          "isValid": false,
+          "correct": "\\sqrt{2}",
+          "calculatedValue": 1.414,
+          "claimValue": null,
+          "reason": "Vectơ AB có tọa độ [1, 0, 0] (độ dài 1.00), không khớp với vectơ tổng của |BC + DD'| (độ dài \\sqrt{2}).",
+          "steps": [
+            "Tính toán tọa độ biểu thức: [0, 1, 1].",
+            "Tọa độ vectơ được nêu: [1, 0, 0]."
+          ]
+        },
+        "isValid": false,
+        "timestampMs": 1793364334439
+      },
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_zv6uo",
+      "eventType": "tool_result",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 2233,
+      "content": "Tool trả về isValid: false — Vectơ AB có tọa độ [1, 0, 0] (độ dài 1.00), không khớp với vectơ tổng của |BC + DD'| (độ dài \\sqrt{2}).",
+      "toolCall": {
+        "toolName": "tool_verify_vector_algebra",
+        "input": {
+          "shape": "cube",
+          "side": "1",
+          "expr": "|BC + DD'|",
+          "claim": "AB"
+        },
+        "output": {
+          "isValid": false,
+          "correct": "\\sqrt{2}",
+          "calculatedValue": 1.414,
+          "claimValue": null,
+          "reason": "Vectơ AB có tọa độ [1, 0, 0] (độ dài 1.00), không khớp với vectơ tổng của |BC + DD'| (độ dài \\sqrt{2}).",
+          "steps": [
+            "Tính toán tọa độ biểu thức: [0, 1, 1].",
+            "Tọa độ vectơ được nêu: [1, 0, 0]."
+          ]
+        },
+        "isValid": false,
+        "timestampMs": 1793364334439
+      },
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_8sbcd",
+      "eventType": "cross_check_verdict",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 2233,
+      "content": "Bo nhầm to rồi! Tớ vừa chạy toạ độ kiểm chứng: BC + DD' = BC + CC' = BC', phương hướng hoàn toàn khác vectơ AB! Bẫy như vậy là \"sai kiểu không có thật\", học sinh sẽ thấy vô lý ngay. Cậu hãy giữ đúng bản chất ngộ nhận cộng độ dài đại số thôi!",
+      "toolCall": {
+        "toolName": "tool_verify_vector_algebra",
+        "input": {
+          "shape": "cube",
+          "side": "1",
+          "expr": "|BC + DD'|",
+          "claim": "AB"
+        },
+        "output": {
+          "isValid": false,
+          "correct": "\\sqrt{2}",
+          "calculatedValue": 1.414,
+          "claimValue": null,
+          "reason": "Vectơ AB có tọa độ [1, 0, 0] (độ dài 1.00), không khớp với vectơ tổng của |BC + DD'| (độ dài \\sqrt{2}).",
+          "steps": [
+            "Tính toán tọa độ biểu thức: [0, 1, 1].",
+            "Tọa độ vectơ được nêu: [1, 0, 0]."
+          ]
+        },
+        "isValid": false,
+        "timestampMs": 1793364334439
+      },
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_1sw70",
+      "eventType": "thought",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 2233,
+      "content": "Bo rút kinh nghiệm từ tool kiểm chứng của Trí, chuyển sang gài bẫy ngộ nhận cộng trực tiếp độ dài 1+1=2.",
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_zd69l",
+      "eventType": "debate_turn",
+      "agentId": "bo",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
+      "secondTarget": 2233,
+      "content": "À tớ nhìn nhầm đỉnh! Nhưng về độ dài thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!",
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_h0u3i",
+      "eventType": "thought",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 2233,
+      "content": "Trí kích hoạt tool_verify_vector_algebra để kiểm chứng toạ độ 3D và đại số vectơ cho claim \"2a\" của Bo.",
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_rzjfe",
+      "eventType": "tool_call",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 2233,
+      "content": "Kích hoạt tool_verify_vector_algebra với claim \"2a\"",
+      "toolCall": {
+        "toolName": "tool_verify_vector_algebra",
+        "input": {
+          "shape": "cube",
+          "side": "a",
+          "expr": "|BC + DD'|",
+          "claim": "2a"
+        },
+        "output": {
+          "isValid": false,
+          "correct": "a\\sqrt{2}",
+          "calculatedValue": 1.414,
+          "claimValue": 2,
+          "reason": "BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài a + a = 2a.",
+          "steps": [
+            "1. Vectơ DD' bằng vectơ CC' (hai cạnh bên cùng hướng trong hình lập phương).",
+            "2. Thay thế: \\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}.",
+            "3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = a\\sqrt{2}.",
+            "4. Sai lầm mắc phải: cộng trực tiếp độ dài hai vectơ vuông góc |\\vec{u} + \\vec{v}| = |\\vec{u}| + |\\vec{v}| là sai."
+          ]
+        },
+        "isValid": false,
+        "timestampMs": 1793364334439
+      },
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_xn4es",
+      "eventType": "tool_result",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 2233,
+      "content": "Tool trả về isValid: false — BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài a + a = 2a.",
+      "toolCall": {
+        "toolName": "tool_verify_vector_algebra",
+        "input": {
+          "shape": "cube",
+          "side": "a",
+          "expr": "|BC + DD'|",
+          "claim": "2a"
+        },
+        "output": {
+          "isValid": false,
+          "correct": "a\\sqrt{2}",
+          "calculatedValue": 1.414,
+          "claimValue": 2,
+          "reason": "BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài a + a = 2a.",
+          "steps": [
+            "1. Vectơ DD' bằng vectơ CC' (hai cạnh bên cùng hướng trong hình lập phương).",
+            "2. Thay thế: \\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}.",
+            "3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = a\\sqrt{2}.",
+            "4. Sai lầm mắc phải: cộng trực tiếp độ dài hai vectơ vuông góc |\\vec{u} + \\vec{v}| = |\\vec{u}| + |\\vec{v}| là sai."
+          ]
+        },
+        "isValid": false,
+        "timestampMs": 1793364334439
+      },
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_xt0pp",
+      "eventType": "cross_check_verdict",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 2233,
+      "content": "Bẫy này rất tự nhiên! Học sinh thường lấy ngay |BC| + |DD'| = a + a = 2a do thói quen đại số, quên mất bất đẳng thức tam giác và định lý Pytago đường chéo BC' = a√2. Tớ đồng ý chọn bẫy này!",
+      "toolCall": {
+        "toolName": "tool_verify_vector_algebra",
+        "input": {
+          "shape": "cube",
+          "side": "a",
+          "expr": "|BC + DD'|",
+          "claim": "2a"
+        },
+        "output": {
+          "isValid": false,
+          "correct": "a\\sqrt{2}",
+          "calculatedValue": 1.414,
+          "claimValue": 2,
+          "reason": "BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài a + a = 2a.",
+          "steps": [
+            "1. Vectơ DD' bằng vectơ CC' (hai cạnh bên cùng hướng trong hình lập phương).",
+            "2. Thay thế: \\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}.",
+            "3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = a\\sqrt{2}.",
+            "4. Sai lầm mắc phải: cộng trực tiếp độ dài hai vectơ vuông góc |\\vec{u} + \\vec{v}| = |\\vec{u}| + |\\vec{v}| là sai."
+          ]
+        },
+        "isValid": false,
+        "timestampMs": 1793364334439
+      },
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_qzsrt",
+      "eventType": "thought",
+      "agentId": "linhchi",
+      "agentDisplayName": "Linh Chi (Note Taker)",
+      "secondTarget": 2233,
+      "content": "Linh Chi trích xuất quy tắc sư phạm và lập bảng ghi chú bỏ túi cho học sinh.",
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_kcyld",
+      "eventType": "debate_turn",
+      "agentId": "linhchi",
+      "agentDisplayName": "Linh Chi (Note Taker)",
+      "secondTarget": 2233,
+      "content": "Linh Chi note vào sổ tay nè: Muốn tính độ dài vectơ tổng, bước 1 là tìm vectơ thay thế để gom về một vectơ duy nhất (DD' = CC' => BC + CC' = BC'), sau đó mới tính Pytago đường chéo ra a√2!",
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_4lkwn",
+      "eventType": "thought",
+      "agentId": "minhkhang",
+      "agentDisplayName": "Minh Khang (Trực quan)",
+      "secondTarget": 2233,
+      "content": "Minh Khang liên hệ bài toán với hiện tượng đời sống hàng ngày để học sinh dễ nhớ.",
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_9efd2",
+      "eventType": "debate_turn",
+      "agentId": "minhkhang",
+      "agentDisplayName": "Minh Khang (Trực quan)",
+      "secondTarget": 2233,
+      "content": "Minh Khang ví von đời sống nè: Giống như bạn đi bộ từ nhà ra đầu ngõ a mét rồi rẽ vuông góc đi tiếp a mét. Khoảng cách đường chim bay từ nhà đến điểm cuối là cạnh huyền a√2, làm sao mà lấy a + a = 2a được!",
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_fzw57",
+      "eventType": "tool_call",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 2233,
+      "content": "Thẩm định bậc Bloom cho câu hỏi checkpoint: tool_evaluate_bloom_level",
+      "toolCall": {
+        "toolName": "tool_evaluate_bloom_level",
+        "input": {
+          "question": "Cho hình lập phương ABCD.A'B'C'D' cạnh a. Hãy tính độ dài của vectơ tổng BC + DD' và phân tích sai lầm trong cách tính của bạn Bo. Phát biểu nào sau đây chính xác?",
+          "expected_points": [
+            "Chỉ ra DD' = CC'",
+            "Tính độ dài đường chéo bằng Pytago",
+            "Phân tích bẫy ngộ nhận cộng độ dài đại số"
+          ]
+        },
+        "output": {
+          "isValid": true,
+          "level": "Analyze",
+          "score": 4,
+          "indicatorsFound": [
+            "Remember: [phát biểu]",
+            "Apply: [tính]",
+            "Analyze: [phân tích, bẫy, ngộ nhận]"
+          ],
+          "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+          "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+        },
+        "isValid": true,
+        "timestampMs": 1793364334439
+      },
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_71yb0",
+      "eventType": "tool_result",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 2233,
+      "content": "Mức Bloom thẩm định: Analyze (Điểm: 4/6)",
+      "toolCall": {
+        "toolName": "tool_evaluate_bloom_level",
+        "input": {
+          "question": "Cho hình lập phương ABCD.A'B'C'D' cạnh a. Hãy tính độ dài của vectơ tổng BC + DD' và phân tích sai lầm trong cách tính của bạn Bo. Phát biểu nào sau đây chính xác?",
+          "expected_points": [
+            "Chỉ ra DD' = CC'",
+            "Tính độ dài đường chéo bằng Pytago",
+            "Phân tích bẫy ngộ nhận cộng độ dài đại số"
+          ]
+        },
+        "output": {
+          "isValid": true,
+          "level": "Analyze",
+          "score": 4,
+          "indicatorsFound": [
+            "Remember: [phát biểu]",
+            "Apply: [tính]",
+            "Analyze: [phân tích, bẫy, ngộ nhận]"
+          ],
+          "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+          "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+        },
+        "isValid": true,
+        "timestampMs": 1793364334439
+      },
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_nyc6o",
+      "eventType": "tool_call",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 2233,
+      "content": "Kiểm tra nhịp thời gian bài giảng và chống va chạm (Pacing Checker)",
+      "toolCall": {
+        "toolName": "tool_timeline_collision_checker",
+        "input": {
+          "events": [
+            {
+              "id": "stop_2233",
+              "at_s": 2233,
+              "actor_id": "colam",
+              "type": "checkpoint"
+            },
+            {
+              "id": "bo_challenge_2235",
+              "at_s": 2235,
+              "actor_id": "bo",
+              "type": "comment",
+              "isChained": true
+            }
+          ],
+          "minGapS": 20,
+          "warmupPeriodS": 15,
+          "maxCheckpoints": 1
+        },
+        "output": {
+          "isValid": true,
+          "collisions": [],
+          "warnings": [],
+          "suggestions": [],
+          "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+        },
+        "isValid": true,
+        "timestampMs": 1793364334439
+      },
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_jfkp0",
+      "eventType": "tool_result",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 2233,
+      "content": "Kết quả Pacing: Hợp lệ (Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt.)",
+      "toolCall": {
+        "toolName": "tool_timeline_collision_checker",
+        "input": {
+          "events": [
+            {
+              "id": "stop_2233",
+              "at_s": 2233,
+              "actor_id": "colam",
+              "type": "checkpoint"
+            },
+            {
+              "id": "bo_challenge_2235",
+              "at_s": 2235,
+              "actor_id": "bo",
+              "type": "comment",
+              "isChained": true
+            }
+          ],
+          "minGapS": 20,
+          "warmupPeriodS": 15,
+          "maxCheckpoints": 1
+        },
+        "output": {
+          "isValid": true,
+          "collisions": [],
+          "warnings": [],
+          "suggestions": [],
+          "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+        },
+        "isValid": true,
+        "timestampMs": 1793364334439
+      },
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    },
+    {
+      "id": "EVT_1793364334439_dixot",
+      "eventType": "checkpoint_created",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 2233,
+      "content": "Cô phê duyệt checkpoint dừng tại giây thứ 2233 (37:13). Bẫy ngộ nhận của Bo rất chân thực, Trí đã chỉ rõ căn cứ hình học và Linh Chi có mẹo ghi nhớ rất tuyệt vời. Các em hãy chú ý: không bao giờ cộng độ dài trực tiếp mà phải quy về một vectơ tổng trước!",
+      "timestamp": "2026-10-30T12:45:34.439Z"
+    }
+  ],
+  "pedagogicalSummary": {
+    "totalParts": 3,
+    "totalCheckpoints": 3,
+    "totalTrapsIdentified": 4,
+    "bloomMasteryTarget": "Analyze (Mức 4/6)",
+    "approvedByTeacher": false,
+    "generatedAt": "2026-10-30T12:45:34.439Z"
+  }
+}
