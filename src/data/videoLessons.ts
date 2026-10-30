@@ -168,7 +168,7 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
       author: 'Trợ giảng An',
       role: 'ta',
       isPinned: true,
-      text: 'Ghim trọng tâm Bài 1.1: (1) Xét cùng phương trước khi xét cùng hướng; (2) Quy tắc nối tiếp OA + AB = OB; (3) Không tách |a + b| = |a| + |b| tại mốc [37:13].',
+      text: 'Ghim trọng tâm Bài 1.1: (1) Xét cùng phương trước khi xét cùng hướng; (2) Quy tắc nối tiếp OA + AB = OB; (3) Đến mốc [37:13], để ý xem hai vectơ trong đề có cùng hướng không trước khi tính độ dài.',
     },
 
     // =======================================================================
@@ -994,7 +994,7 @@ export const VIDEO_LESSON_LIBRARY: VideoLessonItem[] = [
     },
     freezeNote: 'Gợi ý: Số −2 mang dấu âm. Hãy thử lấy 1 giá trị x cụ thể thay vào để kiểm tra chiều của bất đẳng thức.',
     timelineComments: [
-      { id: 'tc3_pin', second: 0, author: 'Trợ giảng An', role: 'ta', text: 'Lưu ý: Nhân/chia số âm vào hai vế bất phương trình thì phải ĐỔI CHIỀU dấu so sánh!', isPinned: true },
+      { id: 'tc3_pin', second: 0, author: 'Trợ giảng An', role: 'ta', text: 'Lưu ý: Khi nhân hay chia hai vế bất phương trình, hãy để ý dấu của số mình dùng.', isPinned: true },
       { id: 'tc3_1', second: 19, author: 'Bo Ngây Ngô', role: 'classmate', text: 'Lấy 6 chia −2 ra −3, vậy x > −3 thôi, nhanh gọn!' },
       { id: 'tc3_2', second: 30, author: 'Trí', role: 'classmate', text: '@Bo Cậu thử thay x = 0 vào xem 0 có lớn hơn 6 không mà kết luận x > −3?' }
     ]
