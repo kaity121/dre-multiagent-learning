@@ -385,6 +385,8 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
           controls: 1,
           rel: 0,
           modestbranding: 1,
+          iv_load_policy: 3,
+          playsinline: 1,
         },
         events: {
           onReady: (event: any) => {
@@ -995,6 +997,18 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
         </>
         )}
 
+        {/* Paused at the pause question: the app, not YouTube's pause screen, says what is happening. */}
+        {checkpointUiExternal && isCheckpointActive && !isPlaying && (
+          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 bg-[#121712]/80 px-6 text-center">
+            <span className="rounded-full bg-[#C8F169] px-3 py-1 text-[14px] font-bold tabular-nums text-[#121712]">
+              Dừng ở {formatTime(lesson.checkpointTimestamp)}
+            </span>
+            <p className="max-w-[40ch] text-[16px] font-semibold leading-snug text-white">
+              Cả lớp dừng lại để cùng suy nghĩ. Việc của bạn ở thẻ ngay bên dưới.
+            </p>
+          </div>
+        )}
+
         {/* THẺ CÂU HỎI NGẮT TẠI 37:13 (KHỚP 100% 4 ẢNH MOCKUP LIME SOFT - BỎ BLUR, PHỦ TỐI 35%, GỌN THẤY BẢNG PHẤN) */}
         {showFullQuizOverlay && (
           <div className="absolute inset-0 z-40 bg-black/35 flex flex-col justify-end p-3 sm:p-5 pointer-events-auto overflow-y-auto">
@@ -1203,7 +1217,56 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
 
       </div>
 
-
+      {/* App-owned timeline with the pause-question marker (click to seek, arrows step 10 s). */}
+      {checkpointUiExternal && videoDuration > 0 && (
+        <div className="flex items-center gap-3 border-t border-[#E2EAD2] bg-white px-3 py-2">
+          <span className="shrink-0 text-[13px] font-semibold tabular-nums text-[#121712]">
+            {formatTime(currentTime)} / {formatTime(videoDuration)}
+          </span>
+          <div
+            role="slider"
+            tabIndex={0}
+            aria-label="Vị trí bài giảng"
+            aria-valuemin={0}
+            aria-valuemax={Math.round(videoDuration)}
+            aria-valuenow={Math.round(currentTime)}
+            aria-valuetext={formatTime(currentTime)}
+            onClick={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              handleSeekBoth(Math.round(((e.clientX - r.left) / r.width) * videoDuration));
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowRight') { e.preventDefault(); handleSeekBoth(Math.min(videoDuration, currentTime + 10)); }
+              if (e.key === 'ArrowLeft') { e.preventDefault(); handleSeekBoth(Math.max(0, currentTime - 10)); }
+            }}
+            className="relative h-6 flex-1 cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#121712]"
+          >
+            <span className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-[#E2EAD2]" />
+            <span
+              className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-[#121712]"
+              style={{ width: `${Math.min(100, (currentTime / videoDuration) * 100)}%` }}
+            />
+            {hasCheckpoint(lesson) && lesson.checkpointTimestamp <= videoDuration && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onJumpToCheckpoint();
+                }}
+                title={`Câu hỏi dừng ${formatTime(lesson.checkpointTimestamp)}`}
+                aria-label={`Tới câu hỏi dừng ${formatTime(lesson.checkpointTimestamp)}`}
+                className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-[3px] border-2 border-[#121712] bg-[#C8F169] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#121712]"
+                style={{ left: `${(lesson.checkpointTimestamp / videoDuration) * 100}%` }}
+              />
+            )}
+          </div>
+          {hasCheckpoint(lesson) && (
+            <span className="hidden shrink-0 text-[12px] font-semibold text-[#3D4739] sm:inline">
+              Câu hỏi dừng {formatTime(lesson.checkpointTimestamp)}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* 2. THANH BAR ĐÁY VIDEO: CHỈ HIỂN THỊ KHI KHÔNG SỬ DỤNG CHUẨN ROOM-BAR NGOÀI */}
       {!hideInternalBottomBar && (
