@@ -871,3 +871,11 @@ button.quick-prompt-box {
   box-shadow: 0 10px 24px rgba(14, 116, 144, 0.12);
 }
 
+
+/* A struck step must visibly cross rendered maths too: KaTeX boxes do not inherit text-decoration. */
+.strike-math .katex {
+  background-image: linear-gradient(#C2412D, #C2412D);
+  background-repeat: no-repeat;
+  background-size: 100% 2px;
+  background-position: 0 55%;
+}

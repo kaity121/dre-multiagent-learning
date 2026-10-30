@@ -205,6 +205,8 @@ export default function App() {
   const [isPeerNotebookOpen, setIsPeerNotebookOpen] = useState<boolean>(false);
   const [showVideoInFaceOff, setShowVideoInFaceOff] = useState<boolean>(false);
   const [lastRebuttalText, setLastRebuttalText] = useState<string | null>(null);
+  // Lecture length as the player knows it (YouTube's own duration once loaded).
+  const [playerDuration, setPlayerDuration] = useState<number | null>(null);
   // Bo's stance after the first answer (product FSM): wrong answer → he sides with it,
   // right answer → he sets a trap.
   const [boMode, setBoMode] = useState<BoMode | null>(null);
@@ -1775,7 +1777,8 @@ export default function App() {
                       <VideoStrip
                         title={lessonIdent.title}
                         currentTime={videoCurrentTime}
-                        duration={currentVideoLesson.durationSeconds || currentVideoLesson.duration}
+                        duration={playerDuration ?? (currentVideoLesson.durationSeconds || currentVideoLesson.duration)}
+                        checkpointSecond={checkpointSecond}
                         onShowVideo={() => setShowVideoInFaceOff(true)}
                       />
                     )}
@@ -1834,6 +1837,7 @@ export default function App() {
                       hideInternalBottomBar={true}
                       checkpointUiExternal={true}
                       playRequest={playRequest}
+                      onDurationChange={setPlayerDuration}
                     />
                     </div>
 

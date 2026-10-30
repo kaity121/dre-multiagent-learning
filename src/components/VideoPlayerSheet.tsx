@@ -150,6 +150,8 @@ interface VideoPlayerSheetProps {
   checkpointUiExternal?: boolean;
   /** Ask the embedded player to play, optionally from a given second. A new id triggers a new request. */
   playRequest?: { id: number; fromSecond?: number } | null;
+  /** Reports the lecture length the player uses, so other views show the same number. */
+  onDurationChange?: (seconds: number) => void;
 }
 
 const cleanText = (str?: string) => (str ? str.replace(/\u20d7/g, '') : '');
@@ -193,6 +195,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   hideInternalBottomBar = true,
   checkpointUiExternal = false,
   playRequest = null,
+  onDurationChange,
 }) => {
   const defaultYtId = lesson.youtubeId || extractYouTubeId(lesson.videoUrl) || 'phvpqxLNTUQ';
   const [activeYoutubeId, setActiveYoutubeId] = useState<string>(defaultYtId);
@@ -468,6 +471,10 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
     }, 400);
     return () => clearInterval(timer);
   }, [lesson.checkpointTimestamp, onSeek, onJumpToCheckpoint]);
+
+  useEffect(() => {
+    if (videoDuration > 0) onDurationChange?.(videoDuration);
+  }, [videoDuration]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Play requests from outside the player (task card "Xem lại 30 giây", "Tiếp tục bài giảng").
   useEffect(() => {
@@ -999,11 +1006,18 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
 
         {/* Paused at the pause question: the app, not YouTube's pause screen, says what is happening. */}
         {checkpointUiExternal && isCheckpointActive && !isPlaying && (
-          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 bg-[#121712]/80 px-6 text-center">
-            <span className="rounded-full bg-[#C8F169] px-3 py-1 text-[14px] font-bold tabular-nums text-[#121712]">
+          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 overflow-hidden bg-[#121712] px-6 text-center">
+            {/* Opaque: the lecture's own poster frame, dimmed, instead of YouTube's pause chrome. */}
+            <img
+              src={`https://img.youtube.com/vi/${activeYoutubeId}/hqdefault.jpg`}
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-35"
+            />
+            <span className="relative rounded-full bg-[#C8F169] px-3 py-1 text-[14px] font-bold tabular-nums text-[#121712]">
               Dừng ở {formatTime(lesson.checkpointTimestamp)}
             </span>
-            <p className="max-w-[40ch] text-[16px] font-semibold leading-snug text-white">
+            <p className="relative max-w-[40ch] text-[16px] font-semibold leading-snug text-white">
               Cả lớp dừng lại để cùng suy nghĩ. Việc của bạn ở thẻ ngay bên dưới.
             </p>
           </div>

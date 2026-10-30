@@ -8,10 +8,12 @@ export interface VideoStripProps {
   title: string;
   currentTime: number;
   duration: number;
+  /** Second of the pause question, marked on the bar. */
+  checkpointSecond?: number | null;
   onShowVideo: () => void;
 }
 
-export const VideoStrip: React.FC<VideoStripProps> = ({ title, currentTime, duration, onShowVideo }) => {
+export const VideoStrip: React.FC<VideoStripProps> = ({ title, currentTime, duration, checkpointSecond, onShowVideo }) => {
   const progress = duration > 0 ? Math.min(100, Math.max(0, (currentTime / duration) * 100)) : 0;
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-[#E2EAD2] bg-white px-3 py-2.5 sm:gap-4 sm:px-4">
@@ -25,7 +27,7 @@ export const VideoStrip: React.FC<VideoStripProps> = ({ title, currentTime, dura
         </p>
         <div className="mt-1.5 flex items-center gap-3">
           <div
-            className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#E2EAD2]"
+            className="relative h-1.5 flex-1 rounded-full bg-[#E2EAD2]"
             role="progressbar"
             aria-label="Vị trí bài giảng"
             aria-valuemin={0}
@@ -34,6 +36,14 @@ export const VideoStrip: React.FC<VideoStripProps> = ({ title, currentTime, dura
             aria-valuetext={`${formatClock(currentTime)} trên ${formatClock(duration)}`}
           >
             <div className="h-full rounded-full bg-[#121712]" style={{ width: `${progress}%` }} />
+            {typeof checkpointSecond === 'number' && duration > 0 && checkpointSecond <= duration && (
+              <span
+                aria-hidden="true"
+                title={`Câu hỏi dừng ${formatClock(checkpointSecond)}`}
+                className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-[2px] border-2 border-[#121712] bg-[#C8F169]"
+                style={{ left: `${(checkpointSecond / duration) * 100}%` }}
+              />
+            )}
           </div>
           <span className="shrink-0 text-[13px] font-semibold tabular-nums text-[#3D4739]">
             {formatClock(currentTime)} / {formatClock(duration)}

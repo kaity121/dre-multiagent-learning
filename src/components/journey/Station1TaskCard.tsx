@@ -324,7 +324,7 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#E9F2D8] text-[12px] font-bold text-[#121712]">{i + 1}</span>
                     )}
                     {struck ? (
-                      <s className="text-[15px] leading-snug text-[#5A1F17] decoration-[#C2412D] decoration-2">
+                      <s className="strike-math text-[15px] leading-snug text-[#5A1F17] decoration-[#C2412D] decoration-2">
                         <FormattedMathText text={step.text} />
                       </s>
                     ) : (
