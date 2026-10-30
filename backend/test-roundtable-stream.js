@@ -16,8 +16,12 @@ process.env.NODE_ENV = 'test';
 
 import http from 'http';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// Generated drafts go to a temp directory so verification runs never rewrite the committed drafts.
+process.env.DRE_DRAFTS_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'dre-drafts-'));
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -515,31 +519,35 @@ async function main() {
     'Replay fixture phát sự kiện [complete]'
   );
 
-  // Thẩm định tính hợp lệ của Lesson Draft theo chuẩn ApprovedLessonPackage
-  const lessonDraft = doneEvent?.data?.lesson || doneEvent?.data?.lessonDraft || fixtureCompleteEvent?.data?.draft;
+  // Lesson draft theo DRELessonSchema (src/types/pipeline.ts): bản nháp chờ giáo viên duyệt
+  const lessonDraft = doneEvent?.data?.lesson;
   assert(
     Boolean(lessonDraft),
     'Sự kiện done/complete chứa lesson draft hợp lệ'
   );
   assert(
-    typeof lessonDraft?.lessonId === 'string' && lessonDraft.lessonId.length > 0,
-    `Lesson draft có lessonId hợp lệ: "${lessonDraft?.lessonId}"`
+    typeof lessonDraft?.lesson_id === 'string' && lessonDraft.lesson_id.length > 0,
+    `Lesson draft có lesson_id hợp lệ: "${lessonDraft?.lesson_id}"`
   );
   assert(
     typeof lessonDraft?.title === 'string' && lessonDraft.title.length > 0,
     `Lesson draft có title hợp lệ: "${lessonDraft?.title}"`
   );
   assert(
-    Array.isArray(lessonDraft?.checkpoints) && lessonDraft.checkpoints.length >= 1,
-    `Lesson draft chứa danh sách checkpoints (tổng ${lessonDraft?.checkpoints?.length} câu hỏi)`
+    Array.isArray(lessonDraft?.parts) && lessonDraft.parts.every((p) => p.pause_questions.length === 1),
+    `Lesson draft chứa ${lessonDraft?.parts?.length} part, mỗi part đúng 1 câu hỏi checkpoint`
   );
   assert(
-    Array.isArray(lessonDraft?.timelineComments) && lessonDraft.timelineComments.length >= 1,
-    `Lesson draft chứa timeline comments (tổng ${lessonDraft?.timelineComments?.length} bình luận giáo viên/học sinh)`
+    Array.isArray(lessonDraft?.parts) && lessonDraft.parts.every((p) => p.scenarios.length >= 2),
+    'Lesson draft chứa scenarios của các AI Peers trong từng part'
   );
   assert(
-    lessonDraft?.pedagogicalSummary && lessonDraft.pedagogicalSummary.approvedByTeacher === true,
-    'Lesson draft có pedagogicalSummary được giáo viên phê duyệt (approvedByTeacher: true)'
+    lessonDraft?.status === 'draft' && doneEvent?.data?.approval?.approvedByTeacher === false,
+    'Lesson draft giữ trạng thái draft, chưa được giáo viên phê duyệt (approvedByTeacher: false)'
+  );
+  assert(
+    doneEvent?.data?.provenance === 'replay' && doneEvent?.data?.source === 'fixture',
+    'Replay fixture báo đúng nguồn gốc (provenance: replay, source: fixture)'
   );
 
   // 6.2 Kiểm tra replay qua query params /api/roundtable/stream?mode=replay&fixture=true&speed=10
@@ -590,8 +598,12 @@ async function main() {
     `File run đã lưu chứa đúng runId="${testRunId}" và reasoning_events (${savedRunData.reasoning_events.length} events)`
   );
   assert(
-    Boolean(savedRunData.lessonDraft && savedRunData.lessonDraft.checkpoints?.length >= 1),
-    'File run đã lưu chứa lessonDraft với checkpoint hợp lệ'
+    Boolean(savedRunData.lesson?.status === 'draft' && savedRunData.lesson.parts?.[0]?.pause_questions?.length === 1),
+    'File run đã lưu chứa lesson (DRELessonSchema draft) với checkpoint hợp lệ'
+  );
+  assert(
+    savedRunData.provenance === 'live' && savedRunData.generation?.mode === 'deterministic',
+    'File run đã lưu ghi rõ provenance live và chế độ sinh deterministic'
   );
 
   // 7.3 Mở stream replay từ run vừa ghi
@@ -672,10 +684,9 @@ async function main() {
       body: { cognitiveStream: { segments: 'invalid_not_array' }, partNumber: 1 },
     }
   );
-  const corruptErrorEvent = sseCorrupt.events.find((e) => e.eventName === 'error');
   assert(
-    Boolean(corruptErrorEvent) || sseCorrupt.statusCode === 500,
-    'Client nhận được thông báo lỗi khi payload cognitiveStream không hợp lệ, không bị crash máy chủ'
+    sseCorrupt.statusCode === 400,
+    `Payload cognitiveStream không hợp lệ bị từ chối với HTTP 400 trước khi mở SSE (thực tế: ${sseCorrupt.statusCode})`
   );
 
   // ---------------------------------------------------------------------------

@@ -4,7 +4,7 @@
  * Manages run persistence, replay streaming and inspection of Multi-Agent Roundtable sessions.
  * Supports:
  * - Local filesystem storage in backend/src/data/runs/<runId>.json
- * - Built-in fixture loading ('fixture' or 'mock') from mock/mock_reasoning_events.json
+ * - Built-in fixture loading ('fixture' or 'mock') from mock/mock_roundtable_run_fixture.json
  * - Simulated SSE Replay streaming with configurable speed factor (1x, 2x, 5x...)
  * - Auto-recording of live roundtable streams
  */
@@ -19,9 +19,8 @@ const __dirname = path.dirname(__filename);
 // Root of repository is 3 levels up from backend/src/services (services -> src -> backend -> root)
 const REPO_ROOT = path.resolve(__dirname, '../../../');
 const RUNS_DIR = path.resolve(REPO_ROOT, 'backend/src/data/runs');
-const FIXTURE_PATH = fs.existsSync(path.resolve(REPO_ROOT, 'mock/mock_roundtable_run_fixture.json'))
-  ? path.resolve(REPO_ROOT, 'mock/mock_roundtable_run_fixture.json')
-  : path.resolve(REPO_ROOT, 'mock/mock_reasoning_events.json');
+const FIXTURE_PATH = path.resolve(REPO_ROOT, 'mock/mock_roundtable_run_fixture.json');
+const FIXTURE_IDS = new Set(['fixture', 'mock', 'run_vecto12_part3_wow_moment']);
 
 /**
  * Sanitize runId to prevent Path Traversal attacks (e.g. '../../etc')
@@ -95,10 +94,10 @@ export function getRun(runId) {
   if (!runId) return null;
 
   const rawId = String(runId).trim();
-  if (rawId === 'fixture' || rawId === 'mock' || rawId === 'run_vecto12_part3_wow_moment') {
+  if (FIXTURE_IDS.has(rawId)) {
     if (fs.existsSync(FIXTURE_PATH)) {
       try {
-        return JSON.parse(fs.readFileSync(FIXTURE_PATH, 'utf-8'));
+        return { ...JSON.parse(fs.readFileSync(FIXTURE_PATH, 'utf-8')), isFixture: true };
       } catch (err) {
         console.error('[RunRecorder] Error reading fixture file:', err);
         return null;
@@ -206,10 +205,20 @@ export async function streamReplayEvents(runData, {
   const safeBaseDelay = Math.max(0, Number(streamDelayMs) || 40);
   const delay = Math.max(5, Math.floor(safeBaseDelay / safeSpeed));
 
-  // Send session_start
+  // A replay never claims to be live: it reports where the recording came from and how it was generated.
+  const source = runData.isFixture ? 'fixture' : 'recorded_run';
+  const provenanceInfo = {
+    provenance: 'replay',
+    isFallback: false,
+    source,
+    recordedProvenance: runData.provenance || null,
+    generation: runData.generation || null,
+  };
+
   sendSSE('session_start', {
     runId: runData.runId || 'replay_run',
     mode: 'replay',
+    ...provenanceInfo,
     speed: safeSpeed,
     videoId: runData.videoId,
     partNumber: runData.partNumber,
@@ -257,26 +266,22 @@ export async function streamReplayEvents(runData, {
 
   if (isAborted()) return;
 
-  // Emit event: done
-  sendSSE('done', {
+  const lesson = runData.lesson || null;
+  const completion = {
     runId: runData.runId,
     mode: 'replay',
+    ...provenanceInfo,
     totalEvents: events.length,
-    lesson: runData.lessonDraft || runData.draft || null,
-    lessonDraft: runData.lessonDraft || runData.draft || null,
-    timestamp: new Date().toISOString(),
-  });
-
-  // Emit event: complete
-  sendSSE('complete', {
-    ok: true,
-    mode: 'replay',
-    runId: runData.runId,
-    draft: runData.lessonDraft || runData.draft || null,
+    lesson,
+    approval: lesson
+      ? { status: lesson.status, approvedByTeacher: lesson.status === 'approved', reviewedBy: null, approvedAt: null }
+      : null,
     stats: runData.stats || {
       totalEvents: events.length,
-      crossCheckCorrectionOccurred: Boolean(runData.stats?.crossCheckCorrectionOccurred),
+      crossCheckCorrectionOccurred: false,
     },
     timestamp: new Date().toISOString(),
-  });
+  };
+  sendSSE('done', completion);
+  sendSSE('complete', { ok: true, ...completion });
 }

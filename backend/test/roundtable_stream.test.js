@@ -9,8 +9,12 @@ import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'http';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// Generated drafts go to a temp directory so test runs never rewrite the committed drafts.
+process.env.DRE_DRAFTS_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'dre-drafts-'));
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -107,6 +111,87 @@ describe('Roundtable Orchestrator Streaming & Pedagogical Verification Suite (#3
 
     const completeEvt = receivedEvents.find((e) => e.eventName === 'complete');
     assert.strictEqual(completeEvt.data?.part?.partNumber, 3);
+
+    // Completion carries a DRELessonSchema draft that still needs teacher approval, plus real provenance.
+    const sessionStart = receivedEvents.find((e) => e.eventName === 'session_start');
+    assert.strictEqual(sessionStart.data.provenance, 'live');
+    assert.strictEqual(completeEvt.data.provenance, 'live');
+    assert.strictEqual(completeEvt.data.isFallback, false);
+    assert.strictEqual(completeEvt.data.lesson.status, 'draft');
+    assert.ok(Array.isArray(completeEvt.data.lesson.parts) && completeEvt.data.lesson.parts.length === 1);
+    assert.ok(completeEvt.data.lesson.parts[0].pause_questions.length === 1);
+    assert.strictEqual(completeEvt.data.approval.approvedByTeacher, false);
+    assert.strictEqual(completeEvt.data.generation.mode, 'deterministic');
+    assert.strictEqual(completeEvt.data.lesson.pedagogicalSummary, undefined, 'Không phát gói lesson cũ');
+
+    // Every reasoning event of the run is tagged with the same runId.
+    const reasoning = receivedEvents.filter((e) => e.eventName === 'reasoning_event');
+    assert.ok(reasoning.length > 0);
+    assert.ok(reasoning.every((e) => e.data.runId === completeEvt.data.runId));
+  });
+
+  it('Test 1.2: unsafe identifiers are rejected with 400 before any SSE output', async () => {
+    const post = (body) =>
+      new Promise((resolve, reject) => {
+        const payload = JSON.stringify(body);
+        const req = http.request(
+          {
+            hostname: '127.0.0.1',
+            port: serverPort,
+            path: '/api/roundtable/stream',
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) },
+          },
+          (res) => {
+            let data = '';
+            res.on('data', (c) => (data += c));
+            res.on('end', () => resolve({ status: res.statusCode, type: res.headers['content-type'], body: data }));
+          }
+        );
+        req.on('error', reject);
+        req.end(payload);
+      });
+
+    const traversal = await post({ cognitiveStream: { ...cognitiveStream, videoId: 'x/../../../../package' } });
+    assert.strictEqual(traversal.status, 400);
+    assert.match(traversal.type, /application\/json/);
+    assert.match(JSON.parse(traversal.body).error, /Security Alert/);
+
+    const badRun = await post({ runId: '../../etc/passwd' });
+    assert.strictEqual(badRun.status, 400);
+  });
+
+  it('Test 1.3: fixture replay reports replay provenance instead of live', async () => {
+    const events = await new Promise((resolve, reject) => {
+      const collected = [];
+      const req = http.get(
+        { hostname: '127.0.0.1', port: serverPort, path: '/api/roundtable/fixture/stream?speed=10&streamDelayMs=1' },
+        (res) => {
+          let buffer = '';
+          res.on('data', (chunk) => {
+            buffer += chunk.toString('utf-8');
+            const blocks = buffer.split('\n\n');
+            buffer = blocks.pop();
+            for (const block of blocks) {
+              const name = (block.match(/^event: (.*)$/m) || [])[1] || 'message';
+              const data = (block.match(/^data: (.*)$/m) || [])[1];
+              if (data) collected.push({ name, data: JSON.parse(data) });
+            }
+          });
+          res.on('end', () => resolve(collected));
+        }
+      );
+      req.on('error', reject);
+      req.setTimeout(8000, () => req.destroy(new Error('Timeout')));
+    });
+
+    const start = events.find((e) => e.name === 'session_start');
+    const complete = events.find((e) => e.name === 'complete');
+    assert.strictEqual(start.data.provenance, 'replay');
+    assert.strictEqual(start.data.source, 'fixture');
+    assert.strictEqual(complete.data.provenance, 'replay');
+    assert.strictEqual(complete.data.lesson.status, 'draft');
+    assert.strictEqual(complete.data.approval.approvedByTeacher, false);
   });
 
   it('Test 2: Cross-check WOW moment: Trí rejects Bo invalid proposal (isValid: false) and Bo corrects', async () => {

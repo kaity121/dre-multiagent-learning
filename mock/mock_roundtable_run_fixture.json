@@ -1,130 +1,220 @@
 {
   "runId": "run_vecto12_part3_wow_moment",
+  "provenance": "recorded_fixture",
   "videoId": "VID_VECTO_12_TIEN",
-  "videoTitle": "B??i 1.1: Vect?? Trong Kh??ng Gian - Th???y Nguy???n Phan Ti???n",
+  "videoTitle": "Bài 1.1: Vectơ Trong Không Gian - Toán 12 (SGK Mới) || Thầy Nguyễn Phan Tiến",
   "partNumber": 3,
-  "createdAt": "2026-10-29T16:00:00.000Z",
+  "createdAt": "2026-10-30T13:41:00.678Z",
+  "generation": {
+    "requestedMode": "deterministic",
+    "mode": "deterministic",
+    "isFallback": false,
+    "fallbackReason": null,
+    "llmTurns": 0,
+    "totalTurns": 7,
+    "turns": [
+      {
+        "agentId": "bo",
+        "purpose": "trap_proposal_round_1",
+        "source": "deterministic"
+      },
+      {
+        "agentId": "tri",
+        "purpose": "cross_check_verdict_round_1",
+        "source": "deterministic"
+      },
+      {
+        "agentId": "bo",
+        "purpose": "trap_proposal_round_2",
+        "source": "deterministic"
+      },
+      {
+        "agentId": "tri",
+        "purpose": "cross_check_verdict_round_2",
+        "source": "deterministic"
+      },
+      {
+        "agentId": "linhchi",
+        "purpose": "mnemonic_tip",
+        "source": "deterministic"
+      },
+      {
+        "agentId": "minhkhang",
+        "purpose": "real_world_analogy",
+        "source": "deterministic"
+      },
+      {
+        "agentId": "colam",
+        "purpose": "checkpoint_closure",
+        "source": "deterministic"
+      }
+    ],
+    "templatedFields": [
+      "checkpoint_question",
+      "checkpoint_options",
+      "cheat_sheet",
+      "expected_points"
+    ]
+  },
   "stats": {
-    "totalEvents": 20,
+    "totalEvents": 26,
+    "totalToolCalls": 5,
     "crossCheckCorrectionOccurred": true,
-    "totalToolCalls": 3,
     "bloomLevel": "Analyze",
-    "partTitle": "Ph???n 3: B??i t???p T??nh to??n ????? d??i & B???y c???ng ????? d??i (Tr???ng t??m)"
+    "partTitle": "Phần 3: Bài tập Tính toán độ dài & Bẫy cộng độ dài"
   },
   "reasoning_events": [
     {
-      "id": "evt_part3_001",
+      "id": "EVT_1793367660676_e3ybv",
       "eventType": "thought",
       "agentId": "colam",
-      "agentDisplayName": "C?? Lam (Director)",
+      "agentDisplayName": "Cô Lam (Director)",
       "secondTarget": 2233,
-      "content": "C?? Lam ??ang ph??n t??ch ph??n ??o???n \"Ph???n 3: B??i t???p T??nh to??n ????? d??i & B???y c???ng ????? d??i (Tr???ng t??m)\". Ki???m tra ??i???u ki???n s?? ph???m: M???c th???i gian 37:13 (2233s) n???m ngo??i v??ng m??? ?????u warmup. M???c ????? r???i ro ng??? nh???n: high (V?? d??? 3 - B???y t??nh |BC + DD'|). B???t ?????u phi??n h???p b??n tr??n Roundtable.",
-      "timestamp": "2026-10-29T16:00:01.000Z"
+      "content": "Cô Lam đang phân tích phân đoạn \"Phần 3: Bài tập Tính toán độ dài & Bẫy cộng độ dài\". Mốc 37:13 (2233s) nằm trong Part 2000s..9503s, cách đầu Part 233s (sau vùng warmup). Mức độ rủi ro ngộ nhận: high.",
+      "timestamp": "2026-10-30T13:41:00.676Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_002",
+      "id": "EVT_1793367660676_1g2si",
       "eventType": "debate_turn",
       "agentId": "colam",
-      "agentDisplayName": "C?? Lam (Director)",
+      "agentDisplayName": "Cô Lam (Director)",
       "secondTarget": 2233,
-      "content": "Ch??o c??? l???p! T???i m???c 37:13, Th???y Ti???n ??ang d???ng l???i r???t l??u ??? V?? d??? 3 h??nh l???p ph????ng c???nh a, t??nh ????? d??i t???ng vect?? |BC + DD'|. Th???y nh???n m???nh ????y l?? ??i???m t??? huy???t h???c sinh r???t hay sai. Bo ??i, em tra c???u kho tri th???c RAG xem h???c sinh hay ng??? nh???n ??i???u g?? nh???t ??? ????y?",
-      "timestamp": "2026-10-29T16:00:02.000Z"
+      "content": "Chào cả lớp! Tại mốc 37:13, thầy đang giảng về Ví dụ 3: Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính độ dài tổng vectơ B. Bo ơi, cậu tra cứu kho tri thức ngộ nhận xem đoạn này học sinh hay vướng bẫy gì nhất?",
+      "timestamp": "2026-10-30T13:41:00.676Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_003",
+      "id": "EVT_1793367660676_r0bee",
       "eventType": "thought",
       "agentId": "bo",
-      "agentDisplayName": "Bo (H??? 1 - Tr???c gi??c)",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
       "secondTarget": 2233,
-      "content": "Bo ??ang truy v???n kho tri th???c s?? ph???m Pedagogical KB ????? t??m m?? ng??? nh???n t????ng ???ng v???i ph??p c???ng ????? d??i trong h??nh l???p ph????ng.",
-      "timestamp": "2026-10-29T16:00:03.000Z"
+      "content": "Bo đang tra cứu tri thức ngộ nhận từ Knowledge Base để chọn bẫy thách đố.",
+      "timestamp": "2026-10-30T13:41:00.676Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_004",
+      "id": "EVT_1793367660677_gwb14",
       "eventType": "tool_call",
       "agentId": "bo",
-      "agentDisplayName": "Bo (H??? 1 - Tr???c gi??c)",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
       "secondTarget": 2233,
-      "content": "Bo k??ch ho???t c??ng c???: tool_query_misconception_kb",
+      "content": "Bo tra cứu tri thức ngộ nhận từ KB: tool_query_misconception_kb",
       "toolCall": {
         "toolName": "tool_query_misconception_kb",
         "input": {
           "misconceptionId": "MISC_VEC_005"
         },
         "output": {
-          "found": true,
-          "misconception": {
-            "id": "MISC_VEC_005",
-            "title": "C???ng ????? d??i vect?? theo s??? h???c ?????i s??? th??ng th?????ng: |u + v| = |u| + |v|",
-            "frequency": 0.72,
-            "trap_pattern": "H???c sinh t??nh |BC + DD'| = |BC| + |DD'| = a + a = 2a thay v?? quy v??? vect?? t???ng BC'",
-            "counterexample": "Tam gi??c vu??ng BCC' t???i C, BC' = a???2 ??? 2a"
-          }
+          "isValid": true,
+          "output": [
+            {
+              "id": "MISC_VEC_005",
+              "topic": "norm_sum",
+              "grade": 12,
+              "standardFormula": "\\overrightarrow{AB}+\\overrightarrow{BC}=\\overrightarrow{AC}",
+              "theoremSummary": "Dựng hai vectơ nối đuôi; vectơ từ đầu thứ nhất tới cuối thứ hai là tổng.",
+              "misconceptionId": "MISC_VEC_005",
+              "misconceptionName": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+              "misconceptionFrequency": 0.85,
+              "boTrapPattern": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+              "rebuttalAnchor": "Phải dựng vectơ tổng rồi tính độ dài; bằng tổng độ dài chỉ khi hai vectơ khác không cùng hướng, hoặc có vectơ không.",
+              "scaffoldingNudges": [
+                "Em đang cộng vectơ hay cộng độ dài?",
+                "Dời hai vectơ để dựng đường chéo được không?",
+                "Dùng định lý nào cho đường chéo hình vuông?"
+              ]
+            }
+          ],
+          "count": 1,
+          "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_005"
         },
         "isValid": true,
-        "timestampMs": 1730217604000
+        "timestampMs": 1793367660676
       },
-      "timestamp": "2026-10-29T16:00:04.000Z"
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_005",
+      "id": "EVT_1793367660677_vnisq",
       "eventType": "tool_result",
       "agentId": "bo",
-      "agentDisplayName": "Bo (H??? 1 - Tr???c gi??c)",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
       "secondTarget": 2233,
-      "content": "K???t qu??? truy v???n RAG: T??m th???y MISC_VEC_005 (T???n su???t sai 72% h???c sinh). Bo ph??t hi???n c?? h???i tung b???y shortcut!",
+      "content": "Kết quả tra cứu KB: MISC_VEC_005 — Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
       "toolCall": {
         "toolName": "tool_query_misconception_kb",
         "input": {
           "misconceptionId": "MISC_VEC_005"
         },
         "output": {
-          "found": true,
-          "misconception": {
-            "id": "MISC_VEC_005",
-            "title": "C???ng ????? d??i vect?? theo s??? h???c ?????i s??? th??ng th?????ng: |u + v| = |u| + |v|",
-            "frequency": 0.72
-          }
+          "isValid": true,
+          "output": [
+            {
+              "id": "MISC_VEC_005",
+              "topic": "norm_sum",
+              "grade": 12,
+              "standardFormula": "\\overrightarrow{AB}+\\overrightarrow{BC}=\\overrightarrow{AC}",
+              "theoremSummary": "Dựng hai vectơ nối đuôi; vectơ từ đầu thứ nhất tới cuối thứ hai là tổng.",
+              "misconceptionId": "MISC_VEC_005",
+              "misconceptionName": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+              "misconceptionFrequency": 0.85,
+              "boTrapPattern": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+              "rebuttalAnchor": "Phải dựng vectơ tổng rồi tính độ dài; bằng tổng độ dài chỉ khi hai vectơ khác không cùng hướng, hoặc có vectơ không.",
+              "scaffoldingNudges": [
+                "Em đang cộng vectơ hay cộng độ dài?",
+                "Dời hai vectơ để dựng đường chéo được không?",
+                "Dùng định lý nào cho đường chéo hình vuông?"
+              ]
+            }
+          ],
+          "count": 1,
+          "reason": "Tìm thấy ngộ nhận chính xác theo mã MISC_VEC_005"
         },
         "isValid": true,
-        "timestampMs": 1730217604500
+        "timestampMs": 1793367660676
       },
-      "timestamp": "2026-10-29T16:00:05.000Z"
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_006",
+      "id": "EVT_1793367660677_t8y0z",
       "eventType": "thought",
       "agentId": "bo",
-      "agentDisplayName": "Bo (H??? 1 - Tr???c gi??c)",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
       "secondTarget": 2233,
-      "content": "Bo mu???n ????? xu???t b???y shortcut t??nh nhanh v?? ??o??n m?? vect?? t???ng l?? AB.",
-      "timestamp": "2026-10-29T16:00:06.000Z"
+      "content": "Bo muốn đề xuất bẫy shortcut tính nhanh và đoán mò vectơ tổng là AB.",
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_007",
+      "id": "EVT_1793367660677_nhthg",
       "eventType": "debate_turn",
       "agentId": "bo",
-      "agentDisplayName": "Bo (H??? 1 - Tr???c gi??c)",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
       "secondTarget": 2233,
-      "content": "C???ng ????? d??i cho l???: |BC + DD'| = 1 + 1 = 2! V???i l???i vect?? BC c???ng DD' ch???c ch???n ra lu??n vect?? AB r???i!",
-      "timestamp": "2026-10-29T16:00:07.000Z"
+      "content": "Cộng độ dài cho lẹ: |BC + DD'| = 1 + 1 = 2! Với lại vectơ BC cộng DD' chắc chắn ra luôn vectơ AB rồi!",
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_008",
+      "id": "EVT_1793367660677_xtxjs",
       "eventType": "thought",
       "agentId": "tri",
-      "agentDisplayName": "Tr?? (H??? 2 - Logic)",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
       "secondTarget": 2233,
-      "content": "Tr?? ??ang ki???m ch???ng ph??t bi???u c???a Bo qua tool to??? ????? h??nh h???c 3D Deterministic Tool...",
-      "timestamp": "2026-10-29T16:00:08.000Z"
+      "content": "Trí kích hoạt tool_verify_vector_algebra để kiểm chứng đề xuất \"AB\" của Bo.",
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_009",
+      "id": "EVT_1793367660677_bhybo",
       "eventType": "tool_call",
       "agentId": "tri",
-      "agentDisplayName": "Tr?? (H??? 2 - Logic)",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
       "secondTarget": 2233,
-      "content": "Tr?? k??ch ho???t tool ki???m ch???ng h??nh h???c kh??ng gian: tool_verify_vector_algebra",
+      "content": "Kích hoạt tool_verify_vector_algebra với claim \"AB\"",
       "toolCall": {
         "toolName": "tool_verify_vector_algebra",
         "input": {
@@ -134,25 +224,29 @@
           "claim": "AB"
         },
         "output": {
-          "expr": "|BC + DD'|",
-          "claim": "AB",
-          "correctVector": "BC'",
-          "correctLength": "a???2",
-          "isClaimValid": false,
-          "reason": "BC + DD' = BC + CC' = BC'. Vect?? BC' c?? ph????ng ch??o m???t b??n (BCC'B'), ho??n to??n kh??c ph????ng v?? ????? d??i vect?? c???nh ????y AB!"
+          "isValid": false,
+          "correct": "a\\sqrt{2}",
+          "calculatedValue": 1.414,
+          "claimValue": null,
+          "reason": "Vectơ AB có tọa độ [1, 0, 0] (độ dài 1.00), không khớp với vectơ tổng của |BC + DD'| (độ dài a\\sqrt{2}).",
+          "steps": [
+            "Tính toán tọa độ biểu thức: [0, 1, 1].",
+            "Tọa độ vectơ được nêu: [1, 0, 0]."
+          ]
         },
         "isValid": false,
-        "timestampMs": 1730217609000
+        "timestampMs": 1793367660677
       },
-      "timestamp": "2026-10-29T16:00:09.000Z"
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_010",
+      "id": "EVT_1793367660677_sslbw",
       "eventType": "tool_result",
       "agentId": "tri",
-      "agentDisplayName": "Tr?? (H??? 2 - Logic)",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
       "secondTarget": 2233,
-      "content": "K???t qu??? tool to??? ????? 3D: isValid = false! Claim 'AB' c???a Bo ho??n to??n sai l???ch h??nh h???c.",
+      "content": "Tool trả về isValid: false — Vectơ AB có tọa độ [1, 0, 0] (độ dài 1.00), không khớp với vectơ tổng của |BC + DD'| (độ dài a\\sqrt{2}).",
       "toolCall": {
         "toolName": "tool_verify_vector_algebra",
         "input": {
@@ -162,22 +256,29 @@
           "claim": "AB"
         },
         "output": {
-          "correctVector": "BC'",
-          "correctLength": "a???2",
-          "isClaimValid": false
+          "isValid": false,
+          "correct": "a\\sqrt{2}",
+          "calculatedValue": 1.414,
+          "claimValue": null,
+          "reason": "Vectơ AB có tọa độ [1, 0, 0] (độ dài 1.00), không khớp với vectơ tổng của |BC + DD'| (độ dài a\\sqrt{2}).",
+          "steps": [
+            "Tính toán tọa độ biểu thức: [0, 1, 1].",
+            "Tọa độ vectơ được nêu: [1, 0, 0]."
+          ]
         },
         "isValid": false,
-        "timestampMs": 1730217609500
+        "timestampMs": 1793367660677
       },
-      "timestamp": "2026-10-29T16:00:10.000Z"
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_011",
+      "id": "EVT_1793367660677_g2wzb",
       "eventType": "cross_check_verdict",
       "agentId": "tri",
-      "agentDisplayName": "Tr?? (H??? 2 - Logic)",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
       "secondTarget": 2233,
-      "content": "Bo nh???m to r???i! T??? v???a ch???y to??? ????? ki???m ch???ng: BC + DD' = BC + CC' = BC', ph????ng ch??o m???t b??n BCC'B', kh??ng th??? n??o b???ng vect?? AB ???????c! H??n n???a, ????? d??i |BC'| = a???2 ch??? kh??ng ph???i 2a. ????? xu???t 'AB' sai ki???u kh??ng c?? c?? s??? th???c t???, h???c sinh s??? kh??ng ai ngh?? ra ???????c!",
+      "content": "Bo nhầm to rồi! Tớ vừa chạy tool kiểm chứng: Vectơ AB có tọa độ [1, 0, 0] (độ dài 1.00), không khớp với vectơ tổng của |BC + DD'| (độ dài a\\sqrt{2}). Đề xuất \"AB\" sai nhưng không theo cơ chế ngộ nhận nào của học sinh, bẫy như vậy là \"sai kiểu không có thật\", học sinh sẽ thấy vô lý ngay. Cậu hãy giữ đúng bản chất ngộ nhận thôi!",
       "toolCall": {
         "toolName": "tool_verify_vector_algebra",
         "input": {
@@ -187,39 +288,59 @@
           "claim": "AB"
         },
         "output": {
-          "correct": "a???2",
-          "reason": "BC + DD' = BC + CC' = BC'. Vect?? BC' c?? ph????ng ch??o m???t b??n (BCC'B'), kh??c ph????ng vect?? AB."
+          "isValid": false,
+          "correct": "a\\sqrt{2}",
+          "calculatedValue": 1.414,
+          "claimValue": null,
+          "reason": "Vectơ AB có tọa độ [1, 0, 0] (độ dài 1.00), không khớp với vectơ tổng của |BC + DD'| (độ dài a\\sqrt{2}).",
+          "steps": [
+            "Tính toán tọa độ biểu thức: [0, 1, 1].",
+            "Tọa độ vectơ được nêu: [1, 0, 0]."
+          ]
         },
         "isValid": false,
-        "timestampMs": 1730217610000
+        "timestampMs": 1793367660677
       },
-      "timestamp": "2026-10-29T16:00:11.000Z"
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_012",
+      "id": "EVT_1793367660677_bvdz2",
       "eventType": "thought",
       "agentId": "bo",
-      "agentDisplayName": "Bo (H??? 1 - Tr???c gi??c)",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
       "secondTarget": 2233,
-      "content": "Bo nh???n ra m??nh ??o??n m?? vect?? AB l?? v?? c??n c???. Bo s???a l???i b???y th??nh ng??? nh???n t??? nhi??n nh???t c???a h???c sinh: l???y ????? d??i c???ng ????? d??i th??nh 2a.",
-      "timestamp": "2026-10-29T16:00:12.000Z"
+      "content": "Bo chuyển sang bẫy ngộ nhận cộng trực tiếp độ dài hai cạnh.",
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_013",
+      "id": "EVT_1793367660677_q8r7p",
       "eventType": "debate_turn",
       "agentId": "bo",
-      "agentDisplayName": "Bo (H??? 1 - Tr???c gi??c)",
+      "agentDisplayName": "Bo (Hệ 1 - Trực giác)",
       "secondTarget": 2233,
-      "content": "???a t??? v???i qu?? nh??n nh???m! Nh??ng b???y n??y th?? ch???c ch???n ai c??ng d??nh n??: V?? BC c?? ????? d??i a, DD' c?? ????? d??i a, n??n ????? d??i t???ng |BC + DD'| = a + a = 2a! C??? th???y d???u c???ng l?? c???ng ?????i s??? th??i, si??u nhanh!",
-      "timestamp": "2026-10-29T16:00:13.000Z"
+      "content": "À tớ nhìn nhầm đỉnh! Nhưng về độ dài thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!",
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_014",
-      "eventType": "cross_check_verdict",
+      "id": "EVT_1793367660677_ih2c1",
+      "eventType": "thought",
       "agentId": "tri",
-      "agentDisplayName": "Tr?? (H??? 2 - Logic)",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
       "secondTarget": 2233,
-      "content": "B???y n??y r???t t??? nhi??n! H???c sinh th?????ng l???y ngay |BC| + |DD'| = a + a = 2a do th??i quen ?????i s??? v?? h?????ng. T??? ?????ng thu???n ????a b???y 2a n??y v??o Checkpoint th??ch ????? v?? n?? ph???n ??nh ch??nh x??c ng??? nh???n b???n ch???t!",
+      "content": "Trí kích hoạt tool_verify_vector_algebra để kiểm chứng đề xuất \"2a\" của Bo.",
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
+    },
+    {
+      "id": "EVT_1793367660677_u7lfy",
+      "eventType": "tool_call",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 2233,
+      "content": "Kích hoạt tool_verify_vector_algebra với claim \"2a\"",
       "toolCall": {
         "toolName": "tool_verify_vector_algebra",
         "input": {
@@ -229,194 +350,589 @@
           "claim": "2a"
         },
         "output": {
-          "correct": "a???2",
-          "reason": "Vect?? t???ng l?? BC' c?? ????? d??i c??n(a^2 + a^2) = a???2. Kh???ng ?????nh 2a vi ph???m b???t ?????ng th???c tam gi??c."
+          "isValid": false,
+          "correct": "a\\sqrt{2}",
+          "calculatedValue": 1.414,
+          "claimValue": 2,
+          "reason": "BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài a + a = 2a.",
+          "steps": [
+            "1. Vectơ DD' bằng vectơ CC' (hai cạnh bên cùng hướng trong hình lập phương).",
+            "2. Thay thế: \\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}.",
+            "3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = a\\sqrt{2}.",
+            "4. Sai lầm mắc phải: cộng trực tiếp độ dài hai vectơ vuông góc |\\vec{u} + \\vec{v}| = |\\vec{u}| + |\\vec{v}| là sai."
+          ]
         },
         "isValid": false,
-        "timestampMs": 1730217614000
+        "timestampMs": 1793367660677
       },
-      "timestamp": "2026-10-29T16:00:14.000Z"
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_015",
+      "id": "EVT_1793367660677_95h40",
+      "eventType": "tool_result",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 2233,
+      "content": "Tool trả về isValid: false — BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài a + a = 2a.",
+      "toolCall": {
+        "toolName": "tool_verify_vector_algebra",
+        "input": {
+          "shape": "cube",
+          "side": "a",
+          "expr": "|BC + DD'|",
+          "claim": "2a"
+        },
+        "output": {
+          "isValid": false,
+          "correct": "a\\sqrt{2}",
+          "calculatedValue": 1.414,
+          "claimValue": 2,
+          "reason": "BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài a + a = 2a.",
+          "steps": [
+            "1. Vectơ DD' bằng vectơ CC' (hai cạnh bên cùng hướng trong hình lập phương).",
+            "2. Thay thế: \\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}.",
+            "3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = a\\sqrt{2}.",
+            "4. Sai lầm mắc phải: cộng trực tiếp độ dài hai vectơ vuông góc |\\vec{u} + \\vec{v}| = |\\vec{u}| + |\\vec{v}| là sai."
+          ]
+        },
+        "isValid": false,
+        "timestampMs": 1793367660677
+      },
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
+    },
+    {
+      "id": "EVT_1793367660677_xuckr",
+      "eventType": "cross_check_verdict",
+      "agentId": "tri",
+      "agentDisplayName": "Trí (Hệ 2 - Logic)",
+      "secondTarget": 2233,
+      "content": "Bẫy này rất tự nhiên! Học sinh thường lấy ngay |BC| + |DD'| = a + a = 2a do thói quen đại số, quên mất bất đẳng thức tam giác và định lý Pytago đường chéo BC' = a√2. Tớ đồng ý chọn bẫy này!",
+      "toolCall": {
+        "toolName": "tool_verify_vector_algebra",
+        "input": {
+          "shape": "cube",
+          "side": "a",
+          "expr": "|BC + DD'|",
+          "claim": "2a"
+        },
+        "output": {
+          "isValid": false,
+          "correct": "a\\sqrt{2}",
+          "calculatedValue": 1.414,
+          "claimValue": 2,
+          "reason": "BC + DD' = BC + CC' = BC' (đường chéo mặt bên), độ dài là a\\sqrt{2}, không thể cộng trực tiếp độ dài a + a = 2a.",
+          "steps": [
+            "1. Vectơ DD' bằng vectơ CC' (hai cạnh bên cùng hướng trong hình lập phương).",
+            "2. Thay thế: \\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}.",
+            "3. Tam giác BCC' vuông tại C nên |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = a\\sqrt{2}.",
+            "4. Sai lầm mắc phải: cộng trực tiếp độ dài hai vectơ vuông góc |\\vec{u} + \\vec{v}| = |\\vec{u}| + |\\vec{v}| là sai."
+          ]
+        },
+        "isValid": false,
+        "timestampMs": 1793367660677
+      },
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
+    },
+    {
+      "id": "EVT_1793367660677_g9q34",
       "eventType": "thought",
       "agentId": "linhchi",
-      "agentDisplayName": "Linh Chi (Th?? k??)",
+      "agentDisplayName": "Linh Chi (Note Taker)",
       "secondTarget": 2233,
-      "content": "Linh Chi t???ng h???p s??? tay ghi nh???: Ph??n bi???t quy t???c c???ng vect?? v?? b???t ?????ng th???c tam gi??c |u + v| <= |u| + |v|.",
-      "timestamp": "2026-10-29T16:00:15.000Z"
+      "content": "Linh Chi trích xuất quy tắc sư phạm và lập bảng ghi chú bỏ túi cho học sinh.",
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_016",
+      "id": "EVT_1793367660677_x0ou0",
       "eventType": "debate_turn",
       "agentId": "linhchi",
-      "agentDisplayName": "Linh Chi (Th?? k??)",
+      "agentDisplayName": "Linh Chi (Note Taker)",
       "secondTarget": 2233,
-      "content": "Chi ???? ghi ch?? v??o S??? tay To??n h???c: \n1. Mu???n t??nh ????? d??i t???ng vect??, b???t bu???c ph???i gom v??? M???T vect?? duy nh???t r???i m???i l???y ????? d??i: BC + DD' = BC + CC' = BC' => |BC'| = a???2.\n2. C??ng th???c b???t ?????ng th???c tam gi??c: |u + v| ??? |u| + |v|. D???u '=' CH??? x???y ra khi hai vect?? c??ng h?????ng!",
-      "timestamp": "2026-10-29T16:00:16.000Z"
+      "content": "Linh Chi note vào sổ tay nè: Muốn tính độ dài vectơ tổng, bước 1 là tìm vectơ thay thế để gom về một vectơ duy nhất (DD' = CC' => BC + CC' = BC'), sau đó mới tính Pytago đường chéo ra a√2!",
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_017",
+      "id": "EVT_1793367660677_5o0xy",
+      "eventType": "thought",
+      "agentId": "minhkhang",
+      "agentDisplayName": "Minh Khang (Trực quan)",
+      "secondTarget": 2233,
+      "content": "Minh Khang liên hệ bài toán với hiện tượng đời sống hàng ngày để học sinh dễ nhớ.",
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
+    },
+    {
+      "id": "EVT_1793367660677_9beir",
       "eventType": "debate_turn",
       "agentId": "minhkhang",
-      "agentDisplayName": "Minh Khang (Tr???c quan)",
+      "agentDisplayName": "Minh Khang (Trực quan)",
       "secondTarget": 2233,
-      "content": "M???i ng?????i h??nh dung nh?? k??o m???t th??ng h??ng ??? g??c s??n tr?????ng ???y: M???t b???n k??o sang h?????ng ????ng 1 m??t, m???t b???n k??o th???ng l??n tr??n cao 1 m??t. Th??ng h??ng s??? bay ch??o l??n theo ???????ng ch??o v???i kho???ng c??ch ???2 m??t th??i, ch??? th??ng h??ng kh??ng th??? t??? ph??n th??n ??i 2 m??t ???????c!",
-      "timestamp": "2026-10-29T16:00:17.000Z"
+      "content": "Minh Khang ví von đời sống nè: Giống như bạn đi bộ từ nhà ra đầu ngõ a mét rồi rẽ vuông góc đi tiếp a mét. Khoảng cách đường chim bay từ nhà đến điểm cuối là cạnh huyền a√2, làm sao mà lấy a + a = 2a được!",
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_018",
-      "eventType": "thought",
-      "agentId": "colam",
-      "agentDisplayName": "C?? Lam (Director)",
-      "secondTarget": 2233,
-      "content": "C?? Lam g???i tool th???m ?????nh m???c ????? Bloom ????? ?????m b???o c??u h???i checkpoint ?????t chu???n nh???n th???c ph??n t??ch (Analyze >= 4).",
-      "timestamp": "2026-10-29T16:00:18.000Z"
-    },
-    {
-      "id": "evt_part3_019",
+      "id": "EVT_1793367660677_kdqli",
       "eventType": "tool_call",
       "agentId": "colam",
-      "agentDisplayName": "C?? Lam (Director)",
+      "agentDisplayName": "Cô Lam (Director)",
       "secondTarget": 2233,
-      "content": "C?? Lam th???m ?????nh c??u h???i qua tool: tool_evaluate_bloom_level",
+      "content": "Thẩm định bậc Bloom cho câu hỏi checkpoint: tool_evaluate_bloom_level",
       "toolCall": {
         "toolName": "tool_evaluate_bloom_level",
         "input": {
-          "question": "T??nh ????? d??i t???ng vect?? |BC + DD'| trong h??nh l???p ph????ng c???nh a. Bo kh???ng ?????nh b???ng 2a ????ng hay sai?",
+          "question": "Cho hình lập phương ABCD.A'B'C'D' cạnh a. Hãy tính độ dài của vectơ tổng BC + DD' và phân tích sai lầm trong cách tính của bạn Bo. Phát biểu nào sau đây chính xác?",
           "expected_points": [
-            "Thay DD' b???ng CC' do hai vect?? b???ng nhau",
-            "S??? d???ng quy t???c tam gi??c: BC + CC' = BC'",
-            "T??nh ????? d??i ???????ng ch??o h??nh vu??ng BC' = a???2",
-            "B??c b??? sai l???m c???ng ????? d??i s??? h???c v?? h?????ng"
+            "Chỉ ra DD' = CC'",
+            "Tính độ dài đường chéo bằng Pytago",
+            "Phân tích bẫy ngộ nhận cộng độ dài đại số"
           ]
         },
         "output": {
+          "isValid": true,
           "level": "Analyze",
-          "score": 5,
-          "isPedagogicallySound": true,
-          "recommendation": "C??u h???i ph??n t??ch h??nh h???c k???t h???p b???y nh???n th???c r???t s???c b??n, ?????t chu???n s?? ph???m cao."
+          "score": 4,
+          "indicatorsFound": [
+            "Remember: [phát biểu]",
+            "Apply: [tính]",
+            "Analyze: [phân tích, bẫy, ngộ nhận]"
+          ],
+          "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+          "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
         },
         "isValid": true,
-        "timestampMs": 1730217619000
+        "timestampMs": 1793367660677
       },
-      "timestamp": "2026-10-29T16:00:19.000Z"
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
     },
     {
-      "id": "evt_part3_020",
+      "id": "EVT_1793367660677_aeqya",
+      "eventType": "tool_result",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 2233,
+      "content": "Mức Bloom thẩm định: Analyze (Điểm: 4/6)",
+      "toolCall": {
+        "toolName": "tool_evaluate_bloom_level",
+        "input": {
+          "question": "Cho hình lập phương ABCD.A'B'C'D' cạnh a. Hãy tính độ dài của vectơ tổng BC + DD' và phân tích sai lầm trong cách tính của bạn Bo. Phát biểu nào sau đây chính xác?",
+          "expected_points": [
+            "Chỉ ra DD' = CC'",
+            "Tính độ dài đường chéo bằng Pytago",
+            "Phân tích bẫy ngộ nhận cộng độ dài đại số"
+          ]
+        },
+        "output": {
+          "isValid": true,
+          "level": "Analyze",
+          "score": 4,
+          "indicatorsFound": [
+            "Remember: [phát biểu]",
+            "Apply: [tính]",
+            "Analyze: [phân tích, bẫy, ngộ nhận]"
+          ],
+          "rationale": "Câu hỏi thuộc cấp độ Analyze (Mức 4/6). Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.",
+          "suggestions": "Cấp độ tư duy phù hợp với chuẩn bài học tương tác sâu (DRE)."
+        },
+        "isValid": true,
+        "timestampMs": 1793367660677
+      },
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
+    },
+    {
+      "id": "EVT_1793367660677_cmko5",
+      "eventType": "tool_call",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 2233,
+      "content": "Kiểm tra nhịp thời gian bài giảng và chống va chạm (Pacing Checker)",
+      "toolCall": {
+        "toolName": "tool_timeline_collision_checker",
+        "input": {
+          "events": [
+            {
+              "id": "stop_2233",
+              "at_s": 2233,
+              "actor_id": "colam",
+              "type": "checkpoint"
+            },
+            {
+              "id": "bo_challenge_2235",
+              "at_s": 2235,
+              "actor_id": "bo",
+              "type": "comment",
+              "chainedTo": "stop_2233"
+            }
+          ],
+          "minGapS": 20,
+          "warmupPeriodS": 15,
+          "maxCheckpoints": 1
+        },
+        "output": {
+          "isValid": true,
+          "collisions": [],
+          "warnings": [],
+          "suggestions": [],
+          "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+        },
+        "isValid": true,
+        "timestampMs": 1793367660677
+      },
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
+    },
+    {
+      "id": "EVT_1793367660677_ss666",
+      "eventType": "tool_result",
+      "agentId": "colam",
+      "agentDisplayName": "Cô Lam (Director)",
+      "secondTarget": 2233,
+      "content": "Kết quả Pacing: Hợp lệ (Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt.)",
+      "toolCall": {
+        "toolName": "tool_timeline_collision_checker",
+        "input": {
+          "events": [
+            {
+              "id": "stop_2233",
+              "at_s": 2233,
+              "actor_id": "colam",
+              "type": "checkpoint"
+            },
+            {
+              "id": "bo_challenge_2235",
+              "at_s": 2235,
+              "actor_id": "bo",
+              "type": "comment",
+              "chainedTo": "stop_2233"
+            }
+          ],
+          "minGapS": 20,
+          "warmupPeriodS": 15,
+          "maxCheckpoints": 1
+        },
+        "output": {
+          "isValid": true,
+          "collisions": [],
+          "warnings": [],
+          "suggestions": [],
+          "reason": "Dòng thời gian hợp lệ: 2 sự kiện cách nhau tối thiểu 20s (hoặc được nối chuỗi trong cùng mốc dừng), nhịp sư phạm tốt."
+        },
+        "isValid": true,
+        "timestampMs": 1793367660677
+      },
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
+    },
+    {
+      "id": "EVT_1793367660677_tc5wa",
       "eventType": "checkpoint_created",
       "agentId": "colam",
-      "agentDisplayName": "C?? Lam (Director)",
+      "agentDisplayName": "Cô Lam (Director)",
       "secondTarget": 2233,
-      "content": "Xu???t s???c! C?? ph?? duy???t Checkpoint t???i m???c 37:13 (2233s). ???? ch???t c??u h???i th??ch ????? c???a Bo, s?? ????? ki???m ch???ng c???a Tr??, s??? tay c???a Linh Chi v?? m?? h??nh tr???c quan c???a Minh Khang.",
-      "timestamp": "2026-10-29T16:00:20.000Z"
+      "content": "Cô chốt checkpoint dừng tại giây thứ 2233 (37:13) và gửi bản nháp để giáo viên duyệt. Các em chú ý: không bao giờ cộng độ dài trực tiếp mà phải quy về một vectơ tổng trước!",
+      "timestamp": "2026-10-30T13:41:00.677Z",
+      "runId": "run_vecto12_part3_wow_moment"
     }
   ],
-  "lessonDraft": {
-    "lessonId": "VID_VECTO_12_TIEN",
-    "title": "B??i 1.1: Vect?? Trong Kh??ng Gian - Th???y Nguy???n Phan Ti???n",
-    "videoUrl": "https://www.youtube.com/watch?v=mock_vecto12",
-    "durationSeconds": 3480,
-    "checkpoints": [
+  "lesson": {
+    "lesson_id": "lesson_VID_VECTO_12_TIEN_draft",
+    "version": "0.1.0-draft",
+    "status": "draft",
+    "title": "Bài 1.1: Vectơ Trong Không Gian - Toán 12 (SGK Mới) || Thầy Nguyễn Phan Tiến",
+    "subject": "Hình học 12 (Chương trình GDPT 2018)",
+    "video_url": "",
+    "video_duration_s": 9503,
+    "sources": [
       {
-        "id": "cp_seg_37_13",
-        "second": 2233,
-        "title": "??i???m d???ng 37:13: B???y t??nh ????? d??i |BC + DD'| trong h??nh l???p ph????ng",
-        "questionText": "Cho h??nh l???p ph????ng ABCD.A'B'C'D' c???nh b???ng a. T??nh ????? d??i t???ng vect?? |\\vec{BC} + \\vec{DD'}|. B???n Bo th??ch ?????: 'C??? c???ng ?????i s??? l?? ra 2a!'. ?? ki???n c???a b???n th??? n??o?",
-        "blackboardFormula": "|\\vec{BC} + \\vec{DD'}| = |\\vec{BC} + \\vec{CC'}| = |\\vec{BC'}| = a\\sqrt{2}",
-        "boInitialChallenge": "???a t??? v???i qu?? nh??n nh???m! Nh??ng b???y n??y th?? ch???c ch???n ai c??ng d??nh n??: V?? BC c?? ????? d??i a, DD' c?? ????? d??i a, n??n ????? d??i t???ng |BC + DD'| = a + a = 2a! C??? th???y d???u c???ng l?? c???ng ?????i s??? th??i, si??u nhanh!",
-        "options": [
+        "source_id": "seg_00_08",
+        "type": "blackboard",
+        "start_s": 8,
+        "end_s": 78,
+        "content": "Chào các em! Hôm nay chúng ta bắt đầu bài đầu tiên của Hình học 12: Vectơ trong không gian.\nCHƯƠNG II: VECTƠ TRONG KHÔNG GIAN\nBài 1.1: Định nghĩa, Tổng và Hiệu hai vectơ",
+        "latex": [
+          "\\vec{AB}"
+        ],
+        "geometry_meta": {
+          "shapeType": "general_3d",
+          "vertices": [
+            "A",
+            "B"
+          ],
+          "highlightedVectors": [
+            "AB"
+          ],
+          "actionDescription": "Vẽ mũi tên từ điểm A tới điểm B trong không gian"
+        }
+      },
+      {
+        "source_id": "seg_01_18",
+        "type": "blackboard",
+        "start_s": 78,
+        "end_s": 282,
+        "content": "Vectơ trong không gian là một đoạn thẳng có hướng. Điểm A là điểm đầu, điểm B là điểm cuối. Đoạn thẳng AB thì bằng BA, nhưng vectơ AB khác vectơ BA vì ngược hướng.\n1. Định nghĩa:\n• Đoạn thẳng: AB = BA\n• Vectơ: \\vec{AB} ≠ \\vec{BA} (ngược hướng)",
+        "latex": [
+          "AB = BA",
+          "\\vec{AB} \\neq \\vec{BA}"
+        ]
+      },
+      {
+        "source_id": "seg_04_42",
+        "type": "blackboard",
+        "start_s": 282,
+        "end_s": 1350,
+        "content": "Hai vectơ được gọi là cùng phương nếu giá của chúng song song hoặc trùng nhau. Chú ý: Hai đường thẳng chéo nhau thì không cùng phương, không được xét cùng hướng hay ngược hướng.\n2. Cùng phương, cùng hướng:\n• Giá song song hoặc trùng nhau <=> Cùng phương\n• Chéo nhau => KHÔNG cùng phương",
+        "latex": [
+          "\\vec{a} \\parallel \\vec{b} \\iff \\text{Giá}(\\vec{a}) \\parallel \\text{Giá}(\\vec{b})"
+        ]
+      },
+      {
+        "source_id": "seg_22_30",
+        "type": "blackboard",
+        "start_s": 1350,
+        "end_s": 1813,
+        "content": "Quy tắc 3 điểm: OA cộng AB bằng OB. Quy tắc hình bình hành: chung gốc A thì AB cộng AD bằng AC.\n3. Quy tắc cộng vectơ:\n• 3 điểm: \\vec{OA} + \\vec{AB} = \\vec{OB}\n• Hình bình hành: \\vec{AB} + \\vec{AD} = \\vec{AC}",
+        "latex": [
+          "\\vec{OA} + \\vec{AB} = \\vec{OB}",
+          "\\vec{AB} + \\vec{AD} = \\vec{AC}"
+        ],
+        "geometry_meta": {
+          "shapeType": "plane",
+          "vertices": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          "highlightedVectors": [
+            "AB",
+            "AD",
+            "AC"
+          ],
+          "actionDescription": "Vẽ hình bình hành ABCD với đường chéo AC"
+        }
+      },
+      {
+        "source_id": "seg_30_13",
+        "type": "blackboard",
+        "start_s": 1813,
+        "end_s": 2233,
+        "content": "Quy tắc hình hộp: Xuất phát từ gốc A, tổng 3 cạnh AB cộng AD cộng AA' bằng đường chéo xuyên tâm AC'.\n4. Quy tắc hình hộp:\n\\vec{AB} + \\vec{AD} + \\vec{AA'} = \\vec{AC'}",
+        "latex": [
+          "\\vec{AB} + \\vec{AD} + \\vec{AA'} = \\vec{AC'}"
+        ],
+        "geometry_meta": {
+          "shapeType": "cuboid",
+          "vertices": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "A'",
+            "B'",
+            "C'",
+            "D'"
+          ],
+          "highlightedVectors": [
+            "AB",
+            "AD",
+            "AA'",
+            "AC'"
+          ],
+          "actionDescription": "Vẽ hình hộp chữ nhật với đường chéo không gian AC'"
+        }
+      },
+      {
+        "source_id": "seg_37_13",
+        "type": "blackboard",
+        "start_s": 2233,
+        "end_s": 3134,
+        "content": "Ví dụ 3: Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính độ dài tổng vectơ BC cộng DD'. Chú ý: Tuyệt đối không được tách thành |BC| + |DD'| bằng 1 + 1 = 2!\nVí dụ 3 (37:13):\nCho hình lập phương ABCD.A'B'C'D' cạnh = 1.\nTính: |\\vec{BC} + \\vec{DD'}|\nSAI LẦM: |\\vec{BC}| + |\\vec{DD'}| = 1 + 1 = 2 (SAI)",
+        "latex": [
+          "|\\vec{BC} + \\vec{DD'}|",
+          "|\\vec{BC}| + |\\vec{DD'}| = 1 + 1 = 2 \\quad (\\text{SAI})",
+          "\\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'} = \\sqrt{1^2 + 1^2} = \\sqrt{2}"
+        ],
+        "geometry_meta": {
+          "shapeType": "cube",
+          "vertices": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "A'",
+            "B'",
+            "C'",
+            "D'"
+          ],
+          "highlightedVectors": [
+            "BC",
+            "DD'",
+            "CC'",
+            "BC'"
+          ],
+          "actionDescription": "Hình lập phương cạnh 1, tam giác BCC' vuông cân tại C, đường chéo BC' = căn 2"
+        }
+      },
+      {
+        "source_id": "seg_52_14",
+        "type": "blackboard",
+        "start_s": 3134,
+        "end_s": 9503,
+        "content": "Quy tắc trừ: Hiệu hai vectơ chung gốc OA trừ OB bằng vectơ BA. Khẩu quyết: Chung đầu - Lộn ngược, điểm sau viết trước, điểm trước viết sau.\n5. Quy tắc trừ (Chung đầu - Lộn ngược):\n\\vec{OA} - \\vec{OB} = \\vec{BA}",
+        "latex": [
+          "\\vec{OA} - \\vec{OB} = \\vec{BA}"
+        ]
+      }
+    ],
+    "parts": [
+      {
+        "part_id": "part_3",
+        "start_s": 2000,
+        "end_s": 9503,
+        "concept": "Phần 3: Bài tập Tính toán độ dài & Bẫy cộng độ dài",
+        "context": "Ví dụ 3: Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính độ dài tổng vectơ BC cộng DD'. Chú ý: Tuyệt đối không được tách thành |BC| + |DD'| bằng 1 + 1 = 2!",
+        "goals": [
           {
-            "id": "opt_a",
-            "label": "A. a???2 (????ng - Ph???i thay DD' = CC' r???i t??nh ???????ng ch??o BC')",
-            "isCorrect": true,
-            "feedbackNote": "Ch??nh x??c! Do DD' = CC' n??n BC + DD' = BC + CC' = BC'. V?? tam gi??c BCC' vu??ng t???i C c?? 2 c???nh b???ng a n??n BC' = a???2."
+            "goal_id": "p3_goal_1",
+            "description": "Chỉ ra DD' = CC'",
+            "bloom_target": "Analyze"
           },
           {
-            "id": "opt_b",
-            "label": "B. 2a (Sai - ???? m???c b???y c???ng ????? d??i s??? h???c |u + v| = |u| + |v|)",
-            "isCorrect": false,
-            "misconceptionLinked": "MISC_VEC_005",
-            "feedbackNote": "B???n ???? d??nh b???y c???a Bo! ????? d??i c???a t???ng KH??NG B???NG t???ng ????? d??i. C???n ????a v??? m???t vect?? t???ng duy nh???t tr?????c khi l???y ????? d??i."
+            "goal_id": "p3_goal_2",
+            "description": "Tính độ dài đường chéo bằng Pytago",
+            "bloom_target": "Analyze"
           },
           {
-            "id": "opt_c",
-            "label": "C. a (Sai - L???y hi???u ????? d??i ho???c ch??? t??nh 1 c???nh)",
-            "isCorrect": false,
-            "misconceptionLinked": "MISC_VEC_001",
-            "feedbackNote": "Sai r???i. Vect?? BC v?? DD' vu??ng g??c nhau trong kh??ng gian, t???ng kh??ng th??? b???ng a."
-          },
-          {
-            "id": "opt_d",
-            "label": "D. a???3 (Sai - Nh???m sang ???????ng ch??o xuy??n t??m AC')",
-            "isCorrect": false,
-            "misconceptionLinked": "MISC_VEC_004",
-            "feedbackNote": "Sai. ???????ng ch??o AC' = a???3 l?? t???ng c???a 3 vect?? AB + AD + AA', c??n ??? ????y ch??? c?? t???ng 2 vect??."
+            "goal_id": "p3_goal_3",
+            "description": "Phân tích bẫy ngộ nhận cộng độ dài đại số",
+            "bloom_target": "Analyze"
           }
         ],
-        "linhChiCheatSheetSnippet": {
-          "ruleTitle": "Quy t???c t??nh ????? d??i t???ng hai vect??",
-          "rules": [
-            "B?????c 1: T???nh ti???n vect?? ????? ????a v??? chung g???c ho???c n???i ??u??i nhau (thay DD' = CC').",
-            "B?????c 2: Gom v??? M???T vect?? duy nh???t: BC + CC' = BC'.",
-            "B?????c 3: T??nh ????? d??i h??nh h???c c???a vect?? ????: |BC'| = a???2."
-          ],
-          "mnemonicTrap": "Nh??? k???: |u + v| ??? |u| + |v|. Ch??? b???ng nhau khi u v?? v c??ng h?????ng!"
-        }
+        "source_refs": [
+          "seg_37_13",
+          "seg_52_14"
+        ],
+        "pause_questions": [
+          {
+            "question_id": "p3_q_checkpoint",
+            "at_s": 2233,
+            "purpose": "checkpoint_misconception_test",
+            "question_type": "multiple_choice",
+            "question": "Cho hình lập phương ABCD.A'B'C'D' cạnh a. Hãy tính độ dài của vectơ tổng BC + DD' và phân tích sai lầm trong cách tính của bạn Bo. Phát biểu nào sau đây chính xác?",
+            "blackboard_formula": "|\\vec{BC} + \\vec{DD'}|",
+            "options": [
+              {
+                "option_id": "opt_A",
+                "text": "a√2",
+                "is_correct": true
+              },
+              {
+                "option_id": "opt_B",
+                "text": "2a",
+                "is_correct": false,
+                "misconception_linked": "MISC_VEC_005"
+              },
+              {
+                "option_id": "opt_C",
+                "text": "a",
+                "is_correct": false
+              },
+              {
+                "option_id": "opt_D",
+                "text": "a√3",
+                "is_correct": false
+              }
+            ],
+            "correct_option_ids": [
+              "opt_A"
+            ],
+            "explanation": "Chính xác! Vì DD' = CC' nên BC + DD' = BC', tam giác BCC' vuông tại C có đường chéo a√2.",
+            "max_attempts": 2,
+            "allow_skip": true,
+            "on_correct": "trigger_bo_challenge",
+            "on_incorrect": "offer_scaffolding",
+            "on_skip": "flag_unmastered",
+            "misconception_id": "MISC_VEC_005"
+          }
+        ],
+        "scenarios": [
+          {
+            "scenario_id": "p3_sc_bo_trap",
+            "at_s": 2235,
+            "actor_id": "bo",
+            "interaction_type": "bo_trap_bait",
+            "bloom_level": "Analyze",
+            "question": "À tớ nhìn nhầm đỉnh! Nhưng về độ dài thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!",
+            "expected_points": [
+              "Chỉ ra DD' = CC'",
+              "Tính độ dài đường chéo bằng Pytago",
+              "Phân tích bẫy ngộ nhận cộng độ dài đại số"
+            ],
+            "misconception_target": "MISC_VEC_005",
+            "bo_fallacy_statement": "À tớ nhìn nhầm đỉnh! Nhưng về độ dài thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!",
+            "pause_video": true,
+            "wait_timeout_s": 60,
+            "on_correct": "bo_concedes",
+            "on_incorrect": "deepen_bo_challenge",
+            "on_timeout": "offer_hint_or_skip"
+          },
+          {
+            "scenario_id": "p3_sc_linhchi_hint",
+            "at_s": 2237,
+            "actor_id": "linhchi",
+            "interaction_type": "scaffold_hint",
+            "bloom_level": "Analyze",
+            "question": "Linh Chi note vào sổ tay nè: Muốn tính độ dài vectơ tổng, bước 1 là tìm vectơ thay thế để gom về một vectơ duy nhất (DD' = CC' => BC + CC' = BC'), sau đó mới tính Pytago đường chéo ra a√2!",
+            "expected_points": [
+              "Chỉ ra DD' = CC'",
+              "Tính độ dài đường chéo bằng Pytago",
+              "Phân tích bẫy ngộ nhận cộng độ dài đại số"
+            ],
+            "misconception_target": "MISC_VEC_005",
+            "linhchi_cheat_sheet_ref": "Quy tắc cộng & Tính độ dài Vectơ",
+            "pause_video": true,
+            "wait_timeout_s": 45,
+            "on_correct": "confirm_and_resume",
+            "on_incorrect": "open_cheat_sheet",
+            "on_timeout": "ta_nudge_resume"
+          },
+          {
+            "scenario_id": "p3_sc_tri_comment",
+            "at_s": 2258,
+            "actor_id": "tri",
+            "interaction_type": "passive_comment",
+            "question": "Bẫy này rất tự nhiên! Học sinh thường lấy ngay |BC| + |DD'| = a + a = 2a do thói quen đại số, quên mất bất đẳng thức tam giác và định lý Pytago đường chéo BC' = a√2. Tớ đồng ý chọn bẫy này!",
+            "expected_points": [],
+            "misconception_target": "MISC_VEC_005",
+            "pause_video": false,
+            "wait_timeout_s": 0,
+            "on_correct": "confirm_and_resume",
+            "on_incorrect": "hint_then_explain_and_resume",
+            "on_timeout": "ta_nudge_resume"
+          },
+          {
+            "scenario_id": "p3_sc_minhkhang_comment",
+            "at_s": 2278,
+            "actor_id": "minhkhang",
+            "interaction_type": "passive_comment",
+            "question": "Minh Khang ví von đời sống nè: Giống như bạn đi bộ từ nhà ra đầu ngõ a mét rồi rẽ vuông góc đi tiếp a mét. Khoảng cách đường chim bay từ nhà đến điểm cuối là cạnh huyền a√2, làm sao mà lấy a + a = 2a được!",
+            "expected_points": [],
+            "misconception_target": "MISC_VEC_005",
+            "pause_video": false,
+            "wait_timeout_s": 0,
+            "on_correct": "confirm_and_resume",
+            "on_incorrect": "hint_then_explain_and_resume",
+            "on_timeout": "ta_nudge_resume"
+          }
+        ]
       }
-    ],
-    "timelineComments": [
-      {
-        "id": "cmt_37_13_bo",
-        "second": 2233,
-        "author": "Bo",
-        "role": "classmate",
-        "avatarId": "bo",
-        "text": "????? d??i a + a = 2a nh??n h???p l?? qu?? m?? ta, sao l???i l?? a???2 ???????c?",
-        "isPinned": false
-      },
-      {
-        "id": "cmt_37_13_tri",
-        "second": 2234,
-        "author": "Tr??",
-        "role": "classmate",
-        "avatarId": "tri",
-        "text": "V?? BC v?? DD' vu??ng g??c nhau! Khi thay DD' b???ng CC', vect?? t???ng l?? ???????ng ch??o BC' = a???2 theo ?????nh l?? Pytago.",
-        "isPinned": true
-      },
-      {
-        "id": "cmt_37_13_linhchi",
-        "second": 2235,
-        "author": "Linh Chi",
-        "role": "classmate",
-        "avatarId": "linhchi",
-        "text": "C??c b???n xem S??? tay To??n h???c nh??: Gom v??? 1 vect?? tr?????c khi l???y ????? d??i!",
-        "isPinned": true
-      },
-      {
-        "id": "cmt_37_13_minhkhang",
-        "second": 2236,
-        "author": "Minh Khang",
-        "role": "classmate",
-        "avatarId": "minhkhang",
-        "text": "K??o sang ????ng 1m, k??o l??n tr??n 1m th?? v???t d???ch chuy???n ch??o ???2 m th??i nh??!",
-        "isPinned": false
-      },
-      {
-        "id": "cmt_37_13_colam",
-        "second": 2237,
-        "author": "C?? Lam",
-        "role": "teacher",
-        "avatarId": "colam",
-        "text": "R???t t???t c??? l???p! H??y l??m b??i t???p Checkpoint ????? kh???c s??u quy t???c n??y.",
-        "isPinned": true
-      }
-    ],
-    "pedagogicalSummary": {
-      "totalTrapsIdentified": 1,
-      "bloomMasteryTarget": "Analyze",
-      "approvedByTeacher": true,
-      "approvalTimestamp": "2026-10-29T16:00:20.000Z"
-    }
+    ]
   }
 }
