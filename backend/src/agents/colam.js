@@ -63,12 +63,66 @@ export async function coLamConsult({ cauHoiHocVien, baiToan, chuDe }) {
   };
 }
 
-export async function coLamKhoiDong({ baiToan }) {
-  return chatJSON({
+// The checkpoint opening is the only line the student reads while deciding, so it has its own
+// narrow prompt: open the question, never answer it, never address other agents.
+const COLAM_OPENING_PROMPT = `
+Bạn là "Cô Lam", giáo viên AI. Lớp vừa dừng video ở một câu hỏi.
+Viết lời mở câu hỏi gửi riêng cho học sinh:
+- Tối đa 2 câu ngắn, tổng cộng dưới 40 từ, giọng ấm áp.
+- Chỉ mời học sinh tự nghĩ và chọn cách tính. Có thể nhắc một điều cần để ý, ở dạng câu hỏi.
+- Không nêu đáp án, không nêu kết quả, không nêu cách giải, không nêu tiêu chí chấm.
+- Không gọi tên hay giao việc cho bạn học khác (Trí, Bo, Linh Chi, Minh Khang, Trợ giảng An).
+- Không dùng ký hiệu "..." hay "…" thay cho công thức.
+
+Trả về đúng JSON: { "dialogue": "<lời mở>" }
+`.trim();
+
+// \b is ASCII-only, so names ending in a Vietnamese letter need Unicode-aware boundaries.
+const OTHER_AGENTS = /(?<!\p{L})(Trí|Tri|Bo|Linh Chi|Minh Khang|Trợ giảng|An)(?!\p{L})/u;
+const CRITERIA = /(tiêu chí|hoàn thành|resolution|criteria|thang đo bloom)/iu;
+const ELIDED_FORMULA = /\|\s*(…|\.\.\.)\s*\||(…|\.\.\.)/u;
+const MAX_OPENING_CHARS = 220;
+
+/** The value the worked solution ends on (e.g. "√2"), which the opening must not give away. */
+export function finalAnswerOf(giaiThichChuan = '') {
+  const tail = String(giaiThichChuan).split('=').pop() || '';
+  const value = tail.replace(/[.\s]+$/u, '').trim();
+  return value.length > 0 && value.length <= 12 ? value : null;
+}
+
+/**
+ * Enforces the opening contract on whatever the model returned: at most two sentences addressed to
+ * the student, no instructions to other agents, no criteria, no elided formulas, no final answer.
+ * Falls back to a plain invitation when nothing usable is left.
+ */
+export function shapeOpening(dialogue, { baiToan = '', answer = null } = {}) {
+  const sentences = String(dialogue || '')
+    .replace(/\s+/gu, ' ')
+    .split(/(?<=[.!?])\s+/u)
+    .map((x) => x.trim())
+    .filter(Boolean);
+  const kept = sentences
+    .filter((x) => !OTHER_AGENTS.test(x) && !CRITERIA.test(x) && !ELIDED_FORMULA.test(x))
+    .filter((x) => !(answer && x.includes(answer)))
+    .slice(0, 2);
+  let text = kept.join(' ');
+  if (text.length > MAX_OPENING_CHARS) {
+    const cut = text.slice(0, MAX_OPENING_CHARS);
+    text = `${cut.slice(0, Math.max(cut.lastIndexOf(' '), 0)).trim()}…`;
+  }
+  if (text) return text;
+  return baiToan
+    ? 'Cả lớp dừng ở đây nhé. Em hãy tự chọn cách tính trước, rồi cho cô biết vì sao em chọn như vậy.'
+    : 'Cả lớp dừng ở đây nhé. Em hãy tự nghĩ trước rồi chọn câu trả lời.';
+}
+
+export async function coLamKhoiDong({ baiToan, giaiThichChuan }) {
+  const reply = await chatJSON({
     model: config.models.coLam,
-    systemPrompt: COLAM_SYSTEM_PROMPT,
+    systemPrompt: COLAM_OPENING_PROMPT,
     userPayload: { loai_goi: 'khoi_dong', bai_toan: baiToan },
   });
+  return { ...reply, dialogue: shapeOpening(reply?.dialogue, { baiToan, answer: finalAnswerOf(giaiThichChuan) }) };
 }
 
 export async function coLamCanThiep({ baiToan, mucGoiY, goiY }) {

@@ -11,7 +11,7 @@ export async function startSession({ misconceptionId }) {
   const misc = getMisconception(misconceptionId);
   const session = createSession({ misconceptionId });
 
-  const coLam = await coLamKhoiDong({ baiToan: misc.baiToan });
+  const coLam = await coLamKhoiDong({ baiToan: misc.baiToan, giaiThichChuan: misc.giaiThichChuan });
 
   return {
     sessionId: session.id,
