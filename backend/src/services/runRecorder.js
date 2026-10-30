@@ -13,7 +13,7 @@ import fs from 'fs';
 import path from 'path';
 
 const RUNS_DIR = path.resolve(process.cwd(), 'backend/src/data/runs');
-const FIXTURE_PATH = path.resolve(process.cwd(), 'mock/mock_reasoning_events.json');
+const FIXTURE_PATH = fs.existsSync(path.resolve(process.cwd(), 'mock/mock_roundtable_run_fixture.json')) ? path.resolve(process.cwd(), 'mock/mock_roundtable_run_fixture.json') : path.resolve(process.cwd(), 'mock/mock_reasoning_events.json');
 
 /**
  * Sanitize runId to prevent Path Traversal attacks (e.g. '../../etc')
