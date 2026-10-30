@@ -146,7 +146,8 @@
       "blackboardLatex": [
         "|\\vec{BC} + \\vec{DD'}|",
         "|\\vec{BC}| + |\\vec{DD'}| = 1 + 1 = 2 \\quad (\\text{SAI})",
-        "\\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'} = \\sqrt{1^2 + 1^2} = \\sqrt{2}"
+        "\\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}",
+        "|\\vec{BC} + \\vec{DD'}| = |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = \\sqrt{1^2 + 1^2} = \\sqrt{2}"
       ],
       "spatialGeometry": {
         "shapeType": "cube",

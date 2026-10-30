@@ -1,0 +1,284 @@
+{
+  "videoId": "VID_VECTO_12_TIEN",
+  "videoTitle": "Bài 1.1: Vectơ Trong Không Gian - Toán 12 (SGK Mới) || Thầy Nguyễn Phan Tiến",
+  "teacherName": "Thầy Nguyễn Phan Tiến",
+  "subject": "Hình học 12 (Chương trình GDPT 2018)",
+  "durationSeconds": 9503,
+  "processedBy": {
+    "mode": "pre_indexed"
+  },
+  "segments": [
+    {
+      "id": "idx_cue_1",
+      "second": 0,
+      "timeFormatted": "00:00",
+      "audioTranscript": "Vectơ trong không gian là một đoạn thẳng có hướng. Điểm đầu A, điểm cuối B ký hiệu là vectơ AB. Đường thẳng đi qua điểm đầu và điểm cuối gọi là giá của vectơ.",
+      "speaker": "Thầy Tiến",
+      "blackboardText": "Vectơ AB ≠ Vectơ BA (Ngược hướng)",
+      "blackboardLatex": [],
+      "trapRiskLevel": "none",
+      "pedagogicalTags": []
+    },
+    {
+      "id": "seg_00_08",
+      "second": 8,
+      "timeFormatted": "00:08",
+      "audioTranscript": "Chào các em! Hôm nay chúng ta bắt đầu bài đầu tiên của Hình học 12: Vectơ trong không gian.",
+      "speaker": "Thầy Tiến",
+      "blackboardText": "CHƯƠNG II: VECTƠ TRONG KHÔNG GIAN\nBài 1.1: Định nghĩa, Tổng và Hiệu hai vectơ",
+      "blackboardLatex": [
+        "\\vec{AB}"
+      ],
+      "spatialGeometry": {
+        "shapeType": "general_3d",
+        "vertices": [
+          "A",
+          "B"
+        ],
+        "highlightedVectors": [
+          "AB"
+        ],
+        "actionDescription": "Vẽ mũi tên từ điểm A tới điểm B trong không gian"
+      },
+      "trapRiskLevel": "none",
+      "pedagogicalTags": [
+        "introduction",
+        "definition"
+      ]
+    },
+    {
+      "id": "seg_01_18",
+      "second": 78,
+      "timeFormatted": "01:18",
+      "audioTranscript": "Vectơ trong không gian là một đoạn thẳng có hướng. Điểm A là điểm đầu, điểm B là điểm cuối. Đoạn thẳng AB thì bằng BA, nhưng vectơ AB khác vectơ BA vì ngược hướng.",
+      "speaker": "Thầy Tiến",
+      "blackboardText": "1. Định nghĩa:\n• Đoạn thẳng: AB = BA\n• Vectơ: \\vec{AB} ≠ \\vec{BA} (ngược hướng)",
+      "blackboardLatex": [
+        "AB = BA",
+        "\\vec{AB} \\neq \\vec{BA}"
+      ],
+      "trapRiskLevel": "low",
+      "pedagogicalTags": [
+        "direction_concept",
+        "notation"
+      ]
+    },
+    {
+      "id": "seg_04_42",
+      "second": 282,
+      "timeFormatted": "04:42",
+      "audioTranscript": "Hai vectơ được gọi là cùng phương nếu giá của chúng song song hoặc trùng nhau. Chú ý: Hai đường thẳng chéo nhau thì không cùng phương, không được xét cùng hướng hay ngược hướng.",
+      "speaker": "Thầy Tiến",
+      "blackboardText": "2. Cùng phương, cùng hướng:\n• Giá song song hoặc trùng nhau <=> Cùng phương\n• Chéo nhau => KHÔNG cùng phương",
+      "blackboardLatex": [
+        "\\vec{a} \\parallel \\vec{b} \\iff \\text{Giá}(\\vec{a}) \\parallel \\text{Giá}(\\vec{b})"
+      ],
+      "trapRiskLevel": "medium",
+      "pedagogicalTags": [
+        "skew_lines_trap",
+        "collinear_condition"
+      ]
+    },
+    {
+      "id": "idx_cue_2",
+      "second": 331,
+      "timeFormatted": "05:31",
+      "audioTranscript": "Hai vectơ được gọi là cùng phương nếu giá của chúng song song hoặc trùng nhau. Khi đã cùng phương thì mới xét đến cùng hướng hay ngược hướng.",
+      "speaker": "Thầy Tiến",
+      "blackboardText": "Cùng phương <=> Giá song song hoặc trùng nhau",
+      "blackboardLatex": [],
+      "trapRiskLevel": "none",
+      "pedagogicalTags": []
+    },
+    {
+      "id": "idx_cue_3",
+      "second": 690,
+      "timeFormatted": "11:30",
+      "audioTranscript": "Hai vectơ bằng nhau khi và chỉ khi chúng có cùng hướng và cùng độ dài. Trong hình lăng trụ tam giác hoặc hình hộp, các cạnh bên song song và bằng nhau.",
+      "speaker": "Thầy Tiến",
+      "blackboardText": "Vectơ a = Vectơ b <=> Cùng hướng & |a| = |b|",
+      "blackboardLatex": [],
+      "trapRiskLevel": "none",
+      "pedagogicalTags": []
+    },
+    {
+      "id": "seg_22_30",
+      "second": 1350,
+      "timeFormatted": "22:30",
+      "audioTranscript": "Quy tắc 3 điểm: OA cộng AB bằng OB. Quy tắc hình bình hành: chung gốc A thì AB cộng AD bằng AC.",
+      "speaker": "Thầy Tiến",
+      "blackboardText": "3. Quy tắc cộng vectơ:\n• 3 điểm: \\vec{OA} + \\vec{AB} = \\vec{OB}\n• Hình bình hành: \\vec{AB} + \\vec{AD} = \\vec{AC}",
+      "blackboardLatex": [
+        "\\vec{OA} + \\vec{AB} = \\vec{OB}",
+        "\\vec{AB} + \\vec{AD} = \\vec{AC}"
+      ],
+      "spatialGeometry": {
+        "shapeType": "plane",
+        "vertices": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "highlightedVectors": [
+          "AB",
+          "AD",
+          "AC"
+        ],
+        "actionDescription": "Vẽ hình bình hành ABCD với đường chéo AC"
+      },
+      "trapRiskLevel": "low",
+      "pedagogicalTags": [
+        "triangle_rule",
+        "parallelogram_rule"
+      ]
+    },
+    {
+      "id": "seg_30_13",
+      "second": 1813,
+      "timeFormatted": "30:13",
+      "audioTranscript": "Quy tắc hình hộp: Xuất phát từ gốc A, tổng 3 cạnh AB cộng AD cộng AA' bằng đường chéo xuyên tâm AC'.",
+      "speaker": "Thầy Tiến",
+      "blackboardText": "4. Quy tắc hình hộp:\n\\vec{AB} + \\vec{AD} + \\vec{AA'} = \\vec{AC'}",
+      "blackboardLatex": [
+        "\\vec{AB} + \\vec{AD} + \\vec{AA'} = \\vec{AC'}"
+      ],
+      "spatialGeometry": {
+        "shapeType": "cuboid",
+        "vertices": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "A'",
+          "B'",
+          "C'",
+          "D'"
+        ],
+        "highlightedVectors": [
+          "AB",
+          "AD",
+          "AA'",
+          "AC'"
+        ],
+        "actionDescription": "Vẽ hình hộp chữ nhật với đường chéo không gian AC'"
+      },
+      "trapRiskLevel": "medium",
+      "pedagogicalTags": [
+        "box_rule",
+        "spatial_diagonal"
+      ]
+    },
+    {
+      "id": "idx_cue_6",
+      "second": 2191,
+      "timeFormatted": "36:31",
+      "audioTranscript": "Ví dụ 3 (37:13): Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính độ dài |BC + DD'|. Chú ý: Tuyệt đối không được tách thành |BC| + |DD'| = 1 + 1 = 2!",
+      "speaker": "Thầy Tiến",
+      "blackboardText": "|BC + DD'| = |BC + CC'| = |BC'| = √2",
+      "blackboardLatex": [],
+      "trapRiskLevel": "high",
+      "pedagogicalTags": [
+        "checkpoint"
+      ]
+    },
+    {
+      "id": "seg_37_13",
+      "second": 2233,
+      "timeFormatted": "37:13",
+      "audioTranscript": "Ví dụ 3: Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính độ dài tổng vectơ BC cộng DD'. Chú ý: Tuyệt đối không được tách thành |BC| + |DD'| bằng 1 + 1 = 2!",
+      "speaker": "Thầy Tiến",
+      "blackboardText": "Ví dụ 3 (37:13):\nCho hình lập phương ABCD.A'B'C'D' cạnh = 1.\nTính: |\\vec{BC} + \\vec{DD'}|\nSAI LẦM: |\\vec{BC}| + |\\vec{DD'}| = 1 + 1 = 2 (SAI)",
+      "blackboardLatex": [
+        "|\\vec{BC} + \\vec{DD'}|",
+        "|\\vec{BC}| + |\\vec{DD'}| = 1 + 1 = 2 \\quad (\\text{SAI})",
+        "\\vec{BC} + \\vec{DD'} = \\vec{BC} + \\vec{CC'} = \\vec{BC'}",
+        "|\\vec{BC} + \\vec{DD'}| = |\\vec{BC'}| = \\sqrt{BC^2 + CC'^2} = \\sqrt{1^2 + 1^2} = \\sqrt{2}"
+      ],
+      "spatialGeometry": {
+        "shapeType": "cube",
+        "vertices": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "A'",
+          "B'",
+          "C'",
+          "D'"
+        ],
+        "highlightedVectors": [
+          "BC",
+          "DD'",
+          "CC'",
+          "BC'"
+        ],
+        "actionDescription": "Hình lập phương cạnh 1, tam giác BCC' vuông cân tại C, đường chéo BC' = căn 2"
+      },
+      "trapRiskLevel": "high",
+      "pedagogicalTags": [
+        "critical_trap",
+        "checkpoint_quiz",
+        "length_addition_fallacy"
+      ]
+    },
+    {
+      "id": "seg_52_14",
+      "second": 3134,
+      "timeFormatted": "52:14",
+      "audioTranscript": "Quy tắc trừ: Hiệu hai vectơ chung gốc OA trừ OB bằng vectơ BA. Khẩu quyết: Chung đầu - Lộn ngược, điểm sau viết trước, điểm trước viết sau.",
+      "speaker": "Thầy Tiến",
+      "blackboardText": "5. Quy tắc trừ (Chung đầu - Lộn ngược):\n\\vec{OA} - \\vec{OB} = \\vec{BA}",
+      "blackboardLatex": [
+        "\\vec{OA} - \\vec{OB} = \\vec{BA}"
+      ],
+      "trapRiskLevel": "medium",
+      "pedagogicalTags": [
+        "subtraction_rule",
+        "mnemonic"
+      ]
+    },
+    {
+      "id": "idx_chap_7",
+      "second": 3990,
+      "timeFormatted": "1:06:30",
+      "audioTranscript": "",
+      "speaker": "Thầy Tiến",
+      "blackboardText": "7. Tích Của Vectơ Với 1 Số & Bẫy Ngược Hướng\nIA = -3·IG",
+      "blackboardLatex": [],
+      "trapRiskLevel": "none",
+      "pedagogicalTags": [
+        "chapter_marker",
+        "not_indexed_yet"
+      ]
+    },
+    {
+      "id": "idx_chap_8",
+      "second": 4910,
+      "timeFormatted": "1:21:50",
+      "audioTranscript": "",
+      "speaker": "Thầy Tiến",
+      "blackboardText": "8. Trọng Tâm Tứ Diện & Ví Dụ 8 (1:30:30)\nGA+GB+GC+GD=0",
+      "blackboardLatex": [],
+      "trapRiskLevel": "none",
+      "pedagogicalTags": [
+        "chapter_marker",
+        "not_indexed_yet"
+      ]
+    },
+    {
+      "id": "idx_chap_9",
+      "second": 5800,
+      "timeFormatted": "1:36:40",
+      "audioTranscript": "",
+      "speaker": "Thầy Tiến",
+      "blackboardText": "9. Dạng 1 & 2: Chứng Minh Đẳng Thức & Phân Tích Vectơ (Ví dụ 10)\nB'C = c - a - b",
+      "blackboardLatex": [],
+      "trapRiskLevel": "none",
+      "pedagogicalTags": [
+        "chapter_marker",
+        "not_indexed_yet"
+      ]
+    }
+  ]
+}

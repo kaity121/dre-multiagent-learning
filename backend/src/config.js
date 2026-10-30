@@ -16,7 +16,11 @@ export const config = {
     linhChi: process.env.LINHCHI_MODEL || defaultModel,
     assessor: process.env.ASSESSOR_MODEL || defaultModel,
     coLam: process.env.COLAM_MODEL || process.env.OPENAI_MODEL || 'gpt-6.1-sol',
+    // Live clip extraction: speech-to-text and blackboard OCR
+    stt: process.env.STT_MODEL || 'whisper-1',
+    vision: process.env.VISION_MODEL || defaultModel,
   },
+  visionReasoningEffort: process.env.VISION_REASONING_EFFORT || 'none',
   port: Number(process.env.PORT) || 3001,
 };
 
