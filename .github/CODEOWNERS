@@ -35,6 +35,11 @@
 /src/data/misconceptions.ts  @aprlx21 @blu1606
 /docs/KICH_BAN*              @aprlx21 @blu1606
 /docs/TC_API*                @aprlx21 @blu1606
+/backend/src/agents/         @aprlx21 @blu1606
+/backend/src/tools/          @aprlx21 @blu1606
+/backend/src/data/           @aprlx21 @blu1606
+/backend/src/services/roundtable.js     @aprlx21 @blu1606
+/backend/src/services/knowledgeBase.js  @aprlx21 @presentisperfect @blu1606
 
 # ------------------------------------------------------------------------------
 # 3. ONLINE RESPONSE, CONTEXT STREAM & SESSION MEMORY (Owner: @presentisperfect, Reviewer: @blu1606)
@@ -47,6 +52,16 @@
 /src/utils/soundEffects.ts   @presentisperfect @blu1606
 /src/types/                  @presentisperfect @blu1606
 /src/types/dre.ts            @presentisperfect @blu1606
+/backend/server.js           @presentisperfect @blu1606
+/backend/src/orchestrator.js @presentisperfect @blu1606
+/backend/src/sessionStore.js @presentisperfect @blu1606
+
+# ------------------------------------------------------------------------------
+# 3b. SHARED CONTRACTS & FIXTURES (Owner & Reviewer: @blu1606; changes need a note on issue #4)
+# ------------------------------------------------------------------------------
+/src/types/pipeline.ts       @blu1606
+/mock/*.json                 @blu1606
+/scripts/                    @blu1606
 
 # ------------------------------------------------------------------------------
 # 4. PROJECT MANAGEMENT, ARCHITECTURE & ROADMAP (Owner & Reviewer: @blu1606)
