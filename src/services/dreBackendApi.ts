@@ -156,7 +156,11 @@ export async function sendClassroomChat(
   message: string,
   currentTime: number,
   recipient: string = 'all',
-  sessionId?: string | null
+  sessionId?: string | null,
+  conversation?: {
+    replyTo?: { author: string; text?: string } | null;
+    history?: { author: string; text: string }[];
+  }
 ): Promise<ClassroomChatResponse | null> {
   try {
     const controller = new AbortController();
@@ -164,7 +168,14 @@ export async function sendClassroomChat(
     const res = await fetch(`${API_BASE_URL}/api/chat/classroom`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, currentTime, recipient, sessionId }),
+      body: JSON.stringify({
+        message,
+        currentTime,
+        recipient,
+        sessionId,
+        replyTo: conversation?.replyTo ?? null,
+        chatHistory: conversation?.history ?? [],
+      }),
       signal: controller.signal,
     });
     clearTimeout(timeoutId);

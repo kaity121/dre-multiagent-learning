@@ -10,7 +10,7 @@ import { FormattedMathText } from './MathVector';
 import { ChatSavedQuizBlock } from './ChatSavedQuizBlock';
 import { sound } from '../utils/soundEffects';
 import { sendClassroomChat } from '../services/dreBackendApi';
-import { BookOpen, Check, CornerDownRight, Reply, Ruler } from 'lucide-react';
+import { BookOpen, Check, ChevronDown, CornerDownRight, Reply, Ruler, Send, X } from 'lucide-react';
 import { hasCheckpoint } from '../utils/lessonAdapter';
 
 // ============================================================================
@@ -116,7 +116,15 @@ interface VideoDebateSheetProps {
   isChatExpanded?: boolean;
   onToggleChatExpanded?: () => void;
   onSwitchToStation2?: () => void;
-  onChatMessageProcessed?: (chatInfo: { text: string; author: string; reply: any; second: number; messageId?: string }) => void;
+  onChatMessageProcessed?: (chatInfo: {
+    text: string;
+    author: string;
+    reply: any;
+    second: number;
+    messageId?: string;
+    replyTo?: { author: string; text?: string } | null;
+    historyCount?: number;
+  }) => void;
   /** Open the Agent Map focused on the turn behind this message. */
   onOpenEvidence?: (msg: TimelineComment) => void;
   /** The pause question lives in the task card; the chat only points to it. */
@@ -193,7 +201,12 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   const [toolCallThinking, setToolCallThinking] = useState<string[]>([]);
   const [userChatInput, setUserChatInput] = useState<string>('');
   const [recipient, setRecipient] = useState<RecipientTarget>('all');
-  const [replyingToComment, setReplyingToComment] = useState<TimelineComment | null>(null);
+  // Threads: which are expanded, each thread's draft, and the thread message a draft answers.
+  const [openThreadIds, setOpenThreadIds] = useState<Set<string>>(() => new Set());
+  const [threadDrafts, setThreadDrafts] = useState<Record<string, string>>({});
+  const [threadReplyTargets, setThreadReplyTargets] = useState<Record<string, TimelineComment | null>>({});
+  const [typingThreadRootId, setTypingThreadRootId] = useState<string | null>(null);
+  const threadInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   // Long messages open clamped to three lines so one reply never buries the conversation.
   const [expandedMessageIds, setExpandedMessageIds] = useState<Set<string>>(() => new Set());
   const [isPinnedOpen, setIsPinnedOpen] = useState(false);
@@ -229,7 +242,10 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     setLiveChatMessages([]);
     setTaHintTier(0);
     setActivePeerNote(null);
-    setReplyingToComment(null);
+    setOpenThreadIds(new Set());
+    setThreadDrafts({});
+    setThreadReplyTargets({});
+    setTypingThreadRootId(null);
     setTypingAgent(null);
     prevCommentsCountRef.current = 0;
   }, [lesson.id]);
@@ -373,7 +389,11 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     return `${m}:${sec.toString().padStart(2, '0')}`;
   };
 
-  const handleSendUserChatMessage = (overrideText?: string, overrideRecipient?: RecipientTarget) => {
+  const handleSendUserChatMessage = (
+    overrideText?: string,
+    overrideRecipient?: RecipientTarget,
+    replyTarget: TimelineComment | null = null,
+  ) => {
     const text = (overrideText ?? userChatInput).trim();
     if (!text) return;
 
@@ -389,13 +409,15 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
         ? ' (tới Minh Khang)'
         : '';
 
-    const currentReplyTo = replyingToComment
+    const currentReplyTo = replyTarget
       ? {
-          id: replyingToComment.id,
-          author: replyingToComment.author,
-          text: replyingToComment.text,
+          id: replyTarget.id,
+          author: replyTarget.author,
+          text: replyTarget.text,
         }
       : null;
+    // A reply and the answers it draws stay in the thread under the top-level message.
+    const threadRootId = replyTarget ? replyTarget.threadRootId ?? replyTarget.id : undefined;
 
     // Xác định mốc thời gian thảo luận thực tế: phản ánh trung thực currentTime hoặc tiền tố tường minh ^\[(?:Tại\s+)?(\d{1,2}):(\d{2})\]
     const timePrefixMatch = text.match(/^\[(?:Tại\s+)?(\d{1,2}):(\d{2})\]/i);
@@ -411,11 +433,25 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       role: 'classmate',
       text,
       replyTo: currentReplyTo,
+      threadRootId,
     };
 
+    // Recent turns the answering agent should see, oldest first, so it can follow the conversation.
+    const recentHistory = allStreamComments
+      .filter((c) => !c.isPinned)
+      .slice(-6)
+      .map((c) => ({ author: c.author, text: cleanText(c.text) }));
+
     setLiveChatMessages((prev) => [...prev, newMsg]);
-    if (!overrideText) setUserChatInput('');
-    setReplyingToComment(null);
+    if (threadRootId) {
+      setOpenThreadIds((prev) => new Set(prev).add(threadRootId));
+      setThreadDrafts((prev) => ({ ...prev, [threadRootId]: '' }));
+      setThreadReplyTargets((prev) => ({ ...prev, [threadRootId]: null }));
+      setTypingThreadRootId(threadRootId);
+    } else {
+      setTypingThreadRootId(null);
+      if (!overrideText) setUserChatInput('');
+    }
 
     const lower = text.toLowerCase();
     let replyAuthor = 'Trí';
@@ -720,7 +756,10 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     setToolCallThinking(thinkingSteps);
 
     // Thử gọi live Multi-Agent AI Backend (Knowledge Base RAG & GPT-6)
-    sendClassroomChat(text, effectiveSecond, target, chatSessionIdRef.current)
+    sendClassroomChat(text, effectiveSecond, target, chatSessionIdRef.current, {
+      replyTo: currentReplyTo ? { author: currentReplyTo.author, text: cleanText(currentReplyTo.text || '') } : null,
+      history: recentHistory,
+    })
       .then((aiRes) => {
         setToolCallThinking([]);
         if (aiRes && aiRes.ok && aiRes.text) {
@@ -753,6 +792,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               toolCalls: attachedToolCalls,
               citations: aiRes.citations || null,
               contextSnapshot: aiRes.contextSnapshot || null,
+              threadRootId: newMsg.threadRootId,
               replyTo: {
                 id: newMsg.id,
                 author: newMsg.author,
@@ -767,6 +807,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             reply: aiRes,
             second: replySecond,
             messageId: replyId,
+            replyTo: currentReplyTo,
+            historyCount: recentHistory.length,
           });
 
           const followUp = aiRes.followUpResponse;
@@ -790,6 +832,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                   text: followUpText,
                   citations: followUp?.citations || null,
                   contextSnapshot: followUp?.contextSnapshot || null,
+                  threadRootId: newMsg.threadRootId,
                   replyTo: {
                     id: newMsg.id,
                     author: newMsg.author,
@@ -897,6 +940,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             text: replyText,
             toolCall: attachedToolCall,
             citations: fallbackCitations,
+            threadRootId: newMsg.threadRootId,
             replyTo: {
               id: newMsg.id,
               author: newMsg.author,
@@ -928,6 +972,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               author: localFollowAuthor,
               role: followRole,
               text: localFollowText,
+              threadRootId: newMsg.threadRootId,
               replyTo: {
                 id: newMsg.id,
                 author: newMsg.author,
@@ -1015,17 +1060,55 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     ? 'ANSWERED'
     : 'PENDING';
 
+  // Thread replies render under their root; if the root is not on screen (e.g. after seeking back),
+  // the reply falls back to the main stream so it never disappears.
+  const { topLevelComments, threadRepliesByRoot } = useMemo(() => {
+    const visibleIds = new Set(allStreamComments.map((c) => c.id));
+    const byRoot: Record<string, TimelineComment[]> = {};
+    const top: TimelineComment[] = [];
+    for (const c of allStreamComments) {
+      if (c.threadRootId && visibleIds.has(c.threadRootId)) {
+        (byRoot[c.threadRootId] ||= []).push(c);
+      } else {
+        top.push(c);
+      }
+    }
+    return { topLevelComments: top, threadRepliesByRoot: byRoot };
+  }, [allStreamComments]);
+
   // Tách tin nhắn thành 2 phần: Trước 37:13 (trước câu hỏi) và Sau 37:13 (sau câu hỏi)
   const preCheckpointComments = useMemo(() => {
     // Without a checkpoint every comment belongs before the (absent) quiz block.
-    if (!hasCheckpoint(lesson)) return allStreamComments;
-    return allStreamComments.filter((c) => c.second < lesson.checkpointTimestamp);
-  }, [allStreamComments, lesson]);
+    if (!hasCheckpoint(lesson)) return topLevelComments;
+    return topLevelComments.filter((c) => c.second < lesson.checkpointTimestamp);
+  }, [topLevelComments, lesson]);
 
   const postCheckpointComments = useMemo(() => {
     if (!hasCheckpoint(lesson)) return [];
-    return allStreamComments.filter((c) => c.second >= lesson.checkpointTimestamp);
-  }, [allStreamComments, lesson]);
+    return topLevelComments.filter((c) => c.second >= lesson.checkpointTimestamp);
+  }, [topLevelComments, lesson]);
+
+  const recipientFor = (msg: TimelineComment): RecipientTarget =>
+    RECIPIENT_OPTIONS.find((o) => o.id !== 'all' && msg.author.toLowerCase().includes(o.label.toLowerCase()))?.id ?? 'all';
+
+  // "Trả lời" opens the root's thread and points its reply box at the chosen message.
+  const startThreadReply = (msg: TimelineComment) => {
+    const rootId = msg.threadRootId ?? msg.id;
+    sound.playPencilTap();
+    setOpenThreadIds((prev) => new Set(prev).add(rootId));
+    setThreadReplyTargets((prev) => ({ ...prev, [rootId]: msg.threadRootId ? msg : null }));
+    requestAnimationFrame(() => threadInputRefs.current[rootId]?.focus());
+  };
+
+  const sendThreadReply = (root: TimelineComment) => {
+    const draft = (threadDrafts[root.id] || '').trim();
+    if (!draft) return;
+    const target = threadReplyTargets[root.id] || root;
+    // A learner's own root has no addressee: let the dispatcher pick who answers.
+    const isOwnRoot = root.author.includes('Bạn') || (learnerName && root.author.startsWith(learnerName));
+    const to = target === root && isOwnRoot ? 'all' : recipientFor(target);
+    handleSendUserChatMessage(draft, to, target);
+  };
 
   const renderPeerAvatar = (author: string, className = 'w-8 h-8') => {
     return <AgentAvatar role={author} size={className} />;
@@ -1035,7 +1118,24 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     return <AgentAvatar role={id} size={className} />;
   };
 
-  const renderChatMessage = (msg: TimelineComment) => {
+  const renderTypingIndicator = () =>
+    typingAgent && (
+      <div className="flex items-center gap-2.5 px-3 py-2 bg-[#F7FAF0]/90 rounded-2xl border border-lime-border/90 w-fit animate-in fade-in duration-200 shadow-2xs">
+        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[11px] font-bold shrink-0 ${typingAgent.avatarBg}`}>
+          {typingAgent.initial}
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-[#4A5546] font-medium">
+          <span>{typingAgent.text}</span>
+          <span className="flex items-center gap-0.5 ml-0.5">
+            <span className="typing-dot" style={{ animationDelay: '0ms' }} />
+            <span className="typing-dot" style={{ animationDelay: '180ms' }} />
+            <span className="typing-dot" style={{ animationDelay: '360ms' }} />
+          </span>
+        </div>
+      </div>
+    );
+
+  const renderChatMessage = (msg: TimelineComment, inThread = false) => {
     const isBo = msg.author.trim() === 'Bo' || msg.author.includes('Bo');
     const isChi = msg.author.includes('Linh Chi');
     const isKhang = msg.author.includes('Khang');
@@ -1043,22 +1143,25 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     const isCoLam = msg.author.includes('Cô Lam');
     const isTaAn = msg.author.includes('Trợ giảng An');
     const isMe = msg.author.includes('Bạn') || (learnerName && msg.author.startsWith(learnerName));
-    return (
+    // Your own top-level messages sit on the right; inside a thread everyone stays on the left.
+    const isMeRight = isMe && !inThread;
+    // In a thread the root is implied, so a quote only appears when you answer one specific reply.
+    const showQuote = Boolean(msg.replyTo) && (!inThread || (isMe && msg.replyTo?.id !== msg.threadRootId));
+    const row = (
       <div
-        key={msg.id}
         id={`chat-msg-${msg.id}`}
         // Leaves room for the sticky pinned note when a message is scrolled to the top.
-        className="flex scroll-mt-2 items-start gap-2.5 transition-colors group"
+        className={`flex scroll-mt-2 items-start transition-colors ${inThread ? 'group/reply gap-2' : 'group/msg gap-2.5'} ${isMeRight ? 'flex-row-reverse' : ''}`}
       >
-        {renderPeerAvatar(msg.author, 'w-8 h-8 shrink-0 mt-0.5')}
+        {renderPeerAvatar(msg.author, inThread ? 'w-6 h-6 shrink-0 mt-0.5' : 'w-8 h-8 shrink-0 mt-0.5')}
 
         {/* Nội dung tin nhắn: Hàng 1 Tên + Giờ, Hàng 2 Khung Bubble */}
-        <div className="flex-1 min-w-0 space-y-1">
-          <div className="flex items-center gap-2">
+        <div className={`flex-1 min-w-0 space-y-1 ${isMeRight ? 'flex flex-col items-end' : ''}`}>
+          <div className={`flex w-full items-center gap-2 ${isMeRight ? 'flex-row-reverse' : ''}`}>
             <span className="truncate text-[13px] font-bold text-[#121712]">
               {msg.author}
             </span>
-            {(isCoLam || isTaAn || isBo || isChi || isKhang || isTri) && !isMe && (
+            {(isCoLam || isTaAn || isBo || isChi || isKhang || isTri) && !isMe && !inThread && (
               <span
                 className={`shrink-0 rounded-full border px-2 py-px text-[11px] font-semibold ${
                   isCoLam ? 'border-[#B7DB6A] text-[#2F5A12]' : 'border-[#D5DFC4] text-[#4A5546]'
@@ -1078,28 +1181,24 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             >
               {formatSec(msg.second)}
             </button>
-            {/* Nút Trả lời nhanh khi hover tin nhắn */}
+            {/* Nút Trả lời nhanh khi hover tin nhắn: mở thread của tin gốc */}
             <button
               type="button"
-              onClick={() => {
-                sound.playPencilTap();
-                setReplyingToComment(msg);
-                const matchedOpt = RECIPIENT_OPTIONS.find(
-                  (o) => o.id !== 'all' && msg.author.toLowerCase().includes(o.label.toLowerCase())
-                );
-                if (matchedOpt) setRecipient(matchedOpt.id);
-                chatInputRef.current?.focus();
-              }}
-              className="ml-auto flex cursor-pointer items-center gap-1 rounded px-1.5 py-0.5 text-[12px] font-semibold text-[#5B6657] opacity-0 transition-opacity hover:bg-lime-border/60 hover:text-[#121712] focus-visible:opacity-100 group-hover:opacity-100"
+              onClick={() => startThreadReply(msg)}
+              className={`${isMeRight ? 'mr-auto' : 'ml-auto'} flex cursor-pointer items-center gap-1 rounded px-1.5 py-0.5 text-[12px] font-semibold text-[#5B6657] opacity-0 transition-opacity hover:bg-lime-border/60 hover:text-[#121712] focus-visible:opacity-100 ${inThread ? 'group-hover/reply:opacity-100' : 'group-hover/msg:opacity-100'}`}
               title={`Trả lời tin nhắn của ${msg.author}`}
             >
               <Reply className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Trả lời</span>
             </button>
           </div>
-          <div className="px-3 py-2.5 rounded-2xl bg-white border border-lime-border text-[14px] text-[#121712] leading-relaxed font-normal shadow-2xs select-text">
+          <div
+            className={`px-3 py-2.5 rounded-2xl text-[14px] text-[#121712] leading-relaxed font-normal shadow-2xs select-text ${
+              isMe ? 'border-2 border-lime-accent bg-[#F7FBEF]' : 'bg-white border border-lime-border'
+            } ${isMeRight ? 'w-fit max-w-[88%]' : ''}`}
+          >
             {/* Trích dẫn tin nhắn đang được phản hồi (Quote chip) */}
-            {msg.replyTo && (
+            {showQuote && msg.replyTo && (
               <div className="flex items-center gap-1.5 px-2.5 py-1 mb-2 rounded-lg bg-lime-bg border border-lime-border text-[12px] text-[#121712] font-medium max-w-full overflow-hidden">
                 <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-[#4A5546]" aria-hidden="true" />
                 <span className="font-bold text-[#121712] shrink-0">@{msg.replyTo.author}:</span>
@@ -1210,6 +1309,106 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             )}
           </div>
         </div>
+      </div>
+    );
+
+    if (inThread) return <React.Fragment key={msg.id}>{row}</React.Fragment>;
+
+    const replies = threadRepliesByRoot[msg.id] || [];
+    const isThreadOpen = openThreadIds.has(msg.id);
+    const replyTarget = threadReplyTargets[msg.id] || null;
+    const replyAuthors = Array.from(new Set(replies.map((r) => r.author))).slice(0, 3);
+    const toggleThread = () =>
+      setOpenThreadIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(msg.id)) next.delete(msg.id);
+        else next.add(msg.id);
+        return next;
+      });
+
+    return (
+      <div key={msg.id}>
+        {row}
+        {(replies.length > 0 || isThreadOpen) && (
+          <div className={`mt-1 ${isMeRight ? 'mr-10 flex flex-col items-end' : 'ml-10'}`}>
+            {replies.length > 0 && (
+              <button
+                type="button"
+                aria-expanded={isThreadOpen}
+                aria-controls={`thread-${msg.id}`}
+                onClick={toggleThread}
+                className="inline-flex h-7 items-center gap-1.5 rounded-full py-0 pl-0.5 pr-2 text-[12px] font-semibold text-[#1F4D12] transition-colors hover:bg-[#EDF6DA] focus-visible:outline-2 focus-visible:outline-[#121712]"
+              >
+                <span className="flex" aria-hidden="true">
+                  {replyAuthors.map((a, i) => (
+                    <span key={a} className={`rounded-full ring-2 ring-white ${i > 0 ? '-ml-1.5' : ''}`}>
+                      {renderPeerAvatar(a, 'w-5 h-5')}
+                    </span>
+                  ))}
+                </span>
+                <span>{replies.length} phản hồi</span>
+                <ChevronDown
+                  className={`h-3.5 w-3.5 transition-transform duration-150 ${isThreadOpen ? 'rotate-180' : ''}`}
+                  aria-hidden="true"
+                />
+              </button>
+            )}
+            {isThreadOpen && (
+              <div id={`thread-${msg.id}`} className="mt-1 w-full space-y-2.5 border-l-2 border-lime-border pl-3">
+                {replies.map((r) => renderChatMessage(r, true))}
+                {typingAgent && typingThreadRootId === msg.id && renderTypingIndicator()}
+                {replyTarget && (
+                  <div className="flex min-w-0 items-center gap-1.5 rounded-lg border border-lime-border bg-lime-bg px-2 py-1 text-[12px] text-[#121712]">
+                    <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-[#4A5546]" aria-hidden="true" />
+                    <span className="shrink-0">
+                      Đang trả lời <b>@{replyTarget.author}</b>
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-[#4A5546]">{cleanText(replyTarget.text)}</span>
+                    <button
+                      type="button"
+                      onClick={() => setThreadReplyTargets((prev) => ({ ...prev, [msg.id]: null }))}
+                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded hover:bg-lime-border focus-visible:outline-2 focus-visible:outline-[#121712]"
+                      aria-label={`Bỏ trả lời @${replyTarget.author}`}
+                      title="Bỏ"
+                    >
+                      <X className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                  </div>
+                )}
+                <form
+                  className="flex items-center gap-1.5"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    sendThreadReply(msg);
+                  }}
+                >
+                  <input
+                    ref={(el) => {
+                      threadInputRefs.current[msg.id] = el;
+                    }}
+                    value={threadDrafts[msg.id] || ''}
+                    onChange={(e) => setThreadDrafts((prev) => ({ ...prev, [msg.id]: e.target.value }))}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') toggleThread();
+                    }}
+                    placeholder={replyTarget ? `Trả lời @${replyTarget.author}…` : 'Trả lời trong thread…'}
+                    aria-label={`Trả lời trong thread của ${msg.author}`}
+                    className="h-8 min-w-0 flex-1 rounded-lg border border-lime-border bg-white px-2.5 text-[13px] text-[#121712] placeholder:text-[#5B6657] focus:border-[#121712] focus:outline-none focus:ring-1 focus:ring-[#121712]"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!(threadDrafts[msg.id] || '').trim()}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-lime-accent text-[#121712] transition-colors hover:bg-[#B8E356] focus-visible:outline-2 focus-visible:outline-[#121712] disabled:cursor-not-allowed disabled:bg-lime-bg disabled:text-[#5B6657]"
+                    aria-label="Gửi trả lời"
+                    title="Gửi"
+                  >
+                    <Send className="h-3.5 w-3.5" aria-hidden="true" />
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -1521,7 +1720,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                 </span>
               </div>
             )}
-            {preCheckpointComments.map(renderChatMessage)}
+            {preCheckpointComments.map((m) => renderChatMessage(m))}
 
             {/* THẺ CÂU HỎI KIỂM TRA NHANH ĐƯỢC CHÈN CỐ ĐỊNH TẠI ĐÚNG MỐC 37:13 NGAY SAU TIN NHẮN 37:05 CỦA TRÍ */}
             {shouldShowSavedQuizInChat && questionInTaskCard && (
@@ -1558,7 +1757,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               />
             )}
 
-            {postCheckpointComments.map(renderChatMessage)}
+            {postCheckpointComments.map((m) => renderChatMessage(m))}
 
             {toolCallThinking.length > 0 && (
               <div className="flex flex-col gap-1.5 p-2 rounded-xl animate-in fade-in duration-200">
@@ -1627,21 +1826,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             )}
 
             {/* Live Typing Indicator */}
-            {typingAgent && (
-              <div className="flex items-center gap-2.5 px-3 py-2 bg-[#F7FAF0]/90 rounded-2xl border border-lime-border/90 w-fit animate-in fade-in duration-200 shadow-2xs">
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[11px] font-bold shrink-0 ${typingAgent.avatarBg}`}>
-                  {typingAgent.initial}
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-[#4A5546] font-medium">
-                  <span>{typingAgent.text}</span>
-                  <span className="flex items-center gap-0.5 ml-0.5">
-                    <span className="typing-dot" style={{ animationDelay: '0ms' }} />
-                    <span className="typing-dot" style={{ animationDelay: '180ms' }} />
-                    <span className="typing-dot" style={{ animationDelay: '360ms' }} />
-                  </span>
-                </div>
-              </div>
-            )}
+            {typingAgent && !(typingThreadRootId && topLevelComments.some((c) => c.id === typingThreadRootId)) &&
+              renderTypingIndicator()}
 
             <div ref={chatStreamEndRef} />
           </div>
@@ -1739,25 +1925,6 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             </button>
           ))}
         </div>
-
-        {/* Banner hiển thị tin nhắn đang trả lời */}
-        {replyingToComment && (
-          <div className="flex items-center justify-between px-2.5 py-1 mb-1.5 rounded-lg bg-lime-bg border border-lime-border text-xs text-[#121712] shadow-2xs animate-in fade-in duration-100">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-[#4A5546]" aria-hidden="true" />
-              <span className="font-bold shrink-0">Đang trả lời @{replyingToComment.author}:</span>
-              <span className="truncate text-[#4A5546] italic">"{cleanText(replyingToComment.text)}"</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setReplyingToComment(null)}
-              className="p-0.5 hover:bg-lime-border rounded text-[#121712] text-xs font-bold cursor-pointer shrink-0 ml-1.5"
-              title="Hủy trả lời"
-            >
-              ✕
-            </button>
-          </div>
-        )}
 
         {/* Khung nhập tin nhắn tích hợp 1 DÒNG DUY NHẤT */}
         <div

@@ -924,7 +924,7 @@ export default function App() {
     setVideoPhase('STUDENT_FREEZE');
   };
 
-  const handleChatMessageProcessed = (chatInfo: { text: string; author: string; reply: any; second: number; messageId?: string }) => {
+  const handleChatMessageProcessed = (chatInfo: { text: string; author: string; reply: any; second: number; messageId?: string; replyTo?: { author: string; text?: string } | null; historyCount?: number }) => {
     const turnNumber = inspectorTurns.length + 1;
     const rawAuthor = chatInfo.reply?.author || 'Trí';
     const cleanAgent = rawAuthor.replace(/^(Bạn học|Trợ giảng|Cô|Thầy)\s*/i, '').trim() || 'Trí';
@@ -958,12 +958,16 @@ export default function App() {
         visibleContext: [
           `Tin nhắn học sinh: "${chatInfo.text}"`,
           `Thời điểm bài giảng: ${Math.floor(chatInfo.second / 60)}:${(chatInfo.second % 60).toString().padStart(2, '0')}`,
-          chatInfo.reply?.kbMatchedId ? `Tri thức RAG: ${chatInfo.reply.kbMatchedId}` : 'Hỏi đáp tương tác đa tác tử',
+          ...(chatInfo.replyTo
+            ? [`Đang trả lời ${chatInfo.replyTo.author}: "${(chatInfo.replyTo.text || '').slice(0, 120)}"`]
+            : []),
+          ...(chatInfo.historyCount ? [`Lịch sử chat: ${chatInfo.historyCount} tin gần nhất`] : []),
+          ...(chatInfo.reply?.kbMatchedId ? [`Tri thức RAG: ${chatInfo.reply.kbMatchedId}`] : []),
+          ...(chatInfo.reply?.verdict?.detectedIntent === 'general_classroom_chitchat'
+            ? ['Nguồn bài giảng: không cần cho câu trò chuyện']
+            : []),
         ],
-        hiddenContext: [
-          'Kịch bản phân tầng trợ giúp',
-          'Lịch sử tương tác lớp học',
-        ],
+        hiddenContext: ['Kịch bản phân tầng trợ giúp'],
         isEvaluated: Boolean(chatInfo.reply?.kbMatchedId || chatInfo.reply?.ragContextUsed),
         cognitiveMetrics: {
           hesitationScore: typeof chatInfo.reply?.hesitationScore === 'number' ? chatInfo.reply.hesitationScore : undefined,

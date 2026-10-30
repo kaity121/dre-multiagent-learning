@@ -130,6 +130,8 @@ export interface TimelineComment {
   contextSnapshot?: any | null;
   /** Set when someone other than the addressed agent answered a private message. */
   onBehalfOf?: string;
+  /** Id of the top-level message this one replies under; such messages render in that message's thread. */
+  threadRootId?: string;
 }
 
 export interface PeerContextData {
