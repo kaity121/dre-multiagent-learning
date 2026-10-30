@@ -2,7 +2,26 @@ import OpenAI from 'openai';
 import { config } from './config.js';
 import { executeTool, OPENAI_TOOL_DEFINITIONS } from './tools/index.js';
 
-const client = new OpenAI({ apiKey: config.openaiApiKey });
+let client = null;
+
+/** True when an OpenAI key is configured, so callers can choose a deterministic fallback up front. */
+export function isLLMConfigured() {
+  return Boolean(config.openaiApiKey);
+}
+
+/**
+ * The SDK throws at construction when no key is set, so the client is built on first use.
+ * Importing this module (tests, offline demo paths) therefore never requires a key.
+ */
+function getClient() {
+  if (!config.openaiApiKey) {
+    throw new Error('OPENAI_API_KEY chưa được cấu hình — không thể gọi model.');
+  }
+  if (!client) {
+    client = new OpenAI({ apiKey: config.openaiApiKey });
+  }
+  return client;
+}
 
 /**
  * Gọi Chat Completions với response_format ép JSON, trả về object đã parse.
@@ -30,7 +49,7 @@ export async function chatJSON({ model, systemPrompt, userPayload, temperature =
     requestBody.temperature = temperature;
   }
 
-  const response = await client.chat.completions.create(requestBody);
+  const response = await getClient().chat.completions.create(requestBody);
   const raw = response.choices?.[0]?.message?.content ?? '{}';
 
   return parseJSONSafe(raw, model);
@@ -82,7 +101,7 @@ export async function chatWithTools({
       requestBody.temperature = temperature;
     }
 
-    const response = await client.chat.completions.create(requestBody);
+    const response = await getClient().chat.completions.create(requestBody);
     const choice = response.choices?.[0];
     const message = choice?.message;
 
@@ -154,4 +173,5 @@ function parseJSONSafe(raw, model = '') {
 export default {
   chatJSON,
   chatWithTools,
+  isLLMConfigured,
 };
