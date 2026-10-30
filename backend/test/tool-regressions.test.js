@@ -649,3 +649,17 @@ describe('Review Follow-ups (Zero-vector Angle KB, Vietnamese wording vectơ, Bo
     assert.equal(resultRelated.collisions.length, 0);
   });
 });
+
+describe('Vector equations compare direction, not only length', () => {
+  it('rejects a same-length vector with a different direction when the expression has no |...|', () => {
+    // In the cube BC = AD, while AB has the same length but another direction.
+    assert.equal(verifyVectorAlgebra({ shape: 'cube', side: 'a', expr: 'BC', claim: 'AB' }).isValid, false);
+    assert.equal(verifyVectorAlgebra({ shape: 'cube', side: 'a', expr: 'BC', claim: 'AD' }).isValid, true);
+    assert.equal(verifyVectorAlgebra({ shape: 'cube', side: 'a', expr: "AB + AD + AA'", claim: 'AC' }).isValid, false);
+    assert.equal(verifyVectorAlgebra({ shape: 'cube', side: 'a', expr: "AB + AD + AA'", claim: "AC'" }).isValid, true);
+  });
+
+  it('still accepts a named segment of the right length for a magnitude expression', () => {
+    assert.equal(verifyVectorAlgebra({ shape: 'cube', side: 'a', expr: "|BC + DD'|", claim: "BC'" }).isValid, true);
+  });
+});

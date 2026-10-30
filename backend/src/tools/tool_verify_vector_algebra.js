@@ -321,8 +321,11 @@ export function verifyVectorAlgebra({ shape = 'cube', side = 'a', expr, claim })
                           Math.abs(vCoords[1] - evalResult.vector[1]) < epsilon &&
                           Math.abs(vCoords[2] - evalResult.vector[2]) < epsilon;
       const lenMatch = Math.abs(vLen - evalResult.length) < epsilon;
+      // Without |...| the expression is a vector equation, so equal length alone is not equality
+      // (in a cube BC and AB have the same length but different directions).
+      const claimMatches = evalResult.isMagnitude ? (coordsMatch || lenMatch) : coordsMatch;
 
-      if (coordsMatch || lenMatch) {
+      if (claimMatches) {
         isValid = true;
         reason = `Phát biểu hoàn toàn chính xác. Biểu thức ${expr} có vectơ tổng tương đương vectơ ${cleanClaim}, với độ dài ${correctLatex}.`;
         steps.push(`Vectơ tương đương: \\vec{${vectorPoints[0]}${vectorPoints[1]}} có tọa độ [${vCoords.join(', ')}].`);
