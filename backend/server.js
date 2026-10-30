@@ -16,10 +16,12 @@ import { config } from './src/config.js';
 import { listMisconceptionIds } from './src/contentLibrary.js';
 import { startSession, submitAnswer, submitRebuttal } from './src/orchestrator.js';
 import { chatJSON } from './src/openaiClient.js';
+import { extractRouter } from './src/routes/extract.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use('/api/extract', extractRouter);
 
 // GET /api/health-llm — test kết nối trực tiếp tới OpenAI
 app.get('/api/health-llm', async (req, res) => {
@@ -280,26 +282,27 @@ app.post('/api/runtime/context-snapshot', async (req, res) => {
 // POST /api/chat/classroom — OpenMAIC: Khung chat lớp học tích hợp Dispatcher, RAG & Multi-Agent Chaining
 app.post('/api/chat/classroom', async (req, res) => {
   try {
-    const { message, currentTime = 2233, recipient = 'all', lessonTitle = 'Toán 12 — Vectơ trong không gian', useLLM = true, sessionId = null } = req.body || {};
+    const { message, currentTime = 2233, recipient = 'all', lessonTitle = 'Toán 12 — Vectơ trong không gian', videoId: reqVideoId, useLLM = true, sessionId = null } = req.body || {};
     if (!message) {
       return res.status(400).json({ error: 'Thiếu message' });
     }
 
     const lower = String(message).toLowerCase().trim();
+    const normTitle = String(lessonTitle).toLowerCase();
+    const videoId = reqVideoId || (normTitle.includes('trí tuệ nhân tạo') || normTitle.includes('machine learning') ? 'VID_AI_INTRO_01' : 'VID_VECTO_12_TIEN');
+    const isMathLesson = normTitle.includes('toán') || videoId.includes('VECTO');
+
     const { search, getById } = await import('./src/services/knowledgeBase.js');
     const { executeTool } = await import('./src/tools/index.js');
     const { extractVectorExpr, extractClaimFromText, extractSideFromText } = await import('./src/tools/tool_verify_vector_algebra.js');
     const toolCalls = [];
 
-    // 1. RAG Search trên Knowledge Base DRE
+    // 1. RAG Search trên Knowledge Base DRE (Chỉ áp dụng khi bài giảng là môn Toán có KB)
     let kbMatch = null;
-    if (isMathKnowledgeQuery(message)) {
+    if (isMathLesson && isMathKnowledgeQuery(message)) {
       const searchHits = search(message, 1);
       if (searchHits && searchHits.length > 0 && searchHits[0].score >= 2) {
         kbMatch = searchHits[0];
-      } else if (currentTime >= 2100 && currentTime <= 2400 && 
-                (lower.includes('2a') || lower.includes('bc') || lower.includes('dd') || lower.includes('1+1') || lower.includes('bẫy') || lower.includes('độ dài') || lower.includes('do dai'))) {
-        kbMatch = getById('MISC_VEC_005');
       }
     }
 
@@ -320,16 +323,16 @@ app.post('/api/chat/classroom', async (req, res) => {
       });
     }
 
-    // 2. Vector Algebra Tool (Dynamic Parsing)
+    // 2. Vector Algebra Tool (Chỉ gọi khi bài giảng là môn Toán và có biểu thức đại số vectơ)
+    let vectorAlgebraTool = null;
     const detectedExpr = extractVectorExpr(message);
     const detectedClaim = extractClaimFromText(message);
     const detectedSide = extractSideFromText(message);
-    const hasAlgebraClaim = detectedExpr || lower.includes('bc') || lower.includes('dd') || lower.includes('2a') ||
+    const hasAlgebraClaim = detectedExpr || (isMathLesson && (lower.includes('bc') || lower.includes('dd') || lower.includes('2a') ||
       lower.includes('a√2') || lower.includes('√2') || lower.includes('căn 2') || lower.includes('1+1') ||
-      (kbMatch?.misconception?.id === 'MISC_VEC_005' && (lower.includes('độ dài') || lower.includes('do dai')));
+      (kbMatch?.misconception?.id === 'MISC_VEC_005' && (lower.includes('độ dài') || lower.includes('do dai')))));
 
-    let vectorAlgebraTool = null;
-    if (hasAlgebraClaim) {
+    if (isMathLesson && hasAlgebraClaim) {
       const exprToVerify = detectedExpr || "|BC + DD'|";
       let finalClaim = detectedClaim;
       if (!finalClaim) {
@@ -373,18 +376,40 @@ app.post('/api/chat/classroom', async (req, res) => {
       });
     }
 
-    // 3. Dispatch qua Dynamic Dispatcher (Issue #401)
+    // 3. Trọng tài sự thật kiểm chứng bám nguồn bài giảng (Issue #27 & #30 - dùng cho mọi môn)
+    const groundingTool = executeTool('tool_check_source_grounding', {
+      claim: message,
+      lessonId: videoId,
+      aroundSecond: currentTime,
+    });
+    if (groundingTool.output?.verdict !== 'not_in_source' && groundingTool.output?.citations?.length > 0) {
+      toolCalls.push({
+        toolName: 'tool_check_source_grounding',
+        status: 'completed',
+        label: 'Đang kiểm chứng đối chiếu nguồn bài giảng...',
+        badgeText: groundingTool.output.verdict === 'supported' ? 'Bám nguồn: Khớp bài giảng' : 'Bám nguồn: Cảnh báo sai lệch',
+        category: 'grounding',
+        input: groundingTool.input,
+        output: groundingTool.output,
+        isValid: groundingTool.isValid,
+        timestampMs: groundingTool.timestampMs,
+      });
+    }
+
+    // 4. Dispatch qua Dynamic Dispatcher (Issue #401 & #30)
     const { dispatchMessage } = await import('./src/services/dispatcher.js');
     const activeSessionId = sessionId || `classroom_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const dispatchResult = await dispatchMessage({
       message,
       currentTime,
       lessonTitle,
+      videoId,
       sessionId: activeSessionId,
       recipient,
       useLLM,
       toolCalls,
       vectorAlgebraTool,
+      groundingTool,
       kbMatch,
     });
 

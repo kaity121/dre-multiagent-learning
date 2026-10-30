@@ -1,0 +1,14 @@
+{
+  "videoId": "CLIP_DEMO_60S_AI_ML",
+  "videoTitle": "Trích đoạn 60s: Nhập môn Machine Learning - Phân biệt Học có giám sát (Supervised Learning)",
+  "teacherName": "TS. Hoàng Minh",
+  "subject": "Trí tuệ nhân tạo & Khoa học dữ liệu",
+  "roi": {
+    "xFrom": 0.0
+  },
+  "sourceClip": {
+    "parentVideoId": "VID_AI_INTRO_01",
+    "startSecond": 120,
+    "endSecond": 180
+  }
+}
