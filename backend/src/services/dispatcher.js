@@ -1565,8 +1565,11 @@ export async function dispatchMessage({
     };
   } else if (targetAgent === 'minhkhang' || verdict.detectedIntent === 'general_classroom_chitchat') {
     const isFallingForBoTrap = /(a\s*ra\s*vay|cam\s*on.*ra\s*vay|thi\s*ra\s*la\s*vay|nghe\s*hop\s*ly|tin\s*bo|theo\s*bo)/i.test(normMessage);
-    let mkText = (isFallingForBoTrap && kbMatch?.misconception && session && !session.done)
-      ? `Khoan đã bạn ơi, đừng vội tin mẹo làm tắt của Bo nhé! ${kbMatch.misconception.correction || 'Đó là ngộ nhận sai lầm phổ biến đấy!'}`
+    // "tin Bo" names no misconception itself; it refers to the trap of the active math session.
+    const activeTrap = kbMatch?.misconception
+      || (isMathLesson && session?.misconceptionId ? getKbById(session.misconceptionId)?.misconception : null);
+    let mkText = (isFallingForBoTrap && activeTrap && session && !session.done)
+      ? `Khoan đã bạn ơi, đừng vội tin mẹo làm tắt của Bo nhé! ${activeTrap.correction || 'Đó là ngộ nhận sai lầm phổ biến đấy!'}`
       : normMessage.includes('khong bang ban tri') || normMessage.includes('khong bang tri')
         ? 'Đừng tự ti thế chứ bạn ơi! Mỗi người có một thế mạnh riêng mà: Trí thì đào sâu bản chất toán học, còn tớ thì khoái liên hệ đời sống thực tế nè. Tụi mình cùng học thì ai cũng tiến bộ hết á!'
         : 'Chào bạn nha! Cùng tập trung vào bài giảng của Thầy Tiến nào, phần này cực kỳ quan trọng cho kỳ thi đó!';
