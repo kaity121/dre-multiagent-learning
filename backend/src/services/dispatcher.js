@@ -862,6 +862,29 @@ export async function classifyLearnerIntent({ message, currentTime = 2233, recip
 }
 
 /**
+ * Tóm tắt hội thoại cho tác nhân trả lời: tin học sinh đang trả lời và vài tin gần nhất.
+ * Trả về null khi không có gì, để payload gửi LLM không mang trường rỗng.
+ */
+export function buildConversationContext({ replyTo = null, chatHistory = [] } = {}) {
+  const clip = (text, max) => {
+    const flat = String(text || '').replace(/\s+/g, ' ').trim();
+    return flat.length > max ? `${flat.slice(0, max)}…` : flat;
+  };
+  const parts = [];
+  if (replyTo?.author && replyTo?.text) {
+    parts.push(`Học sinh đang trả lời tin của ${replyTo.author}: "${clip(replyTo.text, 240)}"`);
+  }
+  const turns = (Array.isArray(chatHistory) ? chatHistory : [])
+    .filter((turn) => turn?.text)
+    .slice(-6)
+    .map((turn) => `${turn.author || 'Bạn học'}: ${clip(turn.text, 160)}`);
+  if (turns.length > 0) {
+    parts.push(`Các tin gần nhất trong lớp:\n${turns.join('\n')}`);
+  }
+  return parts.length > 0 ? parts.join('\n\n') : null;
+}
+
+/**
  * RUNTIME DISPATCHER ENGINE:
  * Nhận message -> phân loại intent -> thẩm định phản biện / tools -> gọi Agent -> trả kết quả hoàn chỉnh
  */
@@ -877,8 +900,11 @@ export async function dispatchMessage({
   vectorAlgebraTool = null,
   groundingTool = null,
   kbMatch = null,
+  replyTo = null,
+  chatHistory = [],
 }) {
   const t0 = Date.now();
+  const conversationContext = buildConversationContext({ replyTo, chatHistory });
 
   const { videoId: effectiveVideoId, isMathLesson } = resolveLessonSubject({ videoId, lessonTitle });
 
@@ -979,9 +1005,13 @@ export async function dispatchMessage({
     sessionId: activeSessionId,
     userMessage: message,
     videoId: effectiveVideoId,
+    chatHistory,
   });
-  const citations = contextSnapshot?.citations || [];
-  if (activeGroundingTool?.output?.citations?.length > 0) {
+  // Câu trò chuyện xã giao không dựa vào bài giảng: không gắn nguồn để chip "có nguồn" không nói sai.
+  const isSmallTalk = verdict.detectedIntent === 'general_classroom_chitchat' && !kbMatch
+    && (activeGroundingTool?.output?.verdict || 'not_in_source') === 'not_in_source';
+  const citations = isSmallTalk ? [] : contextSnapshot?.citations || [];
+  if (!isSmallTalk && activeGroundingTool?.output?.citations?.length > 0) {
     for (const c of activeGroundingTool.output.citations) {
       if (!citations.some((existing) => existing.quote === c.quote)) {
         citations.push(c);
@@ -1138,6 +1168,7 @@ export async function dispatchMessage({
         if (useLLM) {
           try {
             const taResult = await taScaffoldSupport({
+              boiCanhHoiThoai: conversationContext,
               baiToan: mathProblem,
               chuDe: lessonTitle,
               cauHoiHocVien: message,
@@ -1174,6 +1205,7 @@ export async function dispatchMessage({
         if (useLLM) {
           try {
             const taResult = await taScaffoldSupport({
+              boiCanhHoiThoai: conversationContext,
               baiToan: mathProblem,
               chuDe: lessonTitle,
               cauHoiHocVien: message,
@@ -1389,6 +1421,7 @@ export async function dispatchMessage({
     if (useLLM) {
       try {
         const lcResult = await linhChiTakeNotes({
+          boiCanhHoiThoai: conversationContext,
           baiToan: mathProblem,
           chuDe: lessonTitle,
           cauHoiHocVien: message,
@@ -1423,6 +1456,7 @@ export async function dispatchMessage({
     if (useLLM) {
       try {
         const taResult = await taScaffoldSupport({
+          boiCanhHoiThoai: conversationContext,
           baiToan: mathProblem,
           chuDe: lessonTitle,
           cauHoiHocVien: message,
@@ -1523,6 +1557,7 @@ export async function dispatchMessage({
       if (useLLM) {
         try {
           const triRes = await triDeepThink({
+            boiCanhHoiThoai: conversationContext,
             baiToan: mathProblem,
             cauHoiHocVien: message,
             loiBoGiai: boText,
@@ -1546,6 +1581,7 @@ export async function dispatchMessage({
     if (useLLM) {
       try {
         const clRes = await coLamConsult({
+          boiCanhHoiThoai: conversationContext,
           cauHoiHocVien: message,
           baiToan: mathProblem,
           chuDe: lessonTitle,
@@ -1578,6 +1614,7 @@ export async function dispatchMessage({
     if (useLLM) {
       try {
         const mkResult = await minhKhangAnalogy({
+          boiCanhHoiThoai: conversationContext,
           baiToan: mathProblem,
           chuDe: lessonTitle,
           cauHoiHocVien: message,
@@ -1626,6 +1663,7 @@ export async function dispatchMessage({
     if (useLLM) {
       try {
         const triResult = await triDeepThink({
+          boiCanhHoiThoai: conversationContext,
           baiToan: mathProblem,
           chuDe: lessonTitle,
           cauHoiHocVien: message,

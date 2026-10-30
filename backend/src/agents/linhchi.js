@@ -18,14 +18,15 @@ Luôn trả về JSON:
 }
 `.trim();
 
-export async function linhChiTakeNotes({ baiToan, chuDe, cauHoiHocVien }) {
+export async function linhChiTakeNotes({ baiToan, chuDe, cauHoiHocVien, boiCanhHoiThoai }) {
   return chatJSON({
     model: config.models.bo, // gpt-6-sol
     systemPrompt: LINHCHI_SYSTEM_PROMPT,
     userPayload: {
       bai_toan: baiToan,
       chu_de: chuDe,
-      cau_hoi_hoc_vien: cauHoiHocVien
+      cau_hoi_hoc_vien: cauHoiHocVien,
+      boi_canh_hoi_thoai: boiCanhHoiThoai || undefined,
     }
   });
 }

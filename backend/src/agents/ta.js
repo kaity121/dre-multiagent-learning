@@ -33,7 +33,7 @@ export async function generateTAPinnedNote({ baiToan, chuDe, goiY }) {
   });
 }
 
-export async function taScaffoldSupport({ baiToan = 'Toán 12 — Vectơ trong không gian', chuDe = 'Vectơ trong không gian', cauHoiHocVien, goiY1, goiY2, level = 1 }) {
+export async function taScaffoldSupport({ baiToan = 'Toán 12 — Vectơ trong không gian', chuDe = 'Vectơ trong không gian', cauHoiHocVien, goiY1, goiY2, level = 1, boiCanhHoiThoai }) {
   const SCAFFOLD_SYSTEM_PROMPT = `
 Bạn là "Trợ giảng An" (Teacher Assistant) trong lớp học trực tuyến OpenMAIC / DRE.
 QUY TẮC XƯNG HÔ (BẮT BUỘC):
@@ -65,6 +65,7 @@ Trả về đúng JSON:
       bai_toan: baiToan,
       chu_de: chuDe,
       cau_hoi_hoc_vien: cauHoiHocVien,
+      boi_canh_hoi_thoai: boiCanhHoiThoai || undefined,
       goi_y_1: goiY1,
       goi_y_2: goiY2,
       level

@@ -22,7 +22,7 @@ Luôn trả về đúng JSON theo schema:
 /**
  * Cô Lam tư vấn sư phạm trực tiếp cho học sinh (có sử dụng tool thẩm định Bloom)
  */
-export async function coLamConsult({ cauHoiHocVien, baiToan, chuDe }) {
+export async function coLamConsult({ cauHoiHocVien, baiToan, chuDe, boiCanhHoiThoai }) {
   // Cô Lam kích hoạt tool thẩm định mức nhận thức Bloom của câu hỏi/nhiệm vụ
   const bloomResult = executeTool('tool_evaluate_bloom_level', {
     question: cauHoiHocVien || baiToan || 'Vectơ trong không gian',
@@ -34,6 +34,7 @@ export async function coLamConsult({ cauHoiHocVien, baiToan, chuDe }) {
     systemPrompt: COLAM_SYSTEM_PROMPT,
     userPayload: {
       cau_hoi_hoc_vien: cauHoiHocVien,
+      boi_canh_hoi_thoai: boiCanhHoiThoai || undefined,
       bai_toan: baiToan,
       chu_de: chuDe,
       bloom_assessment: bloomResult.output,

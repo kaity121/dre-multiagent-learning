@@ -22,7 +22,7 @@ Luôn trả về JSON:
 }
 `.trim();
 
-export async function triDeepThink({ baiToan, chuDe, cauHoiHocVien, loiBoGiai, vectorAlgebraTool }) {
+export async function triDeepThink({ baiToan, chuDe, cauHoiHocVien, loiBoGiai, vectorAlgebraTool, boiCanhHoiThoai }) {
   const combinedText = `${cauHoiHocVien || ''} ${baiToan || ''} ${loiBoGiai || ''}`.toLowerCase();
   
   let toolCall = vectorAlgebraTool || null;
@@ -60,6 +60,7 @@ export async function triDeepThink({ baiToan, chuDe, cauHoiHocVien, loiBoGiai, v
       bai_toan: baiToan,
       chu_de: chuDe,
       cau_hoi_hoc_vien: cauHoiHocVien,
+      boi_canh_hoi_thoai: boiCanhHoiThoai || undefined,
       loi_bo_giai: loiBoGiai,
       tool_verification: toolCall?.output || toolCall,
     },

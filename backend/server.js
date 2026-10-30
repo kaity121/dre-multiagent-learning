@@ -676,7 +676,7 @@ app.post('/api/runtime/context-snapshot', async (req, res) => {
 // POST /api/chat/classroom — OpenMAIC: Khung chat lớp học tích hợp Dispatcher, RAG & Multi-Agent Chaining
 app.post('/api/chat/classroom', async (req, res) => {
   try {
-    const { message, currentTime = 2233, recipient = 'all', lessonTitle = 'Toán 12 — Vectơ trong không gian', videoId: reqVideoId, useLLM = true, sessionId = null } = req.body || {};
+    const { message, currentTime = 2233, recipient = 'all', lessonTitle = 'Toán 12 — Vectơ trong không gian', videoId: reqVideoId, useLLM = true, sessionId = null, replyTo = null, chatHistory = [] } = req.body || {};
     if (!message) {
       return res.status(400).json({ error: 'Thiếu message' });
     }
@@ -808,7 +808,15 @@ app.post('/api/chat/classroom', async (req, res) => {
       vectorAlgebraTool,
       groundingTool,
       kbMatch,
+      replyTo,
+      chatHistory: Array.isArray(chatHistory) ? chatHistory : [],
     });
+    // Trò chuyện xã giao không trích nguồn, nên cũng không khoe bước đối chiếu nguồn.
+    const isSmallTalk = dispatchResult.verdict.detectedIntent === 'general_classroom_chitchat' && !kbMatch
+      && (groundingTool.output?.verdict || 'not_in_source') === 'not_in_source';
+    const visibleToolCalls = isSmallTalk
+      ? toolCalls.filter((call) => call.toolName !== 'tool_check_source_grounding')
+      : toolCalls;
 
     res.json({
       ok: true,
@@ -822,8 +830,8 @@ app.post('/api/chat/classroom', async (req, res) => {
       sessionId: activeSessionId,
       sessionState: dispatchResult.sessionState || null,
       kbMatchedId: dispatchResult.ragContextUsed?.misconceptionId || kbMatch?.misconception?.id || null,
-      toolCall: toolCalls[0] || null,
-      toolCalls,
+      toolCall: visibleToolCalls[0] || null,
+      toolCalls: visibleToolCalls,
       citations: dispatchResult.citations || (dispatchResult.primaryResponse?.citations) || null,
       contextSnapshot: dispatchResult.contextSnapshot || null,
       timeStr: dispatchResult.currentTimeStr,

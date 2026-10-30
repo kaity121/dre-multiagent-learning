@@ -305,6 +305,21 @@ export function findActiveLessonPart(second) {
 }
 
 /**
+ * Bảng phấn có thể ghi một cặp đối chiếu (đoạn thẳng "AB = BA" và vectơ "\vec{AB} \neq \vec{BA}").
+ * Dòng có vectơ mang ý chính của bài, nên ưu tiên dòng đó thay vì dòng được viết trước.
+ */
+export function pickBoardLatex(lines = []) {
+  return lines.find((line) => /\\vec|\\neq|≠/.test(line)) || lines[0];
+}
+
+/**
+ * Nhãn mốc video: khi học sinh hỏi giữa một đoạn, ghi rõ đó là đoạn bắt đầu từ mốc nào.
+ */
+function segmentTimeLabel(segSecond, segTime, askedSecond) {
+  return Math.floor(askedSecond) > Math.floor(segSecond) ? `đoạn từ ${segTime}` : segTime;
+}
+
+/**
  * Sinh danh sách Citations (mốc giây bấm được & nhãn nguồn)
  */
 export function generateCitations({ second, blackboardState, activePart, misconception }) {
@@ -324,8 +339,9 @@ export function generateCitations({ second, blackboardState, activePart, misconc
       quote: "Ví dụ 3: Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính |BC + DD'|.",
     });
   } else if (blackboardState?.segment) {
+    const segTime = blackboardState.segment.timeFormatted || timeFormatted;
     citations.push({
-      label: `Video bài giảng Thầy Tiến (${blackboardState.segment.timeFormatted || timeFormatted})`,
+      label: `Video bài giảng Thầy Tiến (${segmentTimeLabel(blackboardState.segment.second ?? sec, segTime, sec)})`,
       timestamp: blackboardState.segment.second || sec,
       timeFormatted: blackboardState.segment.timeFormatted || timeFormatted,
       source: 'video',
@@ -335,7 +351,7 @@ export function generateCitations({ second, blackboardState, activePart, misconc
 
   // 2. Citation Bảng Phấn Hiện Tại (Blackboard Grounding)
   if (blackboardState?.segment?.blackboardLatex?.length > 0) {
-    const mainLatex = blackboardState.segment.blackboardLatex[0];
+    const mainLatex = pickBoardLatex(blackboardState.segment.blackboardLatex);
     citations.push({
       label: `Bảng phấn ${blackboardState.segment.timeFormatted || timeFormatted}: ${mainLatex}`,
       timestamp: blackboardState.segment.second || sec,
@@ -395,7 +411,7 @@ export function generateSourceCitations({ second, blackboardState, stream }) {
     || `${Math.floor(segSecond / 60).toString().padStart(2, '0')}:${Math.floor(segSecond % 60).toString().padStart(2, '0')}`;
   const teacher = stream?.teacherName ? `${stream.teacherName} ` : '';
   return [{
-    label: `Video bài giảng ${teacher}(${timeFormatted})`,
+    label: `Video bài giảng ${teacher}(${segmentTimeLabel(segSecond, timeFormatted, Number(second) || 0)})`,
     timestamp: segSecond,
     timeFormatted,
     source: 'video',
@@ -448,7 +464,8 @@ export function buildRuntimeContext({
   // Định dạng công thức bảng phấn
   let blackboardLatex = '';
   if (Array.isArray(segment.blackboardLatex) && segment.blackboardLatex.length > 0) {
-    blackboardLatex = segment.blackboardLatex[0];
+    // Tác nhân cần thấy cả bảng, kể cả dòng đối chiếu, nên ghép mọi dòng.
+    blackboardLatex = segment.blackboardLatex.join('; ');
   } else if (typeof segment.blackboardLatex === 'string') {
     blackboardLatex = segment.blackboardLatex;
   } else if (isMathLesson && sec >= 2100 && sec <= 2350) {
