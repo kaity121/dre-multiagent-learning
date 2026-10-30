@@ -123,7 +123,7 @@ export interface DeterministicToolCallInfo {
   category?: 'rag' | 'math_verify' | 'bloom' | 'timeline';
   input?: Record<string, any>;
   output?: Record<string, any>;
-  isValid?: boolean;
+  isValid?: boolean | null;
   timestampMs?: number;
 }
 
@@ -215,6 +215,31 @@ export async function sendPeerChat(
   }
 }
 
+
+/**
+ * AISDLC Issue #401: Runtime Intent Classifier & Dynamic Routing Dispatcher
+ */
+export async function dispatchRuntimeMessage(payload: {
+  message: string;
+  currentTime?: number;
+  lessonTitle?: string;
+  sessionId?: string;
+  recipient?: string;
+  useLLM?: boolean;
+}): Promise<any | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/runtime/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.warn('[DRE API] dispatchRuntimeMessage error:', err);
+    return null;
+  }
+}
 
 /**
  * AISDLC Issue #402: Fetch Context Isolation Snapshot for an agent at second T

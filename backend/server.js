@@ -209,10 +209,10 @@ app.post('/api/tools/execute', async (req, res) => {
   }
 });
 
-// POST /api/runtime/dispatch — OpenMAIC Issue #401: Runtime Intent Classifier & Dynamic Routing Dispatcher
-app.post('/api/runtime/dispatch', async (req, res) => {
+// Handler function for runtime dispatcher (#401 & backwards-compatible alias)
+export async function handleRuntimeDispatch(req, res) {
   try {
-    const { message, currentTime = 2233, lessonTitle = 'Toán 12 — Vectơ trong không gian', sessionId = null, recipient = 'all', useLLM = true } = req.body || {};
+    const { message, currentTime = 2233, lessonTitle = 'Toán 12 — Vectơ trong không gian', sessionId, recipient = 'all', useLLM = true } = req.body || {};
     if (!message) {
       return res.status(400).json({ error: 'Thiếu message' });
     }
@@ -222,7 +222,7 @@ app.post('/api/runtime/dispatch', async (req, res) => {
       message,
       currentTime,
       lessonTitle,
-      sessionId,
+      sessionId: sessionId || undefined,
       recipient,
       useLLM,
     });
@@ -231,7 +231,13 @@ app.post('/api/runtime/dispatch', async (req, res) => {
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
-});
+}
+
+// POST /api/runtime/dispatch — OpenMAIC Issue #401: Runtime Intent Classifier & Dynamic Routing Dispatcher
+app.post('/api/runtime/dispatch', handleRuntimeDispatch);
+
+// POST /api/dispatcher/evaluate — Direct endpoint alias to evaluate learner queries against the runtime dispatcher
+app.post('/api/dispatcher/evaluate', handleRuntimeDispatch);
 
 // POST /api/chat/classroom — OpenMAIC: Khung chat lớp học tích hợp Dispatcher, RAG & Multi-Agent Chaining
 app.post('/api/chat/classroom', async (req, res) => {
@@ -280,6 +286,10 @@ app.post('/api/chat/classroom', async (req, res) => {
     const detectedExpr = extractVectorExpr(message);
     const detectedClaim = extractClaimFromText(message);
     const detectedSide = extractSideFromText(message);
+    const normalizedMessage = (message || '').normalize('NFC');
+    const isQuestioningBo =
+      /(?:^|\s)(?:bo|bạn ấy|ban ay|cậu ấy|cau ay|bạn|ban)\s+(?:nói|noi|bảo|bao|ghi|viết|viet|cho rằng|cho rang|phán|phan)(?![A-Za-zÀ-ỹ0-9_])/i.test(normalizedMessage) ||
+      /(?:^|\s)theo\s+bo(?![A-Za-zÀ-ỹ0-9_])/i.test(normalizedMessage);
     const hasAlgebraClaim = detectedExpr || lower.includes('bc') || lower.includes('dd') || lower.includes('2a') ||
       lower.includes('a√2') || lower.includes('√2') || lower.includes('căn 2') || lower.includes('1+1') ||
       (kbMatch?.misconception?.id === 'MISC_VEC_005' && (lower.includes('độ dài') || lower.includes('do dai')));
@@ -288,7 +298,7 @@ app.post('/api/chat/classroom', async (req, res) => {
     if (hasAlgebraClaim) {
       const exprToVerify = detectedExpr || "|BC + DD'|";
       let finalClaim = detectedClaim;
-      if (!finalClaim) {
+      if (!isQuestioningBo && !finalClaim) {
         if (lower.includes('a√2') || lower.includes('√2') || lower.includes('căn 2')) {
           finalClaim = detectedSide !== 'a' ? `${detectedSide}√2` : 'a√2';
         } else if (lower.includes("bc'")) {
@@ -307,9 +317,9 @@ app.post('/api/chat/classroom', async (req, res) => {
         claim: finalClaim,
       });
 
-      const isCalcOnly = vectorAlgebraTool.output?.isValid === null;
+      const isCalcOnly = vectorAlgebraTool.isValid === null || vectorAlgebraTool.output?.isValid === null;
       const badgeText = isCalcOnly
-        ? `Đã tính toán: ${vectorAlgebraTool.output?.correct || ''}`
+        ? `Đã tính toán hình học: ${vectorAlgebraTool.input.expr} = ${vectorAlgebraTool.output?.correct || ''}`
         : (vectorAlgebraTool.isValid === true
             ? `Đã kiểm chứng hình học: Khớp chuẩn (${vectorAlgebraTool.output?.correct || 'a√2'})`
             : vectorAlgebraTool.isValid === false
@@ -366,6 +376,10 @@ app.post('/api/chat/classroom', async (req, res) => {
   }
 });
 
-app.listen(config.port, () => {
-  console.log(`DRE backend đang chạy ở http://localhost:${config.port}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(config.port, () => {
+    console.log(`DRE backend đang chạy ở http://localhost:${config.port}`);
+  });
+}
+
+export { app };
