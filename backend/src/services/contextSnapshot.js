@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getBoardStateAt } from './lessonIndex.js';
+import { getBoardStateAt, getLessonIndex } from './lessonIndex.js';
 import { search as searchKb, getById as getKbById } from './knowledgeBase.js';
 import { getSession } from '../sessionStore.js';
 
@@ -24,6 +24,34 @@ const ROOT_DIR = path.resolve(__dirname, '../../../');
  */
 
 export const TOKEN_BUDGET_LIMIT = 1200;
+
+export const DEFAULT_MATH_VIDEO_ID = 'VID_VECTO_12_TIEN';
+
+/**
+ * Xác định bài giảng đang học và có phải môn Toán (bài Vectơ có Knowledge Base) hay không.
+ * videoId tường minh luôn được ưu tiên hơn lessonTitle (lessonTitle thường mang giá trị mặc định
+ * "Toán 12" từ client cũ), và môn học được đọc từ lesson index khi bài đã được index.
+ */
+export function resolveLessonSubject({ videoId = null, lessonTitle = '' } = {}) {
+  const normTitle = String(lessonTitle || '').toLowerCase();
+  const explicitVideoId = typeof videoId === 'string' && videoId.trim() ? videoId.trim() : null;
+  const effectiveVideoId =
+    explicitVideoId ||
+    (normTitle.includes('trí tuệ nhân tạo') || normTitle.includes('machine learning')
+      ? 'VID_AI_INTRO_01'
+      : DEFAULT_MATH_VIDEO_ID);
+
+  const indexed = getLessonIndex(effectiveVideoId);
+  let isMathLesson;
+  if (effectiveVideoId.includes('VECTO')) {
+    isMathLesson = true;
+  } else if (indexed) {
+    isMathLesson = `${indexed.subject || ''} ${indexed.videoTitle || ''}`.toLowerCase().includes('toán');
+  } else {
+    isMathLesson = normTitle.includes('toán');
+  }
+  return { videoId: effectiveVideoId, isMathLesson };
+}
 
 /**
  * BẢNG POLICY CÔ LẬP THEO TỪNG AGENT (Context Isolation Policy Matrix)
@@ -219,13 +247,25 @@ export function getApprovedLessonPackage() {
  */
 let cachedSessionMock = null;
 export function getMockSessionState(sessionId = 'session_001') {
-  if (sessionId !== 'session_001' && getSession(sessionId)) {
-    return getSession(sessionId);
+  if (sessionId && sessionId !== 'session_001') {
+    // Phiên thật: lấy từ session store. Phiên chưa tồn tại nhận trạng thái trống riêng,
+    // KHÔNG mượn bộ nhớ/Bloom/ngộ nhận của fixture session_001 (tránh rò ngữ cảnh giữa các phiên).
+    try {
+      return getSession(sessionId);
+    } catch {
+      return {
+        session_id: sessionId,
+        status: 'in_progress',
+        activity_log: [],
+        memory: { summary: '', misconceptions_triggered: [] },
+        assessment: { goals: [] },
+      };
+    }
   }
   if (cachedSessionMock) return cachedSessionMock;
   const sessionPath = path.join(ROOT_DIR, 'mock/session_001.json');
   cachedSessionMock = safeReadJson(sessionPath, {
-    session_id: sessionId || 'session_001',
+    session_id: 'session_001',
     status: 'in_progress',
     station_progress: 'station_1_warmup',
     activity_log: [],
@@ -344,6 +384,26 @@ export function generateCitations({ second, blackboardState, activePart, misconc
 }
 
 /**
+ * Citations cho bài đã index nhưng chưa có SGK/Knowledge Base riêng: chỉ trích mốc video đang chiếu.
+ */
+export function generateSourceCitations({ second, blackboardState, stream }) {
+  const seg = blackboardState?.segment;
+  const quote = seg?.audioTranscript || seg?.blackboardText;
+  if (!quote) return [];
+  const segSecond = Number(seg.second) || Number(second) || 0;
+  const timeFormatted = seg.timeFormatted
+    || `${Math.floor(segSecond / 60).toString().padStart(2, '0')}:${Math.floor(segSecond % 60).toString().padStart(2, '0')}`;
+  const teacher = stream?.teacherName ? `${stream.teacherName} ` : '';
+  return [{
+    label: `Video bài giảng ${teacher}(${timeFormatted})`,
+    timestamp: segSecond,
+    timeFormatted,
+    source: 'video',
+    quote,
+  }];
+}
+
+/**
  * Xây dựng AgentRuntimeContext chuẩn theo hợp đồng src/types/pipeline.ts
  * kèm Context Isolation và Token Budgeting
  */
@@ -351,17 +411,20 @@ export function buildRuntimeContext({
   agentId = 'tri',
   second = 2233,
   sessionId = 'session_001',
-  videoId = 'VID_VECTO_12_TIEN',
+  videoId = DEFAULT_MATH_VIDEO_ID,
   userMessage = '',
   chatHistory = [],
   maxHistoryTurns = 6,
 }) {
-  const sec = Number(second) || 2233;
+  const sec = Number.isFinite(Number(second)) && Number(second) >= 0 ? Number(second) : 2233;
   const policy = AGENT_ISOLATION_POLICIES[agentId] || AGENT_ISOLATION_POLICIES.tri;
+  const { videoId: lessonVideoId, isMathLesson } = resolveLessonSubject({ videoId });
+  const lessonStream = getLessonIndex(lessonVideoId);
+  const teacherName = lessonStream?.teacherName || 'Thầy Tiến';
 
   // 1. Lấy Board State tại giây T từ pre-indexed loader (Issue #6 / PR #22)
-  let boardState = getBoardStateAt(videoId, sec, 30);
-  if (!boardState || !boardState.segment) {
+  let boardState = getBoardStateAt(lessonVideoId, sec, 30);
+  if (isMathLesson && (!boardState || !boardState.segment)) {
     // Fallback từ mock_cognitive_stream_vecto12.json nếu videoId khác
     const mockCes = safeReadJson(path.join(ROOT_DIR, 'mock/mock_cognitive_stream_vecto12.json'), null);
     if (mockCes?.segments) {
@@ -378,9 +441,9 @@ export function buildRuntimeContext({
 
   const segment = boardState?.segment || {};
   const recentSpeechTexts = (boardState?.recentSpeech || [])
-    .map((s) => `${s.speaker || 'Thầy Tiến'}: ${s.text}`)
+    .map((s) => `${s.speaker || teacherName}: ${s.text}`)
     .join(' ');
-  const teacherSpeechNow = recentSpeechTexts || segment.audioTranscript || 'Thầy Tiến đang giảng bài trên bảng.';
+  const teacherSpeechNow = recentSpeechTexts || segment.audioTranscript || `${teacherName} đang giảng bài trên bảng.`;
 
   // Định dạng công thức bảng phấn
   let blackboardLatex = '';
@@ -388,12 +451,17 @@ export function buildRuntimeContext({
     blackboardLatex = segment.blackboardLatex[0];
   } else if (typeof segment.blackboardLatex === 'string') {
     blackboardLatex = segment.blackboardLatex;
-  } else if (sec >= 2100 && sec <= 2350) {
+  } else if (isMathLesson && sec >= 2100 && sec <= 2350) {
     blackboardLatex = "|\\vec{BC} + \\vec{DD'}|";
   }
 
   // 2. Lấy Part và Goal hiện tại từ lesson.json
-  const activePart = findActiveLessonPart(sec);
+  // lesson.json hiện chỉ mô tả bài Vectơ; bài khác lấy concept từ segment đang chiếu.
+  const activePart = isMathLesson
+    ? findActiveLessonPart(sec)
+    : segment.id
+      ? { part_id: segment.id, title: lessonStream?.videoTitle, concept: segment.blackboardText || segment.audioTranscript }
+      : null;
 
   // 3. Lấy Trạng thái học sinh từ session store hoặc mock/session_001.json
   const sessionData = getMockSessionState(sessionId);
@@ -401,12 +469,15 @@ export function buildRuntimeContext({
   const currentBloomLevel = sessionData?.overall_review?.bloom_certified_level || 'Understand';
   const hesitationScore = sessionData?.overall_review?.hesitation_index_score ?? 0.5;
   const hesitationLevel = hesitationScore > 0.65 ? 'high' : hesitationScore > 0.35 ? 'medium' : 'low';
-  const activeMisconceptionId = sessionData?.memory?.misconceptions_triggered?.[0] || 'MISC_VEC_005';
+  const activeMisconceptionId = isMathLesson
+    ? sessionData?.memory?.misconceptions_triggered?.[0] || 'MISC_VEC_005'
+    : null;
 
   // 4. Lấy RAG Snippets từ Knowledge Base
   let ragContextSnippets = [];
-  let kbEntry = getKbById(activeMisconceptionId);
-  if (!kbEntry && userMessage) {
+  // Knowledge Base ngộ nhận hiện chỉ có cho bài Vectơ — không tra cho môn khác để tránh rò thuật ngữ vectơ.
+  let kbEntry = isMathLesson ? getKbById(activeMisconceptionId) : null;
+  if (isMathLesson && !kbEntry && userMessage) {
     const hits = searchKb(userMessage, 2);
     if (hits.length > 0) kbEntry = hits[0].misconception;
   }
@@ -424,7 +495,11 @@ export function buildRuntimeContext({
     scaffoldingHints = (kbEntry.scaffolding || kbEntry.scaffoldingNudges || []).map((s) => s.question || s);
   }
 
-  if (policy.role === 'bo') {
+  if (!isMathLesson) {
+    // Bài phi Toán: chỉ bám nội dung lời giảng/bảng tại giây T. Bo vẫn không nhận nội dung chuẩn.
+    const sourceText = segment.blackboardText || segment.audioTranscript || '';
+    ragContextSnippets = policy.role === 'bo' || !sourceText ? [] : [`Nội dung bài giảng tại giây ${sec}: ${sourceText}`];
+  } else if (policy.role === 'bo') {
     // 🛡️ BẢO VỆ TUYỆT ĐỐI CHO BO:
     // Bo KHÔNG ĐƯỢC thấy standardFormula, correction, rebuttalAnchor, standardProof!
     // Bo CHỈ thấy bẫy ngộ nhận, câu hỏi khơi mào và các nhận xét trực giác.
@@ -479,12 +554,14 @@ export function buildRuntimeContext({
   }));
 
   // 7. Sinh Citations (mốc giây và nhãn nguồn)
-  const citations = generateCitations({
-    second: sec,
-    blackboardState: boardState,
-    activePart,
-    misconception: kbEntry,
-  });
+  const citations = isMathLesson
+    ? generateCitations({
+        second: sec,
+        blackboardState: boardState,
+        activePart,
+        misconception: kbEntry,
+      })
+    : generateSourceCitations({ second: sec, blackboardState: boardState, stream: lessonStream });
 
   // 8. Đóng gói AgentRuntimeContext hoàn chỉnh theo Contract src/types/pipeline.ts
   const runtimeContext = {
@@ -497,12 +574,12 @@ export function buildRuntimeContext({
       second: sec,
       blackboardLatex,
       teacherSpeechNow,
-      spatialGeometry: segment.spatialGeometry || {
+      spatialGeometry: segment.spatialGeometry || (isMathLesson ? {
         shapeType: 'cube',
         vertices: ['A', 'B', 'C', 'D', "A'", "B'", "C'", "D'"],
         highlightedVectors: ['BC', "DD'", "CC'", "BC'"],
         actionDescription: "Hình lập phương cạnh 1, tam giác BCC' vuông cân tại C, đường chéo BC' = căn 2",
-      },
+      } : null),
     },
     dialogueHistory,
     ragContextSnippets,
@@ -525,15 +602,17 @@ export function buildRuntimeContext({
   // Gắn Metadata phục vụ Audit, Inspector và DoD tests
   const metadata = {
     agentId: policy.role,
-    activePartId: activePart?.part_id || 'part_03_box_rule_example3',
+    videoId: lessonVideoId,
+    isMathLesson,
+    activePartId: activePart?.part_id || (isMathLesson ? 'part_03_box_rule_example3' : null),
     activePart: activePart ? {
       partId: activePart.part_id,
       title: activePart.title,
       concept: activePart.concept,
-    } : {
+    } : isMathLesson ? {
       partId: 'part_03_box_rule_example3',
       title: 'Quy Tắc Hình Hộp & Điểm Dừng Bẫy Độ Dài [37:13]',
-    },
+    } : null,
     isolationPolicyApplied: {
       allowedFields: policy.allowedFields,
       redactedFields: policy.redactedFields,
@@ -570,5 +649,7 @@ export default {
   getMockSessionState,
   findActiveLessonPart,
   generateCitations,
+  generateSourceCitations,
+  resolveLessonSubject,
   buildRuntimeContext,
 };

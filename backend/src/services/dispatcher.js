@@ -11,7 +11,7 @@ import { chamPhanBien } from '../agents/assessor.js';
 import { getOrCreateSession, logActivityEvent } from '../sessionStore.js';
 import { executeTool } from '../tools/index.js';
 import { extractVectorExpr, extractClaimFromText, extractSideFromText } from '../tools/tool_verify_vector_algebra.js';
-import { buildRuntimeContext } from './contextSnapshot.js';
+import { buildRuntimeContext, resolveLessonSubject } from './contextSnapshot.js';
 
 /**
  * ============================================================================
@@ -880,13 +880,7 @@ export async function dispatchMessage({
 }) {
   const t0 = Date.now();
 
-  const normTitle = String(lessonTitle || '').toLowerCase();
-  const effectiveVideoId =
-    videoId ||
-    (normTitle.includes('trí tuệ nhân tạo') || normTitle.includes('machine learning')
-      ? 'VID_AI_INTRO_01'
-      : 'VID_VECTO_12_TIEN');
-  const isMathLesson = normTitle.includes('toán') || effectiveVideoId.includes('VECTO');
+  const { videoId: effectiveVideoId, isMathLesson } = resolveLessonSubject({ videoId, lessonTitle });
 
   // 1. Phân loại Intent & Chọn Agent
   const verdict = await classifyLearnerIntent({
@@ -914,7 +908,8 @@ export async function dispatchMessage({
         aroundSecond: currentTime,
       });
     } catch (err) {
-      // ignore
+      // Không chặn luồng hội thoại khi kiểm chứng bám nguồn lỗi, nhưng phải để lại dấu vết.
+      console.warn('[Dispatcher] tool_check_source_grounding failed:', err?.message || err);
     }
   }
 

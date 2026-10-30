@@ -243,7 +243,7 @@ app.get('/api/runtime/context-snapshot', async (req, res) => {
     const { buildRuntimeContext } = await import('./src/services/contextSnapshot.js');
     const snapshot = buildRuntimeContext({
       agentId: String(agentId),
-      second: Number(second) || 2233,
+      second: Number(second),
       sessionId: String(sessionId),
       videoId: String(videoId),
     });
@@ -267,7 +267,7 @@ app.post('/api/runtime/context-snapshot', async (req, res) => {
     const { buildRuntimeContext } = await import('./src/services/contextSnapshot.js');
     const snapshot = buildRuntimeContext({
       agentId: String(agentId),
-      second: Number(second) || 2233,
+      second: Number(second),
       sessionId: String(sessionId),
       videoId: String(videoId),
       userMessage: String(userMessage),
@@ -288,9 +288,8 @@ app.post('/api/chat/classroom', async (req, res) => {
     }
 
     const lower = String(message).toLowerCase().trim();
-    const normTitle = String(lessonTitle).toLowerCase();
-    const videoId = reqVideoId || (normTitle.includes('trí tuệ nhân tạo') || normTitle.includes('machine learning') ? 'VID_AI_INTRO_01' : 'VID_VECTO_12_TIEN');
-    const isMathLesson = normTitle.includes('toán') || videoId.includes('VECTO');
+    const { resolveLessonSubject } = await import('./src/services/contextSnapshot.js');
+    const { videoId, isMathLesson } = resolveLessonSubject({ videoId: reqVideoId, lessonTitle });
 
     const { search, getById } = await import('./src/services/knowledgeBase.js');
     const { executeTool } = await import('./src/tools/index.js');
