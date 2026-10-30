@@ -8,6 +8,13 @@ import { config } from '../config.js';
  */
 export function getMisconceptionVerifiableConfig(misconceptionInput) {
   const misconception = misconceptionInput?.misconception || misconceptionInput || {};
+  if (misconception?.verifier) {
+    return {
+      toolType: 'subject_specific',
+      toolName: misconception.verifier.toolName,
+      params: misconception.verifier.params || {},
+    };
+  }
   // 1. Phép toán trong hình lập phương / cộng độ dài
   if (misconception.id === 'MISC_VEC_005' || (misconception.tags || []).includes('cube')) {
     return {
@@ -71,7 +78,7 @@ export function buildTriPrompt({ misconception: misconceptionInput, boTurn, tool
   let triPrompt = '';
   let forcedToolChoice = null;
 
-  if (toolConfig.toolType === 'vector_algebra') {
+  if (toolConfig.toolType === 'vector_algebra' || toolConfig.toolName === 'tool_verify_vector_algebra') {
     const expr = toolConfig.params.expr;
     const claim = boTurn.claim || toolConfig.params.defaultClaim;
     const sideLine = toolConfig.params.side ? `\n- side: "${toolConfig.params.side}"` : '';
@@ -331,7 +338,7 @@ Trả về JSON chuẩn:
 
       // Thực thi tool phù hợp
       let vectorToolCall;
-      if (toolConfig.toolType === 'vector_algebra') {
+      if (toolConfig.toolType === 'vector_algebra' || toolConfig.toolName === 'tool_verify_vector_algebra') {
         vectorToolCall = executeTool('tool_verify_vector_algebra', {
           shape: toolConfig.params.shape || 'cube',
           side: toolConfig.params.side || 'a',
@@ -395,17 +402,21 @@ Trả về JSON chuẩn:
     recordEvent('debate_turn', 'bo', 'Bo (Hệ 1 - Trực giác)', boTurn.dialogue);
 
     let vectorToolCall;
-    if (toolConfig.toolType === 'vector_algebra') {
+    if (toolConfig.toolType === 'vector_algebra' || toolConfig.toolName === 'tool_verify_vector_algebra') {
       vectorToolCall = executeTool('tool_verify_vector_algebra', {
         shape: toolConfig.params.shape || 'cube',
         side: toolConfig.params.side || 'a',
         expr: toolConfig.params.expr,
         claim: boClaim,
       });
-    } else if (toolConfig.toolType === 'dot_product') {
+    } else if (toolConfig.toolType === 'dot_product' || toolConfig.toolName === 'tool_calculate_dot_product') {
       vectorToolCall = executeTool('tool_calculate_dot_product', {
         ...toolConfig.params,
         claimValue: boClaim,
+      });
+    } else if (toolConfig.toolName === 'tool_check_source_grounding') {
+      vectorToolCall = executeTool('tool_check_source_grounding', {
+        claim: boClaim,
       });
     } else {
       vectorToolCall = executeTool('tool_query_misconception_kb', {

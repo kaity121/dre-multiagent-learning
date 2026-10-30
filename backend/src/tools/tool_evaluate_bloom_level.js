@@ -4,23 +4,49 @@
  * Deterministic Tool: Đánh giá cấp độ nhận thức theo Thang đo Bloom (Bloom's Taxonomy)
  * cho các câu hỏi kiểm tra, checkpoint hoặc bài tập sư phạm do Cô Lam / Roundtable sinh ra.
  *
- * Các cấp độ:
- * 1. Remember: Nhận biết, nhớ lại định nghĩa, công thức.
- * 2. Understand: Thông hiểu, giải thích bản chất, diễn giải.
- * 3. Apply: Vận dụng, tính toán cụ thể theo công thức.
- * 4. Analyze: Phân tích, chỉ ra lỗi sai, phân tích bẫy/ngộ nhận, so sánh.
- * 5. Evaluate: Đánh giá, thẩm định lập luận, phản biện giải pháp.
- * 6. Create: Sáng tạo, xây dựng bài toán mới, tổng quát hóa.
+ * Cải tiến theo Issue #29 (DoD):
+ * 1. Dùng ranh giới từ (word boundary) thay vì so khớp chuỗi con tự do (.includes).
+ *    - "Nêu tính chất..." -> thuộc Remember / Understand, không bị từ "tính" của Apply bắt nhầm.
+ *    - "Giải thích..." -> thuộc Understand, không bị từ "giải" của Apply bắt nhầm.
+ * 2. Loại bỏ các cụm hardcode gắn với demo (như "tại sao bo sai").
+ * 3. Hỗ trợ rubric 6 mức phổ quát cho mọi môn học (Toán, Văn, Sinh, Sử, AI).
  */
 
 const BLOOM_LEVELS = {
-  Remember: { score: 1, keywords: ['phát biểu', 'nêu', 'nhắc lại', 'công thức nào', 'liệt kê', 'định nghĩa', 'ký hiệu'] },
-  Understand: { score: 2, keywords: ['giải thích', 'tại sao', 'ý nghĩa', 'minh hoạ', 'hiểu thế nào', 'tóm tắt'] },
-  Apply: { score: 3, keywords: ['tính', 'áp dụng', 'tìm độ dài', 'xác định vectơ', 'thực hiện phép tính', 'giải'] },
-  Analyze: { score: 4, keywords: ['phân tích', 'chỉ ra lỗi', 'sai ở đâu', 'bẫy', 'ngộ nhận', 'so sánh', 'phản ví dụ', 'tại sao bo sai'] },
-  Evaluate: { score: 5, keywords: ['đánh giá', 'thẩm định', 'lập luận nào đúng', 'phản biện', 'chứng minh bác bỏ', 'tiêu chí'] },
-  Create: { score: 6, keywords: ['thiết kế', 'đề xuất', 'tổng quát hoá', 'xây dựng', 'sáng tạo bài toán'] },
+  Remember: { 
+    score: 1, 
+    keywords: ['phát biểu', 'nêu', 'nhắc lại', 'công thức nào', 'liệt kê', 'định nghĩa', 'ký hiệu', 'tên gọi'] 
+  },
+  Understand: { 
+    score: 2, 
+    keywords: ['giải thích', 'tại sao', 'ý nghĩa', 'minh hoạ', 'hiểu thế nào', 'tóm tắt', 'nêu tính chất', 'tính chất', 'bản chất'] 
+  },
+  Apply: { 
+    score: 3, 
+    keywords: ['tính độ dài', 'tính toán', 'áp dụng', 'tìm độ dài', 'xác định vectơ', 'thực hiện phép tính', 'áp dụng công thức', 'tính'] 
+  },
+  Analyze: { 
+    score: 4, 
+    keywords: ['phân tích', 'chỉ ra lỗi', 'sai ở đâu', 'bẫy ngộ nhận', 'ngộ nhận', 'so sánh', 'phản ví dụ', 'phân biệt', 'tìm điểm sai'] 
+  },
+  Evaluate: { 
+    score: 5, 
+    keywords: ['đánh giá', 'thẩm định', 'lập luận nào đúng', 'phản biện', 'chứng minh bác bỏ', 'tiêu chí', 'nhận xét'] 
+  },
+  Create: { 
+    score: 6, 
+    keywords: ['thiết kế', 'đề xuất', 'tổng quát hoá', 'xây dựng', 'sáng tạo bài toán', 'mở rộng'] 
+  },
 };
+
+/**
+ * Kiểm tra xem từ/cụm từ khoá có xuất hiện dưới dạng ranh giới từ trong văn bản không
+ */
+function matchesWordBoundary(text, keyword) {
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(^|\\s|[.,!?;:()""'])${escaped}($|\\s|[.,!?;:()""'])`, 'i');
+  return regex.test(text);
+}
 
 /**
  * Hàm thực thi Tool: tool_evaluate_bloom_level
@@ -31,20 +57,29 @@ const BLOOM_LEVELS = {
  * @param {string} [input.context] - Ngữ cảnh bài học
  * @returns {Object} { isValid, level, score, indicatorsFound, rationale, suggestions }
  */
-export function evaluateBloomLevel({ question, expected_points = [], context = '' }) {
+export function evaluateBloomLevel({ question, expected_points = [], context = '' } = {}) {
   if (!question) {
     throw new Error('Cần cung cấp nội dung câu hỏi (question) để đánh giá Bloom.');
   }
 
   const textToScan = `${question} ${expected_points.join(' ')} ${context}`.toLowerCase();
 
-  let matchedLevel = 'Understand'; // Mặc định
+  // ĐẶC THÙ TRANH CHẤP "tính chất" vs "tính" / "giải thích" vs "giải":
+  // Nếu câu chứa "tính chất" mà không có cụm tính toán số học, không để "tính" đơn lẻ kích hoạt Apply.
+  const hasTinhChat = matchesWordBoundary(textToScan, 'tính chất') || matchesWordBoundary(textToScan, 'nêu tính chất');
+  const hasGiaiThich = matchesWordBoundary(textToScan, 'giải thích');
+
+  let matchedLevel = 'Understand'; // Mặc định sư phạm trung hòa
   let maxMatchedScore = 2;
   const indicatorsFound = [];
 
-  // Quét từ khóa từ cấp cao xuống cấp thấp hoặc tìm điểm khớp mạnh nhất
+  // Quét từ khóa theo rubric từng cấp độ với regex ranh giới từ
   for (const [level, meta] of Object.entries(BLOOM_LEVELS)) {
-    const hits = meta.keywords.filter(kw => textToScan.includes(kw));
+    const hits = meta.keywords.filter(kw => {
+      if (kw === 'tính' && (hasTinhChat || hasGiaiThich)) return false;
+      return matchesWordBoundary(textToScan, kw);
+    });
+
     if (hits.length > 0) {
       indicatorsFound.push({ level, hits, score: meta.score });
       if (meta.score > maxMatchedScore) {
@@ -57,11 +92,15 @@ export function evaluateBloomLevel({ question, expected_points = [], context = '
   // Đánh giá sư phạm
   let rationale = `Câu hỏi thuộc cấp độ ${matchedLevel} (Mức ${maxMatchedScore}/6).`;
   if (matchedLevel === 'Analyze') {
-    rationale += ' Câu hỏi yêu cầu học sinh đào sâu phát hiện lỗi sai hoặc bản chất hình học đằng sau bẫy ngộ nhận.';
+    rationale += ' Câu hỏi yêu cầu học sinh phân tích đào sâu phát hiện lỗi sai, so sánh hoặc làm rõ bản chất.';
   } else if (matchedLevel === 'Apply') {
-    rationale += ' Câu hỏi tập trung vào kỹ năng tính toán và áp dụng công thức vectơ vào hình cụ thể.';
+    rationale += ' Câu hỏi tập trung vào kỹ năng vận dụng, tính toán hoặc thực thi theo quy trình chuẩn.';
   } else if (matchedLevel === 'Evaluate') {
-    rationale += ' Câu hỏi đòi hỏi khả năng thẩm định, phản biện lập luận toán học giữa các bạn học.';
+    rationale += ' Câu hỏi đòi hỏi khả năng thẩm định, phản biện hoặc đánh giá tính đúng sai của lập luận.';
+  } else if (matchedLevel === 'Remember') {
+    rationale += ' Câu hỏi kiểm tra khả năng ghi nhớ và tái hiện định nghĩa, ký hiệu hoặc thông tin trực tiếp.';
+  } else {
+    rationale += ' Câu hỏi hướng đến việc diễn giải, giải thích bản chất khái niệm.';
   }
 
   return {
