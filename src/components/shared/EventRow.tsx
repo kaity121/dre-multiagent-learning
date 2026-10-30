@@ -74,7 +74,7 @@ export const EventRow: React.FC<EventRowProps> = ({
             <Scale className="w-4 h-4 text-[#EA580C]" />,
             'bg-[#FFF7ED] border-2 border-[#FED7AA]'
           )}
-          <div className="flex-1 bg-white border-2 border-[#EA580C] border-l-4 border-l-[#EA580C] rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
+          <div className="flex-1 bg-white border-2 border-[#EA580C] rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-amber-200">
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-xs uppercase tracking-wider text-[#9A3412]">
