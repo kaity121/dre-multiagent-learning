@@ -1211,9 +1211,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
       {/* 2. DẢI 4 BẠN HỌC ĐỒNG HÀNH (HỖ TRỢ THU GỌN ĐỂ TỐI ĐA DIỆN TÍCH KHUNG CHAT) */}
       {isRosterCollapsed ? (
-        <div className="px-3 py-1.5 flex items-center justify-between border-b border-[#E2EAD2] bg-[#F3F8E8]/50 shrink-0">
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar min-w-0">
-            <span className="text-[11px] font-bold text-stone-500 shrink-0">4 bạn AI:</span>
+        <div className="flex h-11 shrink-0 items-center justify-between gap-2 border-b border-[#E2EAD2] bg-[#F7FAF0] px-3">
+          <div className="flex min-w-0 items-center gap-1.5" role="group" aria-label="4 bạn AI, bấm để nhắn riêng">
             {peopleRoster.map((p) => {
               const isSelected = recipient === p.id;
               return (
@@ -1225,27 +1224,29 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                     setRecipient((prev) => (prev === p.id ? 'all' : p.id));
                     setActivePeerNote((prev) => (prev === p.id ? null : p.id));
                   }}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer whitespace-nowrap ${
-                    isSelected
-                      ? 'bg-[#121712] text-white border-[#121712] shadow-2xs'
-                      : 'bg-white border-[#E2EAD2] text-stone-700 hover:bg-stone-50'
+                  aria-pressed={isSelected}
+                  aria-label={`Nhắn riêng cho ${p.name}`}
+                  title={`${p.name}: ${p.tagline}. Bấm để nhắn riêng`}
+                  className={`rounded-full p-0.5 transition-shadow focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#121712] ${
+                    isSelected ? 'ring-2 ring-[#121712]' : 'hover:ring-2 hover:ring-[#C8F169]'
                   }`}
-                  title={`${p.name} (${p.tagline}) - Bấm để nhắn riêng`}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#C8F169]" />
-                  <span>{p.name}</span>
+                  {getRosterAvatar(p.id, 'w-7 h-7')}
                 </button>
               );
             })}
+            <span className="ml-1 truncate text-[12px] text-[#4A5546]">
+              {recipient !== 'all' ? `Nhắn riêng: ${peopleRoster.find((p) => p.id === recipient)?.name ?? ''}` : 'Bo, Trí, Linh Chi, Minh Khang'}
+            </span>
           </div>
           <button
             type="button"
             onClick={() => setIsRosterCollapsed(false)}
-            className="text-[11px] font-semibold text-[#121712] hover:underline flex items-center gap-0.5 shrink-0 ml-1.5 cursor-pointer"
-            title="Mở rộng hiển thị chi tiết 4 bạn"
+            aria-label="Hiện chi tiết 4 bạn"
+            title="Hiện chi tiết 4 bạn"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#121712] hover:bg-[#E9F2D8] focus-visible:outline-2 focus-visible:outline-[#121712]"
           >
-            <span>Hiện avatar</span>
-            <ChevronDownSvg className="w-2.5 h-2.5" />
+            <ChevronDownSvg className="w-3 h-3" />
           </button>
         </div>
       ) : (

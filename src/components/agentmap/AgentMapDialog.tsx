@@ -144,7 +144,7 @@ export const AgentMapDialog: React.FC<AgentMapDialogProps> = ({ isOpen, onClose,
               {typeof turn.latencyMs === 'number' && (
                 <>
                   <span className="mx-2 text-[#8C9A80]" aria-hidden="true">·</span>
-                  <span className="tabular-nums font-semibold">{(turn.latencyMs / 1000).toFixed(2)}s</span>
+                  <span className="tabular-nums font-semibold">{turn.latencyMs < 1000 ? `${Math.round(turn.latencyMs)} ms` : `${(turn.latencyMs / 1000).toFixed(1)} s`}</span>
                 </>
               )}
             </p>
