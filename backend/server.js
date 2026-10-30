@@ -607,6 +607,12 @@ app.post('/api/chat/classroom', async (req, res) => {
   }
 });
 
-app.listen(config.port, () => {
-  console.log(`DRE backend đang chạy ở http://localhost:${config.port}`);
-});
+const isMainModule = Boolean(process.argv[1] && (process.argv[1].endsWith('server.js') || process.argv[1].endsWith('server')));
+if (isMainModule && process.env.NODE_ENV !== 'test') {
+  app.listen(config.port, () => {
+    console.log(`DRE backend đang chạy ở http://localhost:${config.port}`);
+  });
+}
+
+export { app };
+export default app;
