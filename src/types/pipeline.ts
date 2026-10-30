@@ -114,57 +114,6 @@ export interface DeterministicToolCall {
   timestampMs: number;
 }
 
-// ----------------------------------------------------------------------------
-// Legacy Approved Lesson Script Package (Produced by Scriptwriter & Approved by Teacher)
-// ----------------------------------------------------------------------------
-export interface CheckpointQuestionOption {
-  id: string;
-  label: string;
-  isCorrect: boolean;
-  misconceptionLinked?: string;
-  feedbackNote: string;
-}
-
-export interface ScriptCheckpointItem {
-  id: string;
-  second: number;
-  title: string;
-  questionText: string;
-  blackboardFormula: string;
-  options: CheckpointQuestionOption[];
-  boInitialChallenge: string;
-  linhChiCheatSheetSnippet?: {
-    ruleTitle: string;
-    rules: string[];
-    mnemonicTrap: string;
-  };
-}
-
-export interface ScriptTimelineCommentItem {
-  id: string;
-  second: number;
-  author: string;
-  role: 'classmate' | 'ta' | 'teacher';
-  avatarId: AgentRole;
-  text: string;
-  isPinned?: boolean;
-}
-
-export interface ApprovedLessonPackage {
-  lessonId: string;
-  title: string;
-  videoUrl: string;
-  durationSeconds: number;
-  checkpoints: ScriptCheckpointItem[];
-  timelineComments: ScriptTimelineCommentItem[];
-  pedagogicalSummary: {
-    totalTrapsIdentified: number;
-    bloomMasteryTarget: string;
-    approvedByTeacher: boolean;
-    approvalTimestamp?: string;
-  };
-}
-
 export interface AgentReasoningEvent {
   id: string;
   runId?: string;

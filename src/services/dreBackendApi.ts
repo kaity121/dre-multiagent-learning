@@ -4,11 +4,12 @@
  * Powered by OpenAI GPT-6 (Bo, Assessor & TA An on gpt-6-sol, Cô Lam on gpt-6.1-sol).
  */
 
-import type { AgentCitation, AgentReasoningEvent, ApprovedLessonPackage } from '../types/pipeline';
+import type { AgentCitation, AgentReasoningEvent, DRELessonSchema } from '../types/pipeline';
 import fallbackFixtureData from '../../mock/mock_roundtable_run_fixture.json';
 
 export type { AgentCitation };
 
+// Bundled recording of a deterministic run; JSON imports are typed loosely, the shape is checked by validate:fixtures.
 const fallbackFixture = fallbackFixtureData as any;
 
 const API_BASE_URL = (import.meta as any).env?.VITE_DRE_API_URL || 'http://localhost:3001';
@@ -219,6 +220,46 @@ export async function sendPeerChat(
   }
 }
 
+/** Where the events of a roundtable stream actually came from. */
+export type RoundtableProvenance = 'live' | 'replay' | 'fallback_fixture';
+
+export interface RoundtableGenerationInfo {
+  requestedMode: 'llm' | 'deterministic';
+  mode: 'llm' | 'mixed' | 'deterministic' | 'deterministic_fallback';
+  isFallback: boolean;
+  fallbackReason: string | null;
+}
+
+export interface RoundtableApproval {
+  status: DRELessonSchema['status'];
+  approvedByTeacher: boolean;
+  reviewedBy: string | null;
+  approvedAt: string | null;
+}
+
+export interface RoundtableSessionInfo {
+  runId: string;
+  mode: 'live' | 'replay';
+  provenance: RoundtableProvenance;
+  isFallback: boolean;
+  source?: 'fixture' | 'recorded_run';
+  fallbackReason?: string;
+}
+
+export interface RoundtableCompletion extends RoundtableSessionInfo {
+  totalEvents: number;
+  lesson: DRELessonSchema | null;
+  approval: RoundtableApproval | null;
+  generation?: RoundtableGenerationInfo | null;
+  stats?: {
+    totalEvents: number;
+    crossCheckCorrectionOccurred?: boolean;
+    bloomLevel?: string;
+    totalToolCalls?: number;
+    partTitle?: string;
+  };
+}
+
 export interface RoundtableRunSummary {
   runId: string;
   isFixture?: boolean;
@@ -233,19 +274,15 @@ export interface RoundtableRunSummary {
 
 export interface RoundtableRunDetail {
   runId: string;
+  provenance?: string;
   videoId: string;
   videoTitle: string;
   partNumber: number | string;
   createdAt: string;
-  stats?: {
-    totalEvents: number;
-    crossCheckCorrectionOccurred: boolean;
-    bloomLevel?: string;
-    totalToolCalls?: number;
-    partTitle?: string;
-  };
+  generation?: RoundtableGenerationInfo | null;
+  stats?: RoundtableCompletion['stats'];
   reasoning_events: AgentReasoningEvent[];
-  lessonDraft?: ApprovedLessonPackage | any;
+  lesson?: DRELessonSchema | null;
 }
 
 export interface RoundtableStreamOptions {
@@ -257,24 +294,23 @@ export interface RoundtableStreamOptions {
   runId?: string;
   speed?: number;
   fixture?: boolean;
+  /** Play the bundled fixture when the backend cannot be reached at all (never after a live run started). */
   fallbackToOffline?: boolean;
+  /** Called once per stream, before any event, with the real provenance of what follows. */
+  onSession?: (info: RoundtableSessionInfo) => void;
   onReasoning?: (event: AgentReasoningEvent) => void;
+  /** @deprecated alias of onReasoning; if both are given only onReasoning is called. */
   onEvent?: (event: AgentReasoningEvent) => void;
-  onDone?: (data: {
-    runId: string;
-    totalEvents: number;
-    mode: string;
-    provenance?: 'live' | 'replay' | 'fallback_fixture';
-    isFallback?: boolean;
-    lesson?: any;
-    lessonDraft?: any;
-  }) => void;
-  onComplete?: (data: any) => void;
-  onError?: (err: any) => void;
+  onDone?: (data: RoundtableCompletion) => void;
+  onComplete?: (data: RoundtableCompletion) => void;
+  onError?: (err: { error: string; runId?: string; provenance?: RoundtableProvenance }) => void;
 }
 
+const BUNDLED_FIXTURE_IDS = new Set(['fixture', 'mock', 'run_vecto12_part3_wow_moment']);
+
 /**
- * Fetch all saved runs from backend with offline fallback
+ * Fetch all saved runs from the backend. When the backend is unreachable only the bundled
+ * fixture is listed, flagged with isFixture so it is never mistaken for a recorded run.
  */
 export async function getRoundtableRuns(): Promise<RoundtableRunSummary[]> {
   try {
@@ -289,10 +325,9 @@ export async function getRoundtableRuns(): Promise<RoundtableRunSummary[]> {
       }
     }
   } catch (err) {
-    console.warn('[DRE API] getRoundtableRuns network error, falling back to offline fixture:', err);
+    console.warn('[DRE API] getRoundtableRuns network error, listing the bundled fixture only:', err);
   }
 
-  // Fallback offline fixture
   return [
     {
       runId: 'fixture',
@@ -301,7 +336,7 @@ export async function getRoundtableRuns(): Promise<RoundtableRunSummary[]> {
       partNumber: fallbackFixture.partNumber || 3,
       videoId: fallbackFixture.videoId || 'VID_VECTO_12_TIEN',
       createdAt: fallbackFixture.createdAt || new Date().toISOString(),
-      totalEvents: fallbackFixture.reasoning_events?.length || 20,
+      totalEvents: fallbackFixture.reasoning_events?.length || 0,
       crossCheckCorrectionOccurred: Boolean(fallbackFixture.stats?.crossCheckCorrectionOccurred),
       bloomLevel: fallbackFixture.stats?.bloomLevel || 'Analyze',
     },
@@ -309,34 +344,38 @@ export async function getRoundtableRuns(): Promise<RoundtableRunSummary[]> {
 }
 
 /**
- * Fetch a specific run detail by runId with offline fallback
+ * Fetch one run. The bundled fixture is returned only when it was asked for; a failed request
+ * for another run returns null instead of silently substituting fixture data.
  */
 export async function getRoundtableRun(runId: string): Promise<RoundtableRunDetail | null> {
   const normId = String(runId || '').trim();
-  if (normId === 'fixture' || normId === 'mock' || normId === 'run_vecto12_part3_wow_moment') {
-    return fallbackFixture as unknown as RoundtableRunDetail;
+  if (BUNDLED_FIXTURE_IDS.has(normId)) {
+    return fallbackFixture;
   }
 
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3000);
-    const res = await fetch(`${API_BASE_URL}/api/roundtable/runs/${runId}`, { signal: controller.signal });
+    const res = await fetch(`${API_BASE_URL}/api/roundtable/runs/${encodeURIComponent(normId)}`, { signal: controller.signal });
     clearTimeout(timeoutId);
     if (res.ok) {
       const data = await res.json();
       return data.run || null;
     }
   } catch (err) {
-    console.warn(`[DRE API] getRoundtableRun(${runId}) network error:`, err);
+    console.warn(`[DRE API] getRoundtableRun(${normId}) network error:`, err);
   }
-
-  return fallbackFixture as unknown as RoundtableRunDetail;
+  return null;
 }
 
 /**
- * Open real-time SSE stream for A2A Roundtable War Room Demo (#302)
- * Supports live execution, saved run replay, speed controls, and offline simulation fallback.
- * Returns an unsubscribe / close function.
+ * Open the SSE stream for the A2A Roundtable War Room (#302, #303): live generation or replay
+ * of a recorded run. Returns a close function.
+ *
+ * Each reasoning event is delivered once: only the canonical `reasoning_event` name is consumed,
+ * although the server also emits aliases for older listeners. Provenance comes from the server
+ * (`session_start`); the bundled fixture is played only when the backend was never reached, and
+ * is announced as `fallback_fixture` before its first event.
  */
 export function streamRoundtable({
   videoId = 'VID_VECTO_12_TIEN',
@@ -348,12 +387,14 @@ export function streamRoundtable({
   speed = 1,
   fixture = false,
   fallbackToOffline = true,
+  onSession,
   onReasoning,
   onEvent,
   onDone,
   onComplete,
   onError,
 }: RoundtableStreamOptions): () => void {
+  const deliverReasoning = onReasoning || onEvent;
   const query = new URLSearchParams();
   if (videoId) query.append('videoId', videoId);
   if (partNumber !== undefined) query.append('partNumber', String(partNumber));
@@ -369,115 +410,108 @@ export function streamRoundtable({
     : `${API_BASE_URL}/api/roundtable/stream?${query.toString()}`;
 
   let isClosed = false;
-  let offlineTimer: any = null;
+  let isFinished = false;
+  let sessionStarted = false;
+  let offlineTimer: ReturnType<typeof setTimeout> | null = null;
+  const eventSource = new EventSource(endpoint);
 
-  // Fallback offline simulator if SSE connection fails
-  const triggerOfflineSimulation = () => {
-    if (isClosed) return;
-    console.info('[DRE API] Triggering offline replay simulation from fixture (provenance: fallback_fixture)');
+  const finish = () => {
+    isFinished = true;
+    eventSource.close();
+  };
+
+  const parse = <T,>(raw: string, label: string): T | null => {
+    try {
+      return JSON.parse(raw) as T;
+    } catch (err) {
+      console.warn(`[DRE API] Parse error in SSE ${label}:`, err);
+      return null;
+    }
+  };
+
+  const playBundledFixture = (reason: string) => {
     const events = (fallbackFixture.reasoning_events || []) as AgentReasoningEvent[];
+    const session: RoundtableSessionInfo = {
+      runId: fallbackFixture.runId,
+      mode: 'replay',
+      provenance: 'fallback_fixture',
+      isFallback: true,
+      source: 'fixture',
+      fallbackReason: reason,
+    };
+    onSession?.(session);
     const safeDelay = Math.max(10, Math.floor(40 / (Number(speed) || 1)));
-
     let index = 0;
     const playNext = () => {
       if (isClosed) return;
       if (index < events.length) {
-        const evt = events[index];
-        onReasoning?.(evt);
-        onEvent?.(evt);
+        deliverReasoning?.(events[index]);
         index++;
         offlineTimer = setTimeout(playNext, safeDelay);
-      } else {
-        onDone?.({
-          runId: fallbackFixture.runId,
-          totalEvents: events.length,
-          mode: 'replay',
-          provenance: 'fallback_fixture',
-          isFallback: true,
-        });
-        onComplete?.({
-          ok: true,
-          mode: 'replay',
-          provenance: 'fallback_fixture',
-          isFallback: true,
-          runId: fallbackFixture.runId,
-          draft: fallbackFixture.lessonDraft,
-          stats: fallbackFixture.stats,
-        });
+        return;
       }
+      const lesson = (fallbackFixture.lesson || null) as DRELessonSchema | null;
+      const completion: RoundtableCompletion = {
+        ...session,
+        totalEvents: events.length,
+        lesson,
+        approval: lesson ? { status: lesson.status, approvedByTeacher: false, reviewedBy: null, approvedAt: null } : null,
+        generation: fallbackFixture.generation || null,
+        stats: fallbackFixture.stats,
+      };
+      onDone?.(completion);
+      onComplete?.(completion);
     };
     playNext();
   };
 
-  const eventSource = new EventSource(endpoint);
-
-  // Set deduplication guard to ensure each event is dispatched exactly once
-  const dispatchedEventIds = new Set<string>();
-
-  const handleIncomingReasoningEvent = (rawData: string) => {
-    try {
-      const data = JSON.parse(rawData);
-      const eventKey = data.id || `evt_${data.timestamp || ''}_${data.eventType || ''}_${data.content?.slice(0, 20) || ''}`;
-      if (dispatchedEventIds.has(eventKey)) {
-        return; // Already dispatched via alias
-      }
-      dispatchedEventIds.add(eventKey);
-      onReasoning?.(data);
-      onEvent?.(data);
-    } catch (err) {
-      console.warn('[DRE API] Parse error in SSE reasoning event:', err);
-    }
-  };
-
-  eventSource.addEventListener('reasoning', (e: MessageEvent) => {
-    handleIncomingReasoningEvent(e.data);
+  eventSource.addEventListener('session_start', (e: MessageEvent) => {
+    const data = parse<RoundtableSessionInfo>(e.data, 'session_start');
+    if (!data) return;
+    sessionStarted = true;
+    onSession?.(data);
   });
 
   eventSource.addEventListener('reasoning_event', (e: MessageEvent) => {
-    handleIncomingReasoningEvent(e.data);
+    const data = parse<AgentReasoningEvent>(e.data, 'reasoning_event');
+    if (data) deliverReasoning?.(data);
   });
 
   eventSource.addEventListener('done', (e: MessageEvent) => {
-    try {
-      const data = JSON.parse(e.data);
-      onDone?.(data);
-    } catch (err) {
-      console.warn('[DRE API] Parse error in SSE done:', err);
-    }
+    const data = parse<RoundtableCompletion>(e.data, 'done');
+    if (data) onDone?.(data);
   });
 
   eventSource.addEventListener('complete', (e: MessageEvent) => {
-    try {
-      const data = JSON.parse(e.data);
-      onComplete?.(data);
-    } catch (err) {
-      console.warn('[DRE API] Parse error in SSE complete:', err);
-    }
-    eventSource.close();
+    const data = parse<RoundtableCompletion>(e.data, 'complete');
+    finish();
+    if (data) onComplete?.(data);
   });
 
-  eventSource.addEventListener('error', (e: MessageEvent) => {
-    try {
-      const data = typeof e.data === 'string' ? JSON.parse(e.data) : e;
-      onError?.(data);
-    } catch (_) {
-      onError?.(e);
-    }
+  // Server-sent `event: error` frames carry JSON data; native connection errors do not and go to onerror.
+  eventSource.addEventListener('error', (e: Event) => {
+    const raw = (e as MessageEvent).data;
+    if (typeof raw !== 'string') return;
+    const data = parse<{ error: string; runId?: string }>(raw, 'error');
+    finish();
+    onError?.({ error: data?.error || 'Lỗi từ máy chủ Roundtable', runId: data?.runId });
   });
 
-  eventSource.onerror = (err) => {
-    eventSource.close();
-    if (!isClosed) {
-      // If client explicitly requested replay, fixture, or fallbackToOffline is enabled (default true for hackathon resiliency)
-      const shouldFallback = mode === 'replay' || fixture || fallbackToOffline !== false;
-      if (shouldFallback) {
-        console.warn('[DRE API] EventSource network error or backend unreachable — activating offline simulation fallback:', err);
-        triggerOfflineSimulation();
-      } else {
-        console.warn('[DRE API] EventSource network connection error:', err);
-        onError?.(err);
-      }
+  eventSource.onerror = () => {
+    if (isClosed || isFinished) return;
+    finish();
+    if (!sessionStarted && fallbackToOffline !== false) {
+      console.warn('[DRE API] Roundtable backend unreachable — playing the bundled fixture (provenance: fallback_fixture).');
+      playBundledFixture('backend_unreachable');
+      return;
     }
+    onError?.({
+      error: sessionStarted
+        ? 'Mất kết nối với máy chủ giữa phiên Roundtable; dữ liệu đã nhận chưa đầy đủ.'
+        : 'Không kết nối được máy chủ Roundtable.',
+      runId,
+      provenance: mode === 'replay' ? 'replay' : 'live',
+    });
   };
 
   return () => {

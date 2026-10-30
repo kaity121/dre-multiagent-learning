@@ -91,6 +91,29 @@ const EVENT_TYPE_BADGES: Record<string, { label: string; bg: string; text: strin
   checkpoint_created: { label: 'Phê duyệt Checkpoint', bg: 'bg-emerald-100', text: 'text-emerald-800' },
 };
 
+const PROVENANCE_LABEL: Record<string, string> = {
+  live: 'LIVE',
+  replay: 'REPLAY',
+  fallback_fixture: 'OFFLINE FIXTURE (không phải LIVE)',
+  pending_live: 'LIVE · đang kết nối',
+  pending_replay: 'REPLAY · đang kết nối',
+};
+
+const GENERATION_LABEL: Record<string, string> = {
+  llm: 'Sinh bằng model',
+  mixed: 'Model + dự phòng tất định',
+  deterministic: 'Kịch bản tất định',
+  deterministic_fallback: 'Dự phòng tất định (không gọi được model)',
+};
+
+const APPROVAL_LABEL: Record<string, string> = {
+  draft: 'Bản nháp — chờ giáo viên duyệt',
+  under_review: 'Đang được giáo viên xem xét',
+  approved: 'Giáo viên đã duyệt',
+};
+
+const formatClock = (seconds: number) => `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`;
+
 export const RoundtableStreamConsole: React.FC<Props> = ({ className = '', onClose }) => {
   const [selectedRunId, setSelectedRunId] = useState<string>('fixture');
   const [activeTab, setActiveTab] = useState<'stream' | 'lesson'>('stream');
@@ -100,9 +123,12 @@ export const RoundtableStreamConsole: React.FC<Props> = ({ className = '', onClo
     events,
     currentEvent,
     lesson,
+    approval,
+    generation,
     status,
     error,
     mode,
+    provenance,
     runId,
     speed,
     runs,
@@ -181,9 +207,17 @@ export const RoundtableStreamConsole: React.FC<Props> = ({ className = '', onClo
                   ? 'Lỗi'
                   : 'Sẵn sàng'}
               </span>
-              <span className="text-xs text-slate-500 font-mono">
-                [{mode === 'live' ? 'LIVE' : 'REPLAY'}{runId ? `: ${runId}` : ''}]
+              <span
+                className={`text-xs font-mono ${provenance === 'fallback_fixture' ? 'text-rose-700 font-semibold' : 'text-slate-500'}`}
+                title={provenance ? `Yêu cầu: ${mode.toUpperCase()} · Nguồn thực tế: ${provenance}` : `Yêu cầu: ${mode.toUpperCase()}`}
+              >
+                [{PROVENANCE_LABEL[provenance ?? (mode === 'live' ? 'pending_live' : 'pending_replay')]}{runId ? `: ${runId}` : ''}]
               </span>
+              {generation && (
+                <span className="text-xs font-mono text-slate-500" title={generation.fallbackReason || undefined}>
+                  [{GENERATION_LABEL[generation.mode]}]
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-500">
               Quan sát dòng suy nghĩ & rà soát chéo giữa các AI Peers trong phòng họp bàn tròn
@@ -467,91 +501,88 @@ export const RoundtableStreamConsole: React.FC<Props> = ({ className = '', onClo
             {!lesson ? (
               <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-2">
                 <div className="text-4xl opacity-50">📋</div>
-                <p className="text-sm">Chưa có kịch bản Checkpoint được duyệt. Hãy chạy stream hoàn tất.</p>
+                <p className="text-sm">Chưa có bản nháp kịch bản. Hãy chạy stream hoàn tất.</p>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="p-4 bg-white rounded-xl border border-emerald-200 shadow-2xs">
+                <div className="p-4 bg-white rounded-xl border border-amber-200 shadow-2xs">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
-                      ✅ Checkpoint đã được Cô Lam (Director) phê duyệt
+                    <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">
+                      {APPROVAL_LABEL[lesson.status] || lesson.status}
+                      {approval && !approval.approvedByTeacher ? ' · chưa phê duyệt' : ''}
                     </span>
-                    <span className="text-xs font-mono bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">
-                      Mục tiêu Bloom: {lesson.pedagogicalSummary?.bloomMasteryTarget || 'Analyze'}
+                    <span className="text-xs font-mono bg-slate-50 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200">
+                      {lesson.lesson_id} · v{lesson.version}
                     </span>
                   </div>
                   <h3 className="text-sm font-bold text-slate-800">{lesson.title}</h3>
                 </div>
 
-                {lesson.checkpoints?.map((cp) => (
-                  <div key={cp.id} className="p-4 bg-white rounded-xl border border-[#DDD3C4] space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                        {cp.title}
-                      </span>
-                      <span className="text-xs font-mono text-slate-500">
-                        Tại {Math.floor(cp.second / 60)}:{(cp.second % 60).toString().padStart(2, '0')}
-                      </span>
+                {lesson.parts.map((part) => (
+                  <div key={part.part_id} className="space-y-3">
+                    <div className="text-xs font-bold text-slate-600">
+                      {part.concept} ({formatClock(part.start_s)} – {formatClock(part.end_s)})
                     </div>
 
-                    <div className="text-xs font-semibold text-slate-800">{cp.questionText}</div>
+                    {part.pause_questions.map((q) => (
+                      <div key={q.question_id} className="p-4 bg-white rounded-xl border border-[#DDD3C4] space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                            Checkpoint{q.misconception_id ? ` · ${q.misconception_id}` : ''}
+                          </span>
+                          <span className="text-xs font-mono text-slate-500">Tại {formatClock(q.at_s)}</span>
+                        </div>
 
-                    {cp.blackboardFormula && (
-                      <div className="p-2 bg-slate-900 text-amber-300 font-mono text-xs rounded-md">
-                        Công thức bảng: {cp.blackboardFormula}
+                        <div className="text-xs font-semibold text-slate-800">{q.question}</div>
+
+                        {q.blackboard_formula && (
+                          <div className="p-2 bg-slate-900 text-amber-300 font-mono text-xs rounded-md">
+                            Công thức bảng: {q.blackboard_formula}
+                          </div>
+                        )}
+
+                        <div className="space-y-1.5 pt-1">
+                          {q.options.map((opt) => (
+                            <div
+                              key={opt.option_id}
+                              className={`p-2.5 rounded-lg border text-xs ${
+                                opt.is_correct
+                                  ? 'bg-emerald-50/70 border-emerald-300 text-emerald-900 font-medium'
+                                  : 'bg-slate-50 border-slate-200 text-slate-700'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span>{opt.text}</span>
+                                {opt.is_correct && (
+                                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded">
+                                    ĐÁP ÁN ĐÚNG
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {q.explanation && (
+                          <p className="text-[11px] text-slate-500 pl-2 border-l-2 border-slate-300">{q.explanation}</p>
+                        )}
                       </div>
-                    )}
+                    ))}
 
-                    {cp.boInitialChallenge && (
-                      <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900">
-                        <span className="font-bold">Bo thách đố:</span> "{cp.boInitialChallenge}"
-                      </div>
-                    )}
-
-                    {/* Options list */}
-                    <div className="space-y-1.5 pt-1">
-                      {cp.options?.map((opt) => (
+                    {part.scenarios
+                      .filter((sc) => sc.interaction_type === 'bo_trap_bait' || sc.interaction_type === 'scaffold_hint')
+                      .map((sc) => (
                         <div
-                          key={opt.id}
-                          className={`p-2.5 rounded-lg border text-xs ${
-                            opt.isCorrect
-                              ? 'bg-emerald-50/70 border-emerald-300 text-emerald-900 font-medium'
-                              : 'bg-slate-50 border-slate-200 text-slate-700'
+                          key={sc.scenario_id}
+                          className={`p-2.5 rounded-lg text-xs border ${
+                            sc.actor_id === 'bo'
+                              ? 'bg-amber-50 border-amber-200 text-amber-900'
+                              : 'bg-pink-50/80 border-pink-200 text-pink-950'
                           }`}
                         >
-                          <div className="flex items-center justify-between">
-                            <span>{opt.label}</span>
-                            {opt.isCorrect && (
-                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded">
-                                ĐÁP ÁN ĐÚNG
-                              </span>
-                            )}
-                          </div>
-                          {opt.feedbackNote && (
-                            <p className="text-[11px] text-slate-500 mt-1 pl-2 border-l-2 border-slate-300">
-                              {opt.feedbackNote}
-                            </p>
-                          )}
+                          <span className="font-bold">{sc.actor_id === 'bo' ? 'Bo thách đố:' : 'Linh Chi gợi ý:'}</span> {sc.question}
                         </div>
                       ))}
-                    </div>
-
-                    {/* Linh Chi Cheat Sheet */}
-                    {cp.linhChiCheatSheetSnippet && (
-                      <div className="p-3 bg-pink-50/80 border border-pink-200 rounded-lg text-xs space-y-1 text-pink-950">
-                        <div className="font-bold text-pink-800">
-                          📒 Sổ tay Linh Chi: {cp.linhChiCheatSheetSnippet.ruleTitle}
-                        </div>
-                        <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
-                          {cp.linhChiCheatSheetSnippet.rules?.map((r, i) => (
-                            <li key={i}>{r}</li>
-                          ))}
-                        </ul>
-                        <div className="text-[11px] font-semibold text-rose-700 pt-1">
-                          ⚠️ {cp.linhChiCheatSheetSnippet.mnemonicTrap}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
@@ -570,7 +601,7 @@ export const RoundtableStreamConsole: React.FC<Props> = ({ className = '', onClo
             </span>
           ) : status === 'completed' ? (
             <span className="text-emerald-700 font-medium">
-              Đã hoàn tất phiên họp bàn tròn Roundtable. Kịch bản đã sẵn sàng cho lớp học.
+              Đã hoàn tất phiên họp bàn tròn Roundtable. Bản nháp kịch bản đang chờ giáo viên duyệt.
             </span>
           ) : error ? (
             <span className="text-rose-700 font-medium">Lỗi: {error}</span>
