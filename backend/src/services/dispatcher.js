@@ -1416,6 +1416,30 @@ export async function dispatchMessage({
       text: boText,
       mode,
     };
+
+    // Khi Bo gài bẫy ngộ nhận hoặc đồng tình với cách làm tắt sai lệch (có ngộ nhận kbMatch),
+    // Trí (Hệ 2 - Logic) sẽ tự động tiếp ứng (follow-up) để phản biện Bo và đính chính bản chất toán học
+    if (!followUpResponse && !isGreeting && !isAskingBoConfusion && kbMatch?.misconception) {
+      let triFollowUpText = `Khoan đã Bo ơi! Tớ phải đính chính ngay kẻo cả lớp hiểu nhầm theo: ${kbMatch.misconception.correction || 'Đừng làm tắt như vậy, phải dựa vào định nghĩa và tính chất toán học chuẩn xác!'}`;
+      if (useLLM) {
+        try {
+          const triRes = await triDeepThink({
+            baiToan: mathProblem,
+            cauHoiHocVien: message,
+            loiBoGiai: boText,
+            vectorAlgebraTool,
+          });
+          if (triRes?.dialogue) triFollowUpText = triRes.dialogue;
+        } catch (err) {
+          console.warn('[Dispatcher] Tri follow-up LLM fallback:', err.message);
+        }
+      }
+      followUpResponse = {
+        author: AGENT_DISPLAY_NAMES.tri,
+        avatarId: 'tri',
+        text: triFollowUpText,
+      };
+    }
   } else if (targetAgent === 'colam') {
     let coLamText = 'Cô khen ngợi tinh thần học hỏi và câu trả lời rất tự tin của em nhé! Khi em nắm vững nguyên lý bất đẳng thức tam giác và hướng của vectơ, em sẽ nhận diện được ngay những lỗi ngộ nhận như của bạn Bo. Cố gắng phát huy nhé!';
     let bloomResult = null;
