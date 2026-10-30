@@ -19,7 +19,7 @@
  *    - Không có chuỗi hardcode "tại sao bo sai".
  * 5. Roundtable chạy chọn tool theo data-driven verifier:
  *    - Chạy misconception có verifier -> gọi đúng tool.
- *    - Chạy misconception không có verifier -> fallback tool_check_source_grounding mà không crash.
+ *    - Misconception không có verifier -> tra cứu KB (tool_query_misconception_kb), không theo mã MISC_VEC_xxx.
  */
 
 import { describe, it } from 'node:test';
@@ -28,7 +28,8 @@ import { queryMisconceptionKB } from '../src/tools/tool_query_misconception_kb.j
 import { verifyVectorAlgebra } from '../src/tools/tool_verify_vector_algebra.js';
 import { evaluateBloomLevel } from '../src/tools/tool_evaluate_bloom_level.js';
 import { getSubjectPack } from '../src/services/subjectPackLoader.js';
-import { runRoundtable } from '../src/services/roundtable.js';
+import { runRoundtable, getMisconceptionVerifiableConfig } from '../src/services/roundtable.js';
+import { TOOLS_REGISTRY } from '../src/tools/index.js';
 
 describe('Issue #29: Subject Pack Decoupling & Tool Error Guardrails', () => {
 
@@ -140,9 +141,37 @@ describe('Issue #29: Subject Pack Decoupling & Tool Error Guardrails', () => {
       const draft = await runRoundtable('MISC_VEC_005', { useLLM: false });
       assert.ok(draft);
       assert.strictEqual(draft.status, 'draft');
-      const toolCall = (draft.deterministic_tool_calls || []).find(tc => tc.toolName === 'tool_verify_vector_algebra');
-      assert.ok(toolCall, 'Phải có deterministic tool call cho tool_verify_vector_algebra');
-      assert.strictEqual(toolCall.toolName, 'tool_verify_vector_algebra');
+      const toolEvent = draft.reasoning_events.find(e => e.eventType === 'tool_call');
+      assert.ok(toolEvent);
+      assert.strictEqual(toolEvent.toolCall.toolName, 'tool_verify_vector_algebra');
+    });
+
+    it('chọn tool theo verifier của dữ liệu, không theo mã ngộ nhận', () => {
+      const config = getMisconceptionVerifiableConfig({
+        id: 'ANY_SUBJECT_001',
+        incorrect_claim: 'x',
+        verifier: { toolName: 'tool_calculate_dot_product', params: { uMag: 1, vMag: 1, angleDeg: 90 } },
+      });
+      assert.strictEqual(config.toolType, 'dot_product');
+      assert.strictEqual(config.toolName, 'tool_calculate_dot_product');
+      assert.deepStrictEqual(config.params, { uMag: 1, vMag: 1, angleDeg: 90 });
+
+      // Mã MISC_VEC_005 không còn tự kéo theo tool vectơ khi dữ liệu không khai báo verifier
+      const noVerifier = getMisconceptionVerifiableConfig({ id: 'MISC_VEC_005', incorrect_claim: 'y', tags: ['cube'] });
+      assert.strictEqual(noVerifier.toolName, 'tool_query_misconception_kb');
+    });
+
+    it('mọi ngộ nhận khai báo verifier trong Subject Pack đều trỏ tới tool đã đăng ký', () => {
+      const pack = getSubjectPack('math', 'vector-12');
+      for (const m of pack.misconceptions.filter((x) => x.verifier)) {
+        assert.ok(TOOLS_REGISTRY[m.verifier.toolName], `${m.id} trỏ tới tool chưa đăng ký: ${m.verifier.toolName}`);
+        assert.ok(pack.tools.includes(m.verifier.toolName), `${m.id}: pack.tools thiếu ${m.verifier.toolName}`);
+      }
+    });
+
+    it('getSubjectPack không trả KB vectơ cho môn khác và từ chối tên gói không an toàn', () => {
+      assert.strictEqual(getSubjectPack('ai', 'intro-01'), null);
+      assert.strictEqual(getSubjectPack('../math', 'vector-12'), null);
     });
   });
 });

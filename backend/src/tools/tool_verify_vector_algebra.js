@@ -208,10 +208,14 @@ export function formatLatexResult(lengthSquared, isMagnitude, side = 'a') {
  */
 export function extractVectorExpr(text) {
   if (!text) return null;
-  const normalized = text
+
+  // Chuẩn hoá biểu thức chữ: "vectơ BC cộng vectơ DD'" -> "BC + DD'"
+  let normalized = String(text)
     .replace(/\b(?:vectơ|vecto|vector|vec)\s+/gi, '')
     .replace(/\s+cộng\s+/gi, ' + ')
     .replace(/\s+trừ\s+/gi, ' - ');
+
+  // Tìm mẫu vectơ cộng/trừ: BC + DD', AB + AD + AA', BC - DD'
   const match = normalized.match(/((?:\|?\s*)?[A-D][1'′]?[A-D][1'′]?(?:\s*[+\-]\s*[A-D][1'′]?[A-D][1'′]?)+(?:\s*\|)?)/i);
   if (match) {
     const cleanExpr = match[1].trim().toUpperCase().replace(/1/g, "'").replace(/′/g, "'");
@@ -240,6 +244,7 @@ export function extractSideFromText(text) {
 export function extractClaimFromText(text) {
   if (!text) return null;
   const normalizedText = text.normalize('NFC');
+  // A value someone else said ("Bo nói / bảo ... bằng 2a") is being questioned, not claimed by the learner.
   if (
     /(?:^|\s)(?:bo|bạn ấy|ban ay|cậu ấy|cau ay|bạn|ban)\s+(?:nói|noi|bảo|bao|ghi|viết|viet|cho rằng|cho rang|phán|phan)(?![A-Za-zÀ-ỹ0-9_])/i.test(normalizedText) ||
     /(?:^|\s)theo\s+bo(?![A-Za-zÀ-ỹ0-9_])/i.test(normalizedText)
@@ -247,6 +252,8 @@ export function extractClaimFromText(text) {
     return null;
   }
 
+  // Strip given side length specification so it is not mistaken for a claimed result
+  // (e.g., "cạnh bằng 2, BC + DD' tính thế nào?" specifies side=2, not claim=2)
   const textWithoutSide = text.replace(
     /(?:cho\s+|với\s+)?(?:hình\s+(?:lập\s+phương|hộp)\s+)?(?:cạnh|side)(?:\s+[a-z])?\s*(?:bằng|=|là|:)?\s*(\d+(?:[.,]\d+)?|[a-zA-Z]\b)/gi,
     ''
@@ -394,8 +401,8 @@ export function verifyVectorAlgebra({ shape = 'cube', side = 'a', dimensions, ex
       }
     } catch {
       isValid = null;
-      reason = `unparseable_claim: Ký hiệu vectơ '${claim}' không thuộc cấu trúc hình học đang xét.`;
-      steps.push(`Không thể xác định tọa độ các điểm trong tên vectơ '${claim}'.`);
+      reason = `unparseable_claim: Ký hiệu vectơ '${cleanClaim}' không thuộc cấu trúc hình học đang xét.`;
+      steps.push(`Không thể xác định tọa độ các điểm trong tên vectơ '${cleanClaim}'.`);
     }
   }
   // 2.2 Claim phân tích được thành giá trị số hoặc căn số

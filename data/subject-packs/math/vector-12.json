@@ -3,14 +3,45 @@
   "topic": "vector_geometry_12",
   "name": "Toán 12 - Vectơ trong không gian (SGK GDPT 2018)",
   "tools": [
-    "tool_verify_vector_algebra"
+    "tool_verify_vector_algebra",
+    "tool_calculate_dot_product"
   ],
   "aliases": {
     "cong do dai vecto": [
-      "length_addition"
+      "length_addition",
+      "norm_sum"
     ],
     "cong do dai": [
-      "length_addition"
+      "length_addition",
+      "norm_sum"
+    ],
+    "do dai tong": [
+      "length_addition",
+      "norm_sum"
+    ],
+    "tong do dai": [
+      "length_addition",
+      "norm_sum"
+    ],
+    "1+1": [
+      "length_addition",
+      "norm_sum"
+    ],
+    "1 + 1": [
+      "length_addition",
+      "norm_sum"
+    ],
+    "1+1=2": [
+      "length_addition",
+      "norm_sum"
+    ],
+    "tach do dai": [
+      "length_addition",
+      "norm_sum"
+    ],
+    "cong dai so": [
+      "length_addition",
+      "norm_sum"
     ],
     "vi du 3": [
       "example_3",
@@ -22,6 +53,159 @@
     "trong tam": [
       "triangle_centroid",
       "tetrahedron_centroid"
+    ],
+    "vecto khong co goc": [
+      "zero_vector",
+      "angle_convention"
+    ],
+    "goc voi vecto khong": [
+      "zero_vector",
+      "angle_convention"
+    ],
+    "tich vo huong am": [
+      "negative_dot"
+    ],
+    "tich vo huong goc tu": [
+      "negative_dot"
+    ],
+    "tich vo huong goc 120": [
+      "negative_dot"
+    ],
+    "tich vo huong": [
+      "dot_product",
+      "scalar_result"
+    ],
+    "goc 120": [
+      "angle"
+    ],
+    "goc tu": [
+      "angle"
+    ],
+    "goc giua hai vecto": [
+      "angle"
+    ],
+    "goc giua": [
+      "angle"
+    ],
+    "goc cua hai vecto": [
+      "angle"
+    ],
+    "goc vecto": [
+      "angle",
+      "angle_convention"
+    ],
+    "chung goc": [
+      "common_origin"
+    ],
+    "cung goc": [
+      "common_origin"
+    ],
+    "hieu do dai": [
+      "length_subtraction"
+    ],
+    "do dai hieu": [
+      "length_subtraction"
+    ],
+    "hieu hai vecto": [
+      "subtraction_order",
+      "common_origin"
+    ],
+    "phep tru": [
+      "subtraction_order",
+      "common_origin"
+    ],
+    "tru vecto": [
+      "subtraction_order",
+      "common_origin"
+    ],
+    "tru hai vecto": [
+      "subtraction_order",
+      "common_origin"
+    ],
+    "quy tac tru": [
+      "subtraction_order",
+      "common_origin"
+    ],
+    "he so am": [
+      "negative_scale"
+    ],
+    "binh phuong tong": [
+      "cross_term"
+    ],
+    "so hang cheo": [
+      "cross_term"
+    ],
+    "cung phuong": [
+      "parallel",
+      "opposite"
+    ],
+    "vecto doi": [
+      "negative_length",
+      "reverse",
+      "opposite"
+    ],
+    "quy tac ba diem": [
+      "triangle_rule",
+      "endpoint_order"
+    ],
+    "trong tam tu dien": [
+      "tetrahedron_centroid",
+      "sign",
+      "protege"
+    ],
+    "ab ba": [
+      "equal_length",
+      "direction",
+      "opposite"
+    ],
+    "ba ab": [
+      "equal_length",
+      "direction",
+      "opposite"
+    ],
+    "vecto ab": [
+      "equal_length",
+      "direction"
+    ],
+    "vecto ba": [
+      "equal_length",
+      "direction",
+      "opposite"
+    ],
+    "vector ab": [
+      "equal_length",
+      "direction"
+    ],
+    "vector ba": [
+      "equal_length",
+      "direction",
+      "opposite"
+    ],
+    "ab bang ba": [
+      "equal_length",
+      "direction"
+    ],
+    "doan thang ab": [
+      "equal_length",
+      "direction"
+    ],
+    "giong het nhau": [
+      "equal_length"
+    ],
+    "vecto bang nhau": [
+      "equal_length",
+      "direction"
+    ],
+    "vector bang nhau": [
+      "equal_length",
+      "direction"
+    ],
+    "cung do dai": [
+      "equal_length"
+    ],
+    "quang duong": [
+      "equal_length",
+      "direction"
     ]
   },
   "knowledge": [
@@ -1717,7 +1901,19 @@
         "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
         "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
       },
-      "review_status": "author_math_checked_pending_teacher_review"
+      "review_status": "author_math_checked_pending_teacher_review",
+      "verifier": {
+        "toolName": "tool_calculate_dot_product",
+        "params": {
+          "uMag": 2,
+          "vMag": 3,
+          "angleDeg": 60,
+          "claimValue": "60",
+          "claimType": "angle",
+          "reverseU": true,
+          "isReversed": true
+        }
+      }
     },
     {
       "id": "MISC_VEC_018",
@@ -1787,7 +1983,17 @@
         "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
         "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
       },
-      "review_status": "author_math_checked_pending_teacher_review"
+      "review_status": "author_math_checked_pending_teacher_review",
+      "verifier": {
+        "toolName": "tool_calculate_dot_product",
+        "params": {
+          "uMag": 0,
+          "vMag": 2,
+          "angleDeg": 0,
+          "claimValue": "0",
+          "claimType": "angle"
+        }
+      }
     },
     {
       "id": "MISC_VEC_019",
@@ -1852,7 +2058,17 @@
         "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
         "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
       },
-      "review_status": "author_math_checked_pending_teacher_review"
+      "review_status": "author_math_checked_pending_teacher_review",
+      "verifier": {
+        "toolName": "tool_calculate_dot_product",
+        "params": {
+          "uMag": 2,
+          "vMag": 3,
+          "angleDeg": 120,
+          "claimValue": "không âm",
+          "claimType": "dot_product"
+        }
+      }
     },
     {
       "id": "MISC_VEC_020",
@@ -1921,7 +2137,17 @@
         "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
         "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
       },
-      "review_status": "author_math_checked_pending_teacher_review"
+      "review_status": "author_math_checked_pending_teacher_review",
+      "verifier": {
+        "toolName": "tool_calculate_dot_product",
+        "params": {
+          "uMag": 2,
+          "vMag": 3,
+          "angleDeg": 60,
+          "claimValue": "13",
+          "claimType": "norm_sum_squared"
+        }
+      }
     }
   ],
   "exercises": [
