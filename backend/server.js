@@ -437,6 +437,94 @@ app.post('/api/chat/classroom', async (req, res) => {
   }
 });
 
+// ============================================================================
+// AISDLC EPIC 4 - Issue #403: Cognitive Metrics & Bloom Certification Endpoints
+// ============================================================================
+
+// POST /api/evaluator/assess — Tính toán Hesitation Index & chấm chất lượng phản biện
+app.post('/api/evaluator/assess', async (req, res) => {
+  try {
+    const {
+      answer = '',
+      expectedPoints = [],
+      currentTime = 2233,
+      misconceptionId = null,
+      deltaSeconds = 0,
+      characterCount = 10,
+      backspaceCount = 0,
+    } = req.body || {};
+
+    const { calculateHesitationIndex, evaluateRebuttalQuality } = await import('./src/services/evaluator.js');
+    const hesitation = calculateHesitationIndex({ deltaSeconds, characterCount, backspaceCount });
+    const assessment = evaluateRebuttalQuality({
+      answer,
+      expectedPoints,
+      currentTime,
+      misconceptionId,
+    });
+
+    res.json({
+      ok: true,
+      hesitation,
+      assessment,
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/evaluator/action — Thực thi 3 Action sư phạm: create_learning_record, update_mastery_state, create_review_task
+app.post('/api/evaluator/action', async (req, res) => {
+  try {
+    const { sessionId = 'session_001', action, payload = {} } = req.body || {};
+    const evaluator = await import('./src/services/evaluator.js');
+
+    let result;
+    if (action === 'create_learning_record') {
+      result = evaluator.createLearningRecord(sessionId, payload);
+    } else if (action === 'update_mastery_state') {
+      result = evaluator.updateMasteryState(sessionId, payload);
+    } else if (action === 'create_review_task') {
+      result = evaluator.createReviewTask(sessionId, payload);
+    } else {
+      return res.status(400).json({ ok: false, error: `Action '${action}' không hợp lệ` });
+    }
+
+    res.json({ ok: true, action, result });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/evaluator/certify-station4 — Thẩm định chứng nhận Tháp Bloom ở Trạm 4
+app.post('/api/evaluator/certify-station4', async (req, res) => {
+  try {
+    const { sessionId = 'session_001', teachingAnswer = '', createdProblem = null, videoTimeS = 2300 } = req.body || {};
+    const { certifyBloomStation4 } = await import('./src/services/evaluator.js');
+
+    const result = certifyBloomStation4(sessionId, {
+      teachingAnswer,
+      createdProblem,
+      videoTimeS,
+    });
+
+    res.json({ ok: true, result });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// GET /api/session/:id/export — Xuất toàn bộ session document chuẩn DRESessionSchema
+app.get('/api/session/:id/export', async (req, res) => {
+  try {
+    const { exportSessionDocument } = await import('./src/services/evaluator.js');
+    const sessionDoc = exportSessionDocument(req.params.id);
+    res.json({ ok: true, session: sessionDoc });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 // Error handling middleware (bắt lỗi cú pháp JSON payload từ body-parser và lỗi hệ thống)
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {

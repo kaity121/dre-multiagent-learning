@@ -346,3 +346,83 @@ export async function fetchContextSnapshot(
     return null;
   }
 }
+
+/**
+ * ============================================================================
+ * AISDLC Issue #403: Cognitive Evaluator & Bloom Certification Client APIs
+ * ============================================================================
+ */
+
+export async function evaluateCognitiveResponse(payload: {
+  answer: string;
+  expectedPoints?: string[];
+  currentTime?: number;
+  misconceptionId?: string;
+  deltaSeconds?: number;
+  characterCount?: number;
+  backspaceCount?: number;
+}): Promise<any | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/evaluator/assess`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.warn('[DRE API] evaluateCognitiveResponse error:', err);
+    return null;
+  }
+}
+
+export async function sendEvaluatorAction(payload: {
+  sessionId: string;
+  action: 'create_learning_record' | 'update_mastery_state' | 'create_review_task';
+  payload: Record<string, any>;
+}): Promise<any | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/evaluator/action`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.warn('[DRE API] sendEvaluatorAction error:', err);
+    return null;
+  }
+}
+
+export async function certifyStation4Bloom(payload: {
+  sessionId: string;
+  teachingAnswer: string;
+  createdProblem?: any;
+  videoTimeS?: number;
+}): Promise<any | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/evaluator/certify-station4`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.warn('[DRE API] certifyStation4Bloom error:', err);
+    return null;
+  }
+}
+
+export async function exportSessionSchema(sessionId: string): Promise<any | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/session/${sessionId}/export`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.session || null;
+  } catch (err) {
+    console.warn('[DRE API] exportSessionSchema error:', err);
+    return null;
+  }
+}
