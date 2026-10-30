@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "katex_main",
+        "createdAt": "2026-10-30T20:28:47.441Z",
+        "reason": "Claude: KaTeX's own math face; the direction contract specifies KaTeX for maths (.impeccable/surfaces/src-app-tsx.md OWN-WORLD)"
+      }
+    ]
+  }
+}

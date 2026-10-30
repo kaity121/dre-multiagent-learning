@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-31T00:00:00Z",
+  "title": "Design System: DRE",
+  "extensions": {
+    "colorMeta": {
+      "lime-now": { "role": "primary", "displayName": "Acid Lime", "canonical": "#C8F169", "tonalRamp": ["#2C3A0E", "#4A6118", "#6B8A22", "#8DB52E", "#A9D94A", "#C8F169", "#E1F7A8", "#F4FAE6"] },
+      "lime-now-hover": { "role": "primary", "displayName": "Acid Lime Pressed", "canonical": "#BDE85A" },
+      "lime-wash": { "role": "primary", "displayName": "Lime Wash", "canonical": "#F4FAE6" },
+      "lime-tag": { "role": "primary", "displayName": "Lime Tag", "canonical": "#EAF6CF" },
+      "evidence-border": { "role": "secondary", "displayName": "Evidence Green", "canonical": "#B7DB6A", "tonalRamp": ["#1F4D12", "#2F6B1E", "#2F7A3B", "#6E9A2E", "#9CCB3B", "#B7DB6A", "#EDF6DA", "#F7FBEF"] },
+      "evidence-wash": { "role": "secondary", "displayName": "Evidence Wash", "canonical": "#F7FBEF" },
+      "evidence-hover": { "role": "secondary", "displayName": "Evidence Wash Hover", "canonical": "#EDF6DA" },
+      "evidence-ink": { "role": "secondary", "displayName": "Evidence Ink", "canonical": "#1F4D12" },
+      "check-green": { "role": "secondary", "displayName": "Check Green", "canonical": "#2F7A3B" },
+      "passed-green": { "role": "secondary", "displayName": "Forest Passed", "canonical": "#1F5E3A", "tonalRamp": ["#0C2617", "#143D26", "#1F5E3A", "#2E7D50", "#4F9C6E", "#7DBA94", "#B4D8C1", "#E6F2EA"] },
+      "connector-lime": { "role": "secondary", "displayName": "Connector Lime", "canonical": "#9CCB3B" },
+      "ink": { "role": "neutral", "displayName": "Night Ink", "canonical": "#121712", "tonalRamp": ["#121712", "#3D4739", "#4A5546", "#5B6657", "#8C9A80", "#C9D4B6", "#E2EAD2", "#F3F8E8"] },
+      "ink-secondary": { "role": "neutral", "displayName": "Moss Ink", "canonical": "#3D4739" },
+      "ink-muted": { "role": "neutral", "displayName": "Lichen Ink", "canonical": "#4A5546" },
+      "ink-faint": { "role": "neutral", "displayName": "Sage Ink", "canonical": "#5B6657" },
+      "separator-dot": { "role": "neutral", "displayName": "Separator Sage", "canonical": "#8C9A80" },
+      "ground": { "role": "neutral", "displayName": "Spring Ground", "canonical": "#F3F8E8" },
+      "mist": { "role": "neutral", "displayName": "Mist", "canonical": "#F7FAF0" },
+      "card": { "role": "neutral", "displayName": "Card White", "canonical": "#FFFFFF" },
+      "step-pill": { "role": "neutral", "displayName": "Step Pill", "canonical": "#E9F2D8" },
+      "hairline": { "role": "neutral", "displayName": "Hairline", "canonical": "#E2EAD2" },
+      "control-border": { "role": "neutral", "displayName": "Control Border", "canonical": "#D5DFC4" },
+      "hollow-stop": { "role": "neutral", "displayName": "Hollow Stop", "canonical": "#C9D4B6" },
+      "future-line": { "role": "neutral", "displayName": "Future Line", "canonical": "#DCE5CB" },
+      "wrong-red": { "role": "tertiary", "displayName": "Brick Wrong", "canonical": "#C2412D", "tonalRamp": ["#3A120C", "#5A1F17", "#8A2E20", "#C2412D", "#DE7A68", "#F2C9C4", "#F9E2DE", "#FDF3F1"] },
+      "wrong-wash": { "role": "tertiary", "displayName": "Brick Wash", "canonical": "#FDF3F1" },
+      "wrong-border": { "role": "tertiary", "displayName": "Brick Border", "canonical": "#F2C9C4" },
+      "wrong-ink": { "role": "tertiary", "displayName": "Brick Ink", "canonical": "#5A1F17" },
+      "hint-wash": { "role": "tertiary", "displayName": "Hint Amber Wash", "canonical": "#FFF8E8" },
+      "hint-border": { "role": "tertiary", "displayName": "Hint Amber Border", "canonical": "#F0D9A8" },
+      "hint-ink": { "role": "tertiary", "displayName": "Hint Amber Ink", "canonical": "#5C4210" },
+      "math-given": { "role": "tertiary", "displayName": "Maths Given Blue", "canonical": "#0284C7" },
+      "math-target": { "role": "tertiary", "displayName": "Maths Target Red", "canonical": "#DC2626" },
+      "math-correct": { "role": "tertiary", "displayName": "Maths Verified Green", "canonical": "#16A34A" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Dialog titles (Agent Map). Ceiling of the in-app scale." },
+      "headline": { "displayName": "Headline", "purpose": "Task card heading and face-off panel titles; 18px below lg, 19px at lg+." },
+      "title": { "displayName": "Title", "purpose": "Journey stop labels, lane headers, primary button text, agent names; lesson title at 17px on lg+." },
+      "body": { "displayName": "Body", "purpose": "Instructions, Bo's working, rebuttal editor, answers. Max 70-75ch." },
+      "body-sm": { "displayName": "Body small", "purpose": "Status lines, menu descriptions, detail panel copy, chat body." },
+      "label": { "displayName": "Label", "purpose": "Secondary buttons, menu items, station names." },
+      "meta": { "displayName": "Meta", "purpose": "Evidence chips, role tags, counters, verdicts. 11px is the floor." },
+      "mono": { "displayName": "Mono", "purpose": "Real tool identifiers and timestamp chips only." }
+    },
+    "shadows": [
+      { "name": "popover", "value": "0 12px 32px -8px rgba(18,23,18,0.22)", "purpose": "Station switcher, overflow menu, mobile more-menu." },
+      { "name": "dialog", "value": "0 24px 64px -16px rgba(18,23,18,0.45)", "purpose": "Agent Map over a rgba(18,23,18,0.45) scrim." },
+      { "name": "primary-lift", "value": "0 2px 8px -2px rgba(80,110,20,0.45)", "purpose": "Lime primary button at rest; removed when disabled." },
+      { "name": "your-turn-glow", "value": "0 6px 20px -10px rgba(110,150,30,0.55)", "purpose": "Active 'Lượt của bạn' face-off panel only." },
+      { "name": "block-rest", "value": "0 2px 6px -2px rgba(18,23,18,0.12)", "purpose": "Agent Map blocks on the grid canvas." },
+      { "name": "current-halo", "value": "0 0 0 6px rgba(200,241,105,0.35)", "purpose": "Ring around the current journey stop (4px at 30% in the switcher)." }
+    ],
+    "motion": [
+      { "name": "color-transition", "value": "color, background-color, border-color 150ms cubic-bezier(0.4,0,0.2,1)", "purpose": "Default hover/selection change on every control." },
+      { "name": "rail-nudge", "value": "transform translateX(2px) 150ms", "purpose": "Hover on a clickable journey stop." },
+      { "name": "chevron-flip", "value": "transform rotate(180deg) 150ms", "purpose": "Station switcher open state." },
+      { "name": "typing-dots", "value": "opacity 0.3 to 1, 1.2s ease-in-out infinite, staggered", "purpose": "Agent composing indicator; static at 0.6 under prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1536px" },
+      { "name": "container-max", "value": "1920px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single 'now' action of a view, e.g. Gửi phản biện, Sang Trạm 2.",
+      "html": "<button class=\"ds-btn-primary\">Sang Trạm 2 · Sổ tay <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; border: none; border-radius: 9999px; background: var(--lime-accent, #C8F169); color: var(--lime-dark, #121712); font-family: 'Be Vietnam Pro', system-ui, sans-serif; font-size: 15px; font-weight: 700; box-shadow: 0 2px 8px -2px rgba(80,110,20,0.45); cursor: pointer; transition: background-color 150ms; } .ds-btn-primary:hover { background: #BDE85A; } .ds-btn-primary:focus-visible { outline: 2px solid #121712; outline-offset: 2px; } .ds-btn-primary:disabled { background: #E3EDCF; color: #6B7766; box-shadow: none; cursor: not-allowed; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Supporting story actions beside the primary: Xem lại 30 giây, Tới điểm dừng.",
+      "html": "<button class=\"ds-btn-secondary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"/><path d=\"M3 3v5h5\"/></svg>Xem lại 30 giây</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border: 1px solid #D5DFC4; border-radius: 9999px; background: #FFFFFF; color: #121712; font-family: 'Be Vietnam Pro', system-ui, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color 150ms; } .ds-btn-secondary:hover { background: var(--lime-bg, #F3F8E8); } .ds-btn-secondary:focus-visible { outline: 2px solid #121712; outline-offset: 2px; } .ds-btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Evidence Chip",
+      "kind": "chip",
+      "refersTo": "chip-evidence",
+      "description": "One per AI message; outlined, check disc, opens the Agent Map for that turn.",
+      "html": "<button class=\"ds-chip-evidence\"><span class=\"ds-chip-evidence__disc\"><svg width=\"10\" height=\"10\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg></span>Đã kiểm chứng bằng công cụ · 36:52</button>",
+      "css": ".ds-chip-evidence { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border: 1px solid #B7DB6A; border-radius: 8px; background: #F7FBEF; color: #1F4D12; font-family: 'Be Vietnam Pro', system-ui, sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: background-color 150ms; } .ds-chip-evidence:hover { background: #EDF6DA; } .ds-chip-evidence:focus-visible { outline: 2px solid #121712; outline-offset: 2px; } .ds-chip-evidence__disc { display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 9999px; background: #2F7A3B; color: #FFFFFF; }"
+    },
+    {
+      "name": "Role Tag",
+      "kind": "chip",
+      "refersTo": "tag-role",
+      "description": "Outlined pill naming an agent's role next to their name.",
+      "html": "<span class=\"ds-tag-role\">Bạn học AI</span> <span class=\"ds-tag-role ds-tag-role--teacher\">Giáo viên AI</span>",
+      "css": ".ds-tag-role { display: inline-flex; align-items: center; padding: 1px 8px; border: 1px solid #D5DFC4; border-radius: 9999px; color: #4A5546; font-family: 'Be Vietnam Pro', system-ui, sans-serif; font-size: 11px; font-weight: 600; } .ds-tag-role--teacher { border-color: #B7DB6A; color: #2F5A12; }"
+    },
+    {
+      "name": "Journey Stops",
+      "kind": "nav",
+      "refersTo": "journey-stop-current",
+      "description": "Metro-line stops: done (forest + check), current (lime + halo), future (hollow ring).",
+      "html": "<ol class=\"ds-rail\"><li class=\"ds-stop\"><span class=\"ds-stop__dot ds-stop__dot--done\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg></span><span><b>Xem bài</b><small>Hoàn thành</small></span></li><li class=\"ds-stop\"><span class=\"ds-stop__dot ds-stop__dot--current\"><i></i></span><span><b>Chẩn đoán</b><small class=\"ds-stop__now\">Đang thực hiện</small></span></li><li class=\"ds-stop\"><span class=\"ds-stop__dot\"></span><span><b>Bác Bo</b><small>Chưa mở</small></span></li></ol>",
+      "css": ".ds-rail { list-style: none; margin: 0; padding: 0; display: grid; gap: 28px; font-family: 'Be Vietnam Pro', system-ui, sans-serif; } .ds-stop { display: flex; align-items: flex-start; gap: 12px; } .ds-stop b { display: block; font-size: 15px; font-weight: 700; color: #121712; } .ds-stop small { display: inline-block; margin-top: 4px; font-size: 13px; color: #5B6657; } .ds-stop__now { padding: 2px 6px; border-radius: 6px; background: #EAF6CF; color: #1F4D12 !important; font-weight: 600; } .ds-stop__dot { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 9999px; border: 3px solid #C9D4B6; background: #FFFFFF; box-sizing: border-box; } .ds-stop__dot--done { border: none; background: #1F5E3A; color: #FFFFFF; } .ds-stop__dot--current { border: none; background: #C8F169; box-shadow: 0 0 0 6px rgba(200,241,105,0.35); } .ds-stop__dot--current i { width: 14px; height: 14px; border-radius: 9999px; background: #121712; }"
+    },
+    {
+      "name": "Station Switcher",
+      "kind": "nav",
+      "refersTo": "button-secondary",
+      "description": "Header pill with lime ring and ink number disc; opens the four-station menu.",
+      "html": "<button class=\"ds-switcher\" aria-haspopup=\"menu\"><span class=\"ds-switcher__num\">1</span><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m6 9 6 6 6-6\"/></svg></button>",
+      "css": ".ds-switcher { display: flex; align-items: center; gap: 6px; height: 44px; padding: 4px 10px 4px 4px; border: 2px solid #C8F169; border-radius: 9999px; background: #FFFFFF; color: #121712; cursor: pointer; transition: border-color 150ms; } .ds-switcher:hover { border-color: #A9D94A; } .ds-switcher[aria-expanded=\"true\"] { border-color: #121712; } .ds-switcher:focus-visible { outline: 2px solid #121712; outline-offset: 2px; } .ds-switcher__num { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 9999px; background: #121712; color: #FFFFFF; font-family: 'Be Vietnam Pro', system-ui, sans-serif; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Task Card",
+      "kind": "card",
+      "refersTo": "card-task",
+      "description": "'Việc của bạn bây giờ': the one instruction card under the video.",
+      "html": "<section class=\"ds-task\"><div class=\"ds-task__head\"><svg width=\"28\" height=\"28\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#2F7A3B\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><circle cx=\"12\" cy=\"12\" r=\"6\"/><circle cx=\"12\" cy=\"12\" r=\"2\"/></svg><div><h2>Việc của bạn bây giờ: xem bài đến 37:13</h2><p>Thầy Tiến sắp giải Ví dụ 3. Đến 37:13 lớp sẽ dừng lại: Bo đưa ra một cách tính, còn bạn là người kiểm tra xem Bo đúng hay sai.</p></div></div></section>",
+      "css": ".ds-task { padding: 20px; border: 1px solid var(--lime-border, #E2EAD2); border-radius: 24px; background: #FFFFFF; font-family: 'Be Vietnam Pro', system-ui, sans-serif; } .ds-task__head { display: flex; align-items: flex-start; gap: 12px; } .ds-task__head svg { flex-shrink: 0; margin-top: 2px; } .ds-task h2 { margin: 0; font-size: 19px; font-weight: 700; line-height: 1.375; color: #121712; text-wrap: balance; } .ds-task p { margin: 4px 0 0; max-width: 70ch; font-size: 15px; line-height: 1.625; color: #3D4739; }"
+    },
+    {
+      "name": "Answer Option Row",
+      "kind": "custom",
+      "refersTo": "option-row",
+      "description": "Lettered radio row in the diagnose beat; selected inverts to ink with a lime letter.",
+      "html": "<div class=\"ds-options\"><button class=\"ds-option\" role=\"radio\" aria-checked=\"false\"><span class=\"ds-option__key\">A</span>BC + DD' = BC'</button><button class=\"ds-option\" role=\"radio\" aria-checked=\"true\"><span class=\"ds-option__key\">B</span>|BC| + |DD'| = 1 + 1 = 2</button></div>",
+      "css": ".ds-options { display: grid; gap: 6px; } .ds-option { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 12px; border: 1px solid #E2EAD2; border-radius: 12px; background: #FFFFFF; color: #121712; font-family: 'Be Vietnam Pro', system-ui, sans-serif; font-size: 15px; text-align: left; cursor: pointer; transition: border-color 150ms, background-color 150ms; } .ds-option:hover { border-color: #B9C6A3; } .ds-option:focus-visible { outline: 2px solid #121712; outline-offset: 2px; } .ds-option[aria-checked=\"true\"] { border-color: #121712; background: #121712; color: #FFFFFF; } .ds-option__key { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; background: #F3F8E8; color: #121712; font-size: 14px; font-weight: 700; } .ds-option[aria-checked=\"true\"] .ds-option__key { background: #C8F169; }"
+    },
+    {
+      "name": "Struck Step",
+      "kind": "custom",
+      "refersTo": "card-task",
+      "description": "Bo's working in the face-off: numbered Mist rows; the wrong step struck in brick red.",
+      "html": "<ol class=\"ds-steps\"><li><span class=\"ds-steps__n\">1</span>DD' = CC'</li><li class=\"is-wrong\"><span class=\"ds-steps__x\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\"><path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/></svg></span><s>|BC + CC'| = |BC| + |CC'|</s></li></ol>",
+      "css": ".ds-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-family: 'Be Vietnam Pro', system-ui, sans-serif; font-size: 15px; color: #121712; } .ds-steps li { display: flex; align-items: flex-start; gap: 10px; padding: 10px; border-radius: 12px; background: #F7FAF0; } .ds-steps li.is-wrong { background: #FDF3F1; border: 1px solid #F2C9C4; color: #5A1F17; } .ds-steps s { text-decoration-color: #C2412D; text-decoration-thickness: 2px; } .ds-steps__n, .ds-steps__x { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; border-radius: 9999px; font-size: 12px; font-weight: 700; } .ds-steps__n { background: #E9F2D8; } .ds-steps__x { background: #C2412D; color: #FFFFFF; }"
+    },
+    {
+      "name": "Agent Map Block",
+      "kind": "custom",
+      "refersTo": "map-block",
+      "description": "A step in an Agent Map lane; tool titles in mono; selected gets ink border + lime ring.",
+      "html": "<button class=\"ds-block\" aria-pressed=\"true\"><span class=\"ds-block__icon\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z\"/></svg></span><span class=\"ds-block__body\"><b>verify_vector_algebra</b><span>Kiểm tra |BC + CC'| với hình lập phương cạnh 1</span><em>Khớp · 42 ms</em></span></button>",
+      "css": ".ds-block { display: flex; align-items: flex-start; gap: 10px; width: 280px; padding: 12px; border: 1px solid #DCE5CB; border-radius: 12px; background: #FFFFFF; text-align: left; font-family: 'Be Vietnam Pro', system-ui, sans-serif; box-shadow: 0 2px 6px -2px rgba(18,23,18,0.12); cursor: pointer; transition: border-color 150ms; } .ds-block:hover { border-color: #9FB27F; } .ds-block[aria-pressed=\"true\"] { border-color: #121712; box-shadow: 0 0 0 2px #C8F169, 0 2px 6px -2px rgba(18,23,18,0.12); } .ds-block:focus-visible { outline: 2px solid #121712; outline-offset: 2px; } .ds-block__icon { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex-shrink: 0; border-radius: 12px; background: #EEF5DD; color: #2F5A12; } .ds-block__body b { display: block; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; font-weight: 700; color: #121712; } .ds-block__body span { display: block; margin-top: 2px; font-size: 13px; line-height: 1.375; color: #3D4739; } .ds-block__body em { display: block; margin-top: 4px; font-style: normal; font-size: 12px; font-weight: 600; color: #2F6B1E; font-variant-numeric: tabular-nums; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Metro Line Classroom",
+    "overview": "The lesson is drawn as one transit line through a pale lime room. Every surface answers two questions at a glance: which station am I at, and what do I do now. The ground is a quiet spring-green paper (`ground`), work happens on white cards fenced by soft green hairlines, and the single saturated lime (`lime-now`) marks only the present: the current stop, the primary action, the panel where it is the learner's turn. Everything else stays ink on white.\n\nDensity is projector-first. Functional text never drops below 11px, body copy sits at 15px, and controls are 40 to 44px tall so a jury reads them from the back of a room. Shapes are soft and round (pill buttons, 24px cards, circular stations, round cartoon agent avatars) to keep a grade-12 student unafraid of being wrong; the type stays bold and plain Vietnamese so the softness never turns childish.\n\nTransparency is visual, not decorative. Every AI claim carries one outlined evidence chip that opens the Agent Map, where the same turn is laid out as four lanes on a faint grid, joined by lime connector lines. Maths is always typeset with KaTeX, never approximated in body text.",
+    "keyCharacteristics": [
+      "One saturated accent, reserved for \"now\".",
+      "Ink-on-white cards with green hairlines; depth by tone first, soft shadow second.",
+      "Round geometry: pills, circles, 24px cards.",
+      "Be Vietnam Pro throughout; JetBrains Mono only for real tool names and timestamps.",
+      "Plain-Vietnamese learner copy; English only for real product names (Agent Map) and tool identifiers."
+    ],
+    "rules": [
+      { "name": "The Now Rule", "body": "Acid Lime is filled only on what is happening now: the current stop, the one primary action, the active panel. A screen with two lime-filled primaries is wrong.", "section": "colors" },
+      { "name": "The Quiet Evidence Rule", "body": "Evidence is outlined in Evidence Green with a small filled check disc, never filled with Acid Lime. Proof supports the answer; it does not compete with the next step.", "section": "colors" },
+      { "name": "The One Red Rule", "body": "Red marks the wrong step in Bo's working and nothing else in the UI chrome.", "section": "colors" },
+      { "name": "The Tabular Clock Rule", "body": "Every time, count and metric (37:13, 2/6, ms, 0/1000) uses tabular numerals.", "section": "typography" },
+      { "name": "The Real-Name Mono Rule", "body": "Mono type marks a real identifier the learner could look up; it never styles ordinary labels.", "section": "typography" },
+      { "name": "The Float-Only Rule", "body": "Cards at rest have no shadow. If it does not float, glow for \"now\", or sit on the map grid, it is flat.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep exactly one Acid Lime-filled primary action per view, and fill lime only on what is current.",
+      "Do give every AI message at most one outlined evidence chip with a check disc, and hide the source list behind an \"n nguồn\" toggle.",
+      "Do mark past in forest green (#1F5E3A), present in lime, future as hollow rings, everywhere a sequence is shown (rail, switcher).",
+      "Do say what is happening while waiting (\"Đang chấm lập luận của bạn…\") inside a status row, never a bare spinner.",
+      "Do typeset all maths with KaTeX, and strike wrong maths with the red background line so the strike crosses KaTeX boxes.",
+      "Do keep functional text at 11px or larger, body at 15px, and controls at 40 to 44px for projector legibility.",
+      "Do give every interactive element a 2px ink focus outline at 2px offset; keep unavailable steps focusable with a stated reason.",
+      "Do write learner copy in plain Vietnamese; keep English only for real names (Agent Map) and tool identifiers in mono."
+    ],
+    "donts": [
+      "Don't fill evidence, tags or decoration with Acid Lime; evidence uses the deeper Evidence Green outline.",
+      "Don't show \"mock\", \"demo data\" or \"simulation\" labels in learner surfaces; fallback data looks and reads like production.",
+      "Don't put internal jargon (FSM, dispatcher, trace, payload, beat) in learner copy.",
+      "Don't use red anywhere in the chrome except Bo's wrong step.",
+      "Don't add shadows to resting cards, or use hard offset shadows; elevation is soft, negative-spread and tinted.",
+      "Don't introduce a second display face, slate/teal/stone neutrals, or a second accent hue; the ink ladder and hairline greens are the whole neutral set.",
+      "Don't float notes or pinned messages over the chat stream; pin them as a bar above it.",
+      "Don't add uppercase tracked micro-labels above headings or rows."
+    ]
+  }
+}
