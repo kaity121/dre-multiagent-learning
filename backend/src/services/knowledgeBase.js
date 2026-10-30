@@ -47,17 +47,60 @@ const STOPWORDS = new Set([
   'minh', 'ban', 'xin', 'hoi', 'lam'
 ]);
 
-const ALIASES = kb.aliases || {
-  'cong do dai vecto': ['length_addition'],
-  'cong do dai': ['length_addition'],
+const ALIASES = {
+  'cong do dai vecto': ['length_addition', 'norm_sum'],
+  'cong do dai': ['length_addition', 'norm_sum'],
+  'do dai tong': ['length_addition', 'norm_sum'],
+  'tong do dai': ['length_addition', 'norm_sum'],
+  '1+1': ['length_addition', 'norm_sum'],
+  '1 + 1': ['length_addition', 'norm_sum'],
+  '1+1=2': ['length_addition', 'norm_sum'],
+  'tach do dai': ['length_addition', 'norm_sum'],
+  'cong dai so': ['length_addition', 'norm_sum'],
   'vi du 3': ['example_3', 'cube'],
   'hinh hop': ['box_rule'],
   'trong tam': ['triangle_centroid', 'tetrahedron_centroid'],
-  'vecto doi': ['opposite_vectors'],
-  'vecto 0': ['zero_vector'],
-  'do dai vecto': ['vector_length'],
-  'toa do': ['coordinates'],
-  'tich vo huong': ['dot_product']
+  'vecto khong co goc': ['zero_vector', 'angle_convention'],
+  'goc voi vecto khong': ['zero_vector', 'angle_convention'],
+  'tich vo huong am': ['negative_dot'],
+  'tich vo huong goc tu': ['negative_dot'],
+  'tich vo huong goc 120': ['negative_dot'],
+  'tich vo huong': ['dot_product', 'scalar_result'],
+  'goc 120': ['angle'],
+  'goc tu': ['angle'],
+  'goc giua hai vecto': ['angle'],
+  'goc giua': ['angle'],
+  'goc cua hai vecto': ['angle'],
+  'goc vecto': ['angle', 'angle_convention'],
+  'chung goc': ['common_origin'],
+  'cung goc': ['common_origin'],
+  'hieu do dai': ['length_subtraction'],
+  'do dai hieu': ['length_subtraction'],
+  'hieu hai vecto': ['subtraction_order', 'common_origin'],
+  'phep tru': ['subtraction_order', 'common_origin'],
+  'tru vecto': ['subtraction_order', 'common_origin'],
+  'tru hai vecto': ['subtraction_order', 'common_origin'],
+  'quy tac tru': ['subtraction_order', 'common_origin'],
+  'he so am': ['negative_scale'],
+  'binh phuong tong': ['cross_term'],
+  'so hang cheo': ['cross_term'],
+  'cung phuong': ['parallel', 'opposite'],
+  'vecto doi': ['negative_length', 'reverse', 'opposite'],
+  'quy tac ba diem': ['triangle_rule', 'endpoint_order'],
+  'trong tam tu dien': ['tetrahedron_centroid', 'sign', 'protege'],
+  'ab ba': ['equal_length', 'direction', 'opposite'],
+  'ba ab': ['equal_length', 'direction', 'opposite'],
+  'vecto ab': ['equal_length', 'direction'],
+  'vecto ba': ['equal_length', 'direction', 'opposite'],
+  'vector ab': ['equal_length', 'direction'],
+  'vector ba': ['equal_length', 'direction', 'opposite'],
+  'ab bang ba': ['equal_length', 'direction'],
+  'doan thang ab': ['equal_length', 'direction'],
+  'giong het nhau': ['equal_length'],
+  'vecto bang nhau': ['equal_length', 'direction'],
+  'vector bang nhau': ['equal_length', 'direction'],
+  'cung do dai': ['equal_length'],
+  'quang duong': ['equal_length', 'direction'],
 };
 
 function getAliasTags(query) {
@@ -69,6 +112,12 @@ function getAliasTags(query) {
     if (qNorm.includes(key)) {
       tList.forEach(t => tags.add(t));
     }
+  }
+
+  // Khớp zero_vector an toàn: không nhận diện khi sau đó là từ phủ định vị ngữ (không bằng, không phải...)
+  if (/\bvect[oơ]\s+khong\b(?!\s+(?:bang|phai|the|duoc|ra|dung|sai|tach))\b/i.test(qNorm) ||
+      /\bvect[oơ]\s+0\b/i.test(qNorm)) {
+    tags.add('zero_vector');
   }
 
   // Diacritic-aware boundary checks:

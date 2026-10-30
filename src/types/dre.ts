@@ -103,16 +103,16 @@ export interface TimelineComment {
     toolName: string;
     label: string;
     badgeText: string;
-    category?: 'rag' | 'math_verify' | 'bloom' | 'timeline';
-    isValid?: boolean;
+    category?: 'rag' | 'math_verify' | 'math_calc' | 'grounding' | 'bloom' | 'timeline';
+    isValid?: boolean | null;
     correct?: string;
   } | null;
   toolCalls?: Array<{
     toolName: string;
     label: string;
     badgeText: string;
-    category?: 'rag' | 'math_verify' | 'bloom' | 'timeline';
-    isValid?: boolean;
+    category?: 'rag' | 'math_verify' | 'math_calc' | 'grounding' | 'bloom' | 'timeline';
+    isValid?: boolean | null;
     correct?: string;
   }> | null;
   replyTo?: {
@@ -120,6 +120,14 @@ export interface TimelineComment {
     author: string;
     text?: string;
   } | null;
+  citations?: Array<{
+    source: 'video' | 'blackboard' | 'sgk' | 'slide';
+    label: string;
+    snippet?: string;
+    timestamp?: number;
+    partId?: string;
+  }> | null;
+  contextSnapshot?: any | null;
 }
 
 export interface PeerContextData {

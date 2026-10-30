@@ -7,20 +7,34 @@
   --font-cute: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
   --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-  --color-paper: #F8FAFC;
-  --color-grid: #E2E8F0;
-  --color-bo: #E8A33D;
-  --color-tutor: #0E7490;
-  --color-sticky: #F5D65D;
-  --color-moss: #15803D;
-  --color-washi-blue: #A9C8E0;
-  --color-washi-pink: #E8B4BC;
+  
+  /* LIME SOFT DESIGN SYSTEM */
+  --color-lime-bg: #F3F8E8;
+  --color-lime-card: #FFFFFF;
+  --color-lime-dark: #121712;
+  --color-lime-accent: #C8F169;
+  --color-lime-soft: #E9F2D8;
+  --color-lime-border: #E2EAD2;
+
+  /* Semantic Colors */
+  --color-sem-given: #2563EB;
+  --color-sem-target: #DC2626;
+  --color-sem-success: #16A34A;
+  --color-sem-warning: #D97706;
 }
 
 :root {
   --font: 'Be Vietnam Pro', system-ui, sans-serif !important;
   --font-display: 'Be Vietnam Pro', system-ui, sans-serif !important;
   --font-sans: 'Be Vietnam Pro', system-ui, sans-serif !important;
+
+  /* Token CSS variables */
+  --lime-bg: #F3F8E8;
+  --lime-card: #FFFFFF;
+  --lime-dark: #121712;
+  --lime-accent: #C8F169;
+  --lime-soft: #E9F2D8;
+  --lime-border: #E2EAD2;
 }
 
 /* 1. Ép toàn bộ giao diện & typography sang Be Vietnam Pro - font chuẩn 100% tiếng Việt có dấu (Ngoại trừ KaTeX & Code) */
@@ -39,6 +53,13 @@ code, pre, .font-mono, .mono {
 
 .katex, .katex * {
   font-family: KaTeX_Main, KaTeX_Math, 'Times New Roman', serif !important;
+}
+
+/* Đảm bảo dấu =, −, + trong KaTeX kế thừa màu chữ chính (không bị xám nhạt) và khoảng cách chuẩn */
+.katex .mrel, .katex .mbin {
+  color: inherit !important;
+  padding-left: 0.28em !important;
+  padding-right: 0.28em !important;
 }
 
 /* Đảm bảo toàn bộ chữ trong câu hỏi, tin nhắn chat và bình luận đồng nhất 100% Be Vietnam Pro */
@@ -642,12 +663,9 @@ body {
    ========================================================================== */
 
 /* Dark buttons & badges MUST always have crisp, bright white text */
-.room button[class*="text-white"],
 .room button.text-white,
-.room [class*="text-white"],
-button.text-white,
-.text-white {
-  color: #ffffff !important;
+button.text-white {
+  color: #ffffff;
 }
 
 /* Checkpoint button in bottom bar: bright white text and icon */
@@ -713,8 +731,8 @@ main.page,
   padding-bottom: 24px !important;
 }
 
-/* 2. Đảm bảo Tiêu đề chính (H1) luôn gọn 1 dòng duy nhất, không bao giờ rớt dòng */
-h1 {
+/* 2. Đảm bảo Tiêu đề chính h1 trong legacy-compact-head (nếu có) gọn gàng, không ghi đè toàn bộ h1 của app */
+.legacy-compact-head h1 {
   font-size: 0.95rem !important; /* ~15px */
   line-height: 1.25 !important;
   margin-top: 0 !important;
@@ -722,6 +740,14 @@ h1 {
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
+}
+
+/* Đảm bảo tiêu đề modal tổng kết luôn đạt chuẩn >= 30px */
+#modal-summary-title {
+  font-size: 30px !important;
+  line-height: 1.15 !important;
+  font-weight: 800 !important;
+  white-space: normal !important;
 }
 
 /* 3. Thu gọn chiều cao và khoảng cách của card bài tập */

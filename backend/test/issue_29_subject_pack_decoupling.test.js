@@ -140,9 +140,9 @@ describe('Issue #29: Subject Pack Decoupling & Tool Error Guardrails', () => {
       const draft = await runRoundtable('MISC_VEC_005', { useLLM: false });
       assert.ok(draft);
       assert.strictEqual(draft.status, 'draft');
-      const toolEvent = draft.scenarios[0].events.find(e => e.eventType === 'tool_call');
-      assert.ok(toolEvent);
-      assert.strictEqual(toolEvent.toolCall.toolName, 'tool_verify_vector_algebra');
+      const toolCall = (draft.deterministic_tool_calls || []).find(tc => tc.toolName === 'tool_verify_vector_algebra');
+      assert.ok(toolCall, 'Phải có deterministic tool call cho tool_verify_vector_algebra');
+      assert.strictEqual(toolCall.toolName, 'tool_verify_vector_algebra');
     });
   });
 });

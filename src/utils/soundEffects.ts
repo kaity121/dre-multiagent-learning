@@ -1,6 +1,6 @@
 /**
- * Tactile Sound Effects Engine for DRE & SuperrBook
- * Generates natural physical stationery sounds (Paper flip, pencil tap, rubber stamp, celebration chime)
+ * Tactile Sound Effects Engine for DRE
+ * Generates natural, modern physical & digital UI sounds
  * completely synthesized via Web Audio API. 100% zero external assets, 0ms latency, works offline.
  */
 
@@ -17,7 +17,7 @@ class SoundEngine {
     }
   }
 
-  private initCtx(): AudioContext | null {
+  public initCtx(): AudioContext | null {
     try {
       if (typeof window === 'undefined') return null;
       if (!this.ctx) {
@@ -48,19 +48,52 @@ class SoundEngine {
 
   public toggle(): boolean {
     this.setEnabled(!this.isEnabled);
+    if (this.isEnabled) {
+      this.initCtx();
+      this.playPencilTap();
+    }
     return this.isEnabled;
+  }
+
+  /**
+   * Modern clean tab switch / station navigation chime
+   */
+  public playTabSwitch() {
+    if (!this.isEnabled) return;
+    const ctx = this.initCtx();
+    if (!ctx) return;
+
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(520, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(780, ctx.currentTime + 0.08);
+
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.08);
+    } catch {}
   }
 
   /**
    * Soft paper page flip / rustle
    */
+  public playPaperRustle() {
+    this.playPageFlip();
+  }
+
   public playPageFlip() {
     if (!this.isEnabled) return;
     const ctx = this.initCtx();
     if (!ctx) return;
 
     try {
-      const bufferSize = ctx.sampleRate * 0.12; // 120ms
+      const bufferSize = ctx.sampleRate * 0.10; // 100ms
       const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
       const data = buffer.getChannelData(0);
       for (let i = 0; i < bufferSize; i++) {
@@ -77,7 +110,7 @@ class SoundEngine {
 
       const gain = ctx.createGain();
       gain.gain.setValueAtTime(0.12, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.10);
 
       noise.connect(filter);
       filter.connect(gain);
@@ -88,7 +121,7 @@ class SoundEngine {
   }
 
   /**
-   * Crisp wooden pencil tap / selection click
+   * Crisp button tap / selection click
    */
   public playPencilTap() {
     if (!this.isEnabled) return;
@@ -115,7 +148,7 @@ class SoundEngine {
   }
 
   /**
-   * Tactile rubber stamp "thud"
+   * Tactile action confirmation / rubber stamp
    */
   public playStampThud() {
     if (!this.isEnabled) return;
@@ -142,7 +175,7 @@ class SoundEngine {
   }
 
   /**
-   * Warm 3-tone celebration chord (Mastery / Concession win)
+   * Warm celebration chord (Mastery / Concession win)
    */
   public playSuccessChime() {
     if (!this.isEnabled) return;
@@ -160,7 +193,7 @@ class SoundEngine {
 
         const startTime = ctx.currentTime + idx * 0.08;
         gain.gain.setValueAtTime(0, startTime);
-        gain.gain.linearRampToValueAtTime(0.14, startTime + 0.02);
+        gain.gain.linearRampToValueAtTime(0.16, startTime + 0.02);
         gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.35);
 
         osc.connect(gain);
@@ -173,7 +206,7 @@ class SoundEngine {
   }
 
   /**
-   * Bubbly pop sound (Bo speech / prompt pop)
+   * Bubbly pop sound (Chat message arrival / prompt pop)
    */
   public playBubblePop() {
     if (!this.isEnabled) return;
@@ -185,10 +218,10 @@ class SoundEngine {
       const gain = ctx.createGain();
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(320, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(680, ctx.currentTime + 0.06);
+      osc.frequency.setValueAtTime(340, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(720, ctx.currentTime + 0.06);
 
-      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.setValueAtTime(0.14, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
 
       osc.connect(gain);
@@ -196,6 +229,33 @@ class SoundEngine {
 
       osc.start();
       osc.stop(ctx.currentTime + 0.06);
+    } catch {}
+  }
+
+  /**
+   * Checkpoint Alert Chime (In-video checkpoint appears)
+   */
+  public playCheckpointAlert() {
+    if (!this.isEnabled) return;
+    const ctx = this.initCtx();
+    if (!ctx) return;
+
+    try {
+      const notes = [440, 659.25]; // A4, E5
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const start = ctx.currentTime + idx * 0.07;
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0, start);
+        gain.gain.linearRampToValueAtTime(0.15, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.22);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + 0.22);
+      });
     } catch {}
   }
 }
