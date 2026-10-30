@@ -14,6 +14,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -21,7 +22,15 @@ import {
   runRoundtableForPart,
   runFullLessonRoundtable,
   partitionTimelineIntoParts,
+  assessTrapProposal,
+  resolveDraftPath,
+  getDraftsDir,
 } from '../src/services/roundtableOrchestrator.js';
+import { executeTool } from '../src/tools/index.js';
+import { config } from '../src/config.js';
+
+// Generated drafts go to a temp directory so test runs never rewrite the committed drafts.
+process.env.DRE_DRAFTS_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'dre-drafts-'));
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -120,10 +129,8 @@ describe('A2A Scriptwriting Roundtable Orchestrator - Unit Tests (#302)', () => 
     assert.ok(elapsedMs < 30000, `Thời gian chạy phải < 30s (thực tế: ${elapsedMs}ms)`);
 
     // Kiểm tra file draft đã được ghi thành công trên đĩa
-    const draftPath = path.join(
-      __dirname,
-      `../src/data/drafts/lesson_draft_${cognitiveStream.videoId}.json`
-    );
+    const draftPath = resolveDraftPath(cognitiveStream.videoId);
+    assert.strictEqual(path.dirname(draftPath), getDraftsDir());
     assert.ok(fs.existsSync(draftPath), 'File draft phải tồn tại trên đĩa');
     const savedContent = JSON.parse(fs.readFileSync(draftPath, 'utf-8'));
     assert.strictEqual(savedContent.lessonId, draft.lessonId);
