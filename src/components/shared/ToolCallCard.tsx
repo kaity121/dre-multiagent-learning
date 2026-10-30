@@ -15,7 +15,7 @@ export const ToolCallCard: React.FC<ToolCallCardProps> = ({
   compact = false,
   isCompleted = false,
 }) => {
-  const toolName = toolCall?.toolName || toolResult?.toolName || 'tool_verify_vector_algebra';
+  const toolName = toolCall?.toolName || toolResult?.toolName || 'unknown_tool';
   const hasResult = Boolean(toolResult) || (toolCall as any)?.output !== undefined || (toolCall as any)?.isValid !== undefined;
   const rawValid = (toolResult as any)?.isValid !== undefined 
     ? (toolResult as any).isValid 

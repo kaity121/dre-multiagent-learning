@@ -399,7 +399,7 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
                 <button
                   type="button"
                   onClick={onToggleStreamMode}
-                  title="Nhấn để chuyển sang luồng SSE Trực tiếp từ Backend"
+                  title="Nhấn để chuyển sang kênh SSE từ backend (route hiện phát lại fixture)"
                   className="bg-[#F3F8E8] hover:bg-[#E2EAD2] text-stone-700 border border-[#E2EAD2] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider cursor-pointer transition shadow-2xs flex items-center gap-1.5"
                 >
                   <span className="w-2 h-2 rounded-full bg-stone-400" />
@@ -413,7 +413,7 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
                   style={{ backgroundColor: "#121712", color: "#C8F169" }} className="hover:bg-stone-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider cursor-pointer transition shadow-xs flex items-center gap-1.5 border border-[#121712]"
                 >
                   <span className="w-2 h-2 rounded-full bg-[#C8F169] animate-ping" />
-                  <span style={{ color: "#C8F169" }}>Trực tiếp (Live SSE)</span>
+                  <span style={{ color: "#C8F169" }}>SSE backend (fixture)</span>
                 </button>
               )}
             </div>

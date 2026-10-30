@@ -97,7 +97,8 @@ export function mapBackendToReasoningEvent(raw: AgentReasoningEvent | any): Reas
   const rawTc = raw.toolCall || (raw.toolResult ? { toolName: raw.toolResult.toolName, output: raw.toolResult.result } : undefined);
 
   if (rawTc) {
-    const toolName = rawTc.toolName || rawTc.name || (raw.content?.includes('misconception') ? 'tool_query_misconception_kb' : 'tool_verify_vector_algebra');
+    // Preserve the producer's tool identity; never guess one from content.
+    const toolName = rawTc.toolName || rawTc.name || 'unknown_tool';
     toolCall = {
       toolName,
       args: sanitizeLatexValue(rawTc.input || rawTc.params || rawTc.args || {}),

@@ -54,17 +54,17 @@ export const EventRow: React.FC<EventRowProps> = ({
         isAgree = cc.verdict === 'agree';
         isDisagree = cc.verdict === 'disagree';
       } else {
+        // No structured crossCheck: use an explicit metadata verdict, then a
+        // leading verdict phrase. Anything else stays "unknown" (neutral badge)
+        // instead of being inferred as agreement or rejection.
         const metaVerdict = (event.metadata?.verdict as string) || '';
         const text = (event.content || '').trim();
-        if (
-          event.id === 'ev_012' ||
-          metaVerdict === 'agree' ||
-          /^chấp nhận|^đồng ý|^đồng thuận/i.test(text)
-        ) {
+        if (metaVerdict === 'agree' || /^(chấp nhận|đồng ý|đồng thuận)/i.test(text)) {
           isAgree = true;
-          isDisagree = false;
-        } else {
-          isAgree = false;
+        } else if (
+          metaVerdict === 'disagree' ||
+          /^(bác|từ chối|không đồng ý|chưa đồng thuận)/i.test(text)
+        ) {
           isDisagree = true;
         }
       }
