@@ -21,6 +21,8 @@ export const config = {
     vision: process.env.VISION_MODEL || defaultModel,
   },
   visionReasoningEffort: process.env.VISION_REASONING_EFFORT || 'none',
+  // Unset keeps each reasoning model's default effort for JSON chat turns.
+  chatReasoningEffort: process.env.CHAT_REASONING_EFFORT || null,
   port: Number(process.env.PORT) || 3001,
 };
 

@@ -47,6 +47,9 @@ export async function chatJSON({ model, systemPrompt, userPayload, temperature =
   // Only pass custom temperature if the model supports it (gpt-6 / reasoning models require default or omit)
   if (!model.startsWith('gpt-6') && !model.startsWith('o1') && !model.startsWith('o3')) {
     requestBody.temperature = temperature;
+  } else if (config.chatReasoningEffort) {
+    // Reasoning models default to a slow effort; live classroom turns can opt into a faster one.
+    requestBody.reasoning_effort = config.chatReasoningEffort;
   }
 
   const response = await getClient().chat.completions.create(requestBody);
