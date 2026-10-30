@@ -1,0 +1,87 @@
+{
+  "epic": "EPIC 4",
+  "issue": "#402 (GitHub Issue #12)",
+  "title": "Context Isolation Snapshot & Board Grounding",
+  "timestamp": "2026-10-29T16:45:34.258Z",
+  "totalTests": 8,
+  "passedCount": 8,
+  "successRate": "100%",
+  "tokenBudgetLimit": 1200,
+  "keyMilestone": "37:13 (Ví dụ 3 Hình lập phương)",
+  "results": [
+    {
+      "testName": "1. Board Grounding at 37:13 (LaTeX, 3D Cube, ~30s Speech, Active Part)",
+      "passed": true,
+      "blackboardLatex": "|\\vec{BC} + \\vec{DD'}|",
+      "spatialGeometry": "cube",
+      "verticesCount": 8,
+      "activePartId": "part_03_box_rule_example3",
+      "speechSnippet": "Thầy Tiến: Ví dụ 3: Cho hình lập phương ABCD.A'B'C'D' cạnh b"
+    },
+    {
+      "testName": "2. Context Isolation - Bo MUST NOT see standard proof / rebuttalAnchor",
+      "passed": true,
+      "hasStandardSolution": false,
+      "hasRebuttalAnchor": false,
+      "noGoldenFormula": true,
+      "hasTrapPattern": true,
+      "ragSnippetsCount": 2
+    },
+    {
+      "testName": "3. Context Isolation - Trí sees RAG theorems & proof, no TA hints",
+      "passed": true,
+      "hasStandardSolution": true,
+      "hasScaffoldingHints": false,
+      "hasTheorems": true,
+      "ragSnippetsCount": 3
+    },
+    {
+      "testName": "4. Context Isolation - Trợ giảng An sees Scaffolding Nudges (Level 1 & 2)",
+      "passed": true,
+      "hasScaffoldingHints": true,
+      "hasNudges": true,
+      "ragSnippetsCount": 3
+    },
+    {
+      "testName": "5. Context Isolation - Linh Chi (Cheat Sheet) & Minh Khang (Analogy)",
+      "passed": true,
+      "linhChiHasCheatSheet": true,
+      "minhKhangHasEverydayAnalogy": true
+    },
+    {
+      "testName": "6. Token Budget Meter (< 1200 Tokens for all agents)",
+      "passed": true,
+      "tokenLimit": 1200,
+      "tokenEstimates": {
+        "tri": 437,
+        "bo": 447,
+        "an": 420,
+        "linhchi": 398,
+        "minhkhang": 396,
+        "colam": 430
+      },
+      "allWithinBudget": true
+    },
+    {
+      "testName": "7. Structured Citations at 37:13 (Video, Blackboard, SGK with timestamps)",
+      "passed": true,
+      "totalCitations": 3,
+      "hasVideoCit": true,
+      "videoLabel": "Video bài giảng Thầy Tiến (37:13 - Ví dụ 3)",
+      "hasBlackboardCit": true,
+      "blackboardLabel": "Bảng phấn 37:13: |\\vec{BC} + \\vec{DD'}|",
+      "hasSgkCit": true,
+      "sgkLabel": "SGK Toán 12 KNTT (Tập 1, Bài 6, tr. 48)"
+    },
+    {
+      "testName": "8. Runtime Dispatcher at 37:13 attaches Snapshot & Clickable Citations",
+      "passed": true,
+      "primaryAuthor": "Bo",
+      "hasSnapshot": true,
+      "citationsCount": 3,
+      "videoCitationAt3713": true,
+      "snippetQuote": "Ví dụ 3: Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính |BC + DD'|."
+    }
+  ],
+  "status": "ALL_TESTS_PASSED"
+}
