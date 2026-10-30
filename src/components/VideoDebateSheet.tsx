@@ -1282,7 +1282,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                   <span className="text-[11px] sm:text-xs font-bold text-[#121712] leading-snug text-center w-full truncate" title={p.name}>
                     {p.name}
                   </span>
-                  <span className="text-[10px] sm:text-[11px] text-stone-500 leading-tight text-center w-full mt-0.5 truncate">
+                  <span className="text-[11px] sm:text-xs text-stone-500 leading-tight text-center w-full mt-0.5 truncate">
                     {p.status}
                   </span>
                 </button>
@@ -1305,7 +1305,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: hp.color }} />
                     <span>{hp.name} · {hp.tagline}</span>
                   </span>
-                  <span className="text-[10px] text-stone-400 font-medium">Bấm để nhắn riêng</span>
+                  <span className="text-[11px] text-stone-500 font-medium">Bấm để nhắn riêng</span>
                 </div>
                 <p className="text-[11px] text-stone-700 italic font-medium leading-snug">
                   {hp.speech}
@@ -1352,7 +1352,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           className={`pb-2 text-xs font-bold cursor-pointer transition-colors relative ${
             activeTab === 'chat'
               ? 'text-stone-900 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-stone-900'
-              : 'text-stone-400 hover:text-stone-700'
+              : 'text-stone-500 hover:text-stone-800'
           }`}
         >
           Lớp học
@@ -1363,7 +1363,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           className={`pb-2 text-xs font-bold cursor-pointer transition-colors relative ${
             activeTab === 'transcript'
               ? 'text-stone-900 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-stone-900'
-              : 'text-stone-400 hover:text-stone-700'
+              : 'text-stone-500 hover:text-stone-800'
           }`}
         >
           Bản chép lời
@@ -1537,9 +1537,9 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                 <div className="flex items-center gap-1.5 text-xs text-stone-600 font-medium">
                   <span>{typingAgent.text}</span>
                   <span className="flex items-center gap-0.5 ml-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-stone-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-stone-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-stone-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span className="typing-dot" style={{ animationDelay: '0ms' }} />
+                    <span className="typing-dot" style={{ animationDelay: '180ms' }} />
+                    <span className="typing-dot" style={{ animationDelay: '360ms' }} />
                   </span>
                 </div>
               </div>
@@ -1664,7 +1664,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
         {/* Khung nhập tin nhắn tích hợp 1 DÒNG DUY NHẤT */}
         <div
-          className={`flex items-center gap-1.5 p-1 bg-white border border-[#E2EAD2] rounded-xl transition-all shadow-2xs focus-within:border-[#121712] focus-within:ring-1 focus-within:ring-[#121712] ${
+          className={`flex items-center gap-1.5 p-1 bg-white border border-[#E2EAD2] rounded-xl transition-all focus-within:border-[#121712] focus-within:ring-1 focus-within:ring-[#121712] ${
             isComposerHighlighted ? 'ring-2 ring-[#C8F169] bg-[#F3F8E8]' : ''
           }`}
         >
@@ -1726,7 +1726,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                                 style={{ backgroundColor: opt.color }}
                               />
                               <span className="truncate">{opt.label}</span>
-                              <span className="text-[10px] text-stone-400 font-normal">
+                              <span className="text-[11px] text-stone-500 font-normal">
                                 ({opt.sublabel})
                               </span>
                             </div>
@@ -1755,7 +1755,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                 ? 'Nhắn cho cả lớp...'
                 : `Nhắn riêng cho ${peopleRoster.find((p) => p.id === recipient)?.name || 'bạn học'}...`
             }
-            className="flex-1 bg-transparent px-1.5 py-1 text-xs font-medium outline-none text-[#121712] placeholder:text-stone-400 min-w-0"
+            className="flex-1 bg-transparent px-1.5 py-1 text-xs font-medium outline-none text-[#121712] placeholder:text-stone-500 min-w-0"
           />
 
           {/* Badge thời gian video */}

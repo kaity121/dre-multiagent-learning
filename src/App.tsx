@@ -1584,7 +1584,7 @@ export default function App() {
                       }`}
                       title={isSoundEnabled ? 'Âm thanh: Đang bật (Nhấn để tắt)' : 'Âm thanh: Đang tắt (Nhấn để bật)'}
                     >
-                      <span className={`w-2 h-2 rounded-full ${isSoundEnabled ? 'bg-[#16A34A] animate-pulse' : 'bg-stone-400'}`} />
+                      <span className={`w-2 h-2 rounded-full ${isSoundEnabled ? 'bg-[#16A34A]' : 'bg-stone-400'}`} />
                       <span className="hidden sm:inline">{isSoundEnabled ? 'Âm thanh' : 'Tắt tiếng'}</span>
                     </button>
 
@@ -1618,7 +1618,7 @@ export default function App() {
                       }`}
                       title={isSoundEnabled ? 'Âm thanh: Đang bật (Nhấn để tắt)' : 'Âm thanh: Đang tắt (Nhấn để bật)'}
                     >
-                      <span className={`w-2 h-2 rounded-full ${isSoundEnabled ? 'bg-[#16A34A] animate-pulse' : 'bg-stone-400'}`} />
+                      <span className={`w-2 h-2 rounded-full ${isSoundEnabled ? 'bg-[#16A34A]' : 'bg-stone-400'}`} />
                       <span className="hidden sm:inline">{isSoundEnabled ? 'Âm thanh' : 'Tắt tiếng'}</span>
                     </button>
 
@@ -1778,7 +1778,7 @@ export default function App() {
               <div className="pt-2.5 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
                   <span className="px-3.5 py-1 rounded-full text-xs font-bold bg-[#121712] text-white flex items-center gap-1.5 shadow-2xs border border-[#121712]">
-                    <span className="w-2 h-2 rounded-full bg-[#C8F169] animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-[#C8F169]" />
                     <span>Góc nhìn giáo viên</span>
                   </span>
                   <span className="text-xs text-stone-700 font-medium hidden sm:inline">
@@ -1793,7 +1793,7 @@ export default function App() {
               <div className="pt-2.5 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
                   <span className="px-3.5 py-1 rounded-full text-xs font-bold bg-[#121712] text-white flex items-center gap-1.5 shadow-2xs border border-[#121712]">
-                    <span className="w-2 h-2 rounded-full bg-[#C8F169] animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-[#C8F169]" />
                     <span>Góc nhìn nội bộ</span>
                   </span>
                   <span className="text-xs text-stone-700 font-medium hidden sm:inline">
@@ -1916,7 +1916,7 @@ export default function App() {
             {currentMode === 'video_clash' && (
               <div className="flex flex-col lg:flex-row gap-2.5 2xl:gap-4 items-start flex-1 min-h-0 w-full">
                 {/* CỘT TRÁI: VIDEO PLAYER & THANH ĐIỀU KHIỂN (CỐ ĐỊNH VỊ TRÍ, KHÔNG BỊ TRÔI) */}
-                <div className="flex-1 min-w-[440px] sm:min-w-[480px] 2xl:min-w-[560px] flex flex-col space-y-3.5 transition-all duration-300 lg:sticky lg:top-16">
+                <div className="flex-1 w-full min-w-0 lg:min-w-[480px] 2xl:min-w-[560px] flex flex-col space-y-3.5 transition-all duration-300 lg:sticky lg:top-16">
                   <VideoPlayerSheet
                     lesson={currentVideoLesson}
                     phase={videoPhase}
@@ -2010,7 +2010,7 @@ export default function App() {
                     {/* Cụm phải: Combo phản xạ [Đã hiểu | Chưa rõ] + Câu hỏi dừng 37:13 + Giơ tay */}
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {/* COMBO PILL: [👍 Đã hiểu | ❓ Chưa rõ] */}
-                      <div className="h-8 px-1 rounded-xl bg-white border border-stone-200 flex items-center shadow-2xs shrink-0">
+                      <div className="h-8 px-1 rounded-xl bg-stone-100 flex items-center shrink-0">
                         <button
                           type="button"
                           onClick={() => handleQuickReaction('understood')}
@@ -2137,11 +2137,11 @@ export default function App() {
                     </div>
 
                     {/* Thẻ ghi chú sư phạm Cô Lam */}
-                    <div className="p-3.5 rounded-2xl bg-[#F3F8E8] border border-[#E2EAD2] text-xs text-[#121712] leading-relaxed space-y-1">
+                    <div className="pt-3 border-t border-[#E2EAD2] text-xs text-[#121712] leading-relaxed space-y-1">
                       <span className="font-bold text-[#121712] block">
                         Ghi chú trọng tâm từ Cô Lam:
                       </span>
-                      <p className="text-stone-700">
+                      <p className="text-stone-700 text-pretty">
                         “Tại mốc 37:13, thầy Tiến đưa ra bài toán cộng hai vectơ không cùng gốc trong hình lập phương. Con hãy chú ý quan sát cách xác định hướng và điểm đặt của vectơ trước khi tính độ dài nhé!”
                       </p>
                     </div>
@@ -2183,7 +2183,7 @@ export default function App() {
                           setChatWidth(280);
                           try { localStorage.setItem('dre_station1_chat_width', '280'); } catch(e){}
                         }}
-                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition ${
+                        className={`px-2 py-0.5 rounded-lg text-[11px] font-bold cursor-pointer transition ${
                           chatWidth <= 300
                             ? 'bg-[#121712] text-[#C8F169]'
                             : 'bg-white hover:bg-stone-200 text-stone-700 border border-stone-200'
@@ -2195,7 +2195,7 @@ export default function App() {
                       <button
                         type="button"
                         onClick={handleResetChatWidth}
-                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition ${
+                        className={`px-2 py-0.5 rounded-lg text-[11px] font-bold cursor-pointer transition ${
                           chatWidth > 300 && chatWidth < 500
                             ? 'bg-[#121712] text-[#C8F169]'
                             : 'bg-white hover:bg-stone-200 text-stone-700 border border-stone-200'
@@ -2211,7 +2211,7 @@ export default function App() {
                           setChatWidth(520);
                           try { localStorage.setItem('dre_station1_chat_width', '520'); } catch(e){}
                         }}
-                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition ${
+                        className={`px-2 py-0.5 rounded-lg text-[11px] font-bold cursor-pointer transition ${
                           chatWidth >= 500
                             ? 'bg-[#121712] text-[#C8F169]'
                             : 'bg-white hover:bg-stone-200 text-stone-700 border border-stone-200'

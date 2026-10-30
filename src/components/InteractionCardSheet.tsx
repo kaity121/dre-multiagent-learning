@@ -147,7 +147,7 @@ export const InteractionCardSheet: React.FC<InteractionCardSheetProps> = React.m
               <MousePointerClick className="w-5 h-5 text-stone-700" />
             </div>
             <div className="space-y-1">
-              <h3 className="font-bold text-sm text-[#121712]">Chưa chọn bước giải cần bắt lỗi</h3>
+              <h3 className="font-bold text-sm text-[#121712] text-balance">Chưa chọn bước giải cần bắt lỗi</h3>
               <p className="text-xs text-stone-600 max-w-sm mx-auto leading-relaxed">
                 Hãy bấm trực tiếp vào 1 trong 3 bước giải ở cột bên trái để bắt đầu phân tích và chỉ ra lỗi sai của Bo.
               </p>

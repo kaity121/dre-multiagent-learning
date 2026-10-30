@@ -60,7 +60,7 @@ export const ChatSavedQuizBlock: React.FC<ChatSavedQuizBlockProps> = ({
       </div>
 
       {/* 2. Thẻ Câu hỏi được lưu cố định trong đoạn chat */}
-      <div className="bg-white border border-[#E2EAD2] rounded-2xl p-4 shadow-2xs space-y-3">
+      <div className="border border-[#E2EAD2] rounded-2xl p-4 space-y-3">
         {/* Header: Avatar Cô Lam + KIỂM TRA NHANH + @Cả lớp + ▶ 37:13 */}
         <div className="flex items-start gap-2.5">
           <AgentAvatar role="colam" size={32} tooltip />
@@ -169,7 +169,7 @@ export const ChatSavedQuizBlock: React.FC<ChatSavedQuizBlockProps> = ({
       {/* 3. Bong bóng phản hồi của Học viên được lưu ngay dưới thẻ trong đoạn chat */}
       {status === 'SKIPPED' && (
         <div className="flex justify-end animate-in fade-in duration-150">
-          <div className="px-4 py-2 rounded-2xl rounded-tr-xs bg-[#121712] text-white font-bold text-xs shadow-2xs">
+          <div className="px-4 py-2 rounded-2xl rounded-tr-xs bg-[#121712] text-white font-bold text-xs">
             Bỏ qua câu này
           </div>
         </div>
@@ -177,7 +177,7 @@ export const ChatSavedQuizBlock: React.FC<ChatSavedQuizBlockProps> = ({
 
       {status === 'ANSWERED' && selectedOptionObj && (
         <div className="flex justify-end animate-in fade-in duration-150">
-          <div className="max-w-[85%] px-4 py-2 rounded-2xl rounded-tr-xs bg-[#121712] text-white font-semibold text-xs shadow-2xs leading-snug">
+          <div className="max-w-[85%] px-4 py-2 rounded-2xl rounded-tr-xs bg-[#121712] text-white font-semibold text-xs leading-snug">
             Mình chọn <span className="font-extrabold text-[#C8F169]">Đáp án {selectedLetter}</span>:{' '}
             <FormattedMathText text={cleanText(selectedOptionObj.label)} />
           </div>
