@@ -237,4 +237,36 @@ describe('A2A Scriptwriting Roundtable Orchestrator - Unit Tests (#302)', () => 
     assert.ok(streamGetRoute, 'Phải có route GET /api/roundtable/stream');
     assert.ok(streamPostRoute, 'Phải có route POST /api/roundtable/stream');
   });
+  it('9. Security Check: Ngăn chặn triệt để Path Traversal qua videoId', async () => {
+    const maliciousStream = {
+      videoId: 'x/../../../../package',
+      durationSeconds: 60,
+      segments: [{ second: 20, trapRiskLevel: 'high' }],
+    };
+
+    await assert.rejects(
+      async () => {
+        await runFullLessonRoundtable(maliciousStream, { useLLM: false });
+      },
+      (err) => {
+        return err && err.message && err.message.includes('[Security Alert]');
+      },
+      'Hệ thống phải ném lỗi Security Alert khi videoId cố tình thoát khỏi thư mục drafts'
+    );
+  });
+
+  it('10. Short clip bounds & Content matching: Clip 60s ra đúng 1 part, câu hỏi về độ dài Ex 3', async () => {
+    const shortFixture = JSON.parse(fs.readFileSync(path.join(__dirname, '../../mock/mock_short_clip_sample.json'), 'utf-8'));
+    const parts = partitionTimelineIntoParts(shortFixture);
+
+    assert.strictEqual(parts.length, 1, 'Clip 60s chỉ được chia đúng 1 Part duy nhất');
+    assert.strictEqual(parts[0].startSecond, 0);
+    assert.strictEqual(parts[0].endSecond, 60);
+    assert.strictEqual(parts[0].misconceptionId, 'MISC_VEC_005', 'Clip Ví dụ 3 phải tự động map đúng MISC_VEC_005');
+
+    const draftResult = await runFullLessonRoundtable(shortFixture, { useLLM: false });
+    assert.strictEqual(draftResult.parts.length, 1);
+    assert.ok(draftResult.checkpoints[0].second <= 60, 'Checkpoint phải nằm trong thời lượng 60s');
+    assert.strictEqual(draftResult.checkpoints[0].options.find(o => o.isCorrect)?.label, 'a√2');
+  });
 });

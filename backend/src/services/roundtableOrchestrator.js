@@ -69,30 +69,74 @@ export function partitionTimelineIntoParts(cognitiveStream) {
   const segments = cognitiveStream.segments || [];
   const duration = cognitiveStream.durationSeconds || 3480;
 
-  // Với bài Vectơ 12 của thầy Tiến (~58 phút), chia làm 3 Part chuẩn sư phạm
+  // 1. Phân loại trường hợp clip ngắn (<= 300s):
+  // Tạo đúng 1 Part duy nhất, bound chính xác theo duration thực tế của clip và phân tích nội dung thực
+  if (duration <= 300) {
+    const isEx3VectorLength =
+      (cognitiveStream.title || '').toLowerCase().includes('độ dài') ||
+      (cognitiveStream.videoTitle || '').toLowerCase().includes('độ dài') ||
+      (cognitiveStream.videoTitle || '').toLowerCase().includes('ví dụ 3') ||
+      segments.some(s =>
+        ((s.blackboardText || '').includes('BC') && (s.blackboardText || '').includes('DD')) ||
+        (s.audioTranscript || '').toLowerCase().includes('độ dài') ||
+        (s.blackboardLatex || []).some(l => l.includes('BC') && l.includes('DD'))
+      );
+
+    const partMisconceptionId = isEx3VectorLength ? 'MISC_VEC_005' : 'MISC_VEC_001';
+    const partTitle = isEx3VectorLength
+      ? 'Phần 1: Bài tập Tính toán độ dài & Bẫy cộng độ dài'
+      : 'Phần 1: Khái niệm & Phương hướng Vectơ trong không gian';
+
+    const warmupThreshold = Math.min(15, Math.max(5, Math.floor(duration * 0.2)));
+    const validCandidateSegments = segments.filter(s => s.second >= warmupThreshold && s.second <= duration);
+    const pool = validCandidateSegments.length > 0 ? validCandidateSegments : segments;
+
+    const chosenSegment =
+      pool.find(s => s.trapRiskLevel === 'high') ||
+      pool.find(s => s.trapRiskLevel === 'medium') ||
+      pool[pool.length - 1];
+
+    return [
+      {
+        partNumber: 1,
+        title: partTitle,
+        startSecond: 0,
+        endSecond: duration,
+        targetSegmentId: chosenSegment ? chosenSegment.id : undefined,
+        misconceptionId: partMisconceptionId,
+        segments,
+        chosenSegment,
+      },
+    ];
+  }
+
+  // 2. Bài giảng dài (> 300s, ví dụ bài 58 phút của thầy Tiến): Chia làm 3 Part chuẩn sư phạm
+  const part1End = Math.min(900, Math.floor(duration / 3));
+  const part2End = Math.min(2000, Math.floor((duration * 2) / 3));
+
   const partsConfig = [
     {
       partNumber: 1,
       title: 'Phần 1: Khái niệm & Phương hướng Vectơ trong không gian',
       startSecond: 0,
-      endSecond: Math.min(900, duration),
-      targetSegmentId: 'seg_04_42', // 282s (04:42) - Hai đường thẳng chéo nhau
+      endSecond: part1End,
+      targetSegmentId: 'seg_04_42',
       misconceptionId: 'MISC_VEC_001',
     },
     {
       partNumber: 2,
       title: 'Phần 2: Phép toán Vectơ & Quy tắc Hình hộp',
-      startSecond: 900,
-      endSecond: Math.min(2000, duration),
-      targetSegmentId: 'seg_30_13', // 1813s (30:13) - Quy tắc hình hộp 8 đỉnh
+      startSecond: part1End,
+      endSecond: part2End,
+      targetSegmentId: 'seg_30_13',
       misconceptionId: 'MISC_VEC_006',
     },
     {
       partNumber: 3,
       title: 'Phần 3: Bài tập Tính toán độ dài & Bẫy cộng độ dài (Trọng tâm)',
-      startSecond: 2000,
+      startSecond: part2End,
       endSecond: duration,
-      targetSegmentId: 'seg_37_13', // 2233s (37:13) - Ví dụ 3 hình lập phương
+      targetSegmentId: 'seg_37_13',
       misconceptionId: 'MISC_VEC_005',
     },
   ];
@@ -102,9 +146,8 @@ export function partitionTimelineIntoParts(cognitiveStream) {
       s => s.second >= part.startSecond && s.second < part.endSecond
     );
 
-    // Luật sư phạm: Checkpoint không được rơi vào 15s - 30s mở đầu (warmup)
     const warmupThreshold = part.startSecond === 0 ? 30 : part.startSecond + 15;
-    const validCandidateSegments = partSegments.filter(s => s.second >= warmupThreshold);
+    const validCandidateSegments = partSegments.filter(s => s.second >= warmupThreshold && s.second <= part.endSecond);
     const pool = validCandidateSegments.length > 0 ? validCandidateSegments : partSegments;
 
     const chosenSegment =
@@ -141,6 +184,8 @@ export async function runRoundtableForPart(
   if (second < warmupMinSecond) {
     second = warmupMinSecond;
   }
+  const isVectorLength = partInfo.misconceptionId === 'MISC_VEC_005' || partInfo.partNumber === 3 || (partInfo.title || '').includes('độ dài');
+  const isBoxRule = partInfo.misconceptionId === 'MISC_VEC_006' || partInfo.partNumber === 2 || (partInfo.title || '').includes('Hình hộp');
   const m = Math.floor(second / 60);
   const s = Math.floor(second % 60);
   const timeFormatted = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
@@ -232,108 +277,118 @@ export async function runRoundtableForPart(
     let trapApproved = false;
 
     while (retryAttempt < maxRetries && !trapApproved) {
-      if (retryAttempt === 0) {
-        // LƯỢT 1: Bo đưa ra đề xuất bẫy có lỗi hình học phi lý (gán nhầm tên vectơ AB)
-        const initialClaim = 'AB';
-        const boInitialSpeech =
-          "Cộng độ dài cho lẹ: |BC + DD'| = 1 + 1 = 2! Với lại vectơ BC cộng DD' chắc chắn ra luôn vectơ AB rồi!";
+      let boClaim = '';
+      let boSpeech = '';
+      let boThoughtText = '';
 
-        await record(
-          'thought',
-          'bo',
-          'Bo (Hệ 1 - Trực giác)',
-          `Bo muốn đề xuất bẫy shortcut tính nhanh và đoán mò vectơ tổng là AB.`
-        );
-        await record('debate_turn', 'bo', 'Bo (Hệ 1 - Trực giác)', boInitialSpeech);
+      if (useLLM && config.openaiApiKey) {
+        try {
+          const boPrompt = `Bạn là "Bo" (Hệ 1 - Trực giác, lém lỉnh) trong buồng họp A2A Roundtable môn Toán 12 bài "Ví dụ 3 hình lập phương".
+Nhiệm vụ: Đề xuất một phát biểu gài bẫy ngộ nhận tự nhiên về tính độ dài |BC + DD'| (cạnh a hoặc cạnh 1).
+${retryAttempt === 0 ? 'Ở lượt 1, bạn thử đoán mò một vectơ tổng phi thực tế (ví dụ vectơ AB) để xem Trí phản biện thế nào.' : 'Ở lượt 2, bạn tiếp thu góp ý của Trí: giữ đúng bản chất ngộ nhận cộng trực tiếp số học 1 + 1 = 2 (hoặc a + a = 2a).'}
+Trả về JSON: { "thought": "Suy nghĩ trong đầu", "claim": "giá trị hoặc tên vectơ", "speech": "Câu nói phản biện của bạn" }`;
 
-        // Trí kích hoạt tool kiểm chứng phát ngôn Lần 1 của Bo
-        await record(
-          'thought',
-          'tri',
-          'Trí (Hệ 2 - Logic)',
-          `Trí nghi ngờ phát biểu của Bo có sự sai lệch về cả hình học lẫn độ dài. Kích hoạt tool_verify_vector_algebra để kiểm chứng toạ độ 3D.`
-        );
+          const boLLM = await chatJSON({
+            model: config.models.bo || 'gpt-4o-mini',
+            systemPrompt: boPrompt,
+            userPayload: { retryAttempt, part: partInfo.title },
+          });
 
-        const check1ToolCall = executeTool('tool_verify_vector_algebra', {
-          shape: 'cube',
-          side: '1',
-          expr: "|BC + DD'|",
-          claim: initialClaim,
-        });
+          if (boLLM && boLLM.speech) {
+            boSpeech = boLLM.speech;
+            boClaim = boLLM.claim || (retryAttempt === 0 ? 'AB' : '2a');
+            boThoughtText = boLLM.thought || (retryAttempt === 0 ? 'Bo thử đề xuất bẫy shortcut tính nhanh.' : 'Bo rút kinh nghiệm và sửa lại bẫy cộng đại số.');
+          }
+        } catch (llmErr) {
+          console.warn('[Roundtable LLM] Fallback sang kịch bản chuẩn cho Bo:', llmErr.message);
+        }
+      }
 
-        await record(
-          'tool_call',
-          'tri',
-          'Trí (Hệ 2 - Logic)',
-          `Kích hoạt tool_verify_vector_algebra để kiểm chứng claim "${initialClaim}" của Bo`,
-          check1ToolCall
-        );
-        await record(
-          'tool_result',
-          'tri',
-          'Trí (Hệ 2 - Logic)',
-          `Tool trả về isValid: ${check1ToolCall.isValid} — ${check1ToolCall.output?.reason}`,
-          check1ToolCall
-        );
+      // Fallback deterministic speeches nếu useLLM=false hoặc call LLM lỗi
+      if (!boSpeech) {
+        if (retryAttempt === 0) {
+          boClaim = 'AB';
+          boSpeech = "Cộng độ dài cho lẹ: |BC + DD'| = 1 + 1 = 2! Với lại vectơ BC cộng DD' chắc chắn ra luôn vectơ AB rồi!";
+          boThoughtText = 'Bo muốn đề xuất bẫy shortcut tính nhanh và đoán mò vectơ tổng là AB.';
+        } else {
+          boClaim = '2a';
+          boSpeech = "À tớ nhìn nhầm đỉnh! Nhưng về độ dài thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!";
+          boThoughtText = 'Bo rút kinh nghiệm từ tool kiểm chứng của Trí, chuyển sang gài bẫy ngộ nhận cộng trực tiếp độ dài 1+1=2.';
+        }
+      }
 
-        // Trí BÁC BỎ đề xuất sai phi thực tế của Bo (Khoảnh khắc WOW trên War Room)
-        const rejectionSpeech = `Bo nhầm to rồi! Tớ vừa chạy toạ độ kiểm chứng: BC + DD' = BC + CC' = BC', phương hướng hoàn toàn khác vectơ AB! Bẫy như vậy là "sai kiểu không có thật", học sinh sẽ thấy vô lý ngay. Cậu hãy giữ đúng bản chất ngộ nhận cộng độ dài đại số thôi!`;
-        await record(
-          'cross_check_verdict',
-          'tri',
-          'Trí (Hệ 2 - Logic)',
-          rejectionSpeech,
-          check1ToolCall
-        );
+      await record('thought', 'bo', 'Bo (Hệ 1 - Trực giác)', boThoughtText);
+      await record('debate_turn', 'bo', 'Bo (Hệ 1 - Trực giác)', boSpeech);
 
+      // Trí kiểm chứng phát ngôn của Bo bằng Deterministic Tool
+      await record(
+        'thought',
+        'tri',
+        'Trí (Hệ 2 - Logic)',
+        `Trí kích hoạt tool_verify_vector_algebra để kiểm chứng toạ độ 3D và đại số vectơ cho claim "${boClaim}" của Bo.`
+      );
+
+      const toolCheck = executeTool('tool_verify_vector_algebra', {
+        shape: 'cube',
+        side: boClaim.includes('a') ? 'a' : '1',
+        expr: "|BC + DD'|",
+        claim: boClaim,
+      });
+
+      await record(
+        'tool_call',
+        'tri',
+        'Trí (Hệ 2 - Logic)',
+        `Kích hoạt tool_verify_vector_algebra với claim "${boClaim}"`,
+        toolCheck
+      );
+      await record(
+        'tool_result',
+        'tri',
+        'Trí (Hệ 2 - Logic)',
+        `Tool trả về isValid: ${toolCheck.isValid} — ${toolCheck.output?.reason || ''}`,
+        toolCheck
+      );
+
+      // Quyết định của Trí hoàn toàn dựa trên kết quả tool (Tool-controlled decision):
+      // Nếu claim phi thực tế hoặc tool xác nhận khác biệt hướng (isValid: false) -> Trí bác bỏ
+      const isUnrealisticError = boClaim === 'AB' || (!toolCheck.isValid && toolCheck.output?.reason?.includes('khác'));
+
+      if (retryAttempt === 0 && (isUnrealisticError || !toolCheck.isValid)) {
+        let triRebuttalSpeech = "Bo nhầm to rồi! Tớ vừa chạy toạ độ kiểm chứng: BC + DD' = BC + CC' = BC', phương hướng hoàn toàn khác vectơ AB! Bẫy như vậy là \"sai kiểu không có thật\", học sinh sẽ thấy vô lý ngay. Cậu hãy giữ đúng bản chất ngộ nhận cộng độ dài đại số thôi!";
+
+        if (useLLM && config.openaiApiKey) {
+          try {
+            const triLLM = await chatJSON({
+              model: config.models.tri || config.models.bo || 'gpt-4o-mini',
+              systemPrompt: 'Bạn là "Trí" (Hệ 2 - Logic, nghiêm cẩn). Dựa trên kết quả tool_verify_vector_algebra trả về sai lệch, bạn hãy phản biện Bo ngắn gọn (2-3 câu), chỉ ra lý do hình học và yêu cầu Bo sửa lại bẫy cho chân thực.',
+              userPayload: { boSpeech, boClaim, toolOutput: toolCheck.output },
+            });
+            if (triLLM && triLLM.speech) triRebuttalSpeech = triLLM.speech;
+          } catch (err) {}
+        }
+
+        await record('cross_check_verdict', 'tri', 'Trí (Hệ 2 - Logic)', triRebuttalSpeech, toolCheck);
         crossCheckCorrectionOccurred = true;
         retryAttempt++;
       } else {
-        // LƯỢT 2: Bo tiếp thu phản biện, sửa lại bẫy nhận thức tự nhiên đạt chuẩn sư phạm
-        boFinalClaim = '2a';
-        boFinalTrap =
-          "À tớ nhìn nhầm đỉnh! Nhưng về độ dài thì cạnh bằng a nên |BC + DD'| = a + a = 2a chứ còn gì nữa!";
+        // Lượt tiếp theo hoặc bẫy đã đạt chuẩn sư phạm
+        boFinalClaim = boClaim;
+        boFinalTrap = boSpeech;
 
-        await record(
-          'thought',
-          'bo',
-          'Bo (Hệ 1 - Trực giác)',
-          `Bo rút kinh nghiệm từ tool kiểm chứng của Trí, chuyển sang gài bẫy ngộ nhận cộng trực tiếp độ dài 1+1=2.`
-        );
-        await record('debate_turn', 'bo', 'Bo (Hệ 1 - Trực giác)', boFinalTrap);
+        let consensusSpeech = "Bẫy này rất tự nhiên! Học sinh thường lấy ngay |BC| + |DD'| = a + a = 2a do thói quen đại số, quên mất bất đẳng thức tam giác và định lý Pytago đường chéo BC' = a√2. Tớ đồng ý chọn bẫy này!";
+        if (useLLM && config.openaiApiKey) {
+          try {
+            const triConsensus = await chatJSON({
+              model: config.models.tri || config.models.bo || 'gpt-4o-mini',
+              systemPrompt: 'Bạn là "Trí". Bẫy của Bo đã đạt chuẩn ngộ nhận sư phạm. Hãy phát biểu đồng thuận ngắn gọn và giải thích vì sao bẫy này hiệu quả.',
+              userPayload: { boSpeech, boClaim, toolOutput: toolCheck.output },
+            });
+            if (triConsensus && triConsensus.speech) consensusSpeech = triConsensus.speech;
+          } catch (err) {}
+        }
 
-        // Trí kiểm chứng lại bẫy sửa đổi của Bo
-        const check2ToolCall = executeTool('tool_verify_vector_algebra', {
-          shape: 'cube',
-          side: 'a',
-          expr: "|BC + DD'|",
-          claim: boFinalClaim,
-        });
-
-        await record(
-          'tool_call',
-          'tri',
-          'Trí (Hệ 2 - Logic)',
-          `Kiểm chứng bẫy ngộ nhận đại số của Bo: tool_verify_vector_algebra với claim "${boFinalClaim}"`,
-          check2ToolCall
-        );
-        await record(
-          'tool_result',
-          'tri',
-          'Trí (Hệ 2 - Logic)',
-          `Tool xác thực: ${check2ToolCall.output?.reason}`,
-          check2ToolCall
-        );
-
-        // Trí đồng thuận phê duyệt bẫy sửa đổi của Bo
-        const consensusSpeech = `Bẫy này rất tự nhiên! Học sinh thường lấy ngay |BC| + |DD'| = a + a = 2a do thói quen đại số, quên mất bất đẳng thức tam giác và định lý Pytago đường chéo BC' = a√2. Tớ đồng ý chọn bẫy này!`;
-        await record(
-          'cross_check_verdict',
-          'tri',
-          'Trí (Hệ 2 - Logic)',
-          consensusSpeech,
-          check2ToolCall
-        );
+        await record('cross_check_verdict', 'tri', 'Trí (Hệ 2 - Logic)', consensusSpeech, toolCheck);
         crossCheckVerdict = consensusSpeech;
         trapApproved = true;
       }
@@ -480,16 +535,16 @@ export async function runRoundtableForPart(
   // VÒNG 5: CÔ LAM THẨM ĐỊNH BLOOM, PACING TIMELINE & CHỐT CHECKPOINT
   // ==========================================================================
   const checkpointQuestionText =
-    partInfo.partNumber === 3
+    isVectorLength
       ? "Cho hình lập phương ABCD.A'B'C'D' cạnh a. Hãy tính độ dài của vectơ tổng BC + DD' và phân tích sai lầm trong cách tính của bạn Bo. Phát biểu nào sau đây chính xác?"
-      : partInfo.partNumber === 2
+      : isBoxRule
       ? "Cho hình hộp ABCD.A'B'C'D'. Hãy áp dụng quy tắc hình hộp để xác định vectơ tổng AB + AD + AA' và phân tích tại sao không thể bằng đường chéo đáy AC:"
       : `Tại mốc ${timeFormatted}, em hãy phân tích và chỉ ra lỗi sai trong phát biểu của Bo về mối quan hệ giữa hai đường thẳng chéo nhau và hai vectơ cùng phương:`;
 
   const expectedPoints =
-    partInfo.partNumber === 3
+    isVectorLength
       ? ['Chỉ ra DD\' = CC\'', 'Tính độ dài đường chéo bằng Pytago', 'Phân tích bẫy ngộ nhận cộng độ dài đại số']
-      : partInfo.partNumber === 2
+      : isBoxRule
       ? ['Áp dụng quy tắc hình hộp', 'Xác định vectơ đường chéo xuyên tâm AC\'', 'Phân tích bẫy nhầm với đường chéo đáy AC']
       : ['Phân tích bẫy ngộ nhận', 'Hai đường thẳng chéo nhau không đồng phẳng nên giá không song song/trùng nhau'];
 
@@ -539,9 +594,9 @@ export async function runRoundtableForPart(
   );
 
   const closureSpeech =
-    partInfo.partNumber === 3
+    isVectorLength
       ? `Cô phê duyệt checkpoint dừng tại giây thứ ${second} (${timeFormatted}). Bẫy ngộ nhận của Bo rất chân thực, Trí đã chỉ rõ căn cứ hình học và Linh Chi có mẹo ghi nhớ rất tuyệt vời. Các em hãy chú ý: không bao giờ cộng độ dài trực tiếp mà phải quy về một vectơ tổng trước!`
-      : partInfo.partNumber === 2
+      : isBoxRule
       ? `Cô phê duyệt checkpoint dừng tại giây thứ ${second} (${timeFormatted}). Phép cộng vectơ trong không gian mở rộng quy tắc hình bình hành thành quy tắc hình hộp rất đẹp mắt.`
       : `Cô phê duyệt checkpoint dừng tại giây thứ ${second} (${timeFormatted}). Nắm vững định nghĩa cùng phương là nền tảng để không bị nhầm lẫn trong hình học không gian.`;
 
@@ -555,7 +610,7 @@ export async function runRoundtableForPart(
     title: `Checkpoint ${partInfo.partNumber}: ${partInfo.title}`,
     questionText: checkpointQuestionText,
     blackboardFormula: segment?.blackboardLatex?.[0] || (partInfo.partNumber === 3 ? "|\\vec{BC} + \\vec{DD'}|" : partInfo.partNumber === 2 ? "\\vec{AB} + \\vec{AD} + \\vec{AA'}" : "\\vec{a} \\parallel \\vec{b}"),
-    options: partInfo.partNumber === 3
+    options: isVectorLength
       ? [
           {
             id: 'opt_A',
@@ -583,7 +638,7 @@ export async function runRoundtableForPart(
             feedbackNote: 'Sai lầm. a√3 là độ dài đường chéo không gian của hình lập phương (quy tắc hình hộp), không phải đường chéo mặt bên.',
           },
         ]
-      : partInfo.partNumber === 2
+      : isBoxRule
       ? [
           {
             id: 'opt_A',
@@ -640,14 +695,14 @@ export async function runRoundtableForPart(
         ],
     boInitialChallenge: boFinalTrap,
     linhChiCheatSheetSnippet: {
-      ruleTitle: partInfo.partNumber === 3 ? 'Quy tắc cộng & Tính độ dài Vectơ' : partInfo.partNumber === 2 ? 'Quy tắc hình hộp 8 đỉnh' : 'Điều kiện Vectơ cùng phương',
-      rules: partInfo.partNumber === 3
+      ruleTitle: isVectorLength ? 'Quy tắc cộng & Tính độ dài Vectơ' : isBoxRule ? 'Quy tắc hình hộp 8 đỉnh' : 'Điều kiện Vectơ cùng phương',
+      rules: isVectorLength
         ? [
             'Bước 1: Tìm vectơ thay thế bằng nhau để đưa về chung gốc hoặc nối đuôi.',
             'Bước 2: Gom thành một vectơ tổng duy nhất.',
             'Bước 3: Dùng hình học (Pytago/Tam giác) để tính độ dài vectơ kết quả.',
           ]
-        : partInfo.partNumber === 2
+        : isBoxRule
         ? [
             'Bước 1: Nhận diện 3 vectơ xuất phát từ cùng một đỉnh: AB, AD, AA\'.',
             'Bước 2: AB + AD = AC (đường chéo mặt đáy).',
@@ -657,9 +712,9 @@ export async function runRoundtableForPart(
             'Giá song song hoặc trùng nhau <=> Cùng phương.',
             'Chéo nhau => Không đồng phẳng => KHÔNG cùng phương.',
           ],
-      mnemonicTrap: partInfo.partNumber === 3
+      mnemonicTrap: isVectorLength
         ? 'TUYỆT ĐỐI không lấy độ dài cộng độ dài: |u + v| ≠ |u| + |v| khi hai vectơ không cùng hướng!'
-        : partInfo.partNumber === 2
+        : isBoxRule
         ? 'Đừng quên vectơ chiều cao! AB + AD + AA\' ra đỉnh đối diện AC\', không dừng lại ở AC!'
         : 'Chéo nhau thì không cùng phương, đừng đoán mò!',
     },
@@ -784,11 +839,20 @@ export async function runFullLessonRoundtable(
     },
   };
 
-  // Lưu file draft trên đĩa phục vụ Multi-Track Timeline Editor
-  const draftFilePath = path.join(
-    DRAFTS_DIR,
-    `lesson_draft_${cognitiveStream.videoId || 'VECTO12'}.json`
-  );
+  // Lưu file draft trên đĩa phục vụ Multi-Track Timeline Editor (Bảo vệ Path Traversal)
+  const rawVideoId = String(cognitiveStream.videoId || 'VECTO12').trim();
+  if (rawVideoId.includes('..') || rawVideoId.includes('/') || rawVideoId.includes('\\')) {
+    throw new Error('[Security Alert] videoId khong hop le hoac co tinh thoat khoi drafts: ' + rawVideoId);
+  }
+  const safeVideoId = rawVideoId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const filename = 'lesson_draft_' + (safeVideoId || 'VECTO12') + '.json';
+  const draftFilePath = path.resolve(DRAFTS_DIR, filename);
+
+  const resolvedDraftsDir = path.resolve(DRAFTS_DIR);
+  if (!draftFilePath.startsWith(resolvedDraftsDir + path.sep)) {
+    throw new Error('[Security Alert] videoId khong hop le hoac co tinh thoat khoi drafts: ' + rawVideoId);
+  }
+
   fs.writeFileSync(draftFilePath, JSON.stringify(draftPackage, null, 2), 'utf-8');
 
   return draftPackage;

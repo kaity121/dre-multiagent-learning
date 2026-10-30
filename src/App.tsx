@@ -583,9 +583,16 @@ export default function App() {
     setIsVideoPlaying(!isVideoPlaying);
   };
 
-  const handleSeekVideo = (time: number) => {
+  const handleSeekVideo = (time: number, isManualSeek: boolean = false) => {
     setVideoCurrentTime(time);
-    if (Math.abs(time - currentVideoLesson.checkpointTimestamp) <= 3 && videoPhase === 'WATCHING') {
+    // Chỉ kích hoạt lại Checkpoint khi người dùng chủ động tua (manual seek) đến mốc checkpoint và chưa bị skip
+    // Tránh việc timer phát 400ms tick lại rơi vào [T-3, T+3] tự động mở lại sau khi vừa bấm Bỏ qua (Skip)
+    if (
+      isManualSeek &&
+      !isQuizSkipped &&
+      Math.abs(time - currentVideoLesson.checkpointTimestamp) <= 3 &&
+      videoPhase === 'WATCHING'
+    ) {
       handleJumpToCheckpoint();
     }
   };
@@ -1289,7 +1296,7 @@ export default function App() {
                     }}
                     externalQuestionTrigger={externalQuestionTrigger}
                     chatFocusRequest={chatFocusRequest}
-                    onSeekVideo={handleSeekVideo}
+                    onSeekVideo={(sec) => handleSeekVideo(sec, true)}
                     onAnswerCheckpoint={handleAnswerCheckpoint}
                     onSkipCheckpoint={handleSkipCheckpoint}
                     onSubmitRebuttal={handleSubmitRebuttal}
