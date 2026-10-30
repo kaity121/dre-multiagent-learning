@@ -470,7 +470,7 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
       second: 2225, // 37:05 (Sát nút điểm dừng 37:13)
       author: 'Trí',
       role: 'classmate',
-      text: '@Bo Cẩn thận mắc bẫy ở [37:13]! Hai vectơ vuông góc nhau không thể cộng đại số độ dài 1 + 1 = 2 được. Thầy Tiến đang dừng lại giải thích trên bảng kìa!',
+      text: '@Bo Khoan đã, tớ thấy hơi nghi! Trước khi cộng độ dài, cậu đã xem hai vectơ đó có cùng hướng chưa? Thầy Tiến sắp dừng ở [37:13], tớ sẽ kiểm lại bằng toạ độ.',
       citations: [
         {
           source: 'video',
