@@ -69,7 +69,7 @@ const RECIPIENT_OPTIONS: { id: RecipientTarget; label: string; sublabel: string;
   { id: 'linhchi', label: 'Linh Chi', sublabel: 'Sổ tay công thức', color: '#059669' },
   { id: 'minhkhang', label: 'Minh Khang', sublabel: 'Trực quan đời sống', color: '#7c3aed' },
   { id: 'an', label: 'Trợ giảng An', sublabel: 'Gợi ý giải bài', color: '#0f766e' },
-  { id: 'colam', label: 'Cô Lam', sublabel: 'Giáo viên chủ trì', color: '#991b1b' },
+  { id: 'colam', label: 'Cô Lam', sublabel: 'Giáo viên chủ trì', color: '#3D4739' },
 ];
 
 /** Messages longer than this open clamped to three lines with a "Xem thêm" toggle. */

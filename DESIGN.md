@@ -221,6 +221,11 @@ A pale spring-green world with one acid lime for the present moment, deep forest
 - **Hollow Stop / Future Line** (`hollow-stop`, `future-line`): untravelled stations and rail segments.
 - **Ink ladder** (`ink`, `ink-secondary`, `ink-muted`, `ink-faint`, `separator-dot`): headings and primary text, body support, metadata, status captions, and the middle-dot separator.
 
+### Agent Identity
+Each recipient in the chat's recipient picker and roster carries one identity colour, used only as a small dot or label tint beside that agent's name, never as a fill for chrome:
+- Cả lớp `#0e7490`, Bo `#b45309`, Trí `#1d4ed8`, Linh Chi `#059669`, Minh Khang `#7c3aed`, Trợ giảng An `#0f766e`.
+- Cô Lam uses the ink-secondary tone `#3D4739`. As the presiding teacher she reads as neutral authority, and red stays reserved by the One Red Rule.
+
 ### Named Rules
 **The Now Rule.** Acid Lime is filled only on what is happening now: the current stop, the one primary action, the active panel. A screen with two lime-filled primaries is wrong.
 
