@@ -78,10 +78,12 @@ import { JourneyTopBar } from './components/journey/JourneyTopBar';
 import { JourneyRail, type JourneyRailProps } from './components/journey/JourneyRail';
 import { Station1TaskCard } from './components/journey/Station1TaskCard';
 import { VideoActionBar } from './components/journey/VideoActionBar';
+import { VideoStrip } from './components/journey/VideoStrip';
 import { deriveJourneyStops, deriveTaskBeat, formatClock, lessonIdentity, type StationStatus } from './components/journey/journeyModel';
 import { AgentMapDialog } from './components/agentmap/AgentMapDialog';
 import dreLogoImg from './assets/dre-logo.png';
 import { sound } from './utils/soundEffects';
+import { withTimeout, CHECKPOINT_BACKEND_TIMEOUT_MS } from './utils/withTimeout';
 import { 
   evaluateStepAndExplanation, 
   getBoChallenge, 
@@ -199,6 +201,10 @@ export default function App() {
   const [agentMapFocusId, setAgentMapFocusId] = useState<string | null>(null);
   const [agentMapExtraTurn, setAgentMapExtraTurn] = useState<InspectorTurn | null>(null);
   const [isPeerNotebookOpen, setIsPeerNotebookOpen] = useState<boolean>(false);
+  const [showVideoInFaceOff, setShowVideoInFaceOff] = useState<boolean>(false);
+  const [lastRebuttalText, setLastRebuttalText] = useState<string | null>(null);
+  const stationTopRef = useRef<HTMLDivElement | null>(null);
+  const taskCardRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (videoPhase === 'BO_CONCEDED' || videoPhase === 'CO_LAM_CLOSURE') setCheckpointResolved(true);
@@ -416,12 +422,11 @@ export default function App() {
   // Global Keyboard Shortcut listener to toggle Test Case bar
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Toggle QA test case bar on Ctrl+Shift+D, Ctrl+Shift+K, Ctrl+Alt+T, or F2
+      // Toggle QA test case bar on Ctrl+Shift+D, Ctrl+Shift+K or Ctrl+Alt+T (F2 belongs to the demo).
       if (
         (e.ctrlKey && e.shiftKey && (e.key === 'D' || e.key === 'd')) ||
         (e.ctrlKey && e.shiftKey && (e.key === 'K' || e.key === 'k')) ||
-        (e.ctrlKey && e.altKey && (e.key === 'T' || e.key === 't')) ||
-        e.key === 'F2'
+        (e.ctrlKey && e.altKey && (e.key === 'T' || e.key === 't'))
       ) {
         e.preventDefault();
         setShowQaBar((prev) => !prev);
@@ -504,8 +509,8 @@ export default function App() {
         const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
         const hasUrlStation = Boolean(urlParams?.get('station'));
         if (!hasUrlStation && saved.currentMode) setCurrentMode(saved.currentMode);
-        // Khi mới vào app hoặc tải lại trang: Luôn bắt đầu video ở mốc 0:00 chuẩn sư phạm (TC_01A)
-        // để người học trải nghiệm bài giảng từ đầu, không bị nảy tin nhắn chat trước khi bấm phát video
+        // On reload the lecture continues at the saved second (paused), and a checkpoint that
+        // Cô Lam already closed stays closed. An open checkpoint restarts from watching.
         const hasUrlOverride = Boolean(
           urlParams?.get('checkpoint_phase') ||
           urlParams?.get('banner') ||
@@ -513,7 +518,9 @@ export default function App() {
           urlParams?.get('time')
         );
         if (!hasUrlOverride) {
-          setVideoCurrentTime(0);
+          const savedSecond = Number(saved.videoCurrentTime);
+          setVideoCurrentTime(Number.isFinite(savedSecond) && savedSecond > 0 ? Math.floor(savedSecond) : 0);
+          if (saved.checkpointResolved === true) setCheckpointResolved(true);
           setVideoPhase('WATCHING');
           setIsVideoPlaying(false);
           setIsQuizCollapsedToChat(false);
@@ -549,6 +556,7 @@ export default function App() {
           videoLessonId: currentVideoLesson.id,
           videoPhase,
           videoCurrentTime,
+          checkpointResolved,
           savedAt: now,
         };
         localStorage.setItem(DRE_STORAGE_KEY, JSON.stringify(sessionData));
@@ -574,6 +582,7 @@ export default function App() {
     currentVideoLesson.id,
     videoPhase,
     videoCurrentTime,
+    checkpointResolved,
   ]);
 
   // Inactivity tracking (45s nudge threshold) - Dùng ref để 0ms re-render
@@ -1084,7 +1093,7 @@ export default function App() {
         const miscId = currentVideoLesson.id === 'VID_002' ? 'MISC_002' : currentVideoLesson.id === 'VID_003' ? 'MISC_008' : 'MISC_001';
         let currentSess = backendSessionId;
         if (!currentSess) {
-          const sessRes = await startBackendSession(miscId);
+          const sessRes = await withTimeout(startBackendSession(miscId), CHECKPOINT_BACKEND_TIMEOUT_MS);
           if (sessRes) {
             currentSess = sessRes.sessionId;
             sessionIdRef.current = currentSess;
@@ -1093,7 +1102,7 @@ export default function App() {
         }
 
         if (currentSess) {
-          const ansRes = await submitBackendAnswer(currentSess, optionLabel);
+          const ansRes = await withTimeout(submitBackendAnswer(currentSess, optionLabel), CHECKPOINT_BACKEND_TIMEOUT_MS);
           if (ansRes && ansRes.boDialogue) {
             setLiveBoDialogue(ansRes.boDialogue);
             setVideoPhase('BO_DEBATE');
@@ -1107,7 +1116,8 @@ export default function App() {
       setIsLoadingAi(false);
     }
 
-    // Fallback to local
+    // Backend unreachable, slow or failed: Bo debates with the lesson's own argument.
+    sound.playStampThud();
     setLiveBoDialogue(null);
     setVideoPhase('BO_DEBATE');
   };
@@ -1176,10 +1186,13 @@ export default function App() {
         useLLM: false,
       }).then((res) => {
         if (res && res.ok && res.verdict) {
-          if (res.primaryResponse?.text && isEffective) {
+          // The dispatcher may answer through any agent; only Bo's words go in Bo's panel and
+          // only Cô Lam's in hers.
+          const speaker = (r?: { agent?: string; author?: string }) => `${r?.author ?? ''} ${r?.agent ?? ''}`.toLowerCase();
+          if (res.primaryResponse?.text && isEffective && /\bbo\b/.test(speaker(res.primaryResponse))) {
             setLiveBoDialogue(res.primaryResponse.text);
           }
-          if (res.followUpResponse?.text && isEffective) {
+          if (res.followUpResponse?.text && isEffective && speaker(res.followUpResponse).includes('lam')) {
             setLiveCoLamDialogue(res.followUpResponse.text);
           }
           if (isEffective && liveTurnId) {
@@ -1236,7 +1249,7 @@ export default function App() {
     if (isBackendLive && activeSess) {
       setIsLoadingAi(true);
       try {
-        const rebRes = await submitBackendRebuttal(activeSess, rebuttalText);
+        const rebRes = await withTimeout(submitBackendRebuttal(activeSess, rebuttalText), CHECKPOINT_BACKEND_TIMEOUT_MS);
         if (rebRes) {
           if (rebRes.danhGiaPhanBien === 'sac_ben' || rebRes.done) {
             if (rebRes.boDialogue) setLiveBoDialogue(rebRes.boDialogue);
@@ -1258,11 +1271,14 @@ export default function App() {
       setIsLoadingAi(false);
     }
 
-    // Fallback to local
+    // Backend unreachable, slow or failed: continue with the lesson's own data.
     if (isEffective) {
+      sound.playSuccessChime();
       setLiveBoDialogue(null);
       setLiveCoLamDialogue(null);
       setVideoPhase('BO_CONCEDED');
+    } else {
+      setLiveHintDialogue('Bo chưa phục đâu! Hãy chỉ ra vì sao không được cộng thẳng hai độ dài.');
     }
   };
 
@@ -1393,6 +1409,8 @@ export default function App() {
   const journeyStops = deriveJourneyStops(journeyInput);
   const taskBeat = deriveTaskBeat(journeyInput);
   const isFaceOffBeat = taskBeat === 'rebut' || taskBeat === 'closure';
+  // During the face-off the paused video shrinks to a strip so the three panels fit the screen.
+  const collapseVideo = currentMode === 'video_clash' && isFaceOffBeat && !showVideoInFaceOff;
   const lessonIdent = lessonIdentity(currentVideoLesson);
 
   const stationStatus: Record<LearningMode, StationStatus> = {
@@ -1401,6 +1419,20 @@ export default function App() {
     predict_poe: isPoeCompleted ? 'done' : 'open',
     protege_teaching: 'open',
   };
+
+  const prevBeatRef = useRef(taskBeat);
+  useEffect(() => {
+    if (prevBeatRef.current === taskBeat) return;
+    prevBeatRef.current = taskBeat;
+    setShowVideoInFaceOff(false);
+    if (taskBeat === 'watch') return;
+    // Wait for the layout change (video strip) before scrolling.
+    const raf = requestAnimationFrame(() => {
+      const target = taskBeat === 'rebut' || taskBeat === 'closure' ? stationTopRef.current : taskCardRef.current;
+      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [taskBeat]);
 
   const handleSelectStation = (mode: LearningMode) => {
     sound.playTabSwitch();
@@ -1671,10 +1703,20 @@ export default function App() {
               {/* TRẠM 1: VIDEO, VIỆC CỦA BẠN, LỚP HỌC */}
               {currentMode === 'video_clash' && (
                 <div
-                  className="grid w-full grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_var(--chat-w)] lg:gap-5"
+                  className={`grid w-full grid-cols-1 gap-4 lg:gap-5 ${collapseVideo ? '' : 'lg:grid-cols-[minmax(0,1fr)_var(--chat-w)]'}`}
                   style={{ '--chat-w': `${chatWidth}px` } as React.CSSProperties}
                 >
-                  <div className="flex min-w-0 flex-col gap-3 lg:col-start-1 lg:row-start-1">
+                  <div ref={stationTopRef} className="flex min-w-0 scroll-mt-[84px] flex-col gap-3 lg:col-start-1 lg:row-start-1">
+                    {collapseVideo && (
+                      <VideoStrip
+                        title={lessonIdent.title}
+                        currentTime={videoCurrentTime}
+                        duration={currentVideoLesson.durationSeconds || currentVideoLesson.duration}
+                        onShowVideo={() => setShowVideoInFaceOff(true)}
+                      />
+                    )}
+                    {/* Kept mounted while collapsed so the embedded player keeps its state. */}
+                    <div className={collapseVideo ? 'h-0 overflow-hidden' : ''} inert={collapseVideo} aria-hidden={collapseVideo || undefined}>
                     <VideoPlayerSheet
                       lesson={currentVideoLesson}
                       phase={videoPhase}
@@ -1722,6 +1764,7 @@ export default function App() {
                       checkpointUiExternal={true}
                       playRequest={playRequest}
                     />
+                    </div>
 
                     {reactionToast && (
                       <p role="status" className="rounded-xl border border-[#B7DB6A] bg-[#F4FAE6] p-2 text-center text-[13px] font-semibold text-[#1F4D12]">
@@ -1730,7 +1773,7 @@ export default function App() {
                     )}
                   </div>
 
-                  <div className={`flex min-w-0 flex-col gap-3 lg:col-start-1 lg:row-start-2 ${isFaceOffBeat ? 'lg:col-span-2' : ''}`}>
+                  <div ref={taskCardRef} className={`flex min-w-0 scroll-mt-[84px] flex-col gap-3 lg:col-start-1 lg:row-start-2 ${isFaceOffBeat && !collapseVideo ? 'lg:col-span-2' : ''}`}>
                     <Station1TaskCard
                       beat={taskBeat}
                       lesson={currentVideoLesson}
@@ -1751,12 +1794,20 @@ export default function App() {
                       }}
                       onAnswer={(label, id) => handleAnswerCheckpoint(label, id)}
                       onSkip={handleSkipCheckpoint}
-                      onRebut={(text, isEffective) => handleSubmitRebuttal(text, isEffective)}
+                      submittedRebuttal={lastRebuttalText}
+                      onRebut={(text, isEffective) => {
+                        setLastRebuttalText(text);
+                        handleSubmitRebuttal(text, isEffective);
+                      }}
                       onResumeLecture={() => {
                         handleResumeVideoAfterClosure();
                         if (checkpointSecond !== null) setPlayRequest({ id: Date.now(), fromSecond: checkpointSecond + 5 });
                       }}
-                      onNextStation={() => handleSelectStation('worksheet')}
+                      onNextStation={() => {
+                        // Moving on closes the pause question; coming back shows "what's next".
+                        if (videoPhase === 'BO_CONCEDED' || videoPhase === 'CO_LAM_CLOSURE') setVideoPhase('WATCHING');
+                        handleSelectStation('worksheet');
+                      }}
                     />
 
                     <VideoActionBar
@@ -1776,7 +1827,7 @@ export default function App() {
 
                   {/* LỚP HỌC: chat column; the splitter sits on its left edge */}
                   <div
-                    className={`relative h-[72vh] min-h-[460px] lg:col-start-2 lg:row-start-1 lg:h-auto ${isFaceOffBeat ? '' : 'lg:row-span-2'}`}
+                    className={`relative h-[72vh] min-h-[460px] lg:col-start-2 lg:row-start-1 lg:h-auto ${collapseVideo ? 'lg:hidden' : isFaceOffBeat ? '' : 'lg:row-span-2'}`}
                   >
                     <ResizableSplitter
                       id="splitter-video-chat"
@@ -1832,6 +1883,8 @@ export default function App() {
                         }}
                         onChatMessageProcessed={handleChatMessageProcessed}
                         onOpenEvidence={handleOpenEvidence}
+                        questionInTaskCard
+                        onFocusTaskCard={() => taskCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                       />
                     </div>
                   </div>
