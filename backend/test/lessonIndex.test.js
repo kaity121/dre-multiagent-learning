@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { listLessons, getLessonIndex, getBoardStateAt } from '../src/services/lessonIndex.js';
 
 const VIDEO_ID = 'VID_VECTO_12_TIEN';
@@ -17,6 +18,57 @@ test('board at 37:13 shows Example 3 on the cube', () => {
   assert.equal(state.segment.spatialGeometry.shapeType, 'cube');
   assert.ok(state.segment.blackboardLatex.some((l) => l.includes("\\vec{DD'}")));
   assert.equal(state.segment.trapRiskLevel, 'high');
+});
+
+// A side of an equation is a vector when a \vec term survives after removing every |...| norm.
+function sideKind(side) {
+  let bare = side.replace(/\\left\|/g, '|').replace(/\\right\|/g, '|').replace(/\\quad.*$/, '');
+  bare = bare.replace(/\|[^|]*\|/g, ' NORM ');
+  return /\\vec\{/.test(bare) ? 'vector' : 'scalar';
+}
+
+function mixedEqualities(stream) {
+  const mixed = [];
+  for (const segment of stream.segments) {
+    for (const formula of segment.blackboardLatex) {
+      const kinds = new Set(formula.split('=').map(sideKind));
+      if (kinds.size > 1) mixed.push(`${segment.second}: ${formula}`);
+    }
+  }
+  return mixed;
+}
+
+test('equation sides classify vectors apart from norms and numbers', () => {
+  assert.equal(sideKind("\\vec{BC} + \\vec{CC'}"), 'vector');
+  assert.equal(sideKind("|\\vec{BC'}|"), 'scalar');
+  assert.equal(sideKind("\\left|\\vec{BC}\\right|+\\left|\\vec{DD'}\\right|"), 'scalar');
+  assert.equal(sideKind('\\sqrt{2}'), 'scalar');
+  // The previously indexed board formula equated vector BC' with the number sqrt(2).
+  assert.equal(mixedEqualities({ segments: [{ second: 0, blackboardLatex: ["\\vec{BC'} = \\sqrt{2}"] }] }).length, 1);
+});
+
+test('no indexed board formula equates a vector with a scalar', () => {
+  const stream = getLessonIndex(VIDEO_ID);
+  assert.deepEqual(mixedEqualities(stream), []);
+  for (const fixture of ['mock_cognitive_stream_vecto12.json', 'mock_short_clip_sample.json']) {
+    const authored = JSON.parse(fs.readFileSync(new URL(`../../mock/${fixture}`, import.meta.url), 'utf8'));
+    assert.deepEqual(mixedEqualities(authored), [], fixture);
+  }
+});
+
+test('Example 3 keeps the vector sum and its length as separate equalities', () => {
+  const latex = getBoardStateAt(VIDEO_ID, 2233).segment.blackboardLatex;
+  const vectorSum = latex.find((l) => l.startsWith("\\vec{BC} + \\vec{DD'} ="));
+  const length = latex.find((l) => l.startsWith("|\\vec{BC} + \\vec{DD'}| ="));
+  assert.ok(vectorSum, 'vector equality present');
+  assert.ok(length, 'norm equality present');
+  assert.equal(vectorSum.split('=').at(-1).trim(), "\\vec{BC'}", 'the sum is the face diagonal vector');
+  assert.ok(!vectorSum.includes('\\sqrt'), 'the vector equality carries no length');
+  assert.ok(length.includes("|\\vec{BC'}|"), 'the length is taken of the diagonal vector');
+  assert.equal(length.split('=').at(-1).trim(), '\\sqrt{2}', 'unit cube face diagonal has length sqrt(2)');
+  // The deliberate wrong example stays labelled as wrong.
+  const wrong = latex.find((l) => l.endsWith('= 2 \\quad (\\text{SAI})'));
+  assert.ok(wrong, 'the 1 + 1 = 2 fallacy is marked SAI');
 });
 
 test('board between segments keeps the last segment shown', () => {
