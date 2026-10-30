@@ -1,5 +1,5 @@
 import { DRELessonSchema as LegacyLessonSchema, TimelineComment } from '../types/lesson';
-import { VideoLessonItem as ClassroomVideoLessonItem } from '../types/dre';
+import { VideoLessonItem as ClassroomVideoLessonItem, TimelineComment as ClassroomComment } from '../types/dre';
 import { sanitizeFixtureData } from './sanitizeKatex';
 import { VIDEO_LESSON_LIBRARY } from '../data/videoLessons';
 
@@ -198,8 +198,40 @@ export function adaptLessonToPlayer(rawLesson: any): ClassroomVideoLessonItem {
     transcriptCues: matchedLib?.transcriptCues,
     chapters: matchedLib?.chapters,
     freezeNote: matchedLib?.freezeNote || "Thầy Tiến chuẩn bị giải Ví dụ 3 câu a trên bảng. Hãy cùng Bo thảo luận cách tính độ dài tổng hai vectơ!",
-    timelineComments: (matchedLib?.timelineComments as any) || [],
+    timelineComments: classroomCommentsFor(lesson, matchedLib),
   };
+}
+
+const roleFor = (author: string): ClassroomComment['role'] =>
+  /Lam/.test(author) ? 'teacher' : /Trợ giảng/.test(author) ? 'ta' : 'classmate';
+
+/**
+ * Class chat for an approved lesson: the ambient comments recorded for the lecture that is
+ * actually played (matched by lesson id, else by the YouTube video the player falls back to),
+ * plus the lesson's own active agent scenarios. Pause questions are not chat messages.
+ */
+export function classroomCommentsFor(lesson: any, matchedLib?: ClassroomVideoLessonItem): ClassroomComment[] {
+  const playedYoutubeId = matchedLib?.youtubeId || 'phvpqxLNTUQ';
+  const ambientLib = matchedLib || VIDEO_LESSON_LIBRARY.find((l) => l.youtubeId === playedYoutubeId);
+  const comments: ClassroomComment[] = [...(ambientLib?.timelineComments || [])];
+  const seen = new Set(comments.map((c) => c.id));
+
+  for (const part of lesson?.parts || []) {
+    for (const sc of part.scenarios || []) {
+      const active = sc.is_active ?? sc.enabled !== false;
+      const text = typeof (sc.dialogue || sc.question) === 'string' ? (sc.dialogue || sc.question).trim() : '';
+      const id = sc.id || sc.scenario_id;
+      const second = typeof sc.at_s === 'number' ? sc.at_s : typeof sc.timestamp === 'number' ? sc.timestamp : null;
+      if (!active || !text || !id || second === null || seen.has(id)) continue;
+      const author =
+        sc.agent ||
+        ({ colam: 'Cô Lam', bo: 'Bo', tri: 'Trí', linhchi: 'Linh Chi', minhkhang: 'Minh Khang' } as Record<string, string>)[sc.actor_id] ||
+        'Trợ giảng An';
+      seen.add(id);
+      comments.push({ id, second: Math.max(0, second), author, role: roleFor(author), text });
+    }
+  }
+  return comments.sort((a, b) => a.second - b.second);
 }
 
 /**
