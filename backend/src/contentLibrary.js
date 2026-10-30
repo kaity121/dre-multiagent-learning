@@ -163,6 +163,29 @@ export const contentLibrary = {
     goiY1: 'Hãy nhớ khẩu quyết quy tắc hiệu: Chung đầu A thì phải LỘN NGƯỢC thứ tự hai điểm cuối!',
     goiY2: "Với B'C, khi chèn điểm A làm gốc chung thì điểm C (đứng sau) phải viết trước hay điểm B' (đứng trước) viết trước?",
   },
+
+  // Câu hỏi dừng 37:13 của Trạm 1 (Ví dụ 3, thầy Nguyễn Phan Tiến), theo pause question
+  // pq02_checkpoint_3713 và kịch bản sc_bo_debate_3713 trong mock/lesson.json.
+  MISC_VECTO_12_CP3713: {
+    id: 'MISC_VECTO_12_CP3713',
+    monHoc: 'Toán',
+    chuDe: 'Vectơ trong không gian',
+    doKho: 'Toán 12 (SGK Mới)',
+    loaiLoi: 'Tách độ dài của tổng thành tổng độ dài',
+    baiToan: "Ví dụ 3 (37:13): Cho hình lập phương ABCD.A'B'C'D' cạnh bằng 1. Tính độ dài |BC + DD'|.",
+    baiGiai: [
+      "|BC| = 1 và |DD'| = 1 (cạnh hình lập phương)",
+      "|BC + DD'| = |BC| + |DD'| = 1 + 1",
+      "Vậy |BC + DD'| = 2",
+    ],
+    viTriLoiChuan: 'Bước 2',
+    moTaLoi:
+      "Tách độ dài của tổng thành tổng hai độ dài: |BC + DD'| = |BC| + |DD'| = 2, trong khi BC và DD' vuông góc, không cùng hướng.",
+    giaiThichChuan:
+      "Không được tách độ dài trực tiếp. Tịnh tiến DD' thành CC' để có BC + CC' = BC'. Tam giác BCC' vuông cân cạnh 1 nên |BC'| = √2.",
+    goiY1: "Hai vectơ BC và DD' có cùng hướng không? Khi nào thì |a + b| mới bằng |a| + |b|?",
+    goiY2: "Thử thay DD' bằng một vectơ bằng nó có điểm đầu là C. Khi đó BC cộng với vectơ ấy thành vectơ nào, dài bao nhiêu?",
+  },
 };
 
 export function getMisconception(id) {
