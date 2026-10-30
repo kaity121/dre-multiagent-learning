@@ -71,43 +71,17 @@ const RECIPIENT_OPTIONS: { id: RecipientTarget; label: string; sublabel: string;
   { id: 'colam', label: 'Cô Lam', sublabel: 'Giáo viên chủ trì', color: '#991b1b' },
 ];
 
-// Helper render badges cho RAG & Deterministic Tools
-const renderToolBadges = (toolCalls?: any[] | null, singleToolCall?: any | null) => {
-  const list = toolCalls && toolCalls.length > 0 ? toolCalls : singleToolCall ? [singleToolCall] : [];
-  if (list.length === 0) return null;
-
-  return (
-    <div className="flex flex-wrap items-center gap-1.5 mb-2">
-      {list.map((tc, i) => {
-        const isRag = tc.category === 'rag' || tc.toolName?.includes('kb');
-        const isBloom = tc.category === 'bloom' || tc.toolName?.includes('bloom');
-        
-        let bg = 'bg-blue-50 border-blue-200 text-blue-800';
-        let dot = 'bg-blue-600';
-        let icon = '📐';
-
-        if (isRag) {
-          bg = 'bg-purple-50 border-purple-200 text-purple-800';
-          dot = 'bg-purple-600';
-          icon = '📚';
-        } else if (isBloom) {
-          bg = 'bg-amber-50 border-amber-200 text-amber-800';
-          dot = 'bg-amber-600';
-          icon = '🎯';
-        }
-
-        return (
-          <div
-            key={i}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-[10px] font-semibold shadow-2xs ${bg}`}
-          >
-            <span className={`w-1.5 h-1.5 rounded-full ${dot} animate-pulse`} />
-            <span>{icon} {tc.badgeText || tc.label}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
+// Evidence on a chat message: only real data the message carries (tool calls, citations).
+const evidenceSummary = (msg: TimelineComment): { text: string; time: number | null } | null => {
+  const tools = msg.toolCalls && msg.toolCalls.length > 0 ? msg.toolCalls : msg.toolCall ? [msg.toolCall] : [];
+  const citations = msg.citations || [];
+  if (tools.length === 0 && citations.length === 0) return null;
+  const timed = citations.find((c) => typeof c.timestamp === 'number');
+  const time = timed && typeof timed.timestamp === 'number' ? timed.timestamp : null;
+  // A tool may "fail" precisely because it disproved the trap, so the chip stays neutral;
+  // the per-tool verdict is shown in the Agent Map.
+  if (tools.length > 0) return { text: 'Đã kiểm chứng', time };
+  return { text: 'Có nguồn bài giảng', time };
 };
 
 interface VideoDebateSheetProps {
@@ -138,7 +112,9 @@ interface VideoDebateSheetProps {
   isChatExpanded?: boolean;
   onToggleChatExpanded?: () => void;
   onSwitchToStation2?: () => void;
-  onChatMessageProcessed?: (chatInfo: { text: string; author: string; reply: any; second: number }) => void;
+  onChatMessageProcessed?: (chatInfo: { text: string; author: string; reply: any; second: number; messageId?: string }) => void;
+  /** Open the Agent Map focused on the turn behind this message. */
+  onOpenEvidence?: (msg: TimelineComment) => void;
 }
 
 const cleanText = (str?: string) =>
@@ -199,6 +175,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   onToggleChatExpanded,
   onSwitchToStation2,
   onChatMessageProcessed,
+  onOpenEvidence,
 }) => {
   const [liveChatMessages, setLiveChatMessages] = useState<TimelineComment[]>([]);
   const [toolCallThinking, setToolCallThinking] = useState<string[]>([]);
@@ -727,10 +704,11 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           const isPrimaryTa = aiRes.author.includes('Trợ giảng');
           const primaryRole = isPrimaryTeacher ? 'teacher' : isPrimaryTa ? 'ta' : 'classmate';
           const replySecond = typeof aiRes.second === 'number' ? aiRes.second : effectiveSecond;
+          const replyId = `reply_${Date.now()}`;
           setLiveChatMessages((prev) => [
             ...prev,
             {
-              id: `reply_${Date.now()}`,
+              id: replyId,
               second: replySecond,
               author: aiRes.author,
               role: primaryRole,
@@ -752,6 +730,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             author: 'Học sinh',
             reply: aiRes,
             second: replySecond,
+            messageId: replyId,
           });
 
           const followUp = aiRes.followUpResponse;
@@ -1040,14 +1019,13 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             <span className="font-bold text-xs text-[#121712] truncate">
               {msg.author}
             </span>
-            {isCoLam && (
-              <span className="px-1.5 py-0.2 rounded bg-red-100 text-[10px] font-semibold text-red-800">
-                Giáo viên
-              </span>
-            )}
-            {isTaAn && (
-              <span className="px-1.5 py-0.2 rounded bg-teal-100 text-[10px] font-semibold text-teal-800">
-                Trợ giảng
+            {(isCoLam || isTaAn || isBo || isChi || isKhang || isTri) && !isMe && (
+              <span
+                className={`shrink-0 rounded-full border px-2 py-px text-[11px] font-semibold ${
+                  isCoLam ? 'border-[#B7DB6A] text-[#2F5A12]' : 'border-[#D5DFC4] text-[#4A5546]'
+                }`}
+              >
+                {isCoLam ? 'Giáo viên AI' : isTaAn ? 'Trợ giảng AI' : 'Bạn học AI'}
               </span>
             )}
             <button
@@ -1085,23 +1063,38 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                 <span className="truncate italic text-stone-600">"{cleanText(msg.replyTo.text)}"</span>
               </div>
             )}
-            {renderToolBadges(
-              (msg as any).toolCalls || (msg.toolCall ? [msg.toolCall] : null)
-            )}
             <div>
               <FormattedMathText text={cleanText(msg.text)} />
             </div>
 
+            {(() => {
+              const evidence = evidenceSummary(msg);
+              if (!evidence) return null;
+              const label = `${evidence.text}${evidence.time !== null ? ` · ${formatSec(evidence.time)}` : ''}`;
+              return (
+                <button
+                  type="button"
+                  onClick={() => onOpenEvidence?.(msg)}
+                  disabled={!onOpenEvidence}
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-[#B7DB6A] bg-[#F7FBEF] px-2 py-1 text-[12px] font-semibold text-[#1F4D12] transition-colors hover:bg-[#EDF6DA] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#121712] disabled:cursor-default"
+                  title="Xem trong Agent Map: tác nhân nào trả lời, đã kiểm chứng gì"
+                  aria-label={`${label}. Mở Agent Map cho tin nhắn này`}
+                >
+                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#2F7A3B] text-white">
+                    <CheckMiniSvg className="w-2.5 h-2.5" />
+                  </span>
+                  <span>{label}</span>
+                </button>
+              );
+            })()}
+
             {/* Structured Citations Chips (#402 / #12) */}
             {msg.citations && msg.citations.length > 0 && (
               <div className="mt-2 pt-2 border-t border-slate-200/70 flex flex-wrap items-center gap-1.5">
-                <span className="text-[10px] font-semibold text-stone-500 uppercase tracking-wider flex items-center gap-1">
-                  <span>📌 Nguồn trích dẫn:</span>
-                </span>
+                <span className="text-[11px] font-semibold text-stone-600">Nguồn:</span>
                 {msg.citations.map((c, cIdx) => {
                   const isVideo = c.source === 'video';
                   const isBlackboard = c.source === 'blackboard';
-                  const isSgk = c.source === 'sgk';
                   const hasSeek = typeof c.timestamp === 'number';
                   return (
                     <button
@@ -1124,7 +1117,6 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                       }`}
                       title={c.snippet ? `${c.label}: "${c.snippet}"` : c.label}
                     >
-                      <span>{isVideo ? '🎬' : isBlackboard ? '📋' : isSgk ? '📖' : '📌'}</span>
                       <span className="font-semibold">{c.label}</span>
                       {hasSeek && (
                         <span className="font-mono text-[9.5px] opacity-75">
@@ -1148,8 +1140,13 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       <div className="px-3 pt-2.5 pb-2 flex items-center justify-between gap-1 shrink-0 bg-white border-b border-[#E2EAD2]">
         <div className="flex items-center gap-2 shrink-0">
           <span className="w-2.5 h-2.5 rounded-full bg-[#C8F169] ring-2 ring-[#121712] inline-block shrink-0" />
-          <span className="text-xs font-bold text-[#121712] truncate">
-            Lớp học 4 bạn AI
+          <span className="min-w-0">
+            <span className="block text-[15px] font-bold leading-tight text-[#121712] truncate">
+              Lớp học 4 bạn AI + Cô Lam
+            </span>
+            <span className="block text-[12px] leading-tight text-[#4A5546] tabular-nums">
+              Đang cùng xem · {formatSec(currentTime)}
+            </span>
           </span>
         </div>
 
