@@ -128,25 +128,23 @@ export const AgentMapDialog: React.FC<AgentMapDialogProps> = ({ isOpen, onClose,
           </h2>
           {turn && (
             <p className="order-3 min-w-0 basis-full text-[15px] text-[#121712] sm:order-none sm:basis-auto sm:flex-1 sm:text-right">
-              {typeof turn.number === 'number' && <span className="font-bold tabular-nums">Lượt #{turn.number}</span>}
-              {turn.question && (
-                <>
-                  <span className="mx-2 text-[#8C9A80]" aria-hidden="true">·</span>
-                  <span className="text-[#3D4739]">“{truncate(turn.question, 80)}”</span>
-                </>
-              )}
-              {turn.timeLabel && (
-                <>
-                  <span className="mx-2 text-[#8C9A80]" aria-hidden="true">·</span>
-                  <span className="tabular-nums text-[#3D4739]">tại {turn.timeLabel}</span>
-                </>
-              )}
-              {typeof turn.latencyMs === 'number' && (
-                <>
-                  <span className="mx-2 text-[#8C9A80]" aria-hidden="true">·</span>
-                  <span className="tabular-nums font-semibold">{turn.latencyMs < 1000 ? `${Math.round(turn.latencyMs)} ms` : `${(turn.latencyMs / 1000).toFixed(1)} s`}</span>
-                </>
-              )}
+              {[
+                typeof turn.number === 'number' ? <span key="n" className="font-bold tabular-nums">Lượt #{turn.number}</span> : null,
+                turn.question ? <span key="q" className="text-[#3D4739]">“{truncate(turn.question, 80)}”</span> : null,
+                turn.timeLabel ? <span key="t" className="tabular-nums text-[#3D4739]">tại {turn.timeLabel}</span> : null,
+                typeof turn.latencyMs === 'number' ? (
+                  <span key="l" className="tabular-nums font-semibold">
+                    {turn.latencyMs < 1000 ? `${Math.round(turn.latencyMs)} ms` : `${(turn.latencyMs / 1000).toFixed(1)} s`}
+                  </span>
+                ) : null,
+              ]
+                .filter(Boolean)
+                .map((part, i) => (
+                  <React.Fragment key={i}>
+                    {i > 0 && <span className="mx-2 text-[#8C9A80]" aria-hidden="true">·</span>}
+                    {part}
+                  </React.Fragment>
+                ))}
             </p>
           )}
           <div className="ml-auto flex items-center gap-1.5 sm:ml-0">
@@ -357,7 +355,7 @@ const BlockCard: React.FC<{ block: MapBlock; selected: boolean; onSelect: () => 
       {icon}
       <span className="min-w-0 flex-1">
         <span className={`block truncate text-[14px] font-bold text-[#121712] ${block.kind === 'tool' ? 'font-mono text-[13px]' : ''}`}>{block.title}</span>
-        {block.subtitle && <span className="mt-0.5 line-clamp-2 block text-[13px] leading-snug text-[#3D4739]">{cleanText(block.subtitle)}</span>}
+        {block.subtitle && <span className="mt-0.5 line-clamp-2 block text-[13px] leading-snug text-[#3D4739]"><FormattedMathText text={cleanText(block.subtitle)} /></span>}
         {block.metric && (
           <span className={`mt-1 block text-[12px] font-semibold tabular-nums ${block.tone === 'warn' ? 'text-[#9A3412]' : block.tone === 'ok' ? 'text-[#2F6B1E]' : 'text-[#4A5546]'}`}>
             {block.metric}
@@ -439,7 +437,7 @@ const DetailPanel: React.FC<{ turn: AgentMapTurn; block: MapBlock | null; onSeek
         <ul className="grid gap-1.5">
           {turn.contextItems.map((c, i) => (
             <li key={i} className="rounded-lg bg-[#F7FAF0] px-2.5 py-1.5 text-[13px] leading-snug text-[#121712]">
-              {cleanText(c)}
+              <FormattedMathText text={cleanText(c)} />
             </li>
           ))}
         </ul>
@@ -464,8 +462,8 @@ const DetailPanel: React.FC<{ turn: AgentMapTurn; block: MapBlock | null; onSeek
               <>
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#E9F2D8] text-[12px] font-bold">{i + 1}</span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[14px] font-semibold text-[#121712]">{c.label}</span>
-                  {c.snippet && <span className="mt-0.5 block text-[13px] leading-snug text-[#3D4739]">{cleanText(c.snippet)}</span>}
+                  <span className="block text-[14px] font-semibold text-[#121712]"><FormattedMathText text={cleanText(c.label)} /></span>
+                  {c.snippet && <span className="mt-0.5 block text-[13px] leading-snug text-[#3D4739]"><FormattedMathText text={cleanText(c.snippet)} /></span>}
                 </span>
                 {typeof c.timestamp === 'number' && <span className="shrink-0 text-[13px] font-semibold tabular-nums text-[#2F5A12]">{formatSec(c.timestamp)}</span>}
               </>
@@ -504,7 +502,7 @@ const FieldList: React.FC<{ title: string; items: { label: string; value: string
         {items.map((f, i) => (
           <div key={i} className="text-[13px] leading-snug">
             <dt className="inline font-semibold text-[#121712]">{f.label}: </dt>
-            <dd className={`inline break-words text-[#3D4739] ${f.mono ? 'font-mono text-[12px]' : ''}`}>{cleanText(f.value)}</dd>
+            <dd className={`inline break-words text-[#3D4739] ${f.mono ? 'font-mono text-[12px]' : ''}`}>{f.mono ? cleanText(f.value) : <FormattedMathText text={cleanText(f.value)} />}</dd>
           </div>
         ))}
       </dl>

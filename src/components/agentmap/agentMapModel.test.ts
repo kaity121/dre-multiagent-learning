@@ -63,3 +63,12 @@ test('a transcript placeholder is not shown as the teacher\'s words', () => {
   assert.equal(t.lanes.context.find((b) => b.title === 'Lời thầy giảng'), undefined);
   assert.deepEqual(t.contextItems, ['Bảng phấn 37:13']);
 });
+
+test('dispatcher intent ids are shown in plain Vietnamese', async () => {
+  const { intentLabel } = await import('./agentMapModel');
+  assert.equal(intentLabel('ask_deep_concept'), 'Hỏi bản chất');
+  assert.equal(intentLabel('some_new_intent'), 'Câu hỏi khác');
+  assert.equal(intentLabel('Phản biện lỗi nhận thức vectơ'), 'Phản biện lỗi nhận thức vectơ');
+  const t = buildAgentMapTurn({ ...chatTurn, dispatcher: { ...chatTurn.dispatcher!, intent: 'ask_deep_concept' } });
+  assert.equal(t.lanes.understand[0].subtitle, 'Ý định: Hỏi bản chất');
+});

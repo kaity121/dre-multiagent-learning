@@ -91,6 +91,26 @@ export function agentRole(name: string): string {
   return AGENT_ROLES[agentKey(name)] ?? 'Tác nhân AI';
 }
 
+// Dispatcher intent ids, in the learner's words. Free-text intents pass through unchanged.
+const INTENT_LABELS: Record<string, string> = {
+  ask_deep_concept: 'Hỏi bản chất',
+  ask_formula_mnemonic: 'Hỏi công thức, mẹo nhớ',
+  ask_scaffolding_help: 'Cần gợi ý từng bước',
+  challenge_shortcut_fallacy: 'Thử một lối tắt',
+  sharp_rebuttal: 'Phản biện sắc bén',
+  encourage_study_focus: 'Cần động viên',
+  general_classroom_chitchat: 'Trò chuyện',
+  greeting: 'Chào hỏi',
+  not_in_source: 'Ngoài nội dung bài',
+};
+
+export function intentLabel(intent?: string): string | undefined {
+  const value = intent?.trim();
+  if (!value) return undefined;
+  if (INTENT_LABELS[value]) return INTENT_LABELS[value];
+  return /^[a-z]+(_[a-z]+)+$/.test(value) ? 'Câu hỏi khác' : value;
+}
+
 export function friendlyToolName(toolName: string): string {
   const bare = toolName.replace(/^tool_/, '');
   return TOOL_NAMES[bare] ?? bare.replace(/_/g, ' ');
@@ -136,12 +156,12 @@ export function buildAgentMapTurn(turn: InspectorTurn): AgentMapTurn {
       lane: 'understand',
       kind: 'dispatcher',
       title: 'Dispatcher',
-      subtitle: str(d.intent) ? `Ý định: ${d.intent}` : undefined,
+      subtitle: intentLabel(d.intent) ? `Ý định: ${intentLabel(d.intent)}` : undefined,
       metric: [confidence && `độ tin cậy ${confidence}`, typeof turn.latencyMs === 'number' && `${Math.round(turn.latencyMs)} ms`]
         .filter(Boolean)
         .join(' · ') || undefined,
       input: fields(['Tin nhắn', question]),
-      output: fields(['Ý định', str(d.intent)], ['Chọn tác nhân', str(d.selectedAgent)], ['Độ tin cậy', confidence], ['Lý do', str(d.reason)]),
+      output: fields(['Ý định', intentLabel(d.intent)], ['Chọn tác nhân', str(d.selectedAgent)], ['Độ tin cậy', confidence], ['Lý do', str(d.reason)]),
     });
   }
 
