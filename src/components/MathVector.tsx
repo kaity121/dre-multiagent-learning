@@ -129,7 +129,41 @@ export function splitVectorNorms(text: string): MathToken[] {
     last = start + m[0].length;
   }
   if (last < text.length) out.push({ type: 'text', content: text.slice(last) });
+  return out.flatMap((t) => (t.type === 'text' ? splitVectorChains(t.content) : [t]));
+}
+
+// Bare point-pair vectors only count inside an equation or sum ("DD' = CC'", "BC + CC' = BC'"):
+// at least two terms joined by +, −, - or =, each term a capital pair not part of a longer word.
+const POINT_PAIR = String.raw`(?<![\p{L}\d])[A-Z][A-Z]'?(?![\p{L}\d'])`;
+const VECTOR_CHAIN = new RegExp(String.raw`${POINT_PAIR}(?:\s*[+\-−=]\s*${POINT_PAIR})+`, 'gu');
+// Square roots written with the radical sign: √2, √(1² + 1²).
+const ROOT = /√\(([^()]+)\)|√(\d+(?:[.,]\d+)?)/gu;
+
+const superscripts: Record<string, string> = { '²': '^{2}', '³': '^{3}' };
+const rootToTex = (inner: string) =>
+  String.raw`\sqrt{${inner.replace(/[²³]/g, (c) => superscripts[c]).replace(/−/g, '-')}}`;
+
+function splitByPattern(text: string, pattern: RegExp, toTex: (m: RegExpMatchArray) => string): MathToken[] {
+  const out: MathToken[] = [];
+  let last = 0;
+  for (const m of text.matchAll(pattern)) {
+    const start = m.index ?? 0;
+    if (start > last) out.push({ type: 'text', content: text.slice(last, start) });
+    out.push({ type: 'inline', content: toTex(m) });
+    last = start + m[0].length;
+  }
+  if (last < text.length) out.push({ type: 'text', content: text.slice(last) });
   return out;
+}
+
+/** Vector equations and square roots in plain text, as KaTeX. */
+export function splitVectorChains(text: string): MathToken[] {
+  return splitByPattern(text, VECTOR_CHAIN, (m) =>
+    m[0]
+      .split(/\s*([+\-−=])\s*/)
+      .map((part) => (part === '+' || part === '=' ? part : part === '-' || part === '−' ? '-' : termToTex(part)))
+      .join(' '),
+  ).flatMap((t) => (t.type === 'text' ? splitByPattern(t.content, ROOT, (m) => rootToTex(m[1] ?? m[2])) : [t]));
 }
 
 /**
