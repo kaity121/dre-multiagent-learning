@@ -5,7 +5,35 @@
 
 ---
 
-## 📁 Cấu trúc Dự án (Monorepo)
+## Trải Nghiệm Nhanh Demo 4 Trạm (Phím Tắt F2)
+
+Hệ thống hỗ trợ chế độ trình diễn tự động 1-Click liên hoàn qua 4 Trạm (Thời lượng: 23 giây) giúp bạn đánh giá nhanh toàn bộ luồng hoạt động:
+
+1. **Khởi chạy hệ thống**:
+   ```bash
+   # Terminal 1: Backend API Gateway
+   cd backend && npm start
+
+   # Terminal 2: Frontend Client
+   npm run dev
+   ```
+
+2. **Kích hoạt Demo 1-Click**:
+   - Mở trình duyệt tại `http://localhost:3000/`.
+   - Nhấn phím **F2** trên bàn phím hoặc nhấn nút **Demo 1-Click (F2)** trên thanh Header.
+   - Hoặc truy cập trực tiếp link tự động: `http://localhost:3000/?showcase=1`.
+
+3. **Các phím điều hướng trong khi Demo**:
+   - `Space`: Tạm dừng hoặc tiếp tục dòng thời gian.
+   - `Esc`: Thoát chế độ Demo ngay lập tức.
+   - Nút `Trạm kế tiếp`: Nhảy thẳng đến trạm tiếp theo.
+
+Chi tiết kịch bản thuyết trình và lời thoại từng trạm xem tại: [docs/DEMO_WALKTHROUGH.md](docs/DEMO_WALKTHROUGH.md).  
+Chi tiết mô hình kiến trúc 4 tầng xem tại: [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md).
+
+---
+
+## Cấu trúc Dự án (Monorepo)
 
 ```
 DRE-prototype/
@@ -48,7 +76,7 @@ DRE-prototype/
 
 ---
 
-## 🚀 Hướng dẫn Cài đặt & Khởi chạy
+## Hướng dẫn Cài đặt & Khởi chạy
 
 ### 1. Cấu hình Backend (Node.js)
 
@@ -92,7 +120,7 @@ npm run dev
 
 ---
 
-## 🌟 4 Trạm Sư phạm Cốt lõi của Hệ thống
+## 4 Trạm Sư phạm Cốt lõi của Hệ thống
 
 1. **Trạm 1: Khởi động Video & Bo Đấu Đá (Video Checkpoint):** Xem video bài giảng của Thầy Tiến. Đến điểm dừng phút 37:13, video tự dừng để học sinh chẩn đoán lỗi cộng vectơ và tranh luận cùng Bo.
 2. **Trạm 2: Sổ tay bắt lỗi DRE (Diagnosis & Rebuttal):** Soi bài tập giải sẵn của Bo, chẩn đoán bẫy quy tắc trừ & tách độ dài, đối chiếu sổ tay Linh Chi.
@@ -101,8 +129,8 @@ npm run dev
 
 ---
 
-## ⚡ Phím tắt & Công cụ Kiểm thử Demo
+## Phím tắt & Công cụ Kiểm thử Demo
 * **Phím `F2`:** Bật / Tắt thanh **Test Case Demo 4 Trạm** ở trên cùng:
-  - Nút **`▶ Chạy tự động liên tục` (1 chạm):** Tự động phát tuần tự qua cả 6 chặng sư phạm.
+  - Nút **`Chạy tự động liên tục` (1 chạm):** Tự động phát tuần tự qua cả 6 chặng sư phạm.
   - Các nút nhảy nhanh: `1. Video (00:00)`, `2. Dừng (37:13)`, `3. Trạm 2`, `4. Trạm 3`, `5. Trạm 4`.
-  - Nút **`💬 Hiện toàn bộ (22 tin)`**: Xem trước toàn bộ thảo luận sinh viên bám sát bảng thầy Tiến.
+  - Nút **`Hiện toàn bộ (22 tin)`**: Xem trước toàn bộ thảo luận sinh viên bám sát bảng thầy Tiến.

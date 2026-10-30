@@ -2,27 +2,23 @@
  * tools/index.js
  *
  * Central Registry và OpenAI Function Calling Schemas cho các Deterministic Tools.
- * Đảm bảo mọi lượt gọi trả về đúng hợp đồng DeterministicToolCall (src/types/pipeline.ts):
- *
- * export interface DeterministicToolCall {
- *   toolName: 'tool_verify_vector_algebra' | 'tool_query_misconception_kb' | 'tool_timeline_collision_checker' | 'tool_evaluate_bloom_level';
- *   input: Record<string, any>;
- *   output: Record<string, any>;
- *   isValid: boolean;
- *   timestampMs: number;
- * }
+ * Mọi lượt gọi trả về đúng hợp đồng DeterministicToolCall (src/types/pipeline.ts).
  */
 
 import { verifyVectorAlgebra } from './tool_verify_vector_algebra.js';
 import { queryMisconceptionKB } from './tool_query_misconception_kb.js';
 import { checkTimelineCollision } from './tool_timeline_collision_checker.js';
 import { evaluateBloomLevel } from './tool_evaluate_bloom_level.js';
+import { checkSourceGrounding } from './tool_check_source_grounding.js';
+import { calculateDotProduct } from './tool_calculate_dot_product.js';
 
 export const TOOLS_REGISTRY = {
   tool_verify_vector_algebra: verifyVectorAlgebra,
   tool_query_misconception_kb: queryMisconceptionKB,
   tool_timeline_collision_checker: checkTimelineCollision,
   tool_evaluate_bloom_level: evaluateBloomLevel,
+  tool_check_source_grounding: checkSourceGrounding,
+  tool_calculate_dot_product: calculateDotProduct,
 };
 
 /**
@@ -33,7 +29,7 @@ export const OPENAI_TOOL_DEFINITIONS = [
     type: 'function',
     function: {
       name: 'tool_verify_vector_algebra',
-      description: 'Kiểm tra tính đúng đắn của phép toán hoặc độ dài vectơ trong hình học không gian (hình lập phương, hình hộp). Dùng để phát hiện bẫy ngộ nhận hoặc kiểm chứng câu trả lời.',
+      description: 'Kiểm tra tính đúng đắn của phép toán hoặc độ dài vectơ trong hình học không gian (hình lập phương, hình hộp). Hỗ trợ cả cạnh tham số a hoặc số cụ thể (side = 2). Có thể tính toán giá trị độ dài khi không có claim.',
       parameters: {
         type: 'object',
         properties: {
@@ -44,7 +40,7 @@ export const OPENAI_TOOL_DEFINITIONS = [
           },
           side: {
             type: 'string',
-            description: 'Độ dài cạnh (mặc định: "a")',
+            description: 'Độ dài cạnh (mặc định: "a" hoặc số cụ thể như "2")',
           },
           expr: {
             type: 'string',
@@ -52,10 +48,52 @@ export const OPENAI_TOOL_DEFINITIONS = [
           },
           claim: {
             type: 'string',
-            description: 'Phát biểu hoặc độ dài cần kiểm chứng, ví dụ: "2a", "a\\sqrt{2}"',
+            description: 'Phát biểu hoặc độ dài cần kiểm chứng (tùy chọn), ví dụ: "2a", "a\\sqrt{2}", "2\\sqrt{2}"',
           },
         },
-        required: ['expr', 'claim'],
+        required: ['expr'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'tool_calculate_dot_product',
+      description: 'Tính toán chính xác tích vô hướng của hai vectơ u . v = |u||v|cos(theta) hoặc góc giữa hai vectơ, kiểm tra tính âm/dương hoặc trường hợp vectơ không.',
+      parameters: {
+        type: 'object',
+        properties: {
+          uMag: {
+            type: 'number',
+            description: 'Độ dài vectơ u',
+          },
+          vMag: {
+            type: 'number',
+            description: 'Độ dài vectơ v',
+          },
+          angleDeg: {
+            type: 'number',
+            description: 'Góc giữa hai vectơ tính bằng độ (°), ví dụ: 60, 90, 120. Bắt buộc khi tính góc đảo (reverse_angle), tích vô hướng hai vectơ khác không, hoặc bình phương độ dài tổng (norm_sum_squared).',
+          },
+          claimValue: {
+            type: 'string',
+            description: 'Phát biểu cần kiểm chứng về giá trị tích vô hướng hoặc góc',
+          },
+          claimType: {
+            type: 'string',
+            enum: ['dot_product', 'angle', 'norm_sum_squared', 'reverse_angle'],
+            description: 'Loại phát biểu: dot_product (tích vô hướng), angle (góc), norm_sum_squared (bình phương độ dài tổng |u+v|^2), hoặc reverse_angle (góc khi đảo chiều một vectơ)',
+          },
+          reverseU: {
+            type: 'boolean',
+            description: 'true để tính với -u (đảo hướng u): góc thành 180° - angleDeg',
+          },
+          isReversed: {
+            type: 'boolean',
+            description: 'true để tính góc khi đảo một vectơ (tương đương reverseU)',
+          },
+        },
+        required: ['uMag', 'vMag'],
       },
     },
   },
@@ -105,6 +143,10 @@ export const OPENAI_TOOL_DEFINITIONS = [
                 at_s: { type: 'number', description: 'Thời điểm xảy ra sự kiện tính bằng giây' },
                 actor_id: { type: 'string' },
                 type: { type: 'string', enum: ['comment', 'checkpoint', 'rebuttal'] },
+                chainedTo: {
+                  type: 'string',
+                  description: 'id của sự kiện mà sự kiện này nối tiếp trong cùng một lần dừng (vd: Bo tranh biện ngay sau checkpoint)',
+                },
               },
               required: ['at_s'],
             },
@@ -141,14 +183,35 @@ export const OPENAI_TOOL_DEFINITIONS = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'tool_check_source_grounding',
+      description: 'Kiểm chứng phát biểu của học sinh hoặc bẫy ngộ nhận theo nguồn bài giảng (transcript và bảng phấn) cho mọi môn học (Toán, Văn, Sinh, AI...).',
+      parameters: {
+        type: 'object',
+        properties: {
+          claim: {
+            type: 'string',
+            description: 'Phát biểu cần kiểm chứng tính có căn cứ trong bài giảng',
+          },
+          lessonId: {
+            type: 'string',
+            description: 'Mã bài giảng (ví dụ: "VID_VECTO_12_TIEN", "VID_AI_INTRO_01")',
+          },
+          aroundSecond: {
+            type: 'number',
+            description: 'Mốc giây video hiện tại để ưu tiên tìm kiếm đoạn ngữ cảnh lân cận',
+          },
+        },
+        required: ['claim'],
+      },
+    },
+  },
 ];
 
 /**
  * Thực thi một Tool bất kỳ theo tên và trả về đúng hợp đồng DeterministicToolCall
- *
- * @param {string} toolName
- * @param {Object} inputArgs
- * @returns {Object} DeterministicToolCall
  */
 export function executeTool(toolName, inputArgs = {}) {
   const toolFn = TOOLS_REGISTRY[toolName];
@@ -159,7 +222,9 @@ export function executeTool(toolName, inputArgs = {}) {
   const timestampMs = Date.now();
   try {
     const rawOutput = toolFn(inputArgs);
-    const isValid = rawOutput?.isValid ?? null;
+    // null means the tool could not judge (no claim, unparseable claim); keep it distinct
+    // from true so the UI does not show "Khớp chuẩn" for a question the learner only asked.
+    const isValid = rawOutput?.isValid === undefined ? Boolean(rawOutput) : rawOutput.isValid;
 
     return {
       toolName,

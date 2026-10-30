@@ -38,7 +38,7 @@ export function parseVectorName(raw) {
   const clean = String(raw ?? '').trim().replace(/^\\?vec\{?|\}?$/g, '').replace(/[\\ ]/g, '');
   const match = clean.match(/^([A-D][1'′]?)([A-D][1'′]?)$/);
   if (match) {
-    return [match[1].replace(/′/g, "'"), match[2].replace(/′/g, "'")];
+    return [match[1].replace(/1/g, "'").replace(/′/g, "'"), match[2].replace(/1/g, "'").replace(/′/g, "'")];
   }
   return null;
 }
@@ -180,17 +180,19 @@ export function formatLatexResult(lengthSquared, isMagnitude, side = 'a') {
 }
 
 /**
- * Trích xuất biểu thức vectơ từ chuỗi câu hỏi / chat của học sinh
+ * Trích xuất biểu thức vectơ từ văn bản câu hỏi tự do (VD: "BC + DD' dài bao nhiêu ạ?")
+ * Hỗ trợ cả ký hiệu viết tắt (BC + DD') lẫn biểu thức chữ ("vectơ BC cộng vectơ DD'")
  */
 export function extractVectorExpr(text) {
   if (!text) return null;
-  // "vectơ BC cộng vectơ DD'" → "BC + DD'"
-  const normalized = String(text)
+
+  // Chuẩn hoá biểu thức chữ: "vectơ BC cộng vectơ DD'" -> "BC + DD'"
+  let normalized = text
     .replace(/\b(?:vectơ|vecto|vector|vec)\s+/gi, '')
     .replace(/\s+cộng\s+/gi, ' + ')
     .replace(/\s+trừ\s+/gi, ' - ');
+
   // Tìm mẫu vectơ cộng/trừ: BC + DD', AB + AD + AA', BC - DD'
-  // Regex bao phủ toàn bộ chuỗi nối tiếp các vectơ qua dấu + hoặc -
   const match = normalized.match(/((?:\|?\s*)?[A-D][1'′]?[A-D][1'′]?(?:\s*[+\-]\s*[A-D][1'′]?[A-D][1'′]?)+(?:\s*\|)?)/i);
   if (match) {
     const cleanExpr = match[1].trim().toUpperCase().replace(/1/g, "'").replace(/′/g, "'");
@@ -204,47 +206,58 @@ export function extractVectorExpr(text) {
  */
 export function extractSideFromText(text) {
   if (!text) return 'a';
-  const m = String(text).match(/\b(?:cạnh|canh|side)\s*(?:bằng|=|la|là)?\s*(\d+(?:\.\d+)?)/i);
+  const m = String(text).match(/\b(?:cạnh|canh|side)\s*(?:bằng|=|la|là)?\s*(\d+(?:[.,]\d+)?)/i);
   if (m) {
-    const val = parseFloat(m[1]);
+    const val = parseFloat(m[1].replace(',', '.'));
     if (!isNaN(val) && val > 0) return val;
   }
   return 'a';
 }
 
 /**
- * Trích xuất phát biểu claim (đáp án) nếu người dùng có nêu ra trong câu
+ * Trích xuất phát biểu claim (đáp án) nếu người dùng có nêu ra trong câu.
+ * Tách biệt rõ ràng độ dài cạnh cho trước (side) với câu trả lời/phán đoán của học sinh.
  */
 export function extractClaimFromText(text) {
   if (!text) return null;
-  // A value someone else said ("Bo nói ... bằng 2a") is being questioned, not claimed by the learner.
-  if (/(?:^|\s)(?:bo|bạn ấy|cậu ấy|bạn)\s+(?:nói|bảo|ghi|viết|cho rằng)\b/i.test(text)) return null;
-
-  // Loại bỏ các mệnh đề khai báo cạnh như "cạnh bằng 2", "cạnh là 2", "cạnh 2", "side = 2"
-  // và từ để hỏi "bằng bao nhiêu", "bằng mấy" để không bị nhận diện nhầm thành đáp án claim
-  let cleanText = String(text)
-    .replace(/\b(?:cạnh|canh|side)\s*(?:bằng|=|la|là)?\s*\d+(?:\.\d+)?\b/gi, ' ')
-    .replace(/\b(?:bằng|la|là)\s*bao\s*nhiêu\b/gi, ' ')
-    .replace(/\b(?:bằng|la|là)\s*mấy\b/gi, ' ');
-
-  const lower = cleanText.toLowerCase();
-
-  // Khớp các đáp số căn: 2a√2, 2√2, a√2, căn 2, 2 căn 2, 2\sqrt{2}
-  const mSquare = lower.match(/(?:bằng|=|\blà\b)?\s*([0-9]*\.?[0-9]*\s*(?:a\s*)?(?:√|căn|\\sqrt)\s*\{?\d+\}?(?:\s*a\b)?)/i);
-  if (mSquare && mSquare[1] && (mSquare[1].includes('√') || mSquare[1].includes('căn') || mSquare[1].includes('sqrt'))) {
-    return mSquare[1].replace(/\s+/g, '');
+  const normalizedText = text.normalize('NFC');
+  // A value someone else said ("Bo nói / bảo ... bằng 2a") is being questioned, not claimed by the learner.
+  if (
+    /(?:^|\s)(?:bo|bạn ấy|ban ay|cậu ấy|cau ay|bạn|ban)\s+(?:nói|noi|bảo|bao|ghi|viết|viet|cho rằng|cho rang|phán|phan)(?![A-Za-zÀ-ỹ0-9_])/i.test(normalizedText) ||
+    /(?:^|\s)theo\s+bo(?![A-Za-zÀ-ỹ0-9_])/i.test(normalizedText)
+  ) {
+    return null;
   }
 
-  // Vector names are always uppercase; matching case-sensitively on the clean text keeps
-  // "bằng bao nhiêu" from being read as the vector BA.
-  const mVec = cleanText.match(/(?:bằng|=|là)\s*([A-D][1'′]?[A-D][1'′]?)(?![A-Za-zÀ-ỹ])/);
-  if (mVec) return mVec[1].replace(/′/g, "'");
+  // Strip given side length specification so it is not mistaken for a claimed result
+  // (e.g., "cạnh bằng 2, BC + DD' tính thế nào?" specifies side=2, not claim=2)
+  const textWithoutSide = text.replace(
+    /(?:cho\s+|với\s+)?(?:hình\s+(?:lập\s+phương|hộp)\s+)?(?:cạnh|side)(?:\s+[a-z])?\s*(?:bằng|=|là|:)?\s*(\d+(?:[.,]\d+)?|[a-zA-Z]\b)/gi,
+    ''
+  );
 
+  const lower = textWithoutSide.toLowerCase();
+
+  // 1. Khớp các đáp số căn/độ dài: 2a, a√2, 2√2, căn 2, 2\sqrt{2}, căn 3 a, v.v.
+  const mSquare = lower.match(/(?:bằng|=|\blà\b)?\s*([0-9]*\.?[0-9]*\s*(?:a\s*)?(?:√|căn|\\sqrt)\s*\{?\d+\}?(?:\s*a\b)?)/i);
+  if (mSquare) return mSquare[1].replace(/\s+/g, '');
+
+  // 2. Khớp tên vectơ viết hoa (A-D): Bắt buộc so khớp trên textWithoutSide GỐC (chữ hoa),
+  // và lookahead (?![A-Za-zÀ-ỹ0-9_]) để tránh nuốt chữ "bao" trong "bằng bao nhiêu"
+  const mVec = textWithoutSide.match(/(?:bằng|=|là|\bđược\b|\bra\b)\s*([A-D][1'′]?[A-D][1'′]?)(?![A-Za-zÀ-ỹ0-9_])/);
+  if (mVec) return mVec[1].toUpperCase().replace(/1/g, "'").replace(/′/g, "'");
+
+  // 3. Khớp tham số a (như 2a, 3a)
   const mA = lower.match(/(?:bằng|=|\blà\b)?\s*(\d+(?:\.\d+)?a)\b/i);
   if (mA) return mA[1].toLowerCase();
 
-  const mPureNum = lower.match(/(?:bằng|=|\blà\b)\s*(\d+(?:\.\d+)?)\b/);
-  if (mPureNum) return mPureNum[1];
+  // 4. Khớp số nguyên/thực thuần tuý
+  // Không nhận các từ hỏi như "bao nhiêu", "mấy", "thế nào", "làm sao", "tính sao", "ra sao"
+  const isQuestionOnly = /(?:bao\s+nhiêu|bao\s+nhieu|mấy|may|thế\s+nào|như\s+thế\s+nào|làm\s+sao|làm\s+thế\s+nào|tính\s+sao|ra\s+sao)\b/i.test(lower);
+  if (!isQuestionOnly) {
+    const mPureNum = lower.match(/(?:bằng|=|\blà\b)\s*(\d+(?:\.\d+)?)\b/);
+    if (mPureNum) return mPureNum[1];
+  }
 
   return null;
 }
@@ -289,8 +302,9 @@ export function verifyVectorAlgebra({ shape = 'cube', side = 'a', expr, claim })
 
   // TRƯỜNG HỢP 2: Có claim cần kiểm chứng
   const claimNum = parseClaimValue(claim, sideNum);
-  const vectorPoints = parseVectorName(String(claim));
-  const epsilon = 0.005;
+  const cleanClaim = String(claim).trim().toUpperCase().replace(/1/g, "'").replace(/′/g, "'");
+  const vectorPoints = parseVectorName(cleanClaim);
+  const epsilon = 0.05;
 
   let isValid = null;
   let reason = '';
@@ -307,22 +321,25 @@ export function verifyVectorAlgebra({ shape = 'cube', side = 'a', expr, claim })
                           Math.abs(vCoords[1] - evalResult.vector[1]) < epsilon &&
                           Math.abs(vCoords[2] - evalResult.vector[2]) < epsilon;
       const lenMatch = Math.abs(vLen - evalResult.length) < epsilon;
+      // Without |...| the expression is a vector equation, so equal length alone is not equality
+      // (in a cube BC and AB have the same length but different directions).
+      const claimMatches = evalResult.isMagnitude ? (coordsMatch || lenMatch) : coordsMatch;
 
-      if (coordsMatch || lenMatch) {
+      if (claimMatches) {
         isValid = true;
-        reason = `Phát biểu hoàn toàn chính xác. Biểu thức ${expr} có vectơ tổng tương đương vectơ ${claim}, với độ dài ${correctLatex}.`;
+        reason = `Phát biểu hoàn toàn chính xác. Biểu thức ${expr} có vectơ tổng tương đương vectơ ${cleanClaim}, với độ dài ${correctLatex}.`;
         steps.push(`Vectơ tương đương: \\vec{${vectorPoints[0]}${vectorPoints[1]}} có tọa độ [${vCoords.join(', ')}].`);
         steps.push(`Độ dài tương ứng: |\\vec{${vectorPoints[0]}${vectorPoints[1]}}| = ${correctLatex}.`);
       } else {
         isValid = false;
-        reason = `Vectơ ${claim} có tọa độ [${vCoords.join(', ')}] (độ dài ${vLen.toFixed(2)}), không khớp với vectơ tổng của ${expr} (độ dài ${correctLatex}).`;
+        reason = `Vectơ ${cleanClaim} có tọa độ [${vCoords.join(', ')}] (độ dài ${vLen.toFixed(2)}), không khớp với vectơ tổng của ${expr} (độ dài ${correctLatex}).`;
         steps.push(`Tính toán tọa độ biểu thức: [${evalResult.vector.join(', ')}].`);
         steps.push(`Tọa độ vectơ được nêu: [${vCoords.join(', ')}].`);
       }
     } catch {
       isValid = null;
-      reason = `unparseable_claim: Ký hiệu vectơ '${claim}' không thuộc cấu trúc hình lập phương đang xét.`;
-      steps.push(`Không thể xác định tọa độ các điểm trong tên vectơ '${claim}'.`);
+      reason = `unparseable_claim: Ký hiệu vectơ '${cleanClaim}' không thuộc cấu trúc hình lập phương đang xét.`;
+      steps.push(`Không thể xác định tọa độ các điểm trong tên vectơ '${cleanClaim}'.`);
     }
   }
   // 2.2 Claim phân tích được thành giá trị số hoặc căn số (hỗ trợ cả 2√2 lẫn a√2)
