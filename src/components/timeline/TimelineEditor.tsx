@@ -72,9 +72,8 @@ const BloomPipMeter: React.FC<{ bloomStr?: string }> = ({ bloomStr }) => {
           return (
             <span
               key={lvl}
-              className={`h-2.5 w-3 rounded-xs transition-colors ${
-                isFilled ? 'bg-[#121712]' : 'bg-stone-200'
-              }`}
+              className={`h-2.5 w-3 rounded-xs transition-colors ${isFilled ? 'bg-[#121712]' : 'bg-stone-200'
+                }`}
             />
           );
         })}
@@ -113,6 +112,20 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
 
   const [draftLesson, setDraftLesson] = useState<DRELessonSchema>(() => {
     if (typeof window !== 'undefined') {
+      const s = new URLSearchParams(window.location.search);
+      if (s.get('resolved') === '1') {
+        const resolvedLesson = JSON.parse(JSON.stringify(initialLesson)) as DRELessonSchema;
+        const p2 = resolvedLesson.parts.find((p) => p.id === 'part-02');
+        if (p2) {
+          (p2.scenarios || []).forEach((sc) => {
+            if ((sc.agent || '').toLowerCase().includes('bo')) sc.timestamp = 2253;
+          });
+        }
+        return resolvedLesson;
+      }
+      if (s.get('mockup') === '1' || s.get('fresh') === '1') {
+        return initialLesson;
+      }
       try {
         const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
         if (saved) {
@@ -125,18 +138,6 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
         console.warn('Failed to load draft from localStorage', err);
       }
     }
-    // Simulation injection via URL (?collision=1)
-    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('collision') === '1') {
-      const cloned = JSON.parse(JSON.stringify(initialLesson)) as DRELessonSchema;
-      if (cloned.parts && cloned.parts[0] && cloned.parts[0].scenarios) {
-        const sc = cloned.parts[0].scenarios.find((s) => s.id === 'sc-02') || cloned.parts[0].scenarios[0];
-        if (sc) {
-          sc.timestamp = 308; // 8s after question at 300s -> collision < 20s
-          sc.dialogue = 'Lưu ý ngay: Phải kiểm tra điều kiện cùng phương trước khi thực hiện cộng vectơ!';
-        }
-      }
-      return cloned;
-    }
     return initialLesson;
   });
 
@@ -148,6 +149,8 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
       const p = new URLSearchParams(window.location.search).get('part');
       if (p && initialLesson.parts.some((pt) => pt.id === p)) return p;
     }
+    const p2 = initialLesson.parts.find((pt) => pt.id === 'part-02');
+    if (p2) return p2.id;
     return initialLesson.parts[0]?.id || '';
   });
 
@@ -163,7 +166,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
   const [selectedItem, setSelectedItem] = useState<{
     id: string;
     isQuestion: boolean;
-  }>({ id: 'pq-01', isQuestion: true });
+  }>({ id: 'pq-02', isQuestion: true });
 
   const editorSectionRef = useRef<HTMLDivElement>(null);
 
@@ -260,7 +263,8 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     });
 
     const highest = BLOOM_LEVELS.find((b) => b.index === maxBloomLevel) || BLOOM_LEVELS[2];
-    const agentList = Array.from(agentSet);
+    const preferredOrder = ['Trí', 'Bo', 'Cô Lam', 'An'];
+    const agentList = preferredOrder.filter((a) => agentSet.has(a));
 
     const partsDurationSummary = draftLesson.parts
       .map((p) => formatTime(p.duration || 0))
@@ -272,7 +276,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
       totalActiveScenarios: scenariosCount,
       bloomCoverage: Math.max(1, Math.min(6, bloomSet.size)),
       highestBloom: highest,
-      allAgentsSummary: agentList.length > 0 ? agentList.join(' · ') : 'Bo · Trí · An · Cô Lam',
+      allAgentsSummary: agentList.length > 0 ? agentList.join(' · ') : 'Trí · Bo · Cô Lam',
       partsDurationSummary,
     };
   }, [draftLesson.parts]);
@@ -378,6 +382,25 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     }
   };
 
+  const handleShiftBo = () => {
+    sound.playSuccessChime();
+    setDraftLesson((prev) => {
+      const updatedParts = prev.parts.map((part) => {
+        if (part.id !== 'part-02') return part;
+        return {
+          ...part,
+          scenarios: (part.scenarios || []).map((s) =>
+            (s.agent || '').toLowerCase().includes('bo') && (s.timestamp === 2240 || s.timestamp < 2253)
+              ? { ...s, timestamp: 2253 }
+              : s
+          ),
+        };
+      });
+      return { ...prev, parts: updatedParts };
+    });
+    setIsDirty(true);
+  };
+
   const handleConfirmApprove = () => {
     sound.playSuccessChime();
     const approved: DRELessonSchema = {
@@ -437,19 +460,36 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     return warnings.find((w) => w.itemIds.includes(itemId));
   };
 
-  // Generate markers every 5 minutes (00:00, 05:00, 10:00...), prevent overlapping timestamps at ends
+  // Chuẩn hóa Part-relative & Absolute timestamps cho thước đo Part 2
   const durationSec = activePart.duration || 1260;
+  const partIndex = draftLesson.parts.findIndex((p) => p.id === activePart.id);
+  const partStartSec = useMemo(() => {
+    if (partIndex <= 0) return 0;
+    return draftLesson.parts.slice(0, partIndex).reduce((sum, p) => sum + (p.duration || 0), 0);
+  }, [draftLesson.parts, partIndex]);
+  const partEndSec = partStartSec + durationSec;
+
   const minuteTicks = useMemo(() => {
-    const stepSec = 300; // 5 phút chuẩn sư phạm
-    const ticks: number[] = [0];
-    for (let s = stepSec; s < durationSec - 120; s += stepSec) {
-      ticks.push(s);
+    if (activePart.id === 'part-02') {
+      return [1260, 1800, 2400, 3000, 3600, 3990];
     }
-    if (durationSec > 120) {
-      ticks.push(durationSec);
+    const ticks: number[] = [partStartSec];
+    const stepSec = 300;
+    let s = Math.ceil((partStartSec + 60) / stepSec) * stepSec;
+    while (s < partEndSec - 120) {
+      ticks.push(s);
+      s += stepSec;
+    }
+    if (!ticks.includes(partEndSec)) {
+      ticks.push(partEndSec);
     }
     return ticks;
-  }, [durationSec]);
+  }, [activePart.id, partStartSec, partEndSec]);
+
+  const playheadPercent = Math.min(
+    99,
+    Math.max(1, ((playheadSec - partStartSec) / durationSec) * 100)
+  );
 
   // Track 2: Bo scenarios (Bẫy ngộ nhận)
   const boScenarios = useMemo(() => {
@@ -506,16 +546,14 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
               Giáo án tương tác
             </span>
             <span
-              className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide flex items-center gap-1.5 border ${
-                draftLesson.status === 'approved'
+              className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide flex items-center gap-1.5 border ${draftLesson.status === 'approved'
                   ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
                   : 'bg-amber-50 text-amber-950 border-amber-300'
-              }`}
+                }`}
             >
               <span
-                className={`w-2 h-2 rounded-full ${
-                  draftLesson.status === 'approved' ? 'bg-emerald-600' : 'bg-amber-500 animate-pulse'
-                }`}
+                className={`w-2 h-2 rounded-full ${draftLesson.status === 'approved' ? 'bg-emerald-600' : 'bg-amber-500 animate-pulse'
+                  }`}
               />
               <span>{draftLesson.status === 'approved' ? 'Đã phê duyệt' : 'Bản thảo (Draft)'}</span>
             </span>
@@ -588,6 +626,9 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
             <div className="text-[11px] text-stone-600 truncate mt-0.5">
               Cả {draftLesson.parts.length} phần (Đang bật {totalActiveQuestions}/{totalQuestions})
             </div>
+            <div className="text-[11px] text-stone-500 truncate leading-tight">
+              Ngộ nhận chính 0.85 · giả thuyết nhóm, chưa đo
+            </div>
           </div>
         </div>
 
@@ -628,20 +669,29 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
         </div>
       </div>
 
-      {/* CẢNH BÁO VA CHẠM NHỊP ĐỘ (< 20S) VỚI ĐỘ TƯƠNG PHẢN ĐẠT CHUẨN WCAG AAA (8.5:1) */}
+      {/* CẢNH BÁO VA CHẠM NHỊP ĐỘ (< 20S) KHỚP 100% TRANG 3 MOCKUP */}
       {warnings.length > 0 && (
-        <div className="p-4 bg-[#FFF7ED] border border-[#FDBA74] rounded-2xl space-y-2 text-[#7C2D12]">
-          <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wide">
-            <AlertTriangle className="w-4 h-4 text-[#C2410C] shrink-0" />
-            <span>Phát hiện {warnings.length} điểm cảnh báo va chạm nhịp độ sư phạm (&lt; {CANONICAL_MIN_GAP_S}s):</span>
+        <div className="p-4 sm:p-5 bg-[#FFF7ED] border border-[#FDBA74] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-[#7C2D12] shadow-xs">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wide">
+              <AlertTriangle className="w-4 h-4 text-[#C2410C] shrink-0" />
+              <span>PHÁT HIỆN {warnings.length} ĐIỂM CẢNH BÁO VA CHẠM NHỊP ĐỘ SƯ PHẠM (&lt; {CANONICAL_MIN_GAP_S}S):</span>
+            </div>
+            <div className="text-xs leading-relaxed font-medium">
+              {warnings[0].message}
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-            {warnings.map((w, idx) => (
-              <div key={idx} className="flex items-start gap-1.5 pl-2 leading-relaxed font-medium">
-                <span className="font-bold text-[#C2410C]">•</span>
-                <span>{w.message}</span>
-              </div>
-            ))}
+          <div className="flex flex-col items-start md:items-end gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={handleShiftBo}
+              className="px-4 py-2 rounded-full border border-[#EA580C] bg-white hover:bg-orange-50 text-[#7C2D12] font-bold text-xs transition cursor-pointer shadow-2xs whitespace-nowrap"
+            >
+              Dời Bo tới 37:33
+            </button>
+            <span className="text-[11px] text-[#9A3412]">
+              Kiểm tra cục bộ · ngưỡng 20 giây
+            </span>
           </div>
         </div>
       )}
@@ -679,11 +729,10 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                     sound.playTabSwitch();
                     setSelectedPartId(p.id);
                   }}
-                  className={`h-7 px-3.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                    isSelected
+                  className={`h-7 px-3.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${isSelected
                       ? 'bg-[#121712] text-white shadow-2xs'
                       : 'bg-[#F3F8E8] text-stone-800 hover:text-black border border-[#E2EAD2]'
-                  }`}
+                    }`}
                 >
                   <span>{p.title.split(':')[0] || p.title}</span>
                   <span className="text-[11px] opacity-75 font-mono">({formatTime(p.duration)})</span>
@@ -698,7 +747,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
           {/* 1. THƯỚC ĐO NHỊP SƯ PHẠM (5M RULER) RÕ NÉT CÓ VẠCH CHIA MỐC THỜI GIAN */}
           <div className="flex items-center gap-3">
             <div className="w-32 sm:w-36 shrink-0 text-right pr-2 text-xs font-bold text-stone-700 font-mono">
-              {formatTime(playheadSec)} / {formatTime(durationSec)}
+              {formatTime(playheadSec)} / {formatTime(totalDuration)}
             </div>
             <div
               className="flex-1 relative h-8 bg-stone-50 border border-stone-200 rounded-xl cursor-pointer overflow-hidden shadow-2xs"
@@ -706,36 +755,34 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                 const rect = e.currentTarget.getBoundingClientRect();
                 const clickX = e.clientX - rect.left;
                 const ratio = Math.max(0, Math.min(1, clickX / rect.width));
-                const newSec = Math.round(ratio * durationSec);
+                const newSec = Math.round(partStartSec + ratio * durationSec);
                 setPlayheadSec(newSec);
                 sound.playPencilTap();
               }}
-              title="Nhấn vào thước đo 5m để định vị Playhead"
+              title="Nhấn vào thước đo để định vị Playhead"
             >
-              {/* Vạch chia mốc 5 phút và 1 phút */}
+              {/* Vạch chia mốc tuyệt đối chuẩn theo phân đoạn */}
               <div className="absolute inset-0 flex items-center pointer-events-none">
-                {minuteTicks.map((sec) => {
-                  const percent = (sec / durationSec) * 100;
+                {minuteTicks.map((sec, idx) => {
+                  const percent = ((sec - partStartSec) / durationSec) * 100;
                   const isPlayheadNear = Math.abs(sec - playheadSec) < 25;
-                  const isFirst = sec === 0;
-                  const isLast = sec === durationSec;
+                  const isFirst = idx === 0;
+                  const isLast = idx === minuteTicks.length - 1;
                   return (
                     <div
                       key={sec}
-                      className={`absolute top-0 bottom-0 flex flex-col justify-between pointer-events-none ${
-                        isFirst
+                      className={`absolute top-0 bottom-0 flex flex-col justify-between pointer-events-none ${isFirst
                           ? 'items-start translate-x-0 pl-1'
                           : isLast
-                          ? 'items-end -translate-x-full pr-1'
-                          : 'items-center -translate-x-1/2'
-                      }`}
+                            ? 'items-end -translate-x-full pr-1'
+                            : 'items-center -translate-x-1/2'
+                        }`}
                       style={{ left: `${percent}%` }}
                     >
                       <div className="w-px h-2 bg-stone-400" />
                       <span
-                        className={`text-[11px] text-stone-700 font-mono font-bold leading-none mb-0.5 transition-opacity ${
-                          isPlayheadNear ? 'opacity-0' : 'opacity-100'
-                        }`}
+                        className={`text-[11px] text-stone-700 font-mono font-bold leading-none mb-0.5 transition-opacity ${isPlayheadNear ? 'opacity-0' : 'opacity-100'
+                          }`}
                       >
                         {formatTime(sec)}
                       </span>
@@ -749,7 +796,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
               <div
                 className="absolute top-0 bottom-0 w-px bg-[#121712] z-30 transition-all pointer-events-none"
                 style={{
-                  left: `${Math.min(99, Math.max(1, (playheadSec / durationSec) * 100))}%`,
+                  left: `${playheadPercent}%`,
                 }}
               >
                 <div className="absolute -top-1 -translate-x-1/2 w-3.5 h-3.5 bg-[#121712] rounded-xs rotate-45 ring-2 ring-[#C8F169]" />
@@ -768,7 +815,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                 const isSelected = selectedItem.isQuestion && selectedItem.id === q.id;
                 const posPercent = Math.min(
                   88,
-                  Math.max(2, (q.timestamp / durationSec) * 100)
+                  Math.max(2, ((q.timestamp - partStartSec) / durationSec) * 100)
                 );
                 const hasWarning = !!getItemWarning(q.id);
 
@@ -777,13 +824,12 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                     key={q.id}
                     type="button"
                     onClick={() => handleSelectItem(q.id, true, q.timestamp)}
-                    className={`absolute z-10 top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${
-                      isSelected
+                    className={`absolute z-10 top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${isSelected
                         ? 'bg-[#121712] text-white ring-2 ring-[#C8F169] z-20 scale-105'
                         : q.is_active
-                        ? 'bg-[#F9FAFB] text-stone-800 border border-stone-200 hover:bg-stone-100'
-                        : 'bg-stone-100 text-stone-400 border border-stone-200 line-through opacity-60'
-                    }`}
+                          ? 'bg-[#F9FAFB] text-stone-800 border border-stone-200 hover:bg-stone-100'
+                          : 'bg-stone-100 text-stone-400 border border-stone-200 line-through opacity-60'
+                      }`}
                     style={{ left: `${posPercent}%` }}
                     title={`Câu hỏi dừng: ${q.question} (${formatTime(q.timestamp)}) - Nhấn để biên tập chi tiết`}
                   >
@@ -803,7 +849,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
               <div
                 className="absolute top-0 bottom-0 w-px bg-[#121712]/30 pointer-events-none z-0"
                 style={{
-                  left: `${Math.min(99, Math.max(1, (playheadSec / durationSec) * 100))}%`,
+                  left: `${playheadPercent}%`,
                 }}
               />
             </div>
@@ -820,7 +866,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                 const isSelected = !selectedItem.isQuestion && selectedItem.id === s.id;
                 const posPercent = Math.min(
                   88,
-                  Math.max(2, (s.timestamp / durationSec) * 100)
+                  Math.max(2, ((s.timestamp - partStartSec) / durationSec) * 100)
                 );
                 const hasWarning = !!getItemWarning(s.id);
 
@@ -829,13 +875,12 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                     key={s.id}
                     type="button"
                     onClick={() => handleSelectItem(s.id, false, s.timestamp)}
-                    className={`absolute z-10 top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${
-                      isSelected
+                    className={`absolute z-10 top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${isSelected
                         ? 'bg-[#121712] text-white ring-2 ring-[#C8F169] z-20 scale-105'
                         : s.is_active
-                        ? 'bg-[#F9FAFB] text-stone-800 border border-stone-200 hover:bg-stone-100'
-                        : 'bg-stone-100 text-stone-400 border border-stone-200 opacity-60 line-through'
-                    }`}
+                          ? 'bg-[#F9FAFB] text-stone-800 border border-stone-200 hover:bg-stone-100'
+                          : 'bg-stone-100 text-stone-400 border border-stone-200 opacity-60 line-through'
+                      }`}
                     style={{ left: `${posPercent}%` }}
                     title={`Bo gài bẫy ngộ nhận: "${s.dialogue}" (${formatTime(s.timestamp)})`}
                   >
@@ -855,7 +900,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
               <div
                 className="absolute top-0 bottom-0 w-px bg-[#121712]/30 pointer-events-none z-0"
                 style={{
-                  left: `${Math.min(99, Math.max(1, (playheadSec / durationSec) * 100))}%`,
+                  left: `${playheadPercent}%`,
                 }}
               />
             </div>
@@ -872,7 +917,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                 const isSelected = !selectedItem.isQuestion && selectedItem.id === s.id;
                 const posPercent = Math.min(
                   88,
-                  Math.max(2, (s.timestamp / durationSec) * 100)
+                  Math.max(2, ((s.timestamp - partStartSec) / durationSec) * 100)
                 );
                 const hasWarning = !!getItemWarning(s.id);
                 const isTeacher = (s.agent || '').toLowerCase().includes('lam');
@@ -882,13 +927,12 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                     key={s.id}
                     type="button"
                     onClick={() => handleSelectItem(s.id, false, s.timestamp)}
-                    className={`absolute z-10 top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${
-                      isSelected
+                    className={`absolute z-10 top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${isSelected
                         ? 'bg-[#121712] text-white ring-2 ring-[#C8F169] z-20 scale-105'
                         : s.is_active
-                        ? 'bg-[#F9FAFB] text-stone-800 border border-stone-200 hover:bg-stone-100'
-                        : 'bg-stone-100 text-stone-400 border border-stone-200 opacity-60 line-through'
-                    }`}
+                          ? 'bg-[#F9FAFB] text-stone-800 border border-stone-200 hover:bg-stone-100'
+                          : 'bg-stone-100 text-stone-400 border border-stone-200 opacity-60 line-through'
+                      }`}
                     style={{ left: `${posPercent}%` }}
                     title={`${s.agent}: "${s.dialogue}" (${formatTime(s.timestamp)})`}
                   >
@@ -908,7 +952,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
               <div
                 className="absolute top-0 bottom-0 w-px bg-[#121712]/30 pointer-events-none z-0"
                 style={{
-                  left: `${Math.min(99, Math.max(1, (playheadSec / durationSec) * 100))}%`,
+                  left: `${playheadPercent}%`,
                 }}
               />
             </div>
@@ -1021,11 +1065,10 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                     type="button"
                     role="checkbox"
                     aria-checked={focusedQuestion.is_active}
-                    className={`w-5 h-5 rounded-md flex items-center justify-center transition border ${
-                      focusedQuestion.is_active
+                    className={`w-5 h-5 rounded-md flex items-center justify-center transition border ${focusedQuestion.is_active
                         ? 'bg-[#121712] border-[#121712] text-[#C8F169]'
                         : 'bg-white border-stone-300 hover:border-stone-400 text-transparent'
-                    }`}
+                      }`}
                   >
                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                   </button>
@@ -1074,11 +1117,10 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                             bloom_level: lvl.label,
                           })
                         }
-                        className={`py-1.5 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
-                          isSelected
+                        className={`py-1.5 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer ${isSelected
                             ? 'bg-[#121712] text-white shadow-2xs'
                             : 'bg-stone-100 hover:bg-stone-200 text-stone-800'
-                        }`}
+                          }`}
                       >
                         <span className="font-mono">L{lvl.index}</span>
                         <span className="truncate">{lvl.short}</span>
@@ -1203,11 +1245,10 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                     type="button"
                     role="checkbox"
                     aria-checked={focusedScenario.is_active}
-                    className={`w-5 h-5 rounded-md flex items-center justify-center transition border ${
-                      focusedScenario.is_active
+                    className={`w-5 h-5 rounded-md flex items-center justify-center transition border ${focusedScenario.is_active
                         ? 'bg-[#121712] border-[#121712] text-[#C8F169]'
                         : 'bg-white border-stone-300 hover:border-stone-400 text-transparent'
-                    }`}
+                      }`}
                   >
                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                   </button>
@@ -1256,11 +1297,10 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                             bloom_level: lvl.label,
                           })
                         }
-                        className={`py-1.5 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
-                          isSelected
+                        className={`py-1.5 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer ${isSelected
                             ? 'bg-[#121712] text-white shadow-2xs'
                             : 'bg-stone-100 hover:bg-stone-200 text-stone-800'
-                        }`}
+                          }`}
                       >
                         <span className="font-mono">L{lvl.index}</span>
                         <span className="truncate">{lvl.short}</span>
@@ -1364,11 +1404,10 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                     <tr
                       key={q.id}
                       onClick={() => handleSelectItem(q.id, true, q.timestamp)}
-                      className={`group transition-colors cursor-pointer ${
-                        isSelected
+                      className={`group transition-colors cursor-pointer ${isSelected
                           ? 'bg-[#F3F8E8] font-medium'
                           : 'hover:bg-stone-50'
-                      } ${!q.is_active ? 'opacity-50' : ''}`}
+                        } ${!q.is_active ? 'opacity-50' : ''}`}
                     >
                       <td className="py-4 px-4 font-mono font-bold text-stone-900 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
@@ -1414,11 +1453,10 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                           role="checkbox"
                           aria-checked={q.is_active}
                           onClick={() => handleToggleQuestion(activePart.id, q.id)}
-                          className={`w-5 h-5 mx-auto rounded-md flex items-center justify-center transition cursor-pointer border ${
-                            q.is_active
+                          className={`w-5 h-5 mx-auto rounded-md flex items-center justify-center transition cursor-pointer border ${q.is_active
                               ? 'bg-[#121712] border-[#121712] text-[#C8F169]'
                               : 'bg-white border-stone-300 hover:border-stone-400 text-transparent'
-                          }`}
+                            }`}
                           title="Bật/Tắt câu hỏi dừng này"
                         >
                           <Check className="w-3.5 h-3.5 stroke-[3]" />
@@ -1459,11 +1497,10 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                     <tr
                       key={s.id}
                       onClick={() => handleSelectItem(s.id, false, s.timestamp)}
-                      className={`group transition-colors cursor-pointer ${
-                        isSelected
+                      className={`group transition-colors cursor-pointer ${isSelected
                           ? 'bg-[#F3F8E8] font-medium'
                           : 'hover:bg-stone-50'
-                      } ${!s.is_active ? 'opacity-50' : ''}`}
+                        } ${!s.is_active ? 'opacity-50' : ''}`}
                     >
                       <td className="py-4 px-4 font-mono font-bold text-stone-900 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
@@ -1509,11 +1546,10 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                           role="checkbox"
                           aria-checked={s.is_active}
                           onClick={() => handleToggleScenario(activePart.id, s.id)}
-                          className={`w-5 h-5 mx-auto rounded-md flex items-center justify-center transition cursor-pointer border ${
-                            s.is_active
+                          className={`w-5 h-5 mx-auto rounded-md flex items-center justify-center transition cursor-pointer border ${s.is_active
                               ? 'bg-[#121712] border-[#121712] text-[#C8F169]'
                               : 'bg-white border-stone-300 hover:border-stone-400 text-transparent'
-                          }`}
+                            }`}
                           title="Bật/Tắt kịch bản này"
                         >
                           <Check className="w-3.5 h-3.5 stroke-[3]" />

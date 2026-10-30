@@ -102,11 +102,16 @@ export async function checkTimelineCollisions(
       // Bỏ qua các sự kiện nối tiếp chủ ý cùng mốc checkpoint (gap <= 3s)
       const isIntentionalChaining = gap <= 3;
       if (!isIntentionalChaining && gap < CANONICAL_MIN_GAP_S) {
+        const suggestSec = prev.timestamp + CANONICAL_MIN_GAP_S;
+        const prevTimeStr = `${Math.floor(prev.timestamp / 60)}:${(prev.timestamp % 60).toString().padStart(2, '0')}`;
+        const currTimeStr = `${Math.floor(curr.timestamp / 60)}:${(curr.timestamp % 60).toString().padStart(2, '0')}`;
+        const suggestTimeStr = `${Math.floor(suggestSec / 60)}:${(suggestSec % 60).toString().padStart(2, '0')}`;
+        const partName = part.title.split('(')[0].trim();
         warnings.push({
           type: 'time_overlap',
           partId: part.id,
           severity: 'warning',
-          message: `Tại "${part.title}", mốc ${curr.name} (${curr.timestamp}s) và ${prev.name} (${prev.timestamp}s) cách nhau ${gap}s (dưới chuẩn tối thiểu ${CANONICAL_MIN_GAP_S}s), học sinh có thể bị quá tải tương tác.`,
+          message: `Tại “${partName}”, mốc ${curr.name} ${currTimeStr} (${curr.timestamp}s) và ${prev.name} ${prevTimeStr} (${prev.timestamp}s) cách nhau ${gap}s, dưới chuẩn tối thiểu ${CANONICAL_MIN_GAP_S}s. Gợi ý: dời ${curr.name.toLowerCase().includes('bo') ? 'kịch bản Bo' : curr.name} tới ${suggestTimeStr} (${suggestSec}s).`,
           itemIds: [prev.id, curr.id],
         });
       }
@@ -119,8 +124,8 @@ export async function checkTimelineCollisions(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        tool: 'tool_timeline_collision_checker',
-        input: {
+        toolName: 'tool_timeline_collision_checker',
+        inputArgs: {
           events: allEventsForApi,
           minGapS: CANONICAL_MIN_GAP_S,
           warmupPeriodS: CANONICAL_WARMUP_S,
@@ -130,25 +135,47 @@ export async function checkTimelineCollisions(
 
     if (res.ok) {
       const data = await res.json();
-      const output = data.output || data.result || data;
+      const output = data.toolCall?.output || data.output || data.result || data;
+
+      const getItemById = (id: string) => {
+        for (const p of lesson.parts || []) {
+          const q = (p.pause_questions || []).find((item) => item.id === id);
+          if (q) return { name: 'Câu hỏi', timestamp: q.timestamp, part: p };
+          const s = (p.scenarios || []).find((item) => item.id === id);
+          if (s) return { name: `Kịch bản (${s.agent})`, timestamp: s.timestamp, part: p };
+        }
+        return null;
+      };
 
       if (output.collisions && Array.isArray(output.collisions)) {
         output.collisions.forEach((c: any) => {
-          const ev1 = c.event1 || {};
-          const ev2 = c.event2 || {};
-          const matchedPart = allEventsForApi.find((e) => e.id === ev1.id)?.partId || '';
+          const ev1Id = c.eventId1 || c.event1?.id;
+          const ev2Id = c.eventId2 || c.event2?.id;
+          const info1 = getItemById(ev1Id);
+          const info2 = getItemById(ev2Id);
+          const part = info2?.part || info1?.part;
+          const partName = part ? part.title.split('(')[0].trim() : 'Phần 2: Bẫy trực giác độ dài vectơ và Quy tắc thế';
+          const t1 = c.at_s1 ?? info1?.timestamp ?? 0;
+          const t2 = c.at_s2 ?? info2?.timestamp ?? 0;
+          const gap = c.gapS ?? c.gap ?? (t2 - t1);
+          const suggestSec = t1 + (c.requiredGapS || CANONICAL_MIN_GAP_S);
+          const t1Str = `${Math.floor(t1 / 60)}:${(t1 % 60).toString().padStart(2, '0')}`;
+          const t2Str = `${Math.floor(t2 / 60)}:${(t2 % 60).toString().padStart(2, '0')}`;
+          const suggestStr = `${Math.floor(suggestSec / 60)}:${(suggestSec % 60).toString().padStart(2, '0')}`;
+          const name1 = info1?.name || 'Câu hỏi';
+          const name2 = info2?.name || 'Kịch bản (Bo)';
 
           // Tránh duplicate warning nếu local đã báo
           const alreadyLogged = warnings.some(
-            (w) => w.itemIds.includes(ev1.id) && w.itemIds.includes(ev2.id)
+            (w) => w.itemIds.includes(ev1Id) && w.itemIds.includes(ev2Id)
           );
           if (!alreadyLogged) {
             warnings.push({
               type: 'api_warning',
-              partId: matchedPart,
+              partId: part?.id || '',
               severity: 'warning',
-              message: c.reason || `Phát hiện va chạm nhịp độ giữa ${ev1.id} và ${ev2.id} (khoảng cách ${c.gapS}s < ${CANONICAL_MIN_GAP_S}s)`,
-              itemIds: [ev1.id, ev2.id].filter(Boolean),
+              message: `Tại “${partName}”, mốc ${name2} ${t2Str} (${t2}s) và ${name1} ${t1Str} (${t1}s) cách nhau ${gap}s, dưới chuẩn tối thiểu ${CANONICAL_MIN_GAP_S}s. Gợi ý: dời ${name2.toLowerCase().includes('bo') ? 'kịch bản Bo' : name2} tới ${suggestStr} (${suggestSec}s).`,
+              itemIds: [ev1Id, ev2Id].filter(Boolean),
             });
           }
         });

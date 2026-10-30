@@ -313,10 +313,57 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
   };
 
   return (
-    <div
-      id="warroom-section"
-      className="w-full bg-white border border-[#E2EAD2] rounded-3xl shadow-xs overflow-hidden transition-all duration-300 mb-6"
-    >
+    <div className="w-full space-y-4 mb-6">
+      {/* =========================================================================
+          DẢI "ĐÃ NẠP SẴN" - KHỚP 100% TRANG 1 MOCKUP
+          ========================================================================= */}
+      <div className="w-full bg-white border border-[#E2EAD2] rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+        <div className="flex flex-wrap items-center gap-6">
+          <span className="bg-[#C8F169] text-[#121712] font-extrabold text-[11px] px-3 py-1 rounded-md tracking-wider uppercase whitespace-nowrap">
+            ĐÃ NẠP SẴN
+          </span>
+          <div className="flex flex-col">
+            <span className="text-[11px] font-semibold text-stone-600 uppercase tracking-wide">
+              VIDEO BÀI GIẢNG
+            </span>
+            <span className="text-[12px] font-bold text-[#121712]">
+              Bài 1.1 Vectơ trong không gian · Thầy Nguyễn Phan Tiến
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[11px] font-semibold text-stone-600 uppercase tracking-wide">
+              TÀI LIỆU RAG
+            </span>
+            <span className="text-[12px] font-bold text-[#121712]">
+              SGK Toán 12 Kết nối tri thức, Tập 1 · Bài 6, tr.45–59
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[11px] font-semibold text-stone-600 uppercase tracking-wide">
+              KHO TRI THỨC
+            </span>
+            <span className="text-[12px] font-bold text-[#121712]">
+              24 kiến thức · 20 ngộ nhận · 20 bài tập
+            </span>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            sound.playPencilTap();
+            handleReset();
+            source.start();
+          }}
+          className="px-4 py-2 rounded-full bg-[#121712] hover:bg-black text-white text-xs font-bold transition flex items-center gap-1.5 self-start md:self-auto cursor-pointer shadow-xs whitespace-nowrap"
+        >
+          <span>↻ Phát lại phiên họp</span>
+        </button>
+      </div>
+
+      <div
+        id="warroom-section"
+        className="w-full bg-white border border-[#E2EAD2] rounded-3xl shadow-xs overflow-hidden transition-all duration-300"
+      >
       {/* =========================================================================
           HEADER SÁNG CHUẨN LIME SOFT: THÔNG TIN PHIÊN SUY LUẬN + NÚT ĐIỀU KHIỂN
           ========================================================================= */}
@@ -327,12 +374,17 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2
-                style={{ fontSize: '26px', lineHeight: '34px' }}
-                className="font-extrabold text-[#121712] tracking-tight m-0"
-              >
-                Phòng điều hành suy luận đa tác tử
-              </h2>
+              <div className="flex items-center gap-2.5">
+                <h2
+                  style={{ fontSize: '26px', lineHeight: '34px' }}
+                  className="font-extrabold text-[#121712] tracking-tight m-0"
+                >
+                  War Room · Hội đồng AI soạn kịch bản
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white text-[#121712] border border-[#121712] uppercase tracking-wider">
+                  REPLAY
+                </span>
+              </div>
               {source.isReplay() ? (
                 <button
                   type="button"
@@ -567,6 +619,7 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };
