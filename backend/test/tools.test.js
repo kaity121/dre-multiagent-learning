@@ -476,8 +476,8 @@ describe('Deterministic Tools - Unit Tests', () => {
       assert.ok(toolCall.output && toolCall.output.correct === 'a\\sqrt{2}');
     });
 
-    it('Tất cả 5 tools đều có schema JSON Schema trong OPENAI_TOOL_DEFINITIONS', () => {
-      assert.strictEqual(OPENAI_TOOL_DEFINITIONS.length, 5);
+    it('Tất cả 6 tools đều có schema JSON Schema trong OPENAI_TOOL_DEFINITIONS', () => {
+      assert.strictEqual(OPENAI_TOOL_DEFINITIONS.length, 6);
       const names = OPENAI_TOOL_DEFINITIONS.map(t => t.function.name);
       assert.ok(names.includes('tool_verify_vector_algebra'));
       assert.ok(names.includes('tool_calculate_dot_product'));
