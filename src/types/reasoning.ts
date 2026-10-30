@@ -100,4 +100,19 @@ export interface InspectorTurn {
   dialogue?: string;
   assessor?: AssessorInfo;
   toolCalls?: ToolCallPayload[];
+  /** The learner message that started this turn, when known. */
+  question?: string;
+  /** Lecture citations returned with the answer. */
+  citations?: TurnCitation[];
+  /** Round-trip time reported by the backend dispatcher, when it ran. */
+  latencyMs?: number;
+  /** Chat message id of the answer, so evidence chips can find their turn. */
+  messageId?: string;
+}
+
+export interface TurnCitation {
+  source: string;
+  label: string;
+  snippet?: string;
+  timestamp?: number;
 }
