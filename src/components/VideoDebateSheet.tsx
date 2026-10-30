@@ -137,6 +137,7 @@ interface VideoDebateSheetProps {
   isChatExpanded?: boolean;
   onToggleChatExpanded?: () => void;
   onSwitchToStation2?: () => void;
+  onChatMessageProcessed?: (chatInfo: { text: string; author: string; reply: any; second: number }) => void;
 }
 
 const cleanText = (str?: string) =>
@@ -196,6 +197,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   isChatExpanded = false,
   onToggleChatExpanded,
   onSwitchToStation2,
+  onChatMessageProcessed,
 }) => {
   const [liveChatMessages, setLiveChatMessages] = useState<TimelineComment[]>([]);
   const [toolCallThinking, setToolCallThinking] = useState<string[]>([]);
@@ -228,6 +230,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   }, []);
 
   useEffect(() => {
+    chatSessionIdRef.current = null;
     setLiveChatMessages([]);
     setTaHintTier(0);
     setActivePeerNote(null);
@@ -236,6 +239,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     prevCommentsCountRef.current = 0;
   }, [lesson.id]);
 
+  const chatSessionIdRef = useRef<string | null>(null);
   const [activeTab, setActiveTab] = useState<'chat' | 'transcript'>('chat');
 
   const defaultComments = useMemo(() => {
@@ -703,10 +707,13 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     setToolCallThinking(thinkingSteps);
 
     // Thử gọi live Multi-Agent AI Backend (Knowledge Base RAG & GPT-6)
-    sendClassroomChat(text, effectiveSecond, target)
+    sendClassroomChat(text, effectiveSecond, target, chatSessionIdRef.current)
       .then((aiRes) => {
         setToolCallThinking([]);
         if (aiRes && aiRes.ok && aiRes.text) {
+          if (aiRes.sessionId) {
+            chatSessionIdRef.current = aiRes.sessionId;
+          }
           sound.playBubblePop();
           const attachedToolCalls = (aiRes as any)?.toolCalls || (isMathVerificationNeeded ? [{
             toolName: 'tool_verify_vector_algebra',
@@ -737,6 +744,13 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               },
             },
           ]);
+
+          onChatMessageProcessed?.({
+            text,
+            author: 'Học sinh',
+            reply: aiRes,
+            second: replySecond,
+          });
 
           const followUp = (aiRes as any)?.followUpResponse;
           const followUpText = followUp?.text || aiRes.followUpBoText;

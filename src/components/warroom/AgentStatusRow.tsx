@@ -8,7 +8,7 @@ interface AgentStatusRowProps {
   activeAgents?: AgentName[];
 }
 
-const defaultAgents: AgentName[] = ['Trí', 'Bo', 'An', 'Blu', 'Dispatcher', 'Assessor'];
+const defaultAgents: AgentName[] = ['Cô Lam', 'Trí', 'Bo', 'An', 'Minh Khang', 'Linh Chi', 'Assessor'];
 
 export const AgentStatusRow: React.FC<AgentStatusRowProps> = ({
   agentStates,

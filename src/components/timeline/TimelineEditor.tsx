@@ -21,7 +21,7 @@ import {
 import { DRELessonSchema, PauseQuestion, ScenarioItem } from '../../types/lesson';
 import { exportApprovedLessonJSON } from '../../utils/lessonAdapter';
 import { lessonStore } from '../../store/lessonStore';
-import { checkTimelineCollisions, CollisionWarning, CANONICAL_MIN_GAP_S } from './collisionChecker';
+import { checkTimelineCollisions, checkTimelineCollisionsSync, CollisionWarning, CANONICAL_MIN_GAP_S } from './collisionChecker';
 import {
   BoCircleAvatar,
   TriDeepThinkerAvatar,
@@ -142,7 +142,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
   });
 
   const [isDirty, setIsDirty] = useState(false);
-  const [warnings, setWarnings] = useState<CollisionWarning[]>([]);
+  const [warnings, setWarnings] = useState<CollisionWarning[]>(() => checkTimelineCollisionsSync(initialLesson));
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [selectedPartId, setSelectedPartId] = useState<string>(() => {
     if (typeof window !== 'undefined') {
@@ -154,19 +154,42 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
     return initialLesson.parts[0]?.id || '';
   });
 
-  // Playhead scrubber position (seconds) - defaults to 2233s (37:13) or 180s
+  // Playhead scrubber position (seconds) - defaults to selected part's first question/scenario or 2233s (37:13)
   const [playheadSec, setPlayheadSec] = useState<number>(() => {
-    if (initialLesson.parts[1]?.pause_questions?.[0]?.timestamp) {
-      return initialLesson.parts[1].pause_questions[0].timestamp;
+    let targetPartId = 'part-02';
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search).get('part');
+      if (p && initialLesson.parts.some((pt) => pt.id === p)) targetPartId = p;
     }
-    return 300;
+    const initialPart = initialLesson.parts.find((pt) => pt.id === targetPartId) || initialLesson.parts[0];
+    if (initialPart?.pause_questions?.[0]?.timestamp) {
+      return initialPart.pause_questions[0].timestamp;
+    }
+    if (initialPart?.scenarios?.[0]?.timestamp) {
+      return initialPart.scenarios[0].timestamp;
+    }
+    return 2233;
   });
 
   // Selected item on timeline or table
   const [selectedItem, setSelectedItem] = useState<{
     id: string;
     isQuestion: boolean;
-  }>({ id: 'pq-02', isQuestion: true });
+  }>(() => {
+    let targetPartId = 'part-02';
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search).get('part');
+      if (p && initialLesson.parts.some((pt) => pt.id === p)) targetPartId = p;
+    }
+    const initialPart = initialLesson.parts.find((pt) => pt.id === targetPartId) || initialLesson.parts[0];
+    if (initialPart?.pause_questions?.[0]) {
+      return { id: initialPart.pause_questions[0].id, isQuestion: true };
+    }
+    if (initialPart?.scenarios?.[0]) {
+      return { id: initialPart.scenarios[0].id, isQuestion: false };
+    }
+    return { id: 'pq-02', isQuestion: true };
+  });
 
   const editorSectionRef = useRef<HTMLDivElement>(null);
 
@@ -469,6 +492,32 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
   }, [draftLesson.parts, partIndex]);
   const partEndSec = partStartSec + durationSec;
 
+  // Khi initialLesson thay đổi (chuyển draft từ War Room), cập nhật lại draftLesson
+  useEffect(() => {
+    setDraftLesson(initialLesson);
+  }, [initialLesson]);
+
+  // Đồng bộ selectedItem và playheadSec khi đổi phân đoạn (activePart)
+  useEffect(() => {
+    const itemInPart =
+      (activePart.pause_questions || []).some((q) => q.id === selectedItem.id) ||
+      (activePart.scenarios || []).some((s) => s.id === selectedItem.id);
+
+    if (!itemInPart) {
+      if (activePart.pause_questions && activePart.pause_questions.length > 0) {
+        const firstQ = activePart.pause_questions[0];
+        setSelectedItem({ id: firstQ.id, isQuestion: true });
+        setPlayheadSec(firstQ.timestamp);
+      } else if (activePart.scenarios && activePart.scenarios.length > 0) {
+        const firstS = activePart.scenarios[0];
+        setSelectedItem({ id: firstS.id, isQuestion: false });
+        setPlayheadSec(firstS.timestamp);
+      } else {
+        setPlayheadSec(partStartSec);
+      }
+    }
+  }, [activePart.id, activePart.pause_questions, activePart.scenarios, selectedItem.id, partStartSec]);
+
   const minuteTicks = useMemo(() => {
     if (activePart.id === 'part-02') {
       return [1260, 1800, 2400, 3000, 3600, 3990];
@@ -500,6 +549,16 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
   const debateAndRuleScenarios = useMemo(() => {
     return (activePart.scenarios || []).filter((s) => !(s.agent || '').toLowerCase().includes('bo'));
   }, [activePart.scenarios]);
+
+  const handleTrackClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest('button')) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+    const newSec = Math.round(partStartSec + ratio * durationSec);
+    setPlayheadSec(newSec);
+    sound.playPencilTap();
+  };
 
   // Unified & Chronologically Sorted Rows for Interaction Table
   const sortedTimelineRows = useMemo(() => {
@@ -605,7 +664,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
             <div className="text-xl sm:text-2xl font-bold text-[#121712] font-mono">
               {formatTime(totalDuration)}
             </div>
-            <div className="text-[11px] text-stone-600 truncate mt-0.5" title={`Cả ${draftLesson.parts.length} phần (${partsDurationSummary})`}>
+            <div className="text-[11px] text-stone-600 mt-0.5 leading-snug" title={`Cả ${draftLesson.parts.length} phần (${partsDurationSummary})`}>
               Cả {draftLesson.parts.length} phần ({partsDurationSummary})
             </div>
           </div>
@@ -623,10 +682,10 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
             <div className="text-xl sm:text-2xl font-bold text-[#121712] font-mono">
               {totalActiveQuestions} <span className="text-xs font-normal text-stone-600">mốc kích hoạt</span>
             </div>
-            <div className="text-[11px] text-stone-600 truncate mt-0.5">
+            <div className="text-[11px] text-stone-600 mt-0.5 leading-snug">
               Cả {draftLesson.parts.length} phần (Đang bật {totalActiveQuestions}/{totalQuestions})
             </div>
-            <div className="text-[11px] text-stone-500 truncate leading-tight">
+            <div className="text-[11px] text-stone-500 mt-0.5 leading-snug">
               Ngộ nhận chính 0.85 · giả thuyết nhóm, chưa đo
             </div>
           </div>
@@ -644,7 +703,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
             <div className="text-xl sm:text-2xl font-bold text-[#121712] font-mono">
               {totalActiveScenarios} <span className="text-xs font-normal text-stone-600">lượt thoại</span>
             </div>
-            <div className="text-[11px] text-stone-600 truncate mt-0.5" title={`Cả ${draftLesson.parts.length} phần (${allAgentsSummary})`}>
+            <div className="text-[11px] text-stone-600 mt-0.5 leading-snug" title={`Cả ${draftLesson.parts.length} phần (${allAgentsSummary})`}>
               Cả {draftLesson.parts.length} phần ({allAgentsSummary})
             </div>
           </div>
@@ -670,31 +729,48 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
       </div>
 
       {/* CẢNH BÁO VA CHẠM NHỊP ĐỘ (< 20S) KHỚP 100% TRANG 3 MOCKUP */}
-      {warnings.length > 0 && (
-        <div className="p-4 sm:p-5 bg-[#FFF7ED] border border-[#FDBA74] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-[#7C2D12] shadow-xs">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wide">
-              <AlertTriangle className="w-4 h-4 text-[#C2410C] shrink-0" />
-              <span>PHÁT HIỆN {warnings.length} ĐIỂM CẢNH BÁO VA CHẠM NHỊP ĐỘ SƯ PHẠM (&lt; {CANONICAL_MIN_GAP_S}S):</span>
+      {(() => {
+        const activeWarnings = warnings.filter((w) => {
+          if (w.partId) return w.partId === activePart.id;
+          if (w.itemIds && w.itemIds.length > 0) {
+            return w.itemIds.some((id) =>
+              (activePart.pause_questions || []).some((q) => q.id === id) ||
+              (activePart.scenarios || []).some((s) => s.id === id)
+            );
+          }
+          return false;
+        });
+
+        if (activeWarnings.length === 0) return null;
+
+        return (
+          <div className="p-4 sm:p-5 bg-[#FFF7ED] border border-[#FDBA74] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-[#7C2D12] shadow-xs">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wide">
+                <AlertTriangle className="w-4 h-4 text-[#C2410C] shrink-0" />
+                <span>PHÁT HIỆN {activeWarnings.length} ĐIỂM CẢNH BÁO VA CHẠM NHỊP ĐỘ SƯ PHẠM (&lt; {CANONICAL_MIN_GAP_S}S):</span>
+              </div>
+              {activeWarnings.map((w, idx) => (
+                <div key={idx} className="text-xs leading-relaxed font-medium">
+                  {w.message}
+                </div>
+              ))}
             </div>
-            <div className="text-xs leading-relaxed font-medium">
-              {warnings[0].message}
+            <div className="flex flex-col items-start md:items-end gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={handleShiftBo}
+                className="px-4 py-2 rounded-full border border-[#EA580C] bg-white hover:bg-orange-50 text-[#7C2D12] font-bold text-xs transition cursor-pointer shadow-2xs whitespace-nowrap"
+              >
+                Dời Bo tới 37:33
+              </button>
+              <span className="text-[11px] text-[#9A3412]">
+                Kiểm tra cục bộ · ngưỡng 20 giây
+              </span>
             </div>
           </div>
-          <div className="flex flex-col items-start md:items-end gap-1 shrink-0">
-            <button
-              type="button"
-              onClick={handleShiftBo}
-              className="px-4 py-2 rounded-full border border-[#EA580C] bg-white hover:bg-orange-50 text-[#7C2D12] font-bold text-xs transition cursor-pointer shadow-2xs whitespace-nowrap"
-            >
-              Dời Bo tới 37:33
-            </button>
-            <span className="text-[11px] text-[#9A3412]">
-              Kiểm tra cục bộ · ngưỡng 20 giây
-            </span>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* =========================================================================
           BỐ CỤC MULTI-TRACK TIMELINE (DÒNG THỜI GIAN ĐA LUỒNG):
@@ -712,7 +788,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
               Dòng thời gian tương tác đa luồng (Multi-Track Timeline)
             </span>
             <span className="text-[11px] text-stone-500 font-mono ml-1">
-              (Thước đo 00:00 – {formatTime(durationSec)})
+              (Thước đo {formatTime(partStartSec)} – {formatTime(partStartSec + durationSec)})
             </span>
           </div>
 
@@ -728,6 +804,10 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                   onClick={() => {
                     sound.playTabSwitch();
                     setSelectedPartId(p.id);
+                    const pIndex = draftLesson.parts.findIndex((pt) => pt.id === p.id);
+                    const pStart = draftLesson.parts.slice(0, pIndex).reduce((sum, pt) => sum + (pt.duration || 0), 0);
+                    const pFirstQ = p.pause_questions?.[0]?.timestamp;
+                    setPlayheadSec(pFirstQ ?? pStart);
                   }}
                   className={`h-7 px-3.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${isSelected
                       ? 'bg-[#121712] text-white shadow-2xs'
@@ -810,13 +890,15 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
               <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" />
               <span>Track 1 · Điểm dừng</span>
             </div>
-            <div className="flex-1 h-14 bg-white border border-[#E2EAD2] rounded-2xl relative overflow-hidden flex items-center px-1 shadow-2xs">
+            <div 
+              onClick={handleTrackClick}
+              title="Nhấn vào thanh Track 1 để định vị thời gian"
+              className="flex-1 h-14 bg-white border border-[#E2EAD2] rounded-2xl relative overflow-hidden flex items-center px-1 shadow-2xs cursor-pointer"
+            >
               {(activePart.pause_questions || []).map((q) => {
                 const isSelected = selectedItem.isQuestion && selectedItem.id === q.id;
-                const posPercent = Math.min(
-                  88,
-                  Math.max(2, ((q.timestamp - partStartSec) / durationSec) * 100)
-                );
+                const posPercent = Math.min(100, Math.max(0, ((q.timestamp - partStartSec) / durationSec) * 100));
+                const translateClass = posPercent > 88 ? '-translate-x-full' : posPercent < 12 ? 'translate-x-0' : '-translate-x-1/2';
                 const hasWarning = !!getItemWarning(q.id);
 
                 return (
@@ -824,7 +906,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                     key={q.id}
                     type="button"
                     onClick={() => handleSelectItem(q.id, true, q.timestamp)}
-                    className={`absolute z-10 top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${isSelected
+                    className={`absolute z-10 top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${translateClass} ${isSelected
                         ? 'bg-[#121712] text-white ring-2 ring-[#C8F169] z-20 scale-105'
                         : q.is_active
                           ? 'bg-[#F9FAFB] text-stone-800 border border-stone-200 hover:bg-stone-100'
@@ -861,13 +943,15 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
               <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
               <span>Track 2 · Bẫy của Bo</span>
             </div>
-            <div className="flex-1 h-14 bg-white border border-[#E2EAD2] rounded-2xl relative overflow-hidden flex items-center px-1 shadow-2xs">
+            <div 
+              onClick={handleTrackClick}
+              title="Nhấn vào thanh Track 2 để định vị thời gian"
+              className="flex-1 h-14 bg-white border border-[#E2EAD2] rounded-2xl relative overflow-hidden flex items-center px-1 shadow-2xs cursor-pointer"
+            >
               {boScenarios.map((s) => {
                 const isSelected = !selectedItem.isQuestion && selectedItem.id === s.id;
-                const posPercent = Math.min(
-                  88,
-                  Math.max(2, ((s.timestamp - partStartSec) / durationSec) * 100)
-                );
+                const posPercent = Math.min(100, Math.max(0, ((s.timestamp - partStartSec) / durationSec) * 100));
+                const translateClass = posPercent > 88 ? '-translate-x-full' : posPercent < 12 ? 'translate-x-0' : '-translate-x-1/2';
                 const hasWarning = !!getItemWarning(s.id);
 
                 return (
@@ -875,7 +959,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                     key={s.id}
                     type="button"
                     onClick={() => handleSelectItem(s.id, false, s.timestamp)}
-                    className={`absolute z-10 top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${isSelected
+                    className={`absolute z-10 top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${translateClass} ${isSelected
                         ? 'bg-[#121712] text-white ring-2 ring-[#C8F169] z-20 scale-105'
                         : s.is_active
                           ? 'bg-[#F9FAFB] text-stone-800 border border-stone-200 hover:bg-stone-100'
@@ -912,13 +996,15 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
               <span className="w-2 h-2 rounded-full bg-emerald-700 shrink-0" />
               <span>Track 3 · Trí & Cô Lam</span>
             </div>
-            <div className="flex-1 h-14 bg-white border border-[#E2EAD2] rounded-2xl relative overflow-hidden flex items-center px-1 shadow-2xs">
+            <div 
+              onClick={handleTrackClick}
+              title="Nhấn vào thanh Track 3 để định vị thời gian"
+              className="flex-1 h-14 bg-white border border-[#E2EAD2] rounded-2xl relative overflow-hidden flex items-center px-1 shadow-2xs cursor-pointer"
+            >
               {debateAndRuleScenarios.map((s) => {
                 const isSelected = !selectedItem.isQuestion && selectedItem.id === s.id;
-                const posPercent = Math.min(
-                  88,
-                  Math.max(2, ((s.timestamp - partStartSec) / durationSec) * 100)
-                );
+                const posPercent = Math.min(100, Math.max(0, ((s.timestamp - partStartSec) / durationSec) * 100));
+                const translateClass = posPercent > 88 ? '-translate-x-full' : posPercent < 12 ? 'translate-x-0' : '-translate-x-1/2';
                 const hasWarning = !!getItemWarning(s.id);
                 const isTeacher = (s.agent || '').toLowerCase().includes('lam');
 
@@ -927,7 +1013,7 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                     key={s.id}
                     type="button"
                     onClick={() => handleSelectItem(s.id, false, s.timestamp)}
-                    className={`absolute z-10 top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${isSelected
+                    className={`absolute z-10 top-2 bottom-2 px-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer ${translateClass} ${isSelected
                         ? 'bg-[#121712] text-white ring-2 ring-[#C8F169] z-20 scale-105'
                         : s.is_active
                           ? 'bg-[#F9FAFB] text-stone-800 border border-stone-200 hover:bg-stone-100'
@@ -992,12 +1078,15 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
             <div className="py-3 px-2 text-center space-y-2 overflow-x-auto">
               <div className="text-base sm:text-lg font-serif font-bold text-emerald-300 tracking-wide">
                 <FormattedMathText
-                  text={
-                    focusedQuestion?.question
-                      ? `\\[ ${focusedQuestion.question.slice(0, 70)} \\]`
-                      : `\\[ |\\overrightarrow{BC} + \\overrightarrow{DD'}| = \\sqrt{2} \\neq 2 \\]`
-                  }
+                  text="\[ |\overrightarrow{BC} + \overrightarrow{DD'}| = \sqrt{2} \neq 2 \]"
                 />
+              </div>
+              <div className="text-xs text-stone-200 font-sans leading-relaxed px-2">
+                {focusedQuestion ? (
+                  <span>{focusedQuestion.question}</span>
+                ) : (
+                  <span>Cho hình lập phương ABCD.A'B'C'D' cạnh 1. Độ dài tổng |BC + DD'| bằng bao nhiêu?</span>
+                )}
               </div>
               <div className="text-xs text-stone-300 italic font-sans">
                 "Thầy Tiến: Lưu ý độ dài của tổng khác tổng hai độ dài!"
@@ -1083,8 +1172,8 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
-                    min={0}
-                    max={durationSec}
+                    min={partStartSec}
+                    max={partEndSec}
                     value={focusedQuestion.timestamp}
                     onChange={(e) => {
                       const val = Number(e.target.value);
@@ -1263,8 +1352,8 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
-                    min={0}
-                    max={durationSec}
+                    min={partStartSec}
+                    max={partEndSec}
                     value={focusedScenario.timestamp}
                     onChange={(e) => {
                       const val = Number(e.target.value);

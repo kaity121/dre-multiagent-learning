@@ -6,7 +6,7 @@ export type EventType =
   | 'cross_check_verdict'
   | 'done';
 
-export type AgentName = 'Trí' | 'Bo' | 'An' | 'Blu' | 'Dispatcher' | 'Assessor' | string;
+export type AgentName = 'Cô Lam' | 'Trí' | 'Bo' | 'An' | 'Minh Khang' | 'Linh Chi' | 'Assessor' | 'Dispatcher' | string;
 export type AgentState = 'thinking' | 'tool_calling' | 'speaking' | 'idle';
 export type PhaseType = 'extract' | 'rag' | 'roundtable' | 'bloom';
 export type PhaseStatus = 'pending' | 'running' | 'completed' | 'error';
@@ -23,6 +23,7 @@ export interface ToolResultPayload {
   callId?: string;
   status: 'success' | 'failure';
   result?: unknown;
+  isValid?: boolean | null;
   error?: string;
 }
 
@@ -46,13 +47,15 @@ export interface ReasoningEvent {
   toolResult?: ToolResultPayload;
   crossCheck?: CrossCheckVerdictPayload;
   metadata?: Record<string, unknown>;
+  normalized?: true;
 }
 
 export interface DispatcherInfo {
   intent: string;
   selectedAgent: string;
-  confidence: number;
+  confidence?: number;
   reason: string;
+  isEvaluated?: boolean;
 }
 
 export interface ContextViewInfo {
@@ -62,18 +65,26 @@ export interface ContextViewInfo {
   teacherSpeech?: string;
   ragKnowledge?: string;
   hiddenItem?: string;
+  isEvaluated?: boolean;
+  cognitiveMetrics?: {
+    hesitationScore?: number;
+    comprehensionScore?: number;
+    misconceptionDetected?: boolean;
+    isEvaluated?: boolean;
+  };
 }
 
 export interface AssessorInfo {
   matchedPoints: string[];
   missingPoints: string[];
-  bloomBefore: string;
-  bloomAfter: string;
-  hesitationScore: number;
+  bloomBefore?: string;
+  bloomAfter?: string;
+  hesitationScore?: number;
   verdictLabel?: string;
   matchedSummary?: string;
   bloomLevel?: number;
   hesitationLabel?: string;
+  isEvaluated?: boolean;
 }
 
 export interface InspectorTurn {
@@ -86,6 +97,7 @@ export interface InspectorTurn {
   contextView?: ContextViewInfo;
   thought?: string;
   speech?: string;
+  dialogue?: string;
   assessor?: AssessorInfo;
   toolCalls?: ToolCallPayload[];
 }

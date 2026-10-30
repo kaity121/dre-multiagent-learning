@@ -2,7 +2,7 @@ import { ReasoningEvent } from '../types/reasoning';
 import { ReasoningSource, EventListener, StatusListener } from './reasoningSource';
 import { sanitizeFixtureData } from '../utils/sanitizeKatex';
 
-import { mapBackendToReasoningEvent } from './reasoningAdapter';
+import { mapBackendToReasoningEvent, normalizeAgentName } from './reasoningAdapter';
 
 export interface SSEClientOptions {
   url?: string;
@@ -186,12 +186,31 @@ export class SSEReasoningSource implements ReasoningSource {
       });
 
       this.eventSource.addEventListener('complete', (e: MessageEvent) => {
+        let completePayload: any = null;
+        let completeContent = 'Quá trình trích xuất và hội đồng phản biện hoàn tất.';
+        if (e.data) {
+          try {
+            completePayload = JSON.parse(e.data);
+            if (completePayload?.message || completePayload?.content) {
+              completeContent = completePayload.message || completePayload.content;
+            }
+          } catch (_err) {
+            if (typeof e.data === 'string' && e.data.trim()) {
+              completeContent = e.data;
+            }
+          }
+        }
+
         const doneEvt: ReasoningEvent = {
-          id: `done-${Date.now()}`,
+          id: completePayload?.id || `done-${Date.now()}`,
           timestamp: Date.now(),
-          agent: 'Blu',
-          eventType: 'done' as any,
-          content: 'Quá trình trích xuất và hội đồng phản biện hoàn tất.',
+          agent: completePayload?.agent ? normalizeAgentName(completePayload.agent) : 'Assessor',
+          eventType: 'done',
+          content: completeContent,
+          metadata: {
+            ...completePayload,
+            lesson: completePayload?.lesson || completePayload?.draftLesson || completePayload?.schema,
+          },
         };
         this.history.push(doneEvt);
         this.emitEvent(doneEvt);

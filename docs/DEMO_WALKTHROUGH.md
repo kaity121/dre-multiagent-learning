@@ -11,7 +11,7 @@ Hệ thống hỗ trợ các phương thức kích hoạt và điều khiển li
 ### 1.1. Các phương thức kích hoạt
 - **Phím tắt toàn cục F2**: Nhấn phím `F2` ở bất kỳ màn hình nào để lập tức khởi chạy chu trình trình diễn 4 Trạm tự động. Nhấn lại `F2` để dừng demo và trở về trạng thái ban đầu.
 - **Nút bấm trên thanh Header**: Nhấn nút **Demo 1-Click (F2)** có biểu tượng tia sét ở góc phải thanh tiêu đề. Nút có màu xanh chanh (#C8F169), chữ đen (#121712) và chuyển sang trạng thái hoạt động khi đang demo.
-- **Tham số URL tự động**: Truy cập trực tiếp địa chỉ `http://localhost:3000/?showcase=1` để trình duyệt tự động khởi chạy kịch bản ngay sau khi tải trang.
+- **Tham số URL tự động**: Truy cập trực tiếp địa chỉ `http://localhost:3000/?showcase=1` để trình duyệt tự động khởi chạy kịch bản ngay sau khi tải trang. *(Lưu ý kỹ thuật: URL `?showcase=1` và chế độ mặc định chạy trên `ReplaySource` được mô phỏng từ fixture chuẩn hóa để đảm bảo nhịp độ demo mượt mà. Người dùng có thể bật sang chế độ `Trực tiếp (Live SSE)` tại thanh điều khiển War Room khi kết nối route `/api/roundtable/stream`)*.
 
 ### 1.2. Các phím điều hướng trong quá trình trình diễn
 - **Phím Space (Khoảng trắng)**: Tạm dừng (Pause) hoặc Tiếp tục (Resume) dòng thời gian của Trạm hiện tại. Bộ đếm ngược và thanh tiến trình sẽ đóng băng tạm thời.
@@ -51,11 +51,11 @@ Tổng thời lượng demo: **23 giây**. Kịch bản được chia thành 4 g
 - **Thời lượng**: 6 giây.
 - **Hành động hệ thống**:
   1. Giao diện tự động chuyển sang màn hình Phòng điều hành suy luận (`activeStudioView = 'warroom'`).
-  2. Badge tín hiệu trực tiếp nhấp nháy: `TRỰC TIẾP (LIVE SSE)` kết nối với backend qua Server-Sent Events.
+  2. Chế độ mặc định hiển thị nguồn sự kiện `ReplaySource` (mô phỏng chuẩn hóa từ fixture), người dùng có thể chuyển đổi sang `Trực tiếp (Live SSE)` kết nối route `/api/roundtable/stream` khi backend đang hoạt động.
   3. 4 pha suy luận (Trích xuất đề bài, Truy hồi kiến thức, Bàn tròn phản biện, Đánh giá nhận thức) chuyển trạng thái sang hoàn thành.
   4. Luồng sự kiện suy luận (thought stream) cuộn thời gian thực, hiển thị các lời gọi công cụ xác thực đại số vectơ (`tool_verify_vector_algebra`) và tra cứu tri thức RAG (`tool_query_misconception_kb`).
 - **Lời thuyết minh dành cho người demo**:
-  > "Trạm 2 hé lộ hậu trường trí tuệ nhân tạo: Bàn tròn suy luận War Room. Trước khi đưa nội dung đến học sinh, hội đồng AI gồm Trí, Bo, An và Cô Lam phải tự phản biện chéo nhau qua 4 pha nghiêm ngặt. Luồng dữ liệu SSE trực tiếp cho thấy Trí đào sâu bản chất hình học, Bo thử nghiệm các phương án gây nhầm lẫn, và bộ kiểm toán tất định đảm bảo tuyệt đối không có ảo giác toán học."
+  > "Trạm 2 hé lộ hậu trường trí tuệ nhân tạo: Bàn tròn suy luận War Room. Trước khi đưa nội dung đến học sinh, hội đồng AI gồm Trí, Bo, An và Cô Lam phải tự phản biện chéo nhau qua 4 pha nghiêm ngặt. Luồng sự kiện suy luận (phát lại chuẩn hóa từ fixture, có thể chuyển đổi Live SSE) cho thấy Trí đào sâu bản chất hình học, Bo thử nghiệm các phương án gây nhầm lẫn, và bộ kiểm toán tất định giúp giảm thiểu ảo giác toán học nhờ kiểm chứng qua công cụ tất định."
 
 ---
 

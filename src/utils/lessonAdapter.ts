@@ -57,7 +57,7 @@ export function adaptLessonToPlayer(rawLesson: any): ClassroomVideoLessonItem {
     });
 
     (part.scenarios || []).forEach((s: any) => {
-      if ((s.actor_id === 'bo' || s.agent === 'Bo') && (s.bo_fallacy_statement || s.dialogue)) {
+      if (s.is_active !== false && (s.actor_id === 'bo' || s.agent === 'Bo') && (s.bo_fallacy_statement || s.dialogue)) {
         if (!detectedBoDialogue) {
           detectedBoDialogue = s.bo_fallacy_statement || s.dialogue;
         }
@@ -74,15 +74,18 @@ export function adaptLessonToPlayer(rawLesson: any): ClassroomVideoLessonItem {
     return lvl.includes('đánh giá') || lvl.includes('evaluate') || lvl.includes('phân tích') || lvl.includes('analyze');
   }) || allQuestions[0];
 
-  const detectedCheckpointTimestamp = matchedQuestion
+  const hasActiveQuestions = allQuestions.length > 0;
+  const detectedCheckpointTimestamp = hasActiveQuestions && matchedQuestion
     ? Math.min(
         typeof matchedQuestion.at_s === 'number' ? matchedQuestion.at_s : matchedQuestion.timestamp,
         totalDuration
       )
-    : targetCheckpointTime;
+    : -1;
 
   // Xây dựng danh sách phương án lựa chọn (Options)
-  let mappedOptions = matchedQuestion?.options && Array.isArray(matchedQuestion.options)
+  let mappedOptions = !hasActiveQuestions
+    ? []
+    : matchedQuestion?.options && Array.isArray(matchedQuestion.options)
     ? matchedQuestion.options.map((opt: any, oIdx: number) => ({
         id: opt.option_id || opt.id || `opt_${oIdx}`,
         label: opt.text || opt.label || '',
@@ -112,10 +115,12 @@ export function adaptLessonToPlayer(rawLesson: any): ClassroomVideoLessonItem {
         },
       ];
 
-  // Nội dung câu hỏi dừng: Không ghi đè câu hỏi phương trình/bất đẳng thức thành vector
-  const checkpointPrompt = matchedQuestion?.question ||
-    matchedQuestion?.prompt ||
-    (matchedLib ? matchedLib.checkpointQuestion.prompt : "Cho hình lập phương ABCD.A'B'C'D' có cạnh bằng 1. Độ dài của tổng hai vectơ |BC + DD'| bằng bao nhiêu và tính thế nào?");
+  // Nội dung câu hỏi dừng: Không ghi đè câu hỏi phương trình/bất đẳng thức thành vector, tôn trọng trạng thái tắt của giáo viên
+  const checkpointPrompt = !hasActiveQuestions
+    ? ''
+    : matchedQuestion?.question ||
+      matchedQuestion?.prompt ||
+      (matchedLib ? matchedLib.checkpointQuestion.prompt : "Cho hình lập phương ABCD.A'B'C'D' có cạnh bằng 1. Độ dài của tổng hai vectơ |BC + DD'| bằng bao nhiêu và tính thế nào?");
 
   // Lời thoại bẫy của Bo
   const boSpeech = detectedBoDialogue ||
@@ -181,6 +186,7 @@ export function adaptLessonToPlayer(rawLesson: any): ClassroomVideoLessonItem {
     transcriptCues: matchedLib?.transcriptCues,
     chapters: matchedLib?.chapters,
     freezeNote: matchedLib?.freezeNote || "Thầy Tiến chuẩn bị giải Ví dụ 3 câu a trên bảng. Hãy cùng Bo thảo luận cách tính độ dài tổng hai vectơ!",
+    timelineComments: (matchedLib?.timelineComments as any) || [],
   };
 }
 
@@ -193,8 +199,34 @@ export function adaptLessonToPlayer(rawLesson: any): ClassroomVideoLessonItem {
  */
 export function adaptLessonToTimelineComments(rawLesson: any): TimelineComment[] {
   const lesson = sanitizeFixtureData(rawLesson);
+  const lessonId = lesson.lesson_id || lesson.id || 'lesson_vecto_12';
+  const matchedLib = VIDEO_LESSON_LIBRARY.find((l) => l.id === lessonId || l.id === lesson.id);
+
   const comments: TimelineComment[] = [];
   const maxDuration = Math.min(lesson.video_duration_s || CANONICAL_MAX_DURATION_S, CANONICAL_MAX_DURATION_S);
+
+  // Gộp đầy đủ các ambient comments (43 bình luận nền) từ VIDEO_LESSON_LIBRARY (matchedLib)
+  if (matchedLib && Array.isArray(matchedLib.timelineComments)) {
+    matchedLib.timelineComments.forEach((c: any) => {
+      comments.push({
+        id: c.id,
+        partId: c.partId || 'part-01',
+        timestamp: typeof c.second === 'number' ? c.second : (c.timestamp || 0),
+        author: c.author || 'Bạn học',
+        content: c.text || c.content || '',
+        type: 'passive',
+        isActive: true,
+        metadata: {
+          role: c.role,
+          isPinned: c.isPinned,
+          toolCall: c.toolCall,
+          toolCalls: c.toolCalls,
+        },
+      });
+    });
+  }
+
+  const existingIds = new Set(comments.map((c) => c.id));
 
   (lesson.parts || []).forEach((part: any) => {
     if (part.pause_questions && Array.isArray(part.pause_questions)) {
@@ -203,8 +235,9 @@ export function adaptLessonToTimelineComments(rawLesson: any): TimelineComment[]
         // Sử dụng timestamp tuyệt đối chuẩn (không cộng dồn partStart)
         const resolvedTimestamp = Math.min(Math.max(0, rawTime), maxDuration);
 
-        comments.push({
-          id: q.id || q.question_id,
+        const qId = q.id || q.question_id;
+        const qObj: TimelineComment = {
+          id: qId,
           partId: part.id || part.part_id,
           timestamp: resolvedTimestamp,
           author: 'Trợ giảng AI',
@@ -217,7 +250,14 @@ export function adaptLessonToTimelineComments(rawLesson: any): TimelineComment[]
             originalType: q.type || q.question_type,
             localTimestamp: rawTime,
           },
-        });
+        };
+        if (existingIds.has(qId)) {
+          const idx = comments.findIndex((c) => c.id === qId);
+          if (idx >= 0) comments[idx] = qObj;
+        } else {
+          existingIds.add(qId);
+          comments.push(qObj);
+        }
       });
     }
 
@@ -226,8 +266,9 @@ export function adaptLessonToTimelineComments(rawLesson: any): TimelineComment[]
         const rawTime = typeof s.at_s === 'number' ? s.at_s : typeof s.timestamp === 'number' ? s.timestamp : 0;
         const resolvedTimestamp = Math.min(Math.max(0, rawTime), maxDuration);
 
-        comments.push({
-          id: s.id || s.scenario_id,
+        const sId = s.id || s.scenario_id;
+        const sObj: TimelineComment = {
+          id: sId,
           partId: part.id || part.part_id,
           timestamp: resolvedTimestamp,
           author: s.agent || (s.actor_id === 'colam' ? 'Cô Lam' : s.actor_id === 'bo' ? 'Bo' : s.actor_id === 'tri' ? 'Trí' : s.actor_id === 'linhchi' ? 'Linh Chi' : s.actor_id === 'minhkhang' ? 'Minh Khang' : 'Trợ giảng An'),
@@ -240,7 +281,14 @@ export function adaptLessonToTimelineComments(rawLesson: any): TimelineComment[]
             originalType: s.type || s.interaction_type,
             localTimestamp: rawTime,
           },
-        });
+        };
+        if (existingIds.has(sId)) {
+          const idx = comments.findIndex((c) => c.id === sId);
+          if (idx >= 0) comments[idx] = sObj;
+        } else {
+          existingIds.add(sId);
+          comments.push(sObj);
+        }
       });
     }
   });

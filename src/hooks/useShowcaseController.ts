@@ -6,8 +6,9 @@ export interface ShowcaseControllerActions {
   setCurrentMode: (mode: LearningMode) => void;
   setActiveStudioView: (view: 'classroom' | 'warroom' | 'editor') => void;
   handleJumpToCheckpoint: () => void;
-  handleAnswerCheckpoint: (label: string, optionId?: string) => void;
-  handleSubmitRebuttal: (text: string, isEffective: boolean) => void;
+  // Có thể trả về Promise để controller đợi sessionId sẵn sàng (Blu #36-3)
+  handleAnswerCheckpoint: (label: string, optionId?: string) => void | Promise<unknown>;
+  handleSubmitRebuttal: (text: string, isEffective: boolean) => void | Promise<unknown>;
   setIsInspectorDrawerOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   currentVideoLesson: any;
   playTabSound?: () => void;
@@ -34,6 +35,16 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
   const currentStepRef = useRef<number>(1);
   const statusRef = useRef<ShowcaseStatus>('idle');
 
+  // Blu #36-1 / #36-3: luôn đọc actions mới nhất, không bắt closure cũ
+  const actionsRef = useRef<ShowcaseControllerActions>(actions);
+  actionsRef.current = actions;
+
+  // Token huỷ: tăng mỗi lần clearAllTimers để các async đang chờ tự bỏ
+  const runIdRef = useRef<number>(0);
+
+  // Blu #36-1: ?showcase=1 chỉ tự chạy đúng 1 lần
+  const hasConsumedUrlAutostartRef = useRef<boolean>(false);
+
   currentStepRef.current = currentStep;
   statusRef.current = status;
 
@@ -41,6 +52,7 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
     SHOWCASE_STATIONS[currentStep - 1] || SHOWCASE_STATIONS[0];
 
   const clearAllTimers = useCallback(() => {
+    runIdRef.current += 1;
     timersRef.current.forEach(clearTimeout);
     timersRef.current = [];
     if (intervalRef.current) {
@@ -60,6 +72,7 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
   const executeStationActions = useCallback(
     (stepNum: number, startOffsetMs: number = 0) => {
       clearAllTimers();
+      const myRun = runIdRef.current;
 
       stepStartTimeRef.current = Date.now() - startOffsetMs;
       setElapsedStationMs(startOffsetMs);
@@ -79,53 +92,67 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
       if (stepNum === 1) {
         // TRẠM 1: Lớp học tương tác (7s)
         if (startOffsetMs < 500) {
-          actions.setActiveStudioView('classroom');
-          actions.setCurrentMode('video_clash');
-          actions.setIsInspectorDrawerOpen(false);
-          actions.handleJumpToCheckpoint();
+          const a = actionsRef.current;
+          a.setActiveStudioView('classroom');
+          a.setCurrentMode('video_clash');
+          a.setIsInspectorDrawerOpen(false);
+          a.handleJumpToCheckpoint();
         }
 
-        // Chọn phương án B tại giây thứ 2.2
+        // Phản biện: chạy đúng mốc 4.4s, nhưng KHÔNG sớm hơn lúc câu trả lời xong
+        const scheduleRebuttal = () => {
+          const wait = Math.max(50, 4400 - (Date.now() - stepStartTimeRef.current));
+          const t2 = setTimeout(() => {
+            if (runIdRef.current !== myRun) return;
+            const a = actionsRef.current;
+            const rebText =
+              a.currentVideoLesson?.rebuttalStickers?.[0]?.text ||
+              'Độ dài tổng chỉ bằng tổng độ dài khi hai vectơ cùng hướng!';
+            a.handleSubmitRebuttal(rebText, true);
+          }, wait);
+          timersRef.current.push(t2);
+        };
+
         if (startOffsetMs < 2200) {
-          const t1 = setTimeout(() => {
+          // Chọn phương án bẫy (opt_b) tại giây 2.2
+          const t1 = setTimeout(async () => {
+            if (runIdRef.current !== myRun) return;
+            const a = actionsRef.current;
+            const opts: any[] = a.currentVideoLesson?.checkpointQuestion?.options ?? [];
+            // Định danh ổn định, KHÔNG dùng label.includes('B') (khớp nhầm \vec{BC} của opt_a)
             const optB =
-              actions.currentVideoLesson?.checkpointQuestion?.options?.find(
-                (o: any) => o.label.includes('1 + 1 = 2') || o.label.includes('B')
-              )?.label || '1 + 1 = 2 (Tách độ dài)';
-            actions.handleAnswerCheckpoint(optB);
+              opts.find((o: any) => o?.id === 'opt_b' || o?.id === 'B' || o?.isTrap === true) ??
+              opts[1];
+            if (optB) {
+              await Promise.resolve(a.handleAnswerCheckpoint(optB.label, optB.id));
+            }
+            if (runIdRef.current !== myRun) return; // đã Esc/Pause trong lúc chờ
+            scheduleRebuttal();
           }, Math.max(50, 2200 - startOffsetMs));
           timersRef.current.push(t1);
-        }
-
-        // Phản biện sắc bén tại giây thứ 4.4
-        if (startOffsetMs < 4400) {
-          const t2 = setTimeout(() => {
-            const rebText =
-              actions.currentVideoLesson?.rebuttalStickers?.[0]?.text ||
-              'Độ dài tổng chỉ bằng tổng độ dài khi hai vectơ cùng hướng!';
-            actions.handleSubmitRebuttal(rebText, true);
-          }, Math.max(50, 4400 - startOffsetMs));
-          timersRef.current.push(t2);
+        } else if (startOffsetMs < 4400) {
+          // Resume sau Pause khi đã qua bước chọn đáp án
+          scheduleRebuttal();
         }
       } else if (stepNum === 2) {
         // TRẠM 2: Multi-Agent War Room (6s)
-        actions.setActiveStudioView('warroom');
-        actions.setIsInspectorDrawerOpen(false);
+        actionsRef.current.setActiveStudioView('warroom');
+        actionsRef.current.setIsInspectorDrawerOpen(false);
       } else if (stepNum === 3) {
         // TRẠM 3: Multi-Track Timeline (5s)
-        actions.setActiveStudioView('editor');
-        actions.setIsInspectorDrawerOpen(false);
+        actionsRef.current.setActiveStudioView('editor');
+        actionsRef.current.setIsInspectorDrawerOpen(false);
       } else if (stepNum === 4) {
         // TRẠM 4: Đánh giá nhận thức Tháp Bloom (5s)
-        actions.setActiveStudioView('classroom');
-        actions.setCurrentMode('video_clash');
-        actions.setIsInspectorDrawerOpen(true);
+        actionsRef.current.setActiveStudioView('classroom');
+        actionsRef.current.setCurrentMode('video_clash');
+        actionsRef.current.setIsInspectorDrawerOpen(true);
       }
 
       // 3. Hết thời gian trạm: Chuyển trạm tiếp theo hoặc Hoàn tất
       const tEnd = setTimeout(() => {
         if (stepNum < 4) {
-          actions.playTabSound?.();
+          actionsRef.current.playTabSound?.();
           const next = stepNum + 1;
           setCurrentStep(next);
           executeStationActions(next, 0);
@@ -133,7 +160,7 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
           // Hoàn tất Showcase
           clearAllTimers();
           setStatus('completed');
-          actions.playSuccessSound?.();
+          actionsRef.current.playSuccessSound?.();
           const tDone = setTimeout(() => {
             stop();
           }, 3500);
@@ -143,16 +170,17 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
 
       timersRef.current.push(tEnd);
     },
-    [actions, clearAllTimers, stop]
+    [clearAllTimers, stop]
   );
 
+  // start ổn định (không phụ thuộc actions) -> effect autostart không chạy lại
   const start = useCallback(() => {
     stop();
     setStatus('running');
     setCurrentStep(1);
-    actions.playTabSound?.();
+    actionsRef.current.playTabSound?.();
     executeStationActions(1, 0);
-  }, [stop, actions, executeStationActions]);
+  }, [stop, executeStationActions]);
 
   const togglePause = useCallback(() => {
     if (statusRef.current === 'running') {
@@ -169,7 +197,7 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
 
   const nextStation = useCallback(() => {
     if (currentStepRef.current < 4) {
-      actions.playTabSound?.();
+      actionsRef.current.playTabSound?.();
       const next = currentStepRef.current + 1;
       setCurrentStep(next);
       setStatus('running');
@@ -177,7 +205,7 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
     } else {
       stop();
     }
-  }, [actions, executeStationActions, stop]);
+  }, [executeStationActions, stop]);
 
   // Lắng nghe phím tắt bàn phím F2, Esc, Space
   useEffect(() => {
@@ -223,17 +251,20 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
     };
   }, [start, stop, togglePause]);
 
-  // Tự động khởi chạy nếu URL có query ?showcase=1 hoặc ?demo=1
+  // Tự động khởi chạy ?showcase=1 / ?demo=1 ĐÚNG 1 LẦN khi mount.
+  // Cờ consumed được set TRONG callback (không set lúc lên lịch) để React
+  // StrictMode (mount -> cleanup -> mount) không làm mất lần chạy duy nhất.
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const s = new URLSearchParams(window.location.search);
-      if (s.get('showcase') === '1' || s.get('demo') === '1') {
-        const timer = setTimeout(() => {
-          start();
-        }, 300);
-        return () => clearTimeout(timer);
-      }
-    }
+    if (typeof window === 'undefined') return;
+    if (hasConsumedUrlAutostartRef.current) return;
+    const s = new URLSearchParams(window.location.search);
+    if (s.get('showcase') !== '1' && s.get('demo') !== '1') return;
+
+    const timer = setTimeout(() => {
+      hasConsumedUrlAutostartRef.current = true;
+      start();
+    }, 300);
+    return () => clearTimeout(timer);
   }, [start]);
 
   // Dọn dẹp timers khi unmount

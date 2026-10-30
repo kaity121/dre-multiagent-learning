@@ -21,7 +21,28 @@ import { createSSEClient } from './services/sseClient';
 import { WarRoomPanel } from './components/warroom/WarRoomPanel';
 import { TimelineEditor } from './components/timeline/TimelineEditor';
 import { useLessonStore, lessonStore } from './store/lessonStore';
-import { mapReasoningEventsToInspectorTurns } from './services/reasoningAdapter';
+import { mapReasoningEventsToInspectorTurns, mapBackendToReasoningEvent } from './services/reasoningAdapter';
+import mockReasoningEvents from '../mock/mock_reasoning_events.json';
+import mockLessonSchema from '../mock/lesson.json';
+
+const baseReplayEvents = ((mockReasoningEvents as any[]) || []).map(mapBackendToReasoningEvent);
+const lastReplayTs = baseReplayEvents.length > 0
+  ? baseReplayEvents[baseReplayEvents.length - 1].timestamp
+  : new Date('2026-10-26T09:00:35.000Z').getTime();
+
+const FULL_REPLAY_REASONING_EVENTS = [
+  ...baseReplayEvents,
+  {
+    id: 'ev_019_done',
+    timestamp: lastReplayTs + 1000,
+    agent: 'Assessor',
+    eventType: 'done' as const,
+    phase: 'bloom' as const,
+    content: 'Kết thúc phát lại fixture (18 sự kiện)',
+    metadata: { lesson: mockLessonSchema },
+    normalized: true as const,
+  },
+];
 import {
   InspectorDrawer,
 } from './components/inspector/InspectorDrawer';
@@ -112,6 +133,8 @@ export default function App() {
   // Backend Multi-Agent AI States (Connected to dre-backend Express on port 3001)
   const [isBackendLive, setIsBackendLive] = useState<boolean>(false);
   const [backendSessionId, setBackendSessionId] = useState<string | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
+  sessionIdRef.current = backendSessionId;
   const [isLoadingAi, setIsLoadingAi] = useState<boolean>(false);
   const [liveBoDialogue, setLiveBoDialogue] = useState<string | null>(null);
   const [liveCoLamDialogue, setLiveCoLamDialogue] = useState<string | string[] | null>(null);
@@ -235,9 +258,18 @@ export default function App() {
         streamDelayMs: 25,
       });
     }
-    return new ReplaySource(DEMO_REASONING_EVENTS as any, 1.0);
+    const isShowcase = typeof window !== 'undefined' && (new URLSearchParams(window.location.search).get('showcase') === '1');
+    return new ReplaySource(FULL_REPLAY_REASONING_EVENTS as any, isShowcase ? 6.0 : 1.0);
   }, [useLiveSSE, currentVideoLesson.id]);
   const [inspectorTurns, setInspectorTurns] = useState<InspectorTurn[]>(() => DEMO_INSPECTOR_TURNS);
+  const [activeTurnIndex, setActiveTurnIndex] = useState<number>(() => Math.max(0, DEMO_INSPECTOR_TURNS.length - 1));
+
+  // Tự động cập nhật activeTurnIndex theo lượt mới nhất khi có thêm turn tương tác
+  useEffect(() => {
+    if (inspectorTurns.length > 0) {
+      setActiveTurnIndex(inspectorTurns.length - 1);
+    }
+  }, [inspectorTurns.length]);
 
   // Tự động map luồng sự kiện từ reasoning source sang inspector turns (Issue #16)
   useEffect(() => {
@@ -688,7 +720,10 @@ export default function App() {
     if (isBackendLive && !backendSessionId) {
       startBackendSession(currentLesson.id)
         .then((res) => {
-          if (res?.sessionId) setBackendSessionId(res.sessionId);
+          if (res?.sessionId) {
+            sessionIdRef.current = res.sessionId;
+            setBackendSessionId(res.sessionId);
+          }
         })
         .catch(() => {});
     }
@@ -873,6 +908,71 @@ export default function App() {
     setVideoPhase('STUDENT_FREEZE');
   };
 
+  const handleChatMessageProcessed = (chatInfo: { text: string; author: string; reply: any; second: number }) => {
+    const turnNumber = inspectorTurns.length + 1;
+    const rawAuthor = chatInfo.reply?.author || 'Trí';
+    const cleanAgent = rawAuthor.replace(/^(Bạn học|Trợ giảng|Cô|Thầy)\s*/i, '').trim() || 'Trí';
+    const isTa = rawAuthor.includes('Trợ giảng');
+    const isTeacher = rawAuthor.includes('Cô Lam');
+
+    const hasMeasuredDispatcher = Boolean(chatInfo.reply?.verdict);
+    const measuredVerdict = chatInfo.reply?.verdict;
+    const measuredConfidence = typeof measuredVerdict?.confidence === 'number'
+      ? measuredVerdict.confidence
+      : (typeof chatInfo.reply?.confidence === 'number' ? chatInfo.reply.confidence : undefined);
+    const measuredIntent = measuredVerdict?.detectedIntent || chatInfo.reply?.intent || (chatInfo.reply?.kbMatchedId ? `Truy vấn kiến thức (${chatInfo.reply.kbMatchedId})` : undefined);
+    const measuredAgent = measuredVerdict?.dispatchedAgent
+      ? (measuredVerdict.dispatchedAgent === 'colam' ? 'Cô Lam' : measuredVerdict.dispatchedAgent === 'bo' ? 'Bo' : measuredVerdict.dispatchedAgent === 'linhchi' ? 'Linh Chi' : measuredVerdict.dispatchedAgent === 'minhkhang' ? 'Minh Khang' : measuredVerdict.dispatchedAgent === 'an' ? 'An' : rawAuthor)
+      : rawAuthor;
+
+    const newTurn: InspectorTurn = {
+      turnId: `chat-turn-${Date.now()}`,
+      timestamp: Date.now(),
+      turnNumber,
+      timestampStr: `${Math.floor(chatInfo.second / 60)}:${(chatInfo.second % 60).toString().padStart(2, '0')}`,
+      agent: isTeacher ? 'Cô Lam' : isTa ? 'An' : cleanAgent,
+      dispatcher: {
+        intent: measuredIntent || 'Hỏi đáp lớp học',
+        selectedAgent: measuredAgent || cleanAgent,
+        confidence: measuredConfidence,
+        reason: measuredVerdict?.reasoning || `Học sinh trao đổi: "${chatInfo.text.slice(0, 80)}". Điều phối ${rawAuthor} giải đáp trực tiếp.`,
+        isEvaluated: typeof measuredConfidence === 'number',
+      },
+      contextView: {
+        visibleContext: [
+          `Tin nhắn học sinh: "${chatInfo.text}"`,
+          `Thời điểm bài giảng: ${Math.floor(chatInfo.second / 60)}:${(chatInfo.second % 60).toString().padStart(2, '0')}`,
+          chatInfo.reply?.kbMatchedId ? `Tri thức RAG: ${chatInfo.reply.kbMatchedId}` : 'Hỏi đáp tương tác đa tác tử',
+        ],
+        hiddenContext: [
+          'Kịch bản phân tầng trợ giúp',
+          'Lịch sử tương tác lớp học',
+        ],
+        isEvaluated: Boolean(chatInfo.reply?.kbMatchedId || chatInfo.reply?.ragContextUsed),
+        cognitiveMetrics: {
+          hesitationScore: typeof chatInfo.reply?.hesitationScore === 'number' ? chatInfo.reply.hesitationScore : undefined,
+          comprehensionScore: typeof chatInfo.reply?.comprehensionScore === 'number' ? chatInfo.reply.comprehensionScore : undefined,
+          misconceptionDetected: Boolean(chatInfo.reply?.kbMatchedId),
+          isEvaluated: typeof chatInfo.reply?.hesitationScore === 'number' || typeof chatInfo.reply?.comprehensionScore === 'number',
+        },
+      },
+      dialogue: chatInfo.reply?.text || '',
+      toolCalls: chatInfo.reply?.toolCalls || (chatInfo.reply?.toolCall ? [chatInfo.reply.toolCall] : []),
+      assessor: (chatInfo.reply?.assessment || chatInfo.reply?.assessor || chatInfo.reply?.bloomLevel !== undefined || chatInfo.reply?.hesitationScore !== undefined) ? {
+        matchedPoints: chatInfo.reply?.assessment?.matchedPoints || [],
+        missingPoints: chatInfo.reply?.assessment?.missingPoints || [],
+        bloomBefore: chatInfo.reply?.assessment?.bloomBefore,
+        bloomAfter: chatInfo.reply?.assessment?.bloomAfter,
+        bloomLevel: typeof chatInfo.reply?.bloomLevel === 'number' ? chatInfo.reply.bloomLevel : undefined,
+        hesitationScore: typeof chatInfo.reply?.hesitationScore === 'number' ? chatInfo.reply.hesitationScore : undefined,
+        hesitationLabel: typeof chatInfo.reply?.hesitationScore === 'number' ? (chatInfo.reply.hesitationScore < 0.3 ? 'thấp' : chatInfo.reply.hesitationScore < 0.7 ? 'trung bình' : 'cao') : undefined,
+        verdictLabel: chatInfo.reply?.assessment?.verdictLabel || 'Đã đánh giá',
+        isEvaluated: typeof chatInfo.reply?.bloomLevel === 'number' || typeof chatInfo.reply?.hesitationScore === 'number',
+      } : undefined,
+    };
+    setInspectorTurns((prev) => [...prev, newTurn]);
+  };
+
   const handleAnswerCheckpoint = async (optionLabel: string, optionId?: string) => {
     recordUserActivity();
     setLiveHintDialogue(null);
@@ -897,8 +997,9 @@ export default function App() {
       dispatcher: {
         intent: 'Phản biện lỗi nhận thức vectơ',
         selectedAgent: 'Bo',
-        confidence: 0.94,
+        confidence: undefined,
         reason: `Học sinh đã chọn phương án "${optionLabel}". Kích hoạt phản biện trực tiếp để kiểm tra độ vững kiến thức.`,
+        isEvaluated: false,
       },
       contextView: {
         visibleContext: [
@@ -924,13 +1025,14 @@ export default function App() {
         missingPoints: isOptionB
           ? ['Đang ngộ nhận tách độ dài |a + b| = |a| + |b|']
           : ['Cần giải thích lý do thế vectơ DD\' = CC\''],
-        bloomBefore: 'Nhớ (L1)',
-        bloomAfter: 'Phân tích & Phản biện (L4)',
-        bloomLevel: 4,
-        hesitationScore: 0.12,
-        hesitationLabel: 'thấp',
+        bloomBefore: undefined,
+        bloomAfter: undefined,
+        bloomLevel: undefined,
+        hesitationScore: undefined,
+        hesitationLabel: undefined,
         verdictLabel: 'Kích hoạt tranh luận',
         matchedSummary: isOptionB ? 'Phát hiện ngộ nhận tách độ dài' : 'Khớp phương án đúng, kích hoạt phản biện kiểm chứng',
+        isEvaluated: false,
       },
     };
     setInspectorTurns((prev) => [...prev, newAnswerTurn]);
@@ -949,11 +1051,25 @@ export default function App() {
                 ? {
                     ...t,
                     dispatcher: {
-                      intent: res.verdict.detectedIntent,
-                      selectedAgent: res.verdict.dispatchedAgent === 'bo' ? 'Bo' : res.verdict.dispatchedAgent === 'colam' ? 'Cô Lam' : 'Trí',
-                      confidence: res.verdict.confidence,
-                      reason: res.verdict.reasoning,
+                      intent: res.verdict.detectedIntent || (res as any).intent || t.dispatcher?.intent || 'Phản biện lỗi nhận thức vectơ',
+                      selectedAgent: res.verdict.dispatchedAgent === 'bo' ? 'Bo' : res.verdict.dispatchedAgent === 'colam' ? 'Cô Lam' : res.verdict.dispatchedAgent === 'linhchi' ? 'Linh Chi' : res.verdict.dispatchedAgent === 'minhkhang' ? 'Minh Khang' : res.verdict.dispatchedAgent === 'an' ? 'An' : ((res as any).selectedAgent || t.dispatcher?.selectedAgent || '—'),
+                      confidence: typeof res.verdict.confidence === 'number' ? res.verdict.confidence : (typeof (res as any).confidence === 'number' ? (res as any).confidence : undefined),
+                      reason: res.verdict.reasoning || t.dispatcher?.reason || '',
+                      isEvaluated: typeof res.verdict.confidence === 'number' || typeof (res as any).confidence === 'number',
                     },
+                    contextView: {
+                      ...t.contextView!,
+                      isEvaluated: Boolean(res.ragContextUsed),
+                      ragKnowledge: res.ragContextUsed
+                        ? `RAG [${res.ragContextUsed.misconceptionId}]: ${res.ragContextUsed.correction}`
+                        : t.contextView?.ragKnowledge,
+                    },
+                    assessor: t.assessor ? {
+                      ...t.assessor,
+                      isEvaluated: typeof (res as any).bloomLevel === 'number' || typeof (res as any).hesitationScore === 'number',
+                      bloomLevel: typeof (res as any).bloomLevel === 'number' ? (res as any).bloomLevel : undefined,
+                      hesitationScore: typeof (res as any).hesitationScore === 'number' ? (res as any).hesitationScore : undefined,
+                    } : undefined,
                   }
                 : t
             )
@@ -979,6 +1095,7 @@ export default function App() {
           const sessRes = await startBackendSession(miscId);
           if (sessRes) {
             currentSess = sessRes.sessionId;
+            sessionIdRef.current = currentSess;
             setBackendSessionId(currentSess);
           }
         }
@@ -1019,8 +1136,9 @@ export default function App() {
         dispatcher: {
           intent: 'Chốt quy tắc vàng & Tổng kết sư phạm',
           selectedAgent: 'Cô Lam',
-          confidence: 0.98,
+          confidence: undefined,
           reason: 'Học sinh đã phản biện thành công lập luận sai của Bo. Cô Lam xuất hiện để chuẩn hóa kiến thức.',
+          isEvaluated: false,
         },
         contextView: {
           visibleContext: [
@@ -1044,13 +1162,14 @@ export default function App() {
             'Bác bỏ hoàn toàn ngộ nhận tách độ dài của Bo',
           ],
           missingPoints: [],
-          bloomBefore: 'Hiểu (L2)',
-          bloomAfter: 'Đánh giá & Sáng tạo (L5-L6)',
-          bloomLevel: 5,
-          hesitationScore: 0.05,
-          hesitationLabel: 'rất thấp',
+          bloomBefore: undefined,
+          bloomAfter: undefined,
+          bloomLevel: undefined,
+          hesitationScore: undefined,
+          hesitationLabel: undefined,
           verdictLabel: 'Phản biện sắc bén',
           matchedSummary: 'Đạt 3/3 ý cần có',
+          isEvaluated: false,
         },
       };
       setInspectorTurns((prev) => [...prev, newRebuttalTurn]);
@@ -1077,10 +1196,11 @@ export default function App() {
                   ? {
                       ...t,
                       dispatcher: {
-                        intent: res.verdict.detectedIntent,
-                        selectedAgent: res.verdict.dispatchedAgent === 'colam' ? 'Cô Lam' : res.verdict.dispatchedAgent === 'bo' ? 'Bo' : 'Trí',
-                        confidence: res.verdict.confidence,
-                        reason: res.verdict.reasoning,
+                        intent: res.verdict.detectedIntent || 'Chốt quy tắc vàng & Tổng kết sư phạm',
+                        selectedAgent: res.verdict.dispatchedAgent === 'colam' ? 'Cô Lam' : res.verdict.dispatchedAgent === 'bo' ? 'Bo' : (res.verdict.dispatchedAgent || '—'),
+                        confidence: typeof res.verdict.confidence === 'number' ? res.verdict.confidence : undefined,
+                        reason: res.verdict.reasoning || '',
+                        isEvaluated: typeof res.verdict.confidence === 'number',
                       },
                       thought: res.primaryResponse?.text
                         ? `Tác nhân đã phân tích: "${res.verdict.reasoning}"`
@@ -1118,10 +1238,11 @@ export default function App() {
       return;
     }
 
-    if (isBackendLive && backendSessionId) {
+    const activeSess = sessionIdRef.current || backendSessionId;
+    if (isBackendLive && activeSess) {
       setIsLoadingAi(true);
       try {
-        const rebRes = await submitBackendRebuttal(backendSessionId, rebuttalText);
+        const rebRes = await submitBackendRebuttal(activeSess, rebuttalText);
         if (rebRes) {
           if (rebRes.danhGiaPhanBien === 'sac_ben' || rebRes.done) {
             if (rebRes.boDialogue) setLiveBoDialogue(rebRes.boDialogue);
@@ -1713,8 +1834,14 @@ export default function App() {
                 setUseLiveSSE((prev) => !prev);
               }}
               defaultCollapsed={false}
-              onTransferDraftToTimeline={() => {
+              onTransferDraftToTimeline={(draftLesson) => {
                 sound.playTabSwitch();
+                if (draftLesson) {
+                  setCurrentLessonSchema(draftLesson);
+                  lessonStore.setDraft(draftLesson);
+                } else {
+                  lessonStore.setDraft(currentLessonSchema);
+                }
                 setActiveStudioView('editor');
               }}
             />
@@ -2108,6 +2235,7 @@ export default function App() {
                       setIsVideoPlaying(false);
                       setCurrentMode('worksheet');
                     }}
+                    onChatMessageProcessed={handleChatMessageProcessed}
                   />
                 </div>
               </div>
@@ -2138,7 +2266,7 @@ export default function App() {
                     isOpen={isInspectorDrawerOpen}
                     onClose={() => setIsInspectorDrawerOpen(false)}
                     turns={inspectorTurns}
-                    activeTurnIndex={3}
+                    activeTurnIndex={activeTurnIndex}
                     isReplay={!useLiveSSE}
                   />
                 </div>
@@ -2245,7 +2373,7 @@ export default function App() {
             isOpen={isInspectorDrawerOpen}
             onClose={() => setIsInspectorDrawerOpen(false)}
             turns={inspectorTurns}
-            activeTurnIndex={3}
+            activeTurnIndex={activeTurnIndex}
                     isReplay={!useLiveSSE}
           />
         </div>

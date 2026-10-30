@@ -17,6 +17,97 @@ export const CANONICAL_WARMUP_S = 15;
  * Kiểm tra va chạm thời gian và nhịp độ sư phạm (Pacing Bridge) cho Timeline Editor.
  * Đồng bộ chuẩn 100% với Deterministic Tool backend: tool_timeline_collision_checker.
  */
+/**
+ * Kiểm tra va chạm nhịp độ đồng bộ (Synchronous Local Evaluation)
+ * Đảm bảo phát hiện ngay lập tức ở frame render đầu tiên (< 20s giữa checkpoint & scenario)
+ */
+export function checkTimelineCollisionsSync(lesson: DRELessonSchema): CollisionWarning[] {
+  const warnings: CollisionWarning[] = [];
+
+  (lesson.parts || []).forEach((part) => {
+    const activePauseQuestions = (part.pause_questions || []).filter((q) => q.is_active);
+    if (activePauseQuestions.length > 1) {
+      warnings.push({
+        type: 'rule_violation',
+        partId: part.id,
+        severity: 'error',
+        message: `Phân đoạn "${part.title}" có ${activePauseQuestions.length} câu hỏi dừng đang bật. Quy định chuẩn chỉ cho phép tối đa 1 lần dừng mỗi part.`,
+        itemIds: activePauseQuestions.map((q) => q.id),
+      });
+    }
+
+    const allActiveItems = [
+      ...(part.pause_questions || [])
+        .filter((q) => q.is_active)
+        .map((q) => ({
+          id: q.id,
+          timestamp: q.timestamp,
+          name: 'Câu hỏi',
+          actor_id: 'colam',
+          type: 'checkpoint',
+          partId: part.id,
+          isChained: Boolean((q as any).isChained || (q as any).chained),
+          groupId: (q as any).groupId,
+        })),
+      ...(part.scenarios || [])
+        .filter((s) => s.is_active)
+        .map((s) => ({
+          id: s.id,
+          timestamp: s.timestamp,
+          name: `Kịch bản (${s.agent})`,
+          actor_id: s.agent ? s.agent.toLowerCase() : 'auto',
+          type: 'scenario',
+          partId: part.id,
+          isChained: Boolean((s as any).isChained || (s as any).chained),
+          groupId: (s as any).groupId,
+        })),
+    ].sort((a, b) => a.timestamp - b.timestamp);
+
+    allActiveItems.forEach((item) => {
+      // Kiểm tra mở đầu bài giảng (Warmup >= 15s)
+      if (item.timestamp < CANONICAL_WARMUP_S) {
+        warnings.push({
+          type: 'rule_violation',
+          partId: part.id,
+          severity: 'warning',
+          message: `Mốc ${item.name} (${item.timestamp}s) xuất hiện trong ${CANONICAL_WARMUP_S}s đầu bài giảng khi học sinh chưa kịp làm quen bài học.`,
+          itemIds: [item.id],
+        });
+      }
+    });
+
+    // Kiểm tra khoảng cách liên tiếp theo chuẩn minGapS = 20s
+    for (let i = 1; i < allActiveItems.length; i++) {
+      const prev = allActiveItems[i - 1];
+      const curr = allActiveItems[i];
+      const gap = curr.timestamp - prev.timestamp;
+
+      // Chỉ miễn trừ các sự kiện có đánh dấu nối tiếp chủ ý (isChained === true hoặc chained === true)
+      // TUYỆT ĐỐI không miễn trừ mù quáng bằng gap <= 3 cho các cặp sự kiện độc lập!
+      const isIntentionalChaining = Boolean(
+        curr.isChained === true ||
+        (curr as any).chained === true
+      );
+      if (!isIntentionalChaining && gap < CANONICAL_MIN_GAP_S) {
+        const suggestSec = prev.timestamp + CANONICAL_MIN_GAP_S;
+        const prevTimeStr = `${Math.floor(prev.timestamp / 60)}:${(prev.timestamp % 60).toString().padStart(2, '0')}`;
+        const currTimeStr = `${Math.floor(curr.timestamp / 60)}:${(curr.timestamp % 60).toString().padStart(2, '0')}`;
+        const suggestTimeStr = `${Math.floor(suggestSec / 60)}:${(suggestSec % 60).toString().padStart(2, '0')}`;
+        const partName = part.title.split('(')[0].trim();
+        warnings.push({
+          type: 'time_overlap',
+          partId: part.id,
+          severity: 'warning',
+          message: `Tại “${partName}”, mốc ${curr.name} ${currTimeStr} (${curr.timestamp}s) và ${prev.name} ${prevTimeStr} (${prev.timestamp}s) cách nhau ${gap}s, dưới chuẩn tối thiểu ${CANONICAL_MIN_GAP_S}s. Gợi ý: dời ${curr.name.toLowerCase().includes('bo') ? 'kịch bản Bo' : curr.name} tới ${suggestTimeStr} (${suggestSec}s).`,
+          itemIds: [prev.id, curr.id],
+        });
+      }
+    }
+  });
+
+  return warnings;
+}
+
 export async function checkTimelineCollisions(
   lesson: DRELessonSchema
 ): Promise<CollisionWarning[]> {
@@ -56,7 +147,8 @@ export async function checkTimelineCollisions(
           actor_id: 'colam',
           type: 'checkpoint',
           partId: part.id,
-          isChained: false,
+          isChained: Boolean((q as any).isChained || (q as any).chained),
+          groupId: (q as any).groupId,
         })),
       ...(part.scenarios || [])
         .filter((s) => s.is_active)
@@ -67,7 +159,8 @@ export async function checkTimelineCollisions(
           actor_id: s.agent ? s.agent.toLowerCase() : 'auto',
           type: 'scenario',
           partId: part.id,
-          isChained: false,
+          isChained: Boolean((s as any).isChained || (s as any).chained),
+          groupId: (s as any).groupId,
         })),
     ].sort((a, b) => a.timestamp - b.timestamp);
 
@@ -99,8 +192,12 @@ export async function checkTimelineCollisions(
       const curr = allActiveItems[i];
       const gap = curr.timestamp - prev.timestamp;
 
-      // Bỏ qua các sự kiện nối tiếp chủ ý cùng mốc checkpoint (gap <= 3s)
-      const isIntentionalChaining = gap <= 3;
+      // Chỉ miễn trừ các sự kiện có đánh dấu nối tiếp chủ ý (isChained === true hoặc chained === true)
+      // TUYỆT ĐỐI không miễn trừ mù quáng bằng gap <= 3 cho các cặp sự kiện độc lập!
+      const isIntentionalChaining = Boolean(
+        curr.isChained === true ||
+        (curr as any).chained === true
+      );
       if (!isIntentionalChaining && gap < CANONICAL_MIN_GAP_S) {
         const suggestSec = prev.timestamp + CANONICAL_MIN_GAP_S;
         const prevTimeStr = `${Math.floor(prev.timestamp / 60)}:${(prev.timestamp % 60).toString().padStart(2, '0')}`;

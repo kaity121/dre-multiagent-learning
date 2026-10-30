@@ -5,8 +5,10 @@ import {
   AgentState,
   PhaseType,
   PhaseStatus,
+  ToolResultPayload,
 } from '../../types/reasoning';
 import { ReasoningSource } from '../../services/reasoningSource';
+import { mapBackendToReasoningEvent } from '../../services/reasoningAdapter';
 import { PhaseStepper } from './PhaseStepper';
 import { AgentStatusRow } from './AgentStatusRow';
 import { EventRow } from '../shared/EventRow';
@@ -45,7 +47,7 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
     if (typeof window !== 'undefined') {
       const s = new URLSearchParams(window.location.search);
       if (s.get('active') === '1' || s.get('completed') === '1' || s.get('full') === '1') {
-        return (mockReasoningEvents as any[]) || [];
+        return ((mockReasoningEvents as any[]) || []).map(mapBackendToReasoningEvent);
       }
     }
     return [];
@@ -95,7 +97,6 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
         'Trí': 'thinking',
         'Bo': 'speaking',
         'An': 'idle',
-        'Blu': 'idle',
         'Dispatcher': 'idle',
         'Assessor': 'idle',
       };
@@ -104,7 +105,6 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
       'Trí': 'idle',
       'Bo': 'idle',
       'An': 'idle',
-      'Blu': 'idle',
       'Dispatcher': 'idle',
       'Assessor': 'idle',
     };
@@ -127,29 +127,44 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
   });
 
   const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
+  const autoTransferCancelledRef = useRef(false);
+  const onTransferRef = useRef(onTransferDraftToTimeline);
+  onTransferRef.current = onTransferDraftToTimeline;
+  const eventsRef = useRef(events);
+  eventsRef.current = events;
 
+  // Effect 1: Quản lý kích hoạt đếm ngược khi hoàn thành
   useEffect(() => {
-    let timer: any = null;
-    if (isDone && isPlaying) {
-      setAutoCountdown(4);
-      timer = setInterval(() => {
-        setAutoCountdown((prev) => {
-          if (prev === null || prev <= 1) {
-            clearInterval(timer);
-            sound.playSuccessChime();
-            onTransferDraftToTimeline?.();
-            return null;
-          }
-          return prev - 1;
-        });
+    if (!isDone) {
+      autoTransferCancelledRef.current = false;
+      setAutoCountdown(null);
+      return;
+    }
+    if (isPlaying && !autoTransferCancelledRef.current) {
+      setAutoCountdown((prev) => (prev === null ? 5 : prev));
+    }
+  }, [isDone, isPlaying]);
+
+  // Effect 2: Đếm ngược từng giây và chuyển giao bản nháp giáo án
+  useEffect(() => {
+    if (!isDone || autoCountdown === null || autoTransferCancelledRef.current) {
+      return;
+    }
+
+    if (autoCountdown > 0) {
+      const timer = setTimeout(() => {
+        setAutoCountdown((prev) => (prev !== null && prev > 0 ? prev - 1 : null));
       }, 1000);
-    } else if (!isDone) {
+      return () => clearTimeout(timer);
+    }
+
+    if (autoCountdown === 0) {
+      const doneEvt = [...eventsRef.current].reverse().find((e) => (e.metadata as any)?.lesson);
+      const lesson = (doneEvt?.metadata as any)?.lesson;
+      onTransferRef.current?.(lesson);
       setAutoCountdown(null);
     }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [isDone, isPlaying, onTransferDraftToTimeline]);
+  }, [isDone, autoCountdown]);
 
   const feedBottomRef = useRef<HTMLDivElement>(null);
 
@@ -171,28 +186,16 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
     });
 
     const unsubscribe = source.subscribe((rawEvt) => {
-      const evt = { ...rawEvt };
-      // Normalize timestamp if ISO string
-      if (typeof evt.timestamp === 'string') {
-        const parsed = new Date(evt.timestamp).getTime();
-        if (!isNaN(parsed)) evt.timestamp = parsed;
-      }
-      // Normalize toolCall input to params
-      if (evt.toolCall && (evt.toolCall as any).input && !evt.toolCall.params) {
-        evt.toolCall.params = (evt.toolCall as any).input;
-      }
-      // Normalize eventType aliases from producer
-      const normType = (evt.eventType || '').toLowerCase();
-      if (normType === 'thought') evt.eventType = 'thinking';
-      else if (normType === 'debate_turn') evt.eventType = 'speaking';
+      const evt = mapBackendToReasoningEvent(rawEvt);
+      const normType = evt.eventType;
 
       setEvents((prev) => [...prev, evt]);
 
       if (evt.agent) {
         let nextState: AgentState = 'idle';
-        if (normType === 'thinking' || normType === 'thought') nextState = 'thinking';
-        else if (normType === 'tool_call' || normType === 'tool_calling') nextState = 'tool_calling';
-        else if (normType === 'speaking' || normType === 'debate_turn' || normType === 'cross_check_verdict') nextState = 'speaking';
+        if (normType === 'thinking') nextState = 'thinking';
+        else if (normType === 'tool_call') nextState = 'tool_calling';
+        else if (normType === 'speaking' || normType === 'cross_check_verdict') nextState = 'speaking';
 
         setAgentStates((prev) => ({
           ...prev,
@@ -228,7 +231,6 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
           'Trí': 'idle',
           'Bo': 'idle',
           'An': 'idle',
-          'Blu': 'idle',
           'Dispatcher': 'idle',
           'Assessor': 'idle',
         });
@@ -267,6 +269,8 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
     source.stop();
     setEvents([]);
     setIsDone(false);
+    autoTransferCancelledRef.current = false;
+    setAutoCountdown(null);
     setCurrentPhase(null);
     setPhaseStatuses({
       extract: 'pending',
@@ -278,7 +282,6 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
       'Trí': 'idle',
       'Bo': 'idle',
       'An': 'idle',
-      'Blu': 'idle',
       'Dispatcher': 'idle',
       'Assessor': 'idle',
     });
@@ -292,7 +295,7 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
   // Helper to load all 18 demo events at once for rich inspection / screenshot
   const handleLoadFullDemo = () => {
     sound.playSuccessChime();
-    const allEvts = (mockReasoningEvents as any[]) || [];
+    const allEvts = ((mockReasoningEvents as any[]) || []).map(mapBackendToReasoningEvent);
     setEvents(allEvts);
     setIsDone(true);
     setCurrentPhase('bloom');
@@ -306,7 +309,6 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
       'Trí': 'idle',
       'Bo': 'speaking',
       'An': 'idle',
-      'Blu': 'idle',
       'Dispatcher': 'idle',
       'Assessor': 'idle',
     });
@@ -381,9 +383,6 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
                 >
                   War Room · Hội đồng AI soạn kịch bản
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white text-[#121712] border border-[#121712] uppercase tracking-wider">
-                  REPLAY
-                </span>
               </div>
               {source.isReplay() ? (
                 <button
@@ -503,7 +502,14 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
               <div className="flex items-center gap-3 text-xs text-stone-500 font-mono">
                 {events.length > 0 && (
                   <span>
-                    Mới nhất: +{(((events[events.length - 1].timestamp - (events[0]?.timestamp || 0)) / 1000) || (events.length * 0.4)).toFixed(1)}s
+                    Mới nhất: +{(() => {
+                  const t0 = events[0]?.timestamp ? (typeof events[0].timestamp === 'number' ? events[0].timestamp : new Date(events[0].timestamp).getTime()) : 0;
+                  const t1 = events[events.length - 1]?.timestamp ? (typeof events[events.length - 1].timestamp === 'number' ? events[events.length - 1].timestamp : new Date(events[events.length - 1].timestamp).getTime()) : 0;
+                  const diff = Math.max(0, Math.round((t1 - t0) / 1000));
+                  const m = Math.floor(diff / 60).toString().padStart(2, '0');
+                  const s = (diff % 60).toString().padStart(2, '0');
+                  return `${m}:${s}`;
+                })()}
                   </span>
                 )}
                 {events.length === 0 && (
@@ -545,6 +551,7 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
                     type="button"
                     onClick={() => {
                       sound.playPencilTap();
+                      autoTransferCancelledRef.current = true;
                       setAutoCountdown(null);
                     }}
                     className="px-3 py-2 rounded-full border border-stone-600 hover:bg-stone-800 text-stone-300 text-xs font-semibold cursor-pointer transition"
@@ -557,13 +564,17 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
                   type="button"
                   onClick={() => {
                     sound.playSuccessChime();
+                    autoTransferCancelledRef.current = true;
                     setAutoCountdown(null);
-                    onTransferDraftToTimeline?.();
+                    const doneEvt = [...eventsRef.current].reverse().find((e) => (e.metadata as any)?.lesson);
+                    const draft = (doneEvt?.metadata as any)?.lesson;
+                    onTransferDraftToTimeline?.(draft);
                   }}
+                  style={{ backgroundColor: '#C8F169', color: '#121712' }}
                   className="px-4 py-2.5 rounded-full bg-[#C8F169] hover:bg-[#bbf055] text-[#121712] font-black text-xs flex items-center gap-2 cursor-pointer transition shadow-xs"
                 >
-                  <span>Chuyển sang Timeline Editor (Trạm 3)</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span style={{ color: '#121712' }}>Chuyển sang Timeline Editor (Trạm 3)</span>
+                  <ArrowRight className="w-4 h-4 text-[#121712]" style={{ color: '#121712' }} />
                 </button>
               </div>
             </div>
@@ -604,15 +615,30 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
                   </div>
                 </div>
               ) : (
-                events.map((evt, idx) => (
-                  <EventRow
-                    key={evt.id || idx}
-                    event={evt}
-                    isLast={idx === events.length - 1}
-                    baseTimestamp={events[0]?.timestamp}
-                    index={idx}
-                  />
-                ))
+                events.map((evt, idx) => {
+                  let matchedToolResult: ToolResultPayload | undefined;
+                  if (evt.eventType === 'tool_call') {
+                    const nextResult = events.slice(idx + 1).find((e) =>
+                      e.eventType === 'tool_result' &&
+                      (
+                        (evt.toolCall?.callId && e.toolResult?.callId === evt.toolCall.callId) ||
+                        (e.agent === evt.agent && (!e.toolResult?.toolName || e.toolResult.toolName === evt.toolCall?.toolName))
+                      )
+                    );
+                    matchedToolResult = nextResult?.toolResult;
+                  }
+                  return (
+                    <EventRow
+                      key={evt.id || idx}
+                      event={evt}
+                      isLast={idx === events.length - 1}
+                      baseTimestamp={events[0]?.timestamp}
+                      index={idx}
+                      matchedToolResult={matchedToolResult}
+                      isDone={isDone}
+                    />
+                  );
+                })
               )}
               <div ref={feedBottomRef} />
             </div>

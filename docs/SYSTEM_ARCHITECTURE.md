@@ -51,17 +51,17 @@ Hệ thống DRE được thiết kế theo kiến trúc phân tầng rõ ràng,
 
 Tầng 1 đóng vai trò là nền móng vững chắc, bảo đảm mọi thành phần trong hệ thống giao tiếp thông qua các hợp đồng dữ liệu được định nghĩa chặt chẽ:
 
-- **src/types/pipeline.ts**: Định nghĩa các kiểu dữ liệu trung tâm:
-  - `CognitiveEventStream`: Luồng sự kiện nhận thức gồm các giai đoạn nối tiếp (`stages`).
+- **src/types/pipeline.ts & src/types/lesson.ts**: Định nghĩa các kiểu dữ liệu trung tâm khớp chính xác contract hệ thống:
+  - `CognitiveEventStream`: Luồng sự kiện nhận thức đa phương thức (`videoId`, `videoTitle`, `teacherName`, `subject`, `durationSeconds`, `sourceClip`, `segments: CognitiveTimelineSegment[]`).
   - `DeterministicToolCall`: Chuẩn hóa kết quả gọi công cụ tất định với các trường bắt buộc: `toolName`, `input`, `output`, `isValid`, `timestampMs`.
-  - `ReasoningEvent`: Cấu trúc sự kiện suy luận đa tác tử gồm các kiểu `thought`, `debate_turn`, `tool_call`, `tool_result`, `checkpoint_created`.
-  - `DRELessonSchema`: Cấu trúc bài giảng hoàn chỉnh tích hợp các điểm dừng (`checkpoints`), bẫy ngộ nhận (`misconceptions`) và khảo sát Bloom.
+  - `AgentReasoningEvent` (và `ReasoningEvent`): Cấu trúc sự kiện suy luận đa tác tử gồm các trường `id`, `runId`, `eventType` (`thinking`, `speaking`/`debate_turn`, `tool_call`, `tool_result`, `cross_check_verdict`, `done`/`checkpoint_created`), `agentId`, `agentDisplayName`, `secondTarget`, `toolCall`, `toolResult`, `crossCheck`, `content`, `timestamp`.
+  - `DRELessonSchema`: Cấu trúc giáo án hoàn chỉnh gồm `lesson_id`, `version`, `status` (`draft` | `approved` | `published`), `title`, `subject`, `video_url`, `video_duration_s`, `sources`, `learning_goals`, `parts: LessonPart[]` (mỗi phần gồm danh sách câu hỏi dừng `pause_questions` và kịch bản tương tác `scenarios`).
 - **Chuẩn hóa KaTeX & Dọn dẹp ký tự rác**: Toàn bộ chuỗi LaTeX toán học được xử lý qua bộ lọc `sanitizeKatex.ts`, loại bỏ tuyệt đối ký tự Unicode lỗi (ví dụ: `\u20d7`, `d6c2`) trước khi nạp vào hệ thống.
 - **Kho tri thức ngộ nhận (Misconception KB)**: Lưu trữ danh sách các ngộ nhận toán học điển hình (ví dụ: `MISC_VEC_005` - Cộng trực tiếp độ dài vectơ thay vì tìm vectơ tổng), cung cấp ngữ cảnh RAG chính xác cho AI.
 
 ### 2.2. Tầng 2: Hội đồng tác nhân phản biện chéo (Multi-Agent Roundtable Council)
 
-DRE không dựa vào một mô hình LLM đơn lẻ mà vận hành một hội đồng đa tác tử có vai trò sư phạm riêng biệt để triệt tiêu ảo giác toán học:
+DRE không dựa vào một mô hình LLM đơn lẻ mà vận hành một hội đồng đa tác tử có vai trò sư phạm riêng biệt để giảm thiểu ảo giác toán học nhờ kiểm chứng qua công cụ tất định:
 
 - **Bo (Bạn học gài bẫy)**: Đóng vai học sinh mang định kiến trực quan, liên tục đưa ra các phương án giải tắt sai lầm để kích thích người học phản biện.
 - **Trí (Nhà tư duy sâu / Deep Thinker)**: Phản biện sắc bén các lập luận sai của Bo, truy xuất bản chất hình học không gian và gọi công cụ kiểm chứng đại số vectơ.

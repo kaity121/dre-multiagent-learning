@@ -134,6 +134,7 @@ export interface ClassroomChatResponse {
   toolCalls?: DeterministicToolCallInfo[] | null;
   timeStr: string;
   second?: number;
+  sessionId?: string;
 }
 
 /**
@@ -142,7 +143,8 @@ export interface ClassroomChatResponse {
 export async function sendClassroomChat(
   message: string,
   currentTime: number,
-  recipient: string = 'all'
+  recipient: string = 'all',
+  sessionId?: string | null
 ): Promise<ClassroomChatResponse | null> {
   try {
     const controller = new AbortController();
@@ -150,7 +152,7 @@ export async function sendClassroomChat(
     const res = await fetch(`${API_BASE_URL}/api/chat/classroom`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, currentTime, recipient }),
+      body: JSON.stringify({ message, currentTime, recipient, sessionId }),
       signal: controller.signal,
     });
     clearTimeout(timeoutId);

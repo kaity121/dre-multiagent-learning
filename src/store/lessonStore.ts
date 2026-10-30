@@ -88,6 +88,10 @@ class LessonStore {
     });
   }
 
+  public setDraft(schema: DRELessonSchema) {
+    this.updateDraft(() => schema);
+  }
+
   public updateDraft(updater: (prev: DRELessonSchema) => DRELessonSchema) {
     const updatedSchema = updater(this.state.currentLessonSchema);
     if (typeof window !== 'undefined') {

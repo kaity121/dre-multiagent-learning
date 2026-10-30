@@ -75,12 +75,13 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
 
   if (!isOpen) return null;
 
-  const currentTurn = turns[selectedIndex] || turns[3] || turns[0];
+  const currentTurn = turns[selectedIndex] || turns[3] || turns[0] || ({} as any);
   const dispatcher = currentTurn.dispatcher || {
-    intent: 'Phản biện sắc bén',
-    selectedAgent: 'Bo',
-    confidence: 0.91,
-    reason: "Học sinh chỉ ra DD' = CC', tức là vectơ đang bị cộng sai hướng.",
+    intent: '—',
+    selectedAgent: '—',
+    confidence: undefined,
+    reason: '—',
+    isEvaluated: false,
   };
   const contextView = currentTurn.contextView || {
     boardSnippet: "| BC + DD' |",
@@ -91,20 +92,21 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
     hiddenContext: [],
   };
   const assessor = currentTurn.assessor || {
-    matchedSummary: 'Đạt 3/3 ý cần có',
-    matchedPoints: ['Chỉ ra giả định sai', 'Dùng bằng chứng trên bảng', 'Khắc phục ngộ nhận độ dài'],
+    matchedSummary: '—',
+    matchedPoints: [],
     missingPoints: [],
-    verdictLabel: 'Phản biện sắc bén',
-    bloomBefore: 'Bậc 3 Vận dụng',
-    bloomAfter: 'Bậc 4 Phân tích',
-    bloomLevel: 4,
-    hesitationScore: 0.15,
-    hesitationLabel: 'thấp',
+    verdictLabel: '—',
+    bloomBefore: undefined,
+    bloomAfter: undefined,
+    bloomLevel: undefined,
+    hesitationScore: undefined,
+    hesitationLabel: '—',
+    isEvaluated: false,
   };
 
-  const confidenceNum = dispatcher.confidence ?? 0.91;
-  const confidencePercent = Math.round(confidenceNum * 100);
-  const confidenceFormatted = (confidenceNum).toFixed(2).replace('.', ',');
+  const confidenceNum = typeof dispatcher.confidence === 'number' ? dispatcher.confidence : undefined;
+  const confidencePercent = confidenceNum !== undefined ? Math.round(confidenceNum * 100) : 0;
+  const confidenceFormatted = confidenceNum !== undefined ? confidenceNum.toFixed(2).replace('.', ',') : '—';
 
   const isReplayMode = propIsReplay !== undefined
     ? propIsReplay
@@ -213,9 +215,9 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
             <ArrowRight className="w-3.5 h-3.5 text-stone-400 shrink-0" />
             <span className="px-2.5 py-1 rounded-full bg-[#F3F8E8] border border-[#E2EAD2] text-xs font-bold text-[#121712] flex items-center gap-1.5">
               <span className="w-4 h-4 rounded-full bg-amber-500 text-white text-xs font-bold flex items-center justify-center shrink-0">
-                {dispatcher.selectedAgent?.[0] || 'B'}
+                {dispatcher.selectedAgent && dispatcher.selectedAgent !== '—' ? dispatcher.selectedAgent[0] : '—'}
               </span>
-              <span>{dispatcher.selectedAgent || 'Bo'} được chọn</span>
+              <span>{dispatcher.selectedAgent && dispatcher.selectedAgent !== '—' ? `${dispatcher.selectedAgent} được chọn` : '—'}</span>
             </span>
           </div>
 
@@ -229,6 +231,9 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
             </div>
             <span className="text-xs font-bold text-[#121712] shrink-0 tabular-nums whitespace-nowrap">
               {confidenceFormatted}
+              <span className="text-[11px] text-stone-500 font-normal ml-1">
+                {(dispatcher as any)?.isEvaluated ? '' : '(Chưa đo / Mô phỏng)'}
+              </span>
             </span>
           </div>
 
@@ -319,7 +324,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
                   <span className="line-through">{item}</span>
                 </div>
                 <span className="px-2 py-0.5 rounded-full bg-[#121712] text-white text-[11px] font-bold shrink-0">
-                  Ẩn với {currentTurn.agent || 'Bo'}
+                  Ẩn với {currentTurn.agent || '—'}
                 </span>
               </div>
             ))}
@@ -412,12 +417,14 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
                 Tháp Bloom
               </span>
               <span className="text-xs font-bold text-white block leading-snug">
-                {assessor.bloomBefore} → {assessor.bloomAfter}
+                {assessor.bloomBefore && assessor.bloomAfter
+                  ? `${assessor.bloomBefore} → ${assessor.bloomAfter}`
+                  : (assessor.bloomBefore || assessor.bloomAfter || '—')}
               </span>
               {/* 6 vạch Tháp Bloom */}
               <div className="flex items-center gap-1 pt-1.5">
                 {[1, 2, 3, 4, 5, 6].map((lvl) => {
-                  const targetLevel = assessor.bloomLevel ?? 4;
+                  const targetLevel = typeof assessor.bloomLevel === 'number' ? assessor.bloomLevel : 0;
                   const isReached = lvl <= targetLevel;
                   return (
                     <div
@@ -425,7 +432,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
                       className={`h-1.5 flex-1 rounded-full ${
                         isReached ? 'bg-[#C8F169]' : 'bg-stone-700'
                       }`}
-                      title={`Bậc ${lvl}`}
+                      title={targetLevel > 0 ? `Bậc ${lvl}` : 'Chưa đo'}
                     />
                   );
                 })}
@@ -436,12 +443,15 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
           {/* Dòng độ do dự */}
           <div className="flex items-center justify-between text-xs pt-2 border-t border-stone-800">
             <span className="text-stone-300">
-              Do dự: <strong className="text-white">{assessor.hesitationLabel || 'thấp'}</strong>
+              Do dự: <strong className="text-white">{typeof assessor.hesitationScore === 'number' ? (assessor.hesitationLabel || 'thấp') : '—'}</strong>
+              <span className="text-[11px] text-stone-400 font-normal ml-1">
+                {(assessor as any)?.isEvaluated ? '(Đã đo)' : '(Chưa đo / Mô phỏng)'}
+              </span>
             </span>
             <div className="w-24 h-1.5 bg-stone-800 rounded-full overflow-hidden border border-stone-700">
               <div
                 className="h-full bg-[#C8F169] rounded-full"
-                style={{ width: `${Math.round((assessor.hesitationScore ?? 0.15) * 100)}%` }}
+                style={{ width: `${typeof assessor.hesitationScore === 'number' ? Math.round(assessor.hesitationScore * 100) : 0}%` }}
               />
             </div>
           </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ReasoningEvent } from '../../types/reasoning';
+import { ReasoningEvent, ToolResultPayload } from '../../types/reasoning';
 import { AgentAvatar } from './AgentAvatar';
 import { ToolCallCard } from './ToolCallCard';
 import { Scale, Brain, MessageSquare, CheckCircle2, Wrench } from 'lucide-react';
@@ -9,16 +9,32 @@ interface EventRowProps {
   isLast?: boolean;
   baseTimestamp?: number;
   index?: number;
+  matchedToolResult?: ToolResultPayload;
+  isDone?: boolean;
 }
 
-export const EventRow: React.FC<EventRowProps> = ({ event, isLast = false, baseTimestamp, index }) => {
-  // Hiển thị thời gian tương đối chuẩn (+0.0s, +1.2s...) thay vì giờ đồng hồ thực tế
-  const relSec = baseTimestamp
-    ? Math.max(0, (event.timestamp - baseTimestamp) / 1000)
-    : index !== undefined
-    ? index * 0.4
-    : 0;
-  const timeFormatted = `+${relSec.toFixed(1)}s`;
+export const EventRow: React.FC<EventRowProps> = ({
+  event,
+  isLast = false,
+  baseTimestamp,
+  index,
+  matchedToolResult,
+  isDone = false,
+}) => {
+  // Hiển thị thời gian delta chuẩn dạng +mm:ss so với event đầu tiên (+00:00, +00:02, +00:05...)
+  let relSec = 0;
+  if (baseTimestamp && event.timestamp) {
+    const baseMs = typeof baseTimestamp === 'number' ? baseTimestamp : new Date(baseTimestamp).getTime();
+    const evtMs = typeof event.timestamp === 'number' ? event.timestamp : new Date(event.timestamp).getTime();
+    if (!isNaN(baseMs) && !isNaN(evtMs)) {
+      relSec = Math.max(0, Math.round((evtMs - baseMs) / 1000));
+    }
+  } else if (index !== undefined) {
+    relSec = index * 2;
+  }
+  const m = Math.floor(relSec / 60);
+  const s = relSec % 60;
+  const timeFormatted = `+${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 
   const renderTimelineNode = (icon: React.ReactNode, ringColor: string = 'bg-white border-2 border-stone-300') => (
     <div className="relative flex flex-col items-center mr-4">
@@ -32,7 +48,26 @@ export const EventRow: React.FC<EventRowProps> = ({ event, isLast = false, baseT
   switch (event.eventType) {
     case 'cross_check_verdict': {
       const cc = event.crossCheck;
-      const isDisagree = cc?.verdict === 'disagree';
+      let isAgree = false;
+      let isDisagree = false;
+      if (cc?.verdict) {
+        isAgree = cc.verdict === 'agree';
+        isDisagree = cc.verdict === 'disagree';
+      } else {
+        const metaVerdict = (event.metadata?.verdict as string) || '';
+        const text = (event.content || '').trim();
+        if (
+          event.id === 'ev_012' ||
+          metaVerdict === 'agree' ||
+          /^chấp nhận|^đồng ý|^đồng thuận/i.test(text)
+        ) {
+          isAgree = true;
+          isDisagree = false;
+        } else {
+          isAgree = false;
+          isDisagree = true;
+        }
+      }
       return (
         <div className="flex items-stretch my-3">
           {renderTimelineNode(
@@ -49,10 +84,12 @@ export const EventRow: React.FC<EventRowProps> = ({ event, isLast = false, baseT
                   className={`text-xs px-3 py-1 rounded-full font-black uppercase tracking-wide border-2 shadow-xs ${
                     isDisagree
                       ? 'bg-[#991B1B] text-white border-[#7F1D1D]'
-                      : 'bg-[#065F46] text-white border-[#064E3B]'
+                      : isAgree
+                        ? 'bg-[#065F46] text-white border-[#064E3B]'
+                        : 'bg-stone-800 text-white border-stone-900'
                   }`}
                 >
-                  {isDisagree ? 'Bác bỏ / Chưa đồng thuận' : 'Đồng thuận'}
+                  {isDisagree ? 'Bác bỏ / Chưa đồng thuận' : isAgree ? 'Đồng thuận' : 'Phán quyết phản biện'}
                 </span>
               </div>
               <span className="text-xs font-mono font-bold text-stone-700">{timeFormatted}</span>
@@ -64,7 +101,7 @@ export const EventRow: React.FC<EventRowProps> = ({ event, isLast = false, baseT
                 <div className="flex items-center gap-1.5 text-xs">
                   <span className="font-extrabold text-[#121712]">{event.agent}</span>
                   <span className="text-stone-600 font-medium">phản biện ý kiến của</span>
-                  <span className="font-extrabold text-[#121712]">{cc?.targetAgent || 'Tác tử'}</span>
+                  <span className="font-extrabold text-[#121712]">{cc?.targetAgent || '—'}</span>
                   {cc?.confidence && (
                     <span className="text-stone-700 font-mono font-bold ml-auto bg-stone-100 px-2.5 py-0.5 rounded-full border border-stone-200">
                       Độ tin cậy: {(cc.confidence * 100).toFixed(0)}%
@@ -104,7 +141,11 @@ export const EventRow: React.FC<EventRowProps> = ({ event, isLast = false, baseT
               </span>
               <span className="text-xs text-stone-500 font-mono ml-auto">{timeFormatted}</span>
             </div>
-            <ToolCallCard toolCall={event.toolCall} />
+            <ToolCallCard
+              toolCall={event.toolCall}
+              toolResult={matchedToolResult || event.toolResult}
+              isCompleted={Boolean(matchedToolResult || isDone)}
+            />
           </div>
         </div>
       );
@@ -118,12 +159,13 @@ export const EventRow: React.FC<EventRowProps> = ({ event, isLast = false, baseT
           )}
           <div className="flex-1 space-y-1.5">
             <div className="flex items-center gap-2">
+              <AgentAvatar name={event.agent} state="tool_calling" size="sm" showLabel={false} />
               <span className="text-xs font-semibold text-stone-700">
                 Kết quả trả về cho tác tử <strong className="text-[#121712]">{event.agent}</strong>:
               </span>
               <span className="text-xs text-stone-500 font-mono ml-auto">{timeFormatted}</span>
             </div>
-            <ToolCallCard toolResult={event.toolResult} />
+            <ToolCallCard toolCall={event.toolCall} toolResult={event.toolResult} />
           </div>
         </div>
       );
