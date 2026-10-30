@@ -48,6 +48,7 @@ import {
 } from './components/inspector/InspectorDrawer';
 import { ChevronDown, SlidersHorizontal, Activity, Clock, ArrowLeft, MoreHorizontal, Eye, Zap } from 'lucide-react';
 import { useShowcaseController } from './hooks/useShowcaseController';
+import { SPLIT_LENGTH_TRAP_OPTION_ID } from './types/showcase';
 import { ShowcaseHUD } from './components/showcase/ShowcaseHUD';
 import { 
   DREState, 
@@ -66,7 +67,7 @@ import { VideoPlayerSheet } from './components/VideoPlayerSheet';
 import { VideoDebateSheet } from './components/VideoDebateSheet';
 import { AlternativeFlowsSheet } from './components/AlternativeFlowsSheet';
 import { PauseModal } from './components/PauseModal';
-import { adaptLessonToPlayer } from './utils/lessonAdapter';
+import { adaptLessonToPlayer, hasCheckpoint } from './utils/lessonAdapter';
 import { LessonSelectorDrawer } from './components/LessonSelectorDrawer';
 import { ScenarioPlayerBar } from './components/ScenarioPlayerBar';
 import { LearningFlowGuideModal } from './components/LearningFlowGuideModal';
@@ -648,7 +649,7 @@ export default function App() {
         setVideoCurrentTime((prev) => {
           const next = prev + 1;
           // Trigger checkpoint stop
-          if (next >= currentVideoLesson.checkpointTimestamp && videoPhase === 'WATCHING') {
+          if (hasCheckpoint(currentVideoLesson) && next >= currentVideoLesson.checkpointTimestamp && videoPhase === 'WATCHING') {
             setIsVideoPlaying(false);
             setVideoPhase('CHECKPOINT_REACHED');
             return currentVideoLesson.checkpointTimestamp;
@@ -876,12 +877,14 @@ export default function App() {
 
   const handleSeekVideo = (time: number) => {
     setVideoCurrentTime(time);
-    if (Math.abs(time - currentVideoLesson.checkpointTimestamp) <= 3 && videoPhase === 'WATCHING') {
+    if (hasCheckpoint(currentVideoLesson) && Math.abs(time - currentVideoLesson.checkpointTimestamp) <= 3 && videoPhase === 'WATCHING') {
       handleJumpToCheckpoint();
     }
   };
 
   const handleJumpToCheckpoint = () => {
+    // The teacher may have disabled every pause question; there is nothing to jump to.
+    if (!hasCheckpoint(currentVideoLesson)) return;
     sound.playStampThud();
     setIsChaptersDrawerOpen(false);
     setIsRaiseHandModalOpen(false);
@@ -988,7 +991,9 @@ export default function App() {
 
     // Cập nhật lượt Soi não tác nhân tương ứng với câu trả lời thực tế của học sinh (P1 Fix)
     const turnNumber = inspectorTurns.length + 1;
-    const isOptionB = optionLabel.includes('B') || optionLabel.includes('1 + 1 = 2') || optionLabel.includes('Tách trực tiếp');
+    // Identify the misconception by stable option id, never by label text
+    // (the correct option's label also contains "BC").
+    const isOptionB = resolvedId === SPLIT_LENGTH_TRAP_OPTION_ID;
     const newAnswerTurn: InspectorTurn = {
       turnId: `live-ans-${Date.now()}`,
       timestamp: Date.now(),
@@ -1885,7 +1890,7 @@ export default function App() {
                   ...prev,
                   title: approved.title || prev.title,
                   duration: (approved as any).video_duration_s || updatedVideoLesson.duration || prev.duration,
-                  checkpointTimestamp: updatedVideoLesson.checkpointTimestamp || prev.checkpointTimestamp,
+                  checkpointTimestamp: updatedVideoLesson.checkpointTimestamp ?? prev.checkpointTimestamp,
                   checkpointQuestion: updatedVideoLesson.checkpointQuestion || prev.checkpointQuestion,
                   boArgument: updatedVideoLesson.boArgument || prev.boArgument,
                   rebuttalStickers: updatedVideoLesson.rebuttalStickers || prev.rebuttalStickers,

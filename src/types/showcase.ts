@@ -1,5 +1,13 @@
 export type ShowcaseStatus = 'idle' | 'running' | 'paused' | 'completed';
 
+/**
+ * Stable id of the "split the length of a sum" misconception option
+ * (|BC + DD'| = |BC| + |DD'| = 2) in the vector checkpoint. Matching by label
+ * text is unsafe because the correct option also contains capital letters
+ * such as "BC".
+ */
+export const SPLIT_LENGTH_TRAP_OPTION_ID = 'opt_b';
+
 export interface ShowcaseStationConfig {
   id: number;
   title: string;
@@ -21,7 +29,7 @@ export const SHOWCASE_STATIONS: ShowcaseStationConfig[] = [
     title: 'Trạm 2: Multi-Agent War Room suy luận thời gian thực',
     shortTitle: 'Trạm 2 · War Room',
     durationMs: 6000,
-    description: 'Bàn tròn suy luận đa tác tử, radar trực tiếp và gọi công cụ RAG',
+    description: 'Phát lại fixture bàn tròn suy luận đa tác tử và các lượt gọi công cụ',
   },
   {
     id: 3,

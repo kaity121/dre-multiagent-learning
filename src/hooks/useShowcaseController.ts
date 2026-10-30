@@ -1,30 +1,56 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ShowcaseStatus, SHOWCASE_STATIONS, ShowcaseStationConfig } from '../types/showcase';
+import {
+  ShowcaseStatus,
+  SHOWCASE_STATIONS,
+  ShowcaseStationConfig,
+  SPLIT_LENGTH_TRAP_OPTION_ID,
+} from '../types/showcase';
 import { LearningMode } from '../types/dre';
+
+interface ShowcaseCheckpointOption {
+  id: string;
+  label: string;
+  isStandardBest?: boolean;
+}
 
 export interface ShowcaseControllerActions {
   setCurrentMode: (mode: LearningMode) => void;
   setActiveStudioView: (view: 'classroom' | 'warroom' | 'editor') => void;
   handleJumpToCheckpoint: () => void;
-  // Có thể trả về Promise để controller đợi sessionId sẵn sàng (Blu #36-3)
+  // May return a Promise so the controller can wait until the backend session is ready.
   handleAnswerCheckpoint: (label: string, optionId?: string) => void | Promise<unknown>;
   handleSubmitRebuttal: (text: string, isEffective: boolean) => void | Promise<unknown>;
   setIsInspectorDrawerOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
-  currentVideoLesson: any;
+  currentVideoLesson: {
+    checkpointQuestion?: { options?: ShowcaseCheckpointOption[] };
+    rebuttalStickers?: { text?: string }[];
+  } | null | undefined;
   playTabSound?: () => void;
   playSuccessSound?: () => void;
 }
 
+const ANSWER_AT_MS = 2200;
+const REBUTTAL_AT_MS = 4400;
+// Upper bound on how long station 1 waits for a slow backend before moving on.
+const STATION1_READINESS_TIMEOUT_MS = 8000;
+const URL_AUTOSTART_DELAY_MS = 300;
+
+function hasShowcaseUrlFlag(): boolean {
+  if (typeof window === 'undefined') return false;
+  const s = new URLSearchParams(window.location.search);
+  return s.get('showcase') === '1' || s.get('demo') === '1';
+}
+
+/** Pick the misconception option by stable id; never by label text or position. */
+function pickTrapOption(options: ShowcaseCheckpointOption[]): ShowcaseCheckpointOption | undefined {
+  return (
+    options.find((o) => o?.id === SPLIT_LENGTH_TRAP_OPTION_ID) ??
+    options.find((o) => o?.isStandardBest === false)
+  );
+}
+
 export function useShowcaseController(actions: ShowcaseControllerActions) {
-  const [status, setStatus] = useState<ShowcaseStatus>(() => {
-    if (typeof window !== 'undefined') {
-      const s = new URLSearchParams(window.location.search);
-      if (s.get('showcase') === '1' || s.get('demo') === '1') {
-        return 'running';
-      }
-    }
-    return 'idle';
-  });
+  const [status, setStatus] = useState<ShowcaseStatus>('idle');
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [elapsedStationMs, setElapsedStationMs] = useState<number>(0);
 
@@ -35,15 +61,19 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
   const currentStepRef = useRef<number>(1);
   const statusRef = useRef<ShowcaseStatus>('idle');
 
-  // Blu #36-1 / #36-3: luôn đọc actions mới nhất, không bắt closure cũ
+  // Always read the latest actions; App passes a fresh object every render.
   const actionsRef = useRef<ShowcaseControllerActions>(actions);
   actionsRef.current = actions;
 
-  // Token huỷ: tăng mỗi lần clearAllTimers để các async đang chờ tự bỏ
+  // Cancellation token: bumped by clearAllTimers so pending async work drops itself.
   const runIdRef = useRef<number>(0);
 
-  // Blu #36-1: ?showcase=1 chỉ tự chạy đúng 1 lần
+  // ?showcase=1 is consumed at most once, and any explicit start/stop/pause consumes it.
   const hasConsumedUrlAutostartRef = useRef<boolean>(false);
+
+  // Station-1 progress of the current showcase run (reset by start()).
+  const answerPromiseRef = useRef<Promise<void> | null>(null);
+  const rebuttalPromiseRef = useRef<Promise<void> | null>(null);
 
   currentStepRef.current = currentStep;
   statusRef.current = status;
@@ -61,18 +91,48 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
     }
   }, []);
 
-  const stop = useCallback(() => {
+  const resetRun = useCallback(() => {
     clearAllTimers();
     setStatus('idle');
     setElapsedStationMs(0);
     pausedElapsedRef.current = 0;
   }, [clearAllTimers]);
 
-  // Thực thi hành vi cho từng trạm
+  /** Explicit user stop: also cancels any pending URL autostart. */
+  const stop = useCallback(() => {
+    hasConsumedUrlAutostartRef.current = true;
+    resetRun();
+  }, [resetRun]);
+
+  const answerTrap = useCallback((): Promise<void> => {
+    const a = actionsRef.current;
+    const trap = pickTrapOption(a.currentVideoLesson?.checkpointQuestion?.options ?? []);
+    if (!trap) {
+      console.warn('[Showcase] No misconception option found in the current checkpoint');
+      return Promise.resolve();
+    }
+    return Promise.resolve(a.handleAnswerCheckpoint(trap.label, trap.id)).then(
+      () => undefined,
+      (err: unknown) => console.warn('[Showcase] Answer step failed:', err)
+    );
+  }, []);
+
+  const submitRebuttal = useCallback((): Promise<void> => {
+    const a = actionsRef.current;
+    const rebText =
+      a.currentVideoLesson?.rebuttalStickers?.[0]?.text ||
+      'Độ dài tổng chỉ bằng tổng độ dài khi hai vectơ cùng hướng!';
+    return Promise.resolve(a.handleSubmitRebuttal(rebText, true)).then(
+      () => undefined,
+      (err: unknown) => console.warn('[Showcase] Rebuttal step failed:', err)
+    );
+  }, []);
+
   const executeStationActions = useCallback(
     (stepNum: number, startOffsetMs: number = 0) => {
       clearAllTimers();
       const myRun = runIdRef.current;
+      const isCurrentRun = () => runIdRef.current === myRun;
 
       stepStartTimeRef.current = Date.now() - startOffsetMs;
       setElapsedStationMs(startOffsetMs);
@@ -80,18 +140,14 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
       const stationConfig = SHOWCASE_STATIONS[stepNum - 1];
       if (!stationConfig) return;
 
-      const remainingTotal = stationConfig.durationMs - startOffsetMs;
+      const remainingTotal = Math.max(0, stationConfig.durationMs - startOffsetMs);
 
-      // 1. Ticker cập nhật thanh tiến trình mỗi 100ms
       intervalRef.current = setInterval(() => {
-        const elapsed = Date.now() - stepStartTimeRef.current;
-        setElapsedStationMs(elapsed);
+        setElapsedStationMs(Date.now() - stepStartTimeRef.current);
       }, 100);
 
-      // 2. Kịch bản từng trạm
       if (stepNum === 1) {
-        // TRẠM 1: Lớp học tương tác (7s)
-        if (startOffsetMs < 500) {
+        if (startOffsetMs < 500 && !answerPromiseRef.current) {
           const a = actionsRef.current;
           a.setActiveStudioView('classroom');
           a.setCurrentMode('video_clash');
@@ -99,97 +155,109 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
           a.handleJumpToCheckpoint();
         }
 
-        // Phản biện: chạy đúng mốc 4.4s, nhưng KHÔNG sớm hơn lúc câu trả lời xong
-        const scheduleRebuttal = () => {
-          const wait = Math.max(50, 4400 - (Date.now() - stepStartTimeRef.current));
-          const t2 = setTimeout(() => {
-            if (runIdRef.current !== myRun) return;
-            const a = actionsRef.current;
-            const rebText =
-              a.currentVideoLesson?.rebuttalStickers?.[0]?.text ||
-              'Độ dài tổng chỉ bằng tổng độ dài khi hai vectơ cùng hướng!';
-            a.handleSubmitRebuttal(rebText, true);
-          }, wait);
-          timersRef.current.push(t2);
+        // The rebuttal is sent no earlier than its 4.4s mark AND only after the
+        // answer has actually resolved (so a backend session created by the
+        // answer is visible to the rebuttal). It is sent at most once per run.
+        const scheduleRebuttalAfter = (answer: Promise<void>) => {
+          answer.then(() => {
+            if (!isCurrentRun() || rebuttalPromiseRef.current) return;
+            const wait = Math.max(0, REBUTTAL_AT_MS - (Date.now() - stepStartTimeRef.current));
+            const t = setTimeout(() => {
+              if (!isCurrentRun() || rebuttalPromiseRef.current) return;
+              rebuttalPromiseRef.current = submitRebuttal();
+            }, wait);
+            timersRef.current.push(t);
+          });
         };
 
-        if (startOffsetMs < 2200) {
-          // Chọn phương án bẫy (opt_b) tại giây 2.2
-          const t1 = setTimeout(async () => {
-            if (runIdRef.current !== myRun) return;
-            const a = actionsRef.current;
-            const opts: any[] = a.currentVideoLesson?.checkpointQuestion?.options ?? [];
-            // Định danh ổn định, KHÔNG dùng label.includes('B') (khớp nhầm \vec{BC} của opt_a)
-            const optB =
-              opts.find((o: any) => o?.id === 'opt_b' || o?.id === 'B' || o?.isTrap === true) ??
-              opts[1];
-            if (optB) {
-              await Promise.resolve(a.handleAnswerCheckpoint(optB.label, optB.id));
-            }
-            if (runIdRef.current !== myRun) return; // đã Esc/Pause trong lúc chờ
-            scheduleRebuttal();
-          }, Math.max(50, 2200 - startOffsetMs));
+        if (answerPromiseRef.current) {
+          // Resumed after the answer was dispatched.
+          scheduleRebuttalAfter(answerPromiseRef.current);
+        } else {
+          const t1 = setTimeout(() => {
+            if (!isCurrentRun()) return;
+            answerPromiseRef.current = answerTrap();
+            scheduleRebuttalAfter(answerPromiseRef.current);
+          }, Math.max(0, ANSWER_AT_MS - startOffsetMs));
           timersRef.current.push(t1);
-        } else if (startOffsetMs < 4400) {
-          // Resume sau Pause khi đã qua bước chọn đáp án
-          scheduleRebuttal();
         }
       } else if (stepNum === 2) {
-        // TRẠM 2: Multi-Agent War Room (6s)
         actionsRef.current.setActiveStudioView('warroom');
         actionsRef.current.setIsInspectorDrawerOpen(false);
       } else if (stepNum === 3) {
-        // TRẠM 3: Multi-Track Timeline (5s)
         actionsRef.current.setActiveStudioView('editor');
         actionsRef.current.setIsInspectorDrawerOpen(false);
       } else if (stepNum === 4) {
-        // TRẠM 4: Đánh giá nhận thức Tháp Bloom (5s)
         actionsRef.current.setActiveStudioView('classroom');
         actionsRef.current.setCurrentMode('video_clash');
         actionsRef.current.setIsInspectorDrawerOpen(true);
       }
 
-      // 3. Hết thời gian trạm: Chuyển trạm tiếp theo hoặc Hoàn tất
-      const tEnd = setTimeout(() => {
+      const advance = () => {
+        if (!isCurrentRun()) return;
         if (stepNum < 4) {
           actionsRef.current.playTabSound?.();
           const next = stepNum + 1;
           setCurrentStep(next);
           executeStationActions(next, 0);
         } else {
-          // Hoàn tất Showcase
           clearAllTimers();
           setStatus('completed');
           actionsRef.current.playSuccessSound?.();
-          const tDone = setTimeout(() => {
-            stop();
-          }, 3500);
+          const tDone = setTimeout(() => resetRun(), 3500);
           timersRef.current.push(tDone);
         }
+      };
+
+      const tEnd = setTimeout(() => {
+        if (!isCurrentRun()) return;
+        if (stepNum !== 1) {
+          advance();
+          return;
+        }
+        // Station 1 leaves only once the rebuttal has settled (bounded wait).
+        const waitForRebuttal = new Promise<void>((resolve) => {
+          const poll = () => {
+            if (!isCurrentRun()) return resolve();
+            if (rebuttalPromiseRef.current) {
+              rebuttalPromiseRef.current.then(resolve);
+              return;
+            }
+            const t = setTimeout(poll, 100);
+            timersRef.current.push(t);
+          };
+          poll();
+        });
+        const timeout = new Promise<void>((resolve) => {
+          const t = setTimeout(resolve, STATION1_READINESS_TIMEOUT_MS);
+          timersRef.current.push(t);
+        });
+        Promise.race([waitForRebuttal, timeout]).then(advance);
       }, remainingTotal);
 
       timersRef.current.push(tEnd);
     },
-    [clearAllTimers, stop]
+    [clearAllTimers, resetRun, answerTrap, submitRebuttal]
   );
 
-  // start ổn định (không phụ thuộc actions) -> effect autostart không chạy lại
   const start = useCallback(() => {
-    stop();
+    hasConsumedUrlAutostartRef.current = true;
+    resetRun();
+    answerPromiseRef.current = null;
+    rebuttalPromiseRef.current = null;
     setStatus('running');
     setCurrentStep(1);
     actionsRef.current.playTabSound?.();
     executeStationActions(1, 0);
-  }, [stop, executeStationActions]);
+  }, [resetRun, executeStationActions]);
 
   const togglePause = useCallback(() => {
+    hasConsumedUrlAutostartRef.current = true;
     if (statusRef.current === 'running') {
-      // Tạm dừng
       clearAllTimers();
       pausedElapsedRef.current = Date.now() - stepStartTimeRef.current;
       setStatus('paused');
     } else if (statusRef.current === 'paused') {
-      // Tiếp tục
       setStatus('running');
       executeStationActions(currentStepRef.current, pausedElapsedRef.current);
     }
@@ -207,10 +275,9 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
     }
   }, [executeStationActions, stop]);
 
-  // Lắng nghe phím tắt bàn phím F2, Esc, Space
+  // Keyboard shortcuts: F2 toggles, Escape stops, Space pauses/resumes.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Phím F2: Bật/Tắt chế độ Showcase
       if (e.key === 'F2') {
         e.preventDefault();
         if (statusRef.current === 'idle') {
@@ -221,7 +288,11 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
         return;
       }
 
-      // Khi Showcase đang hoạt động: Esc hoặc Space
+      if (e.key === 'Escape') {
+        // Escape before the URL autostart fires cancels it as well.
+        hasConsumedUrlAutostartRef.current = true;
+      }
+
       if (statusRef.current === 'running' || statusRef.current === 'paused') {
         if (e.key === 'Escape') {
           e.preventDefault();
@@ -229,10 +300,9 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
           return;
         }
 
-        // Phím Space: Tạm dừng / Tiếp tục (chỉ khi không đang gõ trong input/textarea)
-        const target = e.target as HTMLElement;
+        const target = e.target as HTMLElement | null;
         const isInput =
-          target &&
+          !!target &&
           (target.tagName === 'INPUT' ||
             target.tagName === 'TEXTAREA' ||
             target.isContentEditable);
@@ -240,46 +310,31 @@ export function useShowcaseController(actions: ShowcaseControllerActions) {
         if (e.key === ' ' && !isInput) {
           e.preventDefault();
           togglePause();
-          return;
         }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [start, stop, togglePause]);
 
-  // Tự động khởi chạy ?showcase=1 / ?demo=1 ĐÚNG 1 LẦN khi mount.
-  // Cờ consumed được set TRONG callback (không set lúc lên lịch) để React
-  // StrictMode (mount -> cleanup -> mount) không làm mất lần chạy duy nhất.
+  // ?showcase=1 / ?demo=1 autostarts once on mount. The consumed flag is set by
+  // start() itself (not when scheduling) so a StrictMode mount/cleanup/mount
+  // cycle keeps the single run, while any explicit stop/pause/Escape cancels it.
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (hasConsumedUrlAutostartRef.current) return;
-    const s = new URLSearchParams(window.location.search);
-    if (s.get('showcase') !== '1' && s.get('demo') !== '1') return;
-
+    if (hasConsumedUrlAutostartRef.current || !hasShowcaseUrlFlag()) return;
     const timer = setTimeout(() => {
-      hasConsumedUrlAutostartRef.current = true;
+      if (hasConsumedUrlAutostartRef.current) return;
       start();
-    }, 300);
+    }, URL_AUTOSTART_DELAY_MS);
     return () => clearTimeout(timer);
   }, [start]);
 
-  // Dọn dẹp timers khi unmount
-  useEffect(() => {
-    return () => {
-      clearAllTimers();
-    };
-  }, [clearAllTimers]);
+  useEffect(() => clearAllTimers, [clearAllTimers]);
 
   const totalDuration = currentStation.durationMs;
   const progressPercent = Math.min(100, (elapsedStationMs / totalDuration) * 100);
-  const remainingSeconds = Math.max(
-    0,
-    Math.ceil((totalDuration - elapsedStationMs) / 1000)
-  );
+  const remainingSeconds = Math.max(0, Math.ceil((totalDuration - elapsedStationMs) / 1000));
 
   return {
     status,
