@@ -36,7 +36,7 @@ Mỗi mục được gắn một trong ba trạng thái: **Đã triển khai** (
 +-------------------------------------------------------------------------+
 | TẦNG 1: HỢP ĐỒNG DỮ LIỆU & NGUỒN TRI THỨC                               |
 | src/types/pipeline.ts · src/types/lesson.ts · mock/*.json fixtures      |
-| Misconception KB (backend/src/data/dre_vector_kb.json)                  |
+| Subject Pack (data/subject-packs/<subject>/<pack>.json)                 |
 +-------------------------------------------------------------------------+
 ```
 
@@ -49,7 +49,7 @@ Mỗi mục được gắn một trong ba trạng thái: **Đã triển khai** (
 Các hợp đồng trung tâm trong `src/types/pipeline.ts` (fixture tương ứng nằm trong `mock/`, kiểm bằng `npm run validate:fixtures`):
 
 - `CognitiveEventStream`: `videoId`, `videoTitle`, `teacherName`, `subject`, `durationSeconds`, `sourceClip?` (`parentVideoId`, `startSecond`, `endSecond`), `processedBy?` (`mode: 'live' | 'pre_indexed' | 'authored'`, model, độ trễ, `fallbackReason?`), `segments: CognitiveTimelineSegment[]`.
-- `DeterministicToolCall`: `toolName` (`tool_verify_vector_algebra` | `tool_query_misconception_kb` | `tool_timeline_collision_checker` | `tool_evaluate_bloom_level`), `input`, `output`, `isValid: boolean | null` (`null` nghĩa là công cụ không phán định được, không có nghĩa là sai), `timestampMs`.
+- `DeterministicToolCall`: `toolName` (`tool_verify_vector_algebra` | `tool_query_misconception_kb` | `tool_timeline_collision_checker` | `tool_evaluate_bloom_level` | `tool_calculate_dot_product` | `tool_check_source_grounding`), `input`, `output`, `isValid: boolean | null` (`null` nghĩa là công cụ không phán định được, không có nghĩa là sai), `timestampMs`.
 - `AgentReasoningEvent` (hợp đồng backend/fixture): `id`, `runId?`, `eventType` (`thought` | `tool_call` | `tool_result` | `debate_turn` | `cross_check_verdict` | `checkpoint_created`), `agentId: AgentRole`, `agentDisplayName`, `secondTarget?`, `content`, `toolCall?: DeterministicToolCall`, `timestamp` (chuỗi ISO). Hợp đồng này **không** có trường `toolResult` hay `crossCheck` riêng.
 - `ReasoningEvent` (kiểu hiển thị của UI, `src/types/reasoning.ts`): `eventType` (`thinking` | `speaking` | `tool_call` | `tool_result` | `cross_check_verdict` | `done`), `agent`, `timestamp` (ms), `phase?`, `toolCall?`, `toolResult?`, `crossCheck?`, `metadata?`. `src/services/reasoningAdapter.ts` chuyển đổi: `thought → thinking`, `debate_turn → speaking`, `checkpoint_created → speaking`. `done` chỉ do marker kết thúc của UI replay hoặc sự kiện SSE `complete` sinh ra. Tên tác tử và tên công cụ không nhận diện được sẽ được giữ nguyên (`unknown_tool`), không đoán.
 - **Hai lược đồ giáo án** (cần hợp nhất trong tương lai):
@@ -57,7 +57,7 @@ Các hợp đồng trung tâm trong `src/types/pipeline.ts` (fixture tương ứ
   - `DRELessonSchema` trong `src/types/lesson.ts` (dùng bởi Timeline Editor): `lesson_id`, `title`, `description?`, `status` (`draft` | `approved` | `archived`), `parts` (`id`, `title`, `duration`, `video_url`, `pause_questions` với `timestamp`/`question`/`expected_answers`/`is_active`, `scenarios` với `is_active`).
 - **Điểm dừng (checkpoint)**: `src/utils/lessonAdapter.ts` chuyển giáo án đã duyệt sang `VideoLessonItem` của lớp học trên một trục thời gian tuyệt đối (giây). Mốc chuẩn là 37:13 (`CANONICAL_CHECKPOINT_S = 2233`), giới hạn ở `CANONICAL_MAX_DURATION_S = 5880`. Chỉ các câu hỏi và kịch bản đang bật mới được dùng. Khi giáo viên tắt hoặc xóa mọi câu hỏi dừng, `checkpointTimestamp = NO_CHECKPOINT_S (-1)` và trình phát không dừng bài; mọi nơi so sánh thời gian phải kiểm tra `hasCheckpoint()` trước. Bình luận nền của bài trong thư viện được giữ lại trong `timelineComments`.
 - **Chuẩn hóa KaTeX**: `src/utils/sanitizeKatex.ts` lọc các ký tự lỗi đã biết (ví dụ `⃗`) trong fixture trước khi hiển thị.
-- **Kho ngộ nhận**: `backend/src/data/dre_vector_kb.json` (nạp bởi `backend/src/services/knowledgeBase.js`) chứa các ngộ nhận điển hình (ví dụ `MISC_VEC_005`: cộng thẳng độ dài thay vì tìm vectơ tổng), làm ngữ cảnh RAG cho tác tử.
+- **Kho ngộ nhận (Subject Pack)**: phần riêng của từng môn nằm trong `data/subject-packs/<subject>/<pack>.json` (hiện có `math/vector-12.json`), nạp bởi `backend/src/services/subjectPackLoader.js` rồi `backend/src/services/knowledgeBase.js`. Gói chứa ngộ nhận điển hình (ví dụ `MISC_VEC_005`: cộng thẳng độ dài thay vì tìm vectơ tổng), tri thức, bài tập, `aliases` (từ đồng nghĩa -> tag khi tìm kiếm) và `tools`. Ngộ nhận nào khai báo `verifier` (`toolName`, `params`) thì Roundtable gọi đúng tool đó để kiểm chứng; không có `verifier` thì Trí tra cứu ngộ nhận trong KB (`tool_query_misconception_kb`). `backend/src/data/dre_vector_kb.json` chỉ còn là bản dự phòng cũ cho gói `math/vector-12`.
 
 ### 2.2. Tầng 2: Hội đồng tác nhân phản biện chéo
 

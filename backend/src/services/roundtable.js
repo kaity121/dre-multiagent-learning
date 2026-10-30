@@ -3,59 +3,26 @@ import { chatJSON, chatWithTools } from '../openaiClient.js';
 import { executeTool } from '../tools/index.js';
 import { config } from '../config.js';
 
+// Kiểu prompt/thực thi của Trí theo tên tool mà Subject Pack khai báo trong `verifier`.
+const VERIFIER_TOOL_TYPES = {
+  tool_verify_vector_algebra: 'vector_algebra',
+  tool_calculate_dot_product: 'dot_product',
+};
+
 /**
- * Xác định công cụ kiểm chứng tương ứng với từng dạng ngộ nhận
+ * Xác định công cụ kiểm chứng cho một ngộ nhận theo dữ liệu `verifier` của Subject Pack,
+ * không dựa vào danh sách mã ngộ nhận gắn cứng trong code.
+ * Không có verifier (hoặc tool không hỗ trợ) thì tra cứu chính ngộ nhận đó trong KB: lời giải đúng
+ * và phản ví dụ có sẵn cho mọi môn. Không dùng tool_check_source_grounding làm mặc định vì độ trùng
+ * từ khoá giữa phát biểu sai và lời giảng sẽ bị chấm "supported".
  */
 export function getMisconceptionVerifiableConfig(misconceptionInput) {
   const misconception = misconceptionInput?.misconception || misconceptionInput || {};
-  // 1. Phép toán trong hình lập phương / cộng độ dài
-  if (misconception.id === 'MISC_VEC_005' || (misconception.tags || []).includes('cube')) {
-    return {
-      toolType: 'vector_algebra',
-      toolName: 'tool_verify_vector_algebra',
-      params: { shape: 'cube', side: 'a', expr: "|BC + DD'|", defaultClaim: '2a' },
-    };
+  const verifier = misconception.verifier;
+  const toolType = VERIFIER_TOOL_TYPES[verifier?.toolName];
+  if (toolType) {
+    return { toolType, toolName: verifier.toolName, params: { ...(verifier.params || {}) } };
   }
-  // 2. Quy tắc hình hộp
-  if (misconception.id === 'MISC_VEC_006' || (misconception.tags || []).includes('box_rule')) {
-    return {
-      toolType: 'vector_algebra',
-      toolName: 'tool_verify_vector_algebra',
-      params: { shape: 'cube', side: 'a', expr: "|AB + AD + AA'|", defaultClaim: 'a\\sqrt{3}' },
-    };
-  }
-  // 3. MISC_VEC_017: Đảo một vectơ không đổi góc (góc bù: angle(-u, v) = 180° - theta)
-  if (misconception.id === 'MISC_VEC_017') {
-    return {
-      toolType: 'dot_product',
-      toolName: 'tool_calculate_dot_product',
-      params: { uMag: 2, vMag: 3, angleDeg: 60, claimValue: '60', claimType: 'angle', reverseU: true, isReversed: true },
-    };
-  }
-  // 4. MISC_VEC_020: Bình phương tổng bỏ số hạng chéo (|u+v|^2 = |u|^2 + |v|^2 + 2u.v)
-  if (misconception.id === 'MISC_VEC_020' || (misconception.tags || []).includes('cross_term')) {
-    return {
-      toolType: 'dot_product',
-      toolName: 'tool_calculate_dot_product',
-      params: { uMag: 2, vMag: 3, angleDeg: 60, claimValue: '13', claimType: 'norm_sum_squared' },
-    };
-  }
-  // 5. MISC_VEC_018, MISC_VEC_019 & các dạng tích vô hướng / góc khác
-  if (['MISC_VEC_018', 'MISC_VEC_019'].includes(misconception.id) ||
-      (misconception.tags || []).some(t => ['dot_product', 'vector_angle', 'zero_angle'].includes(t))) {
-    let u = 2, v = 3, theta = 120, claim = 'không âm';
-    if (misconception.id === 'MISC_VEC_018') {
-      u = 0; v = 2; theta = 0; claim = '0';
-    } else if (misconception.id === 'MISC_VEC_019') {
-      u = 2; v = 3; theta = 120; claim = 'không âm';
-    }
-    return {
-      toolType: 'dot_product',
-      toolName: 'tool_calculate_dot_product',
-      params: { uMag: u, vMag: v, angleDeg: theta, claimValue: claim, claimType: misconception.id === 'MISC_VEC_018' ? 'angle' : 'dot_product' },
-    };
-  }
-  // 6. Mặc định cho các chủ đề khác (vectơ không, trọng tâm...)
   return {
     toolType: 'kb_rag',
     toolName: 'tool_query_misconception_kb',

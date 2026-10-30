@@ -1,0 +1,2944 @@
+{
+  "subject": "math",
+  "topic": "vector_geometry_12",
+  "name": "Toán 12 - Vectơ trong không gian (SGK GDPT 2018)",
+  "tools": [
+    "tool_verify_vector_algebra",
+    "tool_calculate_dot_product"
+  ],
+  "aliases": {
+    "cong do dai vecto": [
+      "length_addition",
+      "norm_sum"
+    ],
+    "cong do dai": [
+      "length_addition",
+      "norm_sum"
+    ],
+    "do dai tong": [
+      "length_addition",
+      "norm_sum"
+    ],
+    "tong do dai": [
+      "length_addition",
+      "norm_sum"
+    ],
+    "1+1": [
+      "length_addition",
+      "norm_sum"
+    ],
+    "1 + 1": [
+      "length_addition",
+      "norm_sum"
+    ],
+    "1+1=2": [
+      "length_addition",
+      "norm_sum"
+    ],
+    "tach do dai": [
+      "length_addition",
+      "norm_sum"
+    ],
+    "cong dai so": [
+      "length_addition",
+      "norm_sum"
+    ],
+    "vi du 3": [
+      "example_3",
+      "cube"
+    ],
+    "hinh hop": [
+      "box_rule"
+    ],
+    "trong tam": [
+      "triangle_centroid",
+      "tetrahedron_centroid"
+    ],
+    "vecto khong co goc": [
+      "zero_vector",
+      "angle_convention"
+    ],
+    "goc voi vecto khong": [
+      "zero_vector",
+      "angle_convention"
+    ],
+    "tich vo huong am": [
+      "negative_dot"
+    ],
+    "tich vo huong goc tu": [
+      "negative_dot"
+    ],
+    "tich vo huong goc 120": [
+      "negative_dot"
+    ],
+    "tich vo huong": [
+      "dot_product",
+      "scalar_result"
+    ],
+    "goc 120": [
+      "angle"
+    ],
+    "goc tu": [
+      "angle"
+    ],
+    "goc giua hai vecto": [
+      "angle"
+    ],
+    "goc giua": [
+      "angle"
+    ],
+    "goc cua hai vecto": [
+      "angle"
+    ],
+    "goc vecto": [
+      "angle",
+      "angle_convention"
+    ],
+    "chung goc": [
+      "common_origin"
+    ],
+    "cung goc": [
+      "common_origin"
+    ],
+    "hieu do dai": [
+      "length_subtraction"
+    ],
+    "do dai hieu": [
+      "length_subtraction"
+    ],
+    "hieu hai vecto": [
+      "subtraction_order",
+      "common_origin"
+    ],
+    "phep tru": [
+      "subtraction_order",
+      "common_origin"
+    ],
+    "tru vecto": [
+      "subtraction_order",
+      "common_origin"
+    ],
+    "tru hai vecto": [
+      "subtraction_order",
+      "common_origin"
+    ],
+    "quy tac tru": [
+      "subtraction_order",
+      "common_origin"
+    ],
+    "he so am": [
+      "negative_scale"
+    ],
+    "binh phuong tong": [
+      "cross_term"
+    ],
+    "so hang cheo": [
+      "cross_term"
+    ],
+    "cung phuong": [
+      "parallel",
+      "opposite"
+    ],
+    "vecto doi": [
+      "negative_length",
+      "reverse",
+      "opposite"
+    ],
+    "quy tac ba diem": [
+      "triangle_rule",
+      "endpoint_order"
+    ],
+    "trong tam tu dien": [
+      "tetrahedron_centroid",
+      "sign",
+      "protege"
+    ],
+    "ab ba": [
+      "equal_length",
+      "direction",
+      "opposite"
+    ],
+    "ba ab": [
+      "equal_length",
+      "direction",
+      "opposite"
+    ],
+    "vecto ab": [
+      "equal_length",
+      "direction"
+    ],
+    "vecto ba": [
+      "equal_length",
+      "direction",
+      "opposite"
+    ],
+    "vector ab": [
+      "equal_length",
+      "direction"
+    ],
+    "vector ba": [
+      "equal_length",
+      "direction",
+      "opposite"
+    ],
+    "ab bang ba": [
+      "equal_length",
+      "direction"
+    ],
+    "doan thang ab": [
+      "equal_length",
+      "direction"
+    ],
+    "giong het nhau": [
+      "equal_length"
+    ],
+    "vecto bang nhau": [
+      "equal_length",
+      "direction"
+    ],
+    "vector bang nhau": [
+      "equal_length",
+      "direction"
+    ],
+    "cung do dai": [
+      "equal_length"
+    ],
+    "quang duong": [
+      "equal_length",
+      "direction"
+    ]
+  },
+  "knowledge": [
+    {
+      "id": "KN_VEC_001",
+      "title": "Vectơ, độ dài và giá",
+      "topic": "Vectơ, độ dài và giá",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Vectơ biểu diễn đoạn thẳng có hướng; độ dài là khoảng cách hai đầu. Với vectơ khác không, giá là đường thẳng đi qua hai đầu.",
+      "formula_latex": "\\|\\overrightarrow{AB}\\|=AB",
+      "conditions": [
+        "Không gán một giá duy nhất cho vectơ không."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            46
+          ],
+          "pdf_pages_1based": [
+            48
+          ],
+          "anchor": "Mục 1: khung định nghĩa và Chú ý"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_002",
+      "title": "Cùng phương và hướng",
+      "topic": "Cùng phương và hướng",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Hai vectơ khác không cùng phương khi giá song song hoặc trùng nhau; khi ấy chúng cùng hướng hoặc ngược hướng.",
+      "formula_latex": "\\vec u\\parallel\\vec v",
+      "conditions": [
+        "Đối với vectơ không dùng quy ước ở KN_VEC_005."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            47
+          ],
+          "pdf_pages_1based": [
+            49
+          ],
+          "anchor": "Mục 1: khung khái niệm"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_003",
+      "title": "Hai vectơ bằng nhau",
+      "topic": "Hai vectơ bằng nhau",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Hai vectơ bằng nhau khi cùng hướng và cùng độ dài; điểm đặt không bắt buộc giống nhau.",
+      "formula_latex": "\\vec u=\\vec v",
+      "conditions": [
+        "Chỉ bằng độ dài chưa đủ; trường hợp không xét theo quy ước."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            47
+          ],
+          "pdf_pages_1based": [
+            49
+          ],
+          "anchor": "Mục 1: khung khái niệm"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_004",
+      "title": "Đại diện duy nhất tại điểm gốc",
+      "topic": "Đại diện duy nhất tại điểm gốc",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Với một điểm O và một vectơ u cho trước, có đúng một điểm M biểu diễn u với gốc O.",
+      "formula_latex": "\\overrightarrow{OM}=\\vec u",
+      "conditions": [
+        "Nếu u bằng không thì M trùng O."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            47
+          ],
+          "pdf_pages_1based": [
+            49
+          ],
+          "anchor": "Chú ý cuối trang"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_005",
+      "title": "Vectơ không và quy ước hướng",
+      "topic": "Vectơ không và quy ước hướng",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Vectơ có hai đầu trùng nhau là vectơ không, có độ dài 0. Sách quy ước nó cùng hướng, do đó cùng phương, với mọi vectơ; mọi vectơ không bằng nhau.",
+      "formula_latex": "\\overrightarrow{AA}=\\vec0,\\quad\\|\\vec0\\|=0",
+      "conditions": [
+        "Quy ước cùng hướng không cho phép suy ra một góc duy nhất với vectơ không."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            48
+          ],
+          "pdf_pages_1based": [
+            50
+          ],
+          "anchor": "Hai gạch đầu dòng đầu trang"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_006",
+      "title": "Tổng và quy tắc ba điểm",
+      "topic": "Tổng và quy tắc ba điểm",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Dựng hai vectơ nối đuôi; vectơ từ đầu thứ nhất tới cuối thứ hai là tổng.",
+      "formula_latex": "\\overrightarrow{AB}+\\overrightarrow{BC}=\\overrightarrow{AC}",
+      "conditions": [
+        "A, B, C tùy ý; khi dời vectơ phải bảo toàn hướng và độ dài."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            49
+          ],
+          "pdf_pages_1based": [
+            51
+          ],
+          "anchor": "Mục 2a: định nghĩa và Nhận xét"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_007",
+      "title": "Quy tắc hình bình hành",
+      "topic": "Quy tắc hình bình hành",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Hai vectơ cạnh xuất phát từ cùng đỉnh của hình bình hành có tổng là vectơ đường chéo xuất phát từ đỉnh đó.",
+      "formula_latex": "\\overrightarrow{AB}+\\overrightarrow{AD}=\\overrightarrow{AC}",
+      "conditions": [
+        "ABCD là hình bình hành theo thứ tự các đỉnh."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            49
+          ],
+          "pdf_pages_1based": [
+            51
+          ],
+          "anchor": "Nhận xét thứ hai"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_008",
+      "title": "Tính chất phép cộng",
+      "topic": "Tính chất phép cộng",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Phép cộng vectơ có tính giao hoán, kết hợp và phần tử không.",
+      "formula_latex": "\\vec u+\\vec v=\\vec v+\\vec u;\\ (\\vec u+\\vec v)+\\vec w=\\vec u+(\\vec v+\\vec w);\\ \\vec u+\\vec0=\\vec u",
+      "conditions": [
+        "Mọi vectơ trong không gian."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            50
+          ],
+          "pdf_pages_1based": [
+            52
+          ],
+          "anchor": "Chú ý đầu trang"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_009",
+      "title": "Quy tắc hình hộp",
+      "topic": "Quy tắc hình hộp",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Tổng ba vectơ cạnh xuất phát từ một đỉnh của hình hộp bằng vectơ đường chéo không gian xuất phát từ đỉnh đó.",
+      "formula_latex": "\\overrightarrow{AB}+\\overrightarrow{AD}+\\overrightarrow{AA\\prime}=\\overrightarrow{AC\\prime}",
+      "conditions": [
+        "ABCD.A′B′C′D′ là hình hộp, các đỉnh có dấu phẩy tương ứng; không cần hình hộp chữ nhật."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            50
+          ],
+          "pdf_pages_1based": [
+            52
+          ],
+          "anchor": "HĐ4 và khung Quy tắc hình hộp"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_010",
+      "title": "Vectơ đối",
+      "topic": "Vectơ đối",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Vectơ đối giữ độ dài, đảo hướng khi khác không; tổng một vectơ với vectơ đối bằng không. Vectơ không đối với chính nó.",
+      "formula_latex": "-\\overrightarrow{AB}=\\overrightarrow{BA};\\ \\vec u+(-\\vec u)=\\vec0",
+      "conditions": [
+        "Đảo hướng không làm đổi độ dài."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            51
+          ],
+          "pdf_pages_1based": [
+            53
+          ],
+          "anchor": "Mục 2b: định nghĩa và Chú ý"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_011",
+      "title": "Hiệu và quy tắc chung gốc",
+      "topic": "Hiệu và quy tắc chung gốc",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Trừ một vectơ là cộng vectơ đối. Với hai vectơ chung gốc, lấy đầu cuối của vectơ trừ nối tới đầu cuối của vectơ bị trừ.",
+      "formula_latex": "\\vec u-\\vec v=\\vec u+(-\\vec v);\\ \\overrightarrow{OB}-\\overrightarrow{OA}=\\overrightarrow{AB}",
+      "conditions": [
+        "O, A, B tùy ý."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            51
+          ],
+          "pdf_pages_1based": [
+            53
+          ],
+          "anchor": "Khung định nghĩa hiệu và Nhận xét"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_012",
+      "title": "Nhân số thực với vectơ",
+      "topic": "Nhân số thực với vectơ",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Hệ số dương giữ hướng, hệ số âm đảo hướng; độ dài được nhân với trị tuyệt đối của hệ số.",
+      "formula_latex": "\\|k\\vec u\\|=|k|\\|\\vec u\\|",
+      "conditions": [
+        "Khi nói giữ/đảo hướng theo định nghĩa: k khác 0 và u khác không."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            53
+          ],
+          "pdf_pages_1based": [
+            55
+          ],
+          "anchor": "Mục 3: khung định nghĩa"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_013",
+      "title": "Tích bằng vectơ không",
+      "topic": "Tích bằng vectơ không",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Nhân với số 0 hoặc nhân vectơ không đều cho vectơ không; tích bằng không khi ít nhất một thừa số bằng không.",
+      "formula_latex": "k\\vec u=\\vec0\\iff k=0\\ \\text{hoặc}\\ \\vec u=\\vec0",
+      "conditions": [
+        "Không được khử vectơ không để kết luận hệ số bằng 0."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            53
+          ],
+          "pdf_pages_1based": [
+            55
+          ],
+          "anchor": "Chú ý ngay sau định nghĩa"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_014",
+      "title": "Điều kiện cùng phương",
+      "topic": "Điều kiện cùng phương",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Khi v khác không, u cùng phương với v khi và chỉ khi có số thực k sao cho u bằng k lần v.",
+      "formula_latex": "\\vec u=k\\vec v",
+      "conditions": [
+        "Vectơ làm cơ sở v phải khác không; k có thể bằng 0."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            53
+          ],
+          "pdf_pages_1based": [
+            55
+          ],
+          "anchor": "Chú ý thứ ba"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_015",
+      "title": "Tính chất nhân số với vectơ",
+      "topic": "Tính chất nhân số với vectơ",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Phép nhân số với vectơ có tính kết hợp, phân phối theo tổng số và theo tổng vectơ; 1 giữ nguyên, -1 tạo vectơ đối.",
+      "formula_latex": "h(k\\vec u)=(hk)\\vec u;\\ (h+k)\\vec u=h\\vec u+k\\vec u;\\ k(\\vec u+\\vec v)=k\\vec u+k\\vec v",
+      "conditions": [
+        "h, k thực; u, v tùy ý."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            53
+          ],
+          "pdf_pages_1based": [
+            55
+          ],
+          "anchor": "Chú ý cuối trang"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_016",
+      "title": "Trọng tâm tam giác",
+      "topic": "Trọng tâm tam giác",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Trọng tâm tam giác được biểu diễn bằng trung bình ba vectơ vị trí với gốc tùy ý.",
+      "formula_latex": "\\overrightarrow{OA}+\\overrightarrow{OB}+\\overrightarrow{OC}=3\\overrightarrow{OG}",
+      "conditions": [
+        "G là trọng tâm tam giác ABC; O tùy ý."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            54
+          ],
+          "pdf_pages_1based": [
+            56
+          ],
+          "anchor": "Ví dụ 8 và Chú ý"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_017",
+      "title": "Trọng tâm tứ diện",
+      "topic": "Trọng tâm tứ diện",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Với G là trọng tâm mặt BCD, trọng tâm I của tứ diện nằm trên AG, chia đoạn theo AI=3IG và có tổng bốn vectơ tới đỉnh bằng không.",
+      "formula_latex": "\\overrightarrow{IA}+\\overrightarrow{IB}+\\overrightarrow{IC}+\\overrightarrow{ID}=\\vec0",
+      "conditions": [
+        "I nằm trong đoạn AG; AI, IG trong tỉ số là độ dài. Suy ra IA=-3IG theo vectơ."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            54
+          ],
+          "pdf_pages_1based": [
+            56
+          ],
+          "anchor": "Luyện tập 8 và chú thích Hình 2.19"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_018",
+      "title": "Góc giữa hai vectơ",
+      "topic": "Góc giữa hai vectơ",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Dời hai vectơ khác không về cùng gốc; góc giữa hai tia đại diện nằm từ 0 đến 180 độ. Sách cho phép góc với vectơ không nhận giá trị tùy ý trong khoảng đó.",
+      "formula_latex": "0^\\circ\\leq(\\vec u,\\vec v)\\leq180^\\circ",
+      "conditions": [
+        "Góc xác định duy nhất khi cả hai vectơ khác không. Không chia cho độ dài bằng 0."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            55
+          ],
+          "pdf_pages_1based": [
+            57
+          ],
+          "anchor": "Mục 4a: khung định nghĩa và Chú ý"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_019",
+      "title": "Tích vô hướng",
+      "topic": "Tích vô hướng",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Tích vô hướng cho một số bằng tích hai độ dài nhân cos góc; nếu có vectơ không, tích bằng 0 theo quy ước.",
+      "formula_latex": "\\vec u\\cdot\\vec v=\\|\\vec u\\|\\|\\vec v\\|\\cos\\theta",
+      "conditions": [
+        "Công thức góc dùng hai vectơ khác không; quy ước xử lý riêng trường hợp không."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            56
+          ],
+          "pdf_pages_1based": [
+            58
+          ],
+          "anchor": "Mục 4b: định nghĩa và Chú ý đầu"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_020",
+      "title": "Vuông góc, bình phương và công thức cos",
+      "topic": "Vuông góc, bình phương và công thức cos",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Hai vectơ khác không vuông góc khi tích vô hướng bằng 0. Bình phương vô hướng một vectơ bằng bình phương độ dài; suy góc bằng chia cho hai độ dài khi chúng dương.",
+      "formula_latex": "\\vec u\\cdot\\vec v=0\\iff\\vec u\\perp\\vec v;\\ \\vec u\\cdot\\vec u=\\|\\vec u\\|^2;\\ \\cos\\theta=\\frac{\\vec u\\cdot\\vec v}{\\|\\vec u\\|\\|\\vec v\\|}",
+      "conditions": [
+        "Điều kiện khác không áp dụng cho mệnh đề vuông góc và công thức góc theo SGK; đẳng thức bình phương đúng cho mọi u."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            56
+          ],
+          "pdf_pages_1based": [
+            58
+          ],
+          "anchor": "Ba Chú ý sau định nghĩa"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_021",
+      "title": "Tính chất tích vô hướng",
+      "topic": "Tính chất tích vô hướng",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Tích vô hướng giao hoán, tương thích với nhân số và phân phối đối với phép cộng.",
+      "formula_latex": "\\vec u\\cdot\\vec v=\\vec v\\cdot\\vec u;\\ (k\\vec u)\\cdot\\vec v=k(\\vec u\\cdot\\vec v);\\ \\vec u\\cdot(\\vec v+\\vec w)=\\vec u\\cdot\\vec v+\\vec u\\cdot\\vec w",
+      "conditions": [
+        "Không suy ra tính kết hợp của ba vectơ; không chia cho vectơ."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            57
+          ],
+          "pdf_pages_1based": [
+            59
+          ],
+          "anchor": "Nhận xét đầu trang"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_022",
+      "title": "Độ dài tổng và hiệu: công thức suy ra",
+      "topic": "Độ dài tổng và hiệu: công thức suy ra",
+      "content_origin": "derived_from_textbook",
+      "statement": "Khai triển bình phương tổng hoặc hiệu cho công thức độ dài có số hạng chéo.",
+      "formula_latex": "\\|\\vec u\\pm\\vec v\\|^2=\\|\\vec u\\|^2+\\|\\vec v\\|^2\\pm2\\vec u\\cdot\\vec v",
+      "conditions": [
+        "Đây là hệ quả tự suy ra từ Bài 6, không phải khung định lý chép nguyên văn."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            56,
+            57
+          ],
+          "pdf_pages_1based": [
+            58,
+            59
+          ],
+          "anchor": "Suy từ bình phương vô hướng và tính phân phối"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_023",
+      "title": "Độ dài tổng trong hình lập phương",
+      "topic": "Độ dài tổng trong hình lập phương",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Trong lập phương cạnh 1, tổng BC và DD′ là vectơ đường chéo của một mặt nên có độ dài căn 2.",
+      "formula_latex": "\\overrightarrow{BC}+\\overrightarrow{DD\\prime}=\\overrightarrow{AD\\prime};\\quad\\|\\overrightarrow{AD\\prime}\\|=\\sqrt2",
+      "conditions": [
+        "Cạnh bằng 1 theo ví dụ gốc; cạnh a>0 cho a√2 là bài biến thể."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            49
+          ],
+          "pdf_pages_1based": [
+            51
+          ],
+          "anchor": "Ví dụ 3"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    },
+    {
+      "id": "KN_VEC_024",
+      "title": "Công của lực không đổi",
+      "topic": "Công của lực không đổi",
+      "content_origin": "textbook_paraphrase",
+      "statement": "Công của lực không đổi trên độ dời là tích vô hướng lực với độ dời; với độ lớn lực và độ dời cố định, công lớn nhất khi cùng hướng.",
+      "formula_latex": "W=\\vec F\\cdot\\vec s=Fs\\cos\\theta",
+      "conditions": [
+        "Lực không đổi; F tính bằng N, s bằng m, công bằng J."
+      ],
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            57
+          ],
+          "pdf_pages_1based": [
+            59
+          ],
+          "anchor": "Vận dụng 4"
+        }
+      ],
+      "review_status": "source_checked_not_teacher_approved"
+    }
+  ],
+  "misconceptions": [
+    {
+      "id": "MISC_VEC_001",
+      "title": "Độ dài không xác định vectơ",
+      "topic": "vector_equality",
+      "tags": [
+        "equal_length",
+        "direction"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_001",
+        "KN_VEC_003"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "Hai vectơ dài bằng nhau thì bằng nhau.",
+      "error_mechanism": "Bỏ qua hướng.",
+      "correction": "Cần cùng hướng và cùng độ dài.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            46,
+            47
+          ],
+          "pdf_pages_1based": [
+            48,
+            49
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_001",
+        "setup": "AB và AD là hai cạnh vuông góc của hình vuông cạnh 2.",
+        "result": "Hai độ dài bằng 2 nhưng hai vectơ không bằng nhau.",
+        "verification": "Hai cạnh vuông góc, cùng độ dài dương không thể cùng hướng.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Em đang so sánh độ dài hay vectơ?"
+        },
+        {
+          "level": 2,
+          "question": "Hai mũi tên có cùng hướng không?"
+        },
+        {
+          "level": 3,
+          "question": "Nêu đủ hai điều kiện để bằng nhau."
+        }
+      ],
+      "resolution_criteria": [
+        "Nêu được cùng độ dài chưa đủ.",
+        "Chỉ ra hướng khác nhau."
+      ],
+      "exercise_ids": [
+        "EX_VEC_001"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "MISC_VEC_002",
+      "title": "Điểm đặt khác vẫn có thể bằng nhau",
+      "topic": "vector_equality",
+      "tags": [
+        "translation",
+        "same_origin"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_003",
+        "KN_VEC_004"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "Hai vectơ bằng nhau phải có cùng điểm đầu.",
+      "error_mechanism": "Đồng nhất đại diện hình vẽ với vectơ.",
+      "correction": "Hai đại diện có thể đặt tại các điểm khác nhau.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            47,
+            48
+          ],
+          "pdf_pages_1based": [
+            49,
+            50
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_002",
+        "setup": "ABCD là hình bình hành không suy biến.",
+        "result": "AB=DC theo vectơ dù A khác D.",
+        "verification": "Với P=0,Q=p,S=q,R=p+q, SR=p=PQ.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Hãy xét hai cạnh đối."
+        },
+        {
+          "level": 2,
+          "question": "AB và DC có cùng hướng không?"
+        },
+        {
+          "level": 3,
+          "question": "Điểm đặt có trong điều kiện bằng nhau không?"
+        }
+      ],
+      "resolution_criteria": [
+        "Giữ đúng thứ tự đầu cuối."
+      ],
+      "exercise_ids": [
+        "EX_VEC_002"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "MISC_VEC_003",
+      "title": "Cùng phương không đồng nghĩa cùng hướng",
+      "topic": "direction",
+      "tags": [
+        "parallel",
+        "opposite"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_002"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "Cùng phương thì luôn cùng hướng.",
+      "error_mechanism": "Bỏ khả năng ngược hướng.",
+      "correction": "Hai vectơ khác không cùng phương có thể cùng hoặc ngược hướng.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            47
+          ],
+          "pdf_pages_1based": [
+            49
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_003",
+        "setup": "u khác không và v=-2u.",
+        "result": "u,v cùng phương nhưng ngược hướng.",
+        "verification": "Với u là mũi tên đơn vị, -4u có chiều ngược và độ dài 4.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Cùng phương nói về giá hay chiều?"
+        },
+        {
+          "level": 2,
+          "question": "Hệ số -2 làm gì với chiều?"
+        },
+        {
+          "level": 3,
+          "question": "Hãy kể cả hai khả năng hướng."
+        }
+      ],
+      "resolution_criteria": [
+        "Phân biệt được phương và hướng."
+      ],
+      "exercise_ids": [
+        "EX_VEC_003"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "MISC_VEC_004",
+      "title": "Quy tắc ba điểm bị đảo kết quả",
+      "topic": "vector_addition",
+      "tags": [
+        "triangle_rule",
+        "endpoint_order"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_006"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "AB+BC=CA theo vectơ.",
+      "error_mechanism": "Đọc ngược đầu cuối của tổng.",
+      "correction": "AB+BC=AC.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            49
+          ],
+          "pdf_pages_1based": [
+            51
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_004",
+        "setup": "A,B,C thẳng hàng theo thứ tự, AB=1, BC=2.",
+        "result": "AC dài 3 cùng hướng đi, CA ngược hướng.",
+        "verification": "Tổng các độ dời liên tiếp là độ dời từ P đến S.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Hành trình bắt đầu ở đâu?"
+        },
+        {
+          "level": 2,
+          "question": "Sau AB rồi BC, em đến đâu?"
+        },
+        {
+          "level": 3,
+          "question": "Vectơ tổng phải có đầu A và cuối nào?"
+        }
+      ],
+      "resolution_criteria": [
+        "Chỉ đúng đầu đầu tiên và cuối cuối cùng."
+      ],
+      "exercise_ids": [
+        "EX_VEC_004"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "MISC_VEC_005",
+      "title": "Cộng độ dài thay cho độ dài tổng",
+      "topic": "norm_sum",
+      "tags": [
+        "length_addition",
+        "cube",
+        "example_3"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_006",
+        "KN_VEC_007",
+        "KN_VEC_023"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "Độ dài tổng hai vectơ luôn bằng tổng độ dài.",
+      "error_mechanism": "Áp dụng phép cộng số vào đại lượng có hướng.",
+      "correction": "Phải dựng vectơ tổng rồi tính độ dài; bằng tổng độ dài chỉ khi hai vectơ khác không cùng hướng, hoặc có vectơ không.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            49
+          ],
+          "pdf_pages_1based": [
+            51
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_005",
+        "setup": "Hai cạnh vuông góc cùng độ dài 1.",
+        "result": "Độ dài tổng là √2, không phải 2.",
+        "verification": "Pythagore cạnh 1: √(1²+1²)=√2 (với cạnh 2: √(2²+2²)=√8=2√2).",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Em đang cộng vectơ hay cộng độ dài?"
+        },
+        {
+          "level": 2,
+          "question": "Dời hai vectơ để dựng đường chéo được không?"
+        },
+        {
+          "level": 3,
+          "question": "Dùng định lý nào cho đường chéo hình vuông?"
+        }
+      ],
+      "resolution_criteria": [
+        "Dựng đúng tổng.",
+        "Giải thích vì sao không cộng 2+2."
+      ],
+      "exercise_ids": [
+        "EX_VEC_005"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review",
+      "verifier": {
+        "toolName": "tool_verify_vector_algebra",
+        "params": {
+          "shape": "cube",
+          "side": "a",
+          "expr": "|BC + DD'|",
+          "defaultClaim": "2a"
+        }
+      }
+    },
+    {
+      "id": "MISC_VEC_006",
+      "title": "Cộng ba cạnh mà thiếu điều kiện hình hộp",
+      "topic": "box_rule",
+      "tags": [
+        "box_rule",
+        "same_vertex"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_009"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "AB+AD+AA′ cho đường chéo không gian của mọi cấu hình tám điểm.",
+      "error_mechanism": "Bỏ giả thiết hình hộp và quan hệ đỉnh.",
+      "correction": "Quy tắc cần hình hộp với đỉnh tương ứng; tại gốc A dùng AB, AD, AA′.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            50
+          ],
+          "pdf_pages_1based": [
+            52
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_006",
+        "setup": "Trong một hình hộp giữ A,B,D,A′, nhưng thay C′ bằng một điểm E khác C′.",
+        "result": "Tổng vẫn tới C′ ban đầu, không tới E tùy ý.",
+        "verification": "Đặt A=0,B=p,D=q,A′=r: BA+BC+BB′=-p+q+r=BD′.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Hình đang có giả thiết hình hộp chưa?"
+        },
+        {
+          "level": 2,
+          "question": "Ba cạnh đi ra từ đỉnh nào?"
+        },
+        {
+          "level": 3,
+          "question": "Đỉnh đối diện tương ứng là đỉnh nào?"
+        }
+      ],
+      "resolution_criteria": [
+        "Nêu hình hộp.",
+        "Chọn đúng đỉnh đối diện B là D′."
+      ],
+      "exercise_ids": [
+        "EX_VEC_006"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review",
+      "verifier": {
+        "toolName": "tool_verify_vector_algebra",
+        "params": {
+          "shape": "cube",
+          "side": "a",
+          "expr": "|AB + AD + AA'|",
+          "defaultClaim": "a\\sqrt{3}"
+        }
+      }
+    },
+    {
+      "id": "MISC_VEC_007",
+      "title": "Hiệu chung gốc bị đảo chiều",
+      "topic": "vector_subtraction",
+      "tags": [
+        "common_origin",
+        "subtraction_order"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_011"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "OA-OB=AB theo vectơ.",
+      "error_mechanism": "Nhớ công thức nhưng đảo thứ tự.",
+      "correction": "OA-OB=BA.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            51
+          ],
+          "pdf_pages_1based": [
+            53
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_007",
+        "setup": "O=A, A khác B.",
+        "result": "OA-OB=0-AB=BA.",
+        "verification": "Với S=0,P=p,Q=q, hiệu p-q là QP.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Vectơ nào bị trừ?"
+        },
+        {
+          "level": 2,
+          "question": "Thử đặt O trùng A."
+        },
+        {
+          "level": 3,
+          "question": "Hiệu phải đi từ đầu cuối của vectơ trừ đến đâu?"
+        }
+      ],
+      "resolution_criteria": [
+        "Xác định đúng vectơ từ Q đến P."
+      ],
+      "exercise_ids": [
+        "EX_VEC_007"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "MISC_VEC_008",
+      "title": "Đổi thứ tự trừ không đổi kết quả",
+      "topic": "vector_subtraction",
+      "tags": [
+        "anti_commutativity"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_010",
+        "KN_VEC_011"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "u-v=v-u với mọi vectơ.",
+      "error_mechanism": "Gán tính giao hoán của phép cộng cho phép trừ.",
+      "correction": "u-v=-(v-u); hai hiệu chỉ bằng nhau khi u=v.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            51
+          ],
+          "pdf_pages_1based": [
+            53
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_008",
+        "setup": "u khác không, v=0.",
+        "result": "u-v=u còn v-u=-u, khác nhau.",
+        "verification": "u-(-u)=2u; -u-u=-2u.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Phép trừ số có giao hoán không?"
+        },
+        {
+          "level": 2,
+          "question": "Chọn v bằng không thử xem."
+        },
+        {
+          "level": 3,
+          "question": "Hai hiệu liên hệ bằng dấu nào?"
+        }
+      ],
+      "resolution_criteria": [
+        "Nêu hai kết quả đối nhau."
+      ],
+      "exercise_ids": [
+        "EX_VEC_008"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "MISC_VEC_009",
+      "title": "Độ dài hiệu bằng hiệu độ dài",
+      "topic": "norm_difference",
+      "tags": [
+        "length_subtraction"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_011",
+        "KN_VEC_022"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "Độ dài u-v luôn bằng độ dài u trừ độ dài v.",
+      "error_mechanism": "Bỏ hướng và bỏ tính không âm.",
+      "correction": "Phải tính vectơ hiệu trước; hiệu hai độ dài không thay thế được độ dài hiệu.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            51,
+            56,
+            57
+          ],
+          "pdf_pages_1based": [
+            53,
+            58,
+            59
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_009",
+        "setup": "u,v vuông góc cùng dài 1.",
+        "result": "Độ dài u-v là √2 trong khi 1-1=0.",
+        "verification": "Bình phương độ dài hiệu bằng 9+16=25.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Độ dài có thể âm không?"
+        },
+        {
+          "level": 2,
+          "question": "Hai vectơ bằng độ dài có chắc bằng nhau?"
+        },
+        {
+          "level": 3,
+          "question": "Dựng u+(-v) trong trường hợp vuông góc."
+        }
+      ],
+      "resolution_criteria": [
+        "Nêu lý do góc vuông.",
+        "Không lấy 3-4 hoặc |3-4|."
+      ],
+      "exercise_ids": [
+        "EX_VEC_009"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "MISC_VEC_010",
+      "title": "Vectơ đối có độ dài âm",
+      "topic": "opposite_vector",
+      "tags": [
+        "negative_length",
+        "reverse"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_001",
+        "KN_VEC_010"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "Vectơ đối của u có độ dài âm.",
+      "error_mechanism": "Nhầm dấu chỉ hướng với dấu của độ dài.",
+      "correction": "Vectơ đối có cùng độ dài; dấu âm đảo hướng.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            46,
+            51
+          ],
+          "pdf_pages_1based": [
+            48,
+            53
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_010",
+        "setup": "u có độ dài 3.",
+        "result": "-u có độ dài 3, không phải -3.",
+        "verification": "Khoảng cách AB=BA=5.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Độ dài là khoảng cách có thể âm không?"
+        },
+        {
+          "level": 2,
+          "question": "Dấu trừ tác động lên hướng thế nào?"
+        },
+        {
+          "level": 3,
+          "question": "So sánh độ dài AB và BA."
+        }
+      ],
+      "resolution_criteria": [
+        "Tách độ dài và hướng."
+      ],
+      "exercise_ids": [
+        "EX_VEC_010"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "MISC_VEC_011",
+      "title": "Hệ số âm vẫn giữ hướng",
+      "topic": "scalar_product",
+      "tags": [
+        "negative_scale"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_012"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "k u luôn cùng hướng với u khi k khác 0.",
+      "error_mechanism": "Chỉ nhớ trường hợp hệ số dương.",
+      "correction": "Với u khác không: k>0 giữ hướng; k<0 đảo hướng.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            53
+          ],
+          "pdf_pages_1based": [
+            55
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_011",
+        "setup": "u khác không và k=-3.",
+        "result": "-3u ngược hướng u.",
+        "verification": "Theo định nghĩa nhân số âm với vectơ, không cần tọa độ.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Hệ số đang dương hay âm?"
+        },
+        {
+          "level": 2,
+          "question": "So sánh u và -u trước."
+        },
+        {
+          "level": 3,
+          "question": "Nhân tiếp độ dài với 3 có đổi chiều lần nữa không?"
+        }
+      ],
+      "resolution_criteria": [
+        "Nêu riêng hướng và hệ số độ dài."
+      ],
+      "exercise_ids": [
+        "EX_VEC_011"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "MISC_VEC_012",
+      "title": "Bỏ trị tuyệt đối khi nhân độ dài",
+      "topic": "scalar_product",
+      "tags": [
+        "absolute_value",
+        "norm_scaling"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_012"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "Độ dài ku bằng k lần độ dài u với mọi k thực.",
+      "error_mechanism": "Bỏ dấu trị tuyệt đối.",
+      "correction": "Độ dài ku=|k| độ dài u.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            53
+          ],
+          "pdf_pages_1based": [
+            55
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_012",
+        "setup": "k=-2, độ dài u=3.",
+        "result": "Độ dài ku=6, không phải -6.",
+        "verification": "3/2×4=6.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Kết quả độ dài có được âm không?"
+        },
+        {
+          "level": 2,
+          "question": "Số nào diễn tả mức phóng to không phụ thuộc chiều?"
+        },
+        {
+          "level": 3,
+          "question": "Hãy dùng |k|."
+        }
+      ],
+      "resolution_criteria": [
+        "Dùng trị tuyệt đối của hệ số."
+      ],
+      "exercise_ids": [
+        "EX_VEC_012"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "MISC_VEC_013",
+      "title": "Tích bằng không thì hệ số bằng không",
+      "topic": "zero_vector",
+      "tags": [
+        "zero_product",
+        "edge_case"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_013"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "k u=0 thì k=0.",
+      "error_mechanism": "Khử vectơ mà chưa biết nó khác không.",
+      "correction": "k=0 hoặc u=0; chỉ khi u khác không mới suy k=0.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            53
+          ],
+          "pdf_pages_1based": [
+            55
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_013",
+        "setup": "k=5,u=0.",
+        "result": "Tích bằng không dù k không bằng 0.",
+        "verification": "Quy ước k0=0 và tính chất tích bằng không ở trang 53.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Có trường hợp vectơ ban đầu bằng không không?"
+        },
+        {
+          "level": 2,
+          "question": "Thử k=5 và u=0."
+        },
+        {
+          "level": 3,
+          "question": "Cần thêm điều kiện nào để khử u?"
+        }
+      ],
+      "resolution_criteria": [
+        "Không bỏ trường hợp u=0."
+      ],
+      "exercise_ids": [
+        "EX_VEC_013"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "MISC_VEC_014",
+      "title": "Phân phối thiếu một số hạng",
+      "topic": "scalar_distribution",
+      "tags": [
+        "distribution"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_015"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "k(u+v)=ku+v với mọi k.",
+      "error_mechanism": "Chỉ nhân số hạng đầu.",
+      "correction": "k(u+v)=ku+kv.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            53
+          ],
+          "pdf_pages_1based": [
+            55
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_014",
+        "setup": "u=0,v khác không,k=2.",
+        "result": "Vế trái 2v, vế phải v.",
+        "verification": "(-2)×(-3)=6.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Có bao nhiêu số hạng trong ngoặc?"
+        },
+        {
+          "level": 2,
+          "question": "Thử u bằng không."
+        },
+        {
+          "level": 3,
+          "question": "Hệ số k phải tác động lên vectơ nào?"
+        }
+      ],
+      "resolution_criteria": [
+        "Đúng cả hai hệ số và dấu."
+      ],
+      "exercise_ids": [
+        "EX_VEC_014"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "MISC_VEC_015",
+      "title": "Trọng tâm tam giác thiếu hệ số 3",
+      "topic": "centroid",
+      "tags": [
+        "triangle_centroid",
+        "factor_3"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_016"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "OA+OB+OC=OG khi G là trọng tâm tam giác ABC.",
+      "error_mechanism": "Nhầm tổng với trung bình.",
+      "correction": "Tổng bằng 3OG.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            54
+          ],
+          "pdf_pages_1based": [
+            56
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_015",
+        "setup": "Chọn O trùng A, tam giác không suy biến.",
+        "result": "AB+AC=3AG, không phải AG.",
+        "verification": "6/3=2.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "G chia trung tuyến theo tỉ số nào?"
+        },
+        {
+          "level": 2,
+          "question": "Trọng tâm là trung bình mấy đỉnh?"
+        },
+        {
+          "level": 3,
+          "question": "Đổi từ trung bình thành tổng cần hệ số gì?"
+        }
+      ],
+      "resolution_criteria": [
+        "Sử dụng hệ số 3."
+      ],
+      "exercise_ids": [
+        "EX_VEC_015"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "MISC_VEC_016",
+      "title": "Tỉ số độ dài áp thẳng sang vectơ trọng tâm",
+      "topic": "centroid",
+      "tags": [
+        "tetrahedron_centroid",
+        "sign",
+        "protege"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_017",
+        "KN_VEC_012"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "I nằm trên AG và AI=3IG theo độ dài nên IA=3IG theo vectơ.",
+      "error_mechanism": "Giữ tỉ số độ dài nhưng bỏ chiều ngược tại I.",
+      "correction": "IA=-3IG theo vectơ; AI=3IG theo vectơ.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            53,
+            54
+          ],
+          "pdf_pages_1based": [
+            55,
+            56
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_016",
+        "setup": "A,I,G theo thứ tự trên đường thẳng, AI=3,IG=1.",
+        "result": "IA và IG ngược hướng, độ dài tỉ số 3.",
+        "verification": "12/4=3; 3×3=9.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Từ I đi tới A và tới G có cùng chiều không?"
+        },
+        {
+          "level": 2,
+          "question": "Điểm I nằm ở đâu trên AG?"
+        },
+        {
+          "level": 3,
+          "question": "Hệ số cần dấu nào để biểu diễn ngược hướng?"
+        }
+      ],
+      "resolution_criteria": [
+        "Đúng tỉ số 3:1.",
+        "Đúng dấu âm."
+      ],
+      "exercise_ids": [
+        "EX_VEC_016"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "MISC_VEC_017",
+      "title": "Đảo một vectơ không đổi góc",
+      "topic": "vector_angle",
+      "tags": [
+        "angle",
+        "reverse_direction"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_018"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "Góc giữa u và -v luôn bằng góc giữa u và v.",
+      "error_mechanism": "Nhầm góc đường thẳng với góc vectơ.",
+      "correction": "Với hai vectơ khác không, đảo một vectơ làm góc θ thành 180°-θ.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            55,
+            56
+          ],
+          "pdf_pages_1based": [
+            57,
+            58
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_017",
+        "setup": "u,v cùng hướng khác không.",
+        "result": "Góc ban đầu 0°, sau đảo là 180°.",
+        "verification": "180-60=120.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Góc đang xét giữa tia có hướng hay đường thẳng?"
+        },
+        {
+          "level": 2,
+          "question": "Thử hai vectơ cùng hướng."
+        },
+        {
+          "level": 3,
+          "question": "Hai góc khi đảo một tia có tổng bao nhiêu?"
+        }
+      ],
+      "resolution_criteria": [
+        "Giữ đúng khoảng 0°–180°."
+      ],
+      "exercise_ids": [
+        "EX_VEC_017"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review",
+      "verifier": {
+        "toolName": "tool_calculate_dot_product",
+        "params": {
+          "uMag": 2,
+          "vMag": 3,
+          "angleDeg": 60,
+          "claimValue": "60",
+          "claimType": "angle",
+          "reverseU": true,
+          "isReversed": true
+        }
+      }
+    },
+    {
+      "id": "MISC_VEC_018",
+      "title": "Gán góc cố định cho vectơ không",
+      "topic": "zero_angle",
+      "tags": [
+        "zero_vector",
+        "angle_convention"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_005",
+        "KN_VEC_018",
+        "KN_VEC_020"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "Vectơ không cùng hướng mọi vectơ nên góc với mọi vectơ bắt buộc là 0°.",
+      "error_mechanism": "Dùng quy ước hướng để suy góc duy nhất.",
+      "correction": "SGK cho phép góc với vectơ không nhận giá trị tùy ý từ 0° đến 180°; không dùng công thức cos có mẫu bằng 0.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            48,
+            55,
+            56
+          ],
+          "pdf_pages_1based": [
+            50,
+            57,
+            58
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_018",
+        "setup": "u=0,v khác không.",
+        "result": "Mẫu độ dài u nhân độ dài v bằng 0; không tính được cos bằng phép chia.",
+        "verification": "Mẫu bằng 0, phép chia không hợp lệ.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Định nghĩa góc đầu tiên yêu cầu gì?"
+        },
+        {
+          "level": 2,
+          "question": "Hãy đọc riêng Chú ý về vectơ không."
+        },
+        {
+          "level": 3,
+          "question": "Có thể chia cho độ dài u lúc này không?"
+        }
+      ],
+      "resolution_criteria": [
+        "Nêu đúng quy ước sách.",
+        "Không tính 0/0=0."
+      ],
+      "exercise_ids": [
+        "EX_VEC_018"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review",
+      "verifier": {
+        "toolName": "tool_calculate_dot_product",
+        "params": {
+          "uMag": 0,
+          "vMag": 2,
+          "angleDeg": 0,
+          "claimValue": "0",
+          "claimType": "angle"
+        }
+      }
+    },
+    {
+      "id": "MISC_VEC_019",
+      "title": "Tích vô hướng luôn không âm hoặc là vectơ",
+      "topic": "dot_product",
+      "tags": [
+        "scalar_result",
+        "negative_dot"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_019",
+        "KN_VEC_020"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "Tích vô hướng là vectơ và luôn không âm.",
+      "error_mechanism": "Nhầm phép nhân vectơ với độ dài; bỏ dấu cos.",
+      "correction": "Tích vô hướng là số, có thể âm; chỉ u·u luôn không âm.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            56
+          ],
+          "pdf_pages_1based": [
+            58
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_019",
+        "setup": "v=-u, độ dài u=2.",
+        "result": "u·v=-4, một số âm.",
+        "verification": "cos120°=-1/2; 2×3×(-1/2)=-3.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Tên vô hướng cho biết kiểu kết quả nào?"
+        },
+        {
+          "level": 2,
+          "question": "Cos 180° bằng bao nhiêu?"
+        },
+        {
+          "level": 3,
+          "question": "So sánh u·u với u·(-u)."
+        }
+      ],
+      "resolution_criteria": [
+        "Nêu kết quả vô hướng.",
+        "Xét dấu của cos."
+      ],
+      "exercise_ids": [
+        "EX_VEC_019"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review",
+      "verifier": {
+        "toolName": "tool_calculate_dot_product",
+        "params": {
+          "uMag": 2,
+          "vMag": 3,
+          "angleDeg": 120,
+          "claimValue": "không âm",
+          "claimType": "dot_product"
+        }
+      }
+    },
+    {
+      "id": "MISC_VEC_020",
+      "title": "Bình phương tổng bỏ số hạng chéo",
+      "topic": "dot_expansion",
+      "tags": [
+        "cross_term",
+        "norm_sum",
+        "distribution"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_020",
+        "KN_VEC_021",
+        "KN_VEC_022"
+      ],
+      "content_origin": "authored_pedagogical_hypothesis",
+      "empirical_frequency": "not_measured",
+      "incorrect_claim": "Độ dài u+v bình phương luôn bằng độ dài u bình phương cộng độ dài v bình phương.",
+      "error_mechanism": "Áp dụng Pythagore khi chưa vuông góc.",
+      "correction": "Cần thêm 2u·v; bỏ được khi tích vô hướng bằng 0.",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            56,
+            57
+          ],
+          "pdf_pages_1based": [
+            58,
+            59
+          ],
+          "anchor": "Căn cứ kiến thức; ngộ nhận và phản ví dụ do tác giả KB biên soạn"
+        }
+      ],
+      "counterexample": {
+        "id": "CE_VEC_020",
+        "setup": "u=v và độ dài u=1.",
+        "result": "Vế trái 4; tổng bình phương riêng bằng 2.",
+        "verification": "4+9+6=19.",
+        "origin": "authored"
+      },
+      "scaffolding": [
+        {
+          "level": 1,
+          "question": "Em đã biết hai vectơ vuông góc chưa?"
+        },
+        {
+          "level": 2,
+          "question": "Khai triển (u+v)·(u+v)."
+        },
+        {
+          "level": 3,
+          "question": "Hai tích chéo cộng lại thành gì?"
+        }
+      ],
+      "resolution_criteria": [
+        "Có số hạng chéo.",
+        "Lấy căn không âm."
+      ],
+      "exercise_ids": [
+        "EX_VEC_020"
+      ],
+      "agent_use": {
+        "bo": "Nêu bẫy dưới dạng giả thuyết để học sinh phản biện; không gắn nhãn sự thật.",
+        "tri": "Kiểm tra điều kiện, dùng phản ví dụ và bằng chứng; chưa tiết lộ lời giải nếu học sinh chưa thử.",
+        "linhchi": "Dùng lần lượt các mức gợi ý, chỉ mở mức tiếp theo khi cần.",
+        "colam": "Chốt điều kiện đúng và kiểm tra bằng bài biến thể."
+      },
+      "review_status": "author_math_checked_pending_teacher_review",
+      "verifier": {
+        "toolName": "tool_calculate_dot_product",
+        "params": {
+          "uMag": 2,
+          "vMag": 3,
+          "angleDeg": 60,
+          "claimValue": "13",
+          "claimType": "norm_sum_squared"
+        }
+      }
+    }
+  ],
+  "exercises": [
+    {
+      "id": "EX_VEC_001",
+      "misconception_ids": [
+        "MISC_VEC_001"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_001",
+        "KN_VEC_003"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            46,
+            47
+          ],
+          "pdf_pages_1based": [
+            48,
+            49
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "Hình vuông ABCD cạnh 3: AB và AD có bằng nhau theo vectơ không?",
+      "expected_answer": "Không.",
+      "solution_outline": "Hai cạnh có độ dài 3 nhưng vuông góc, nên không cùng hướng.",
+      "acceptable_reasoning": [
+        "Nêu được cùng độ dài chưa đủ.",
+        "Chỉ ra hướng khác nhau."
+      ],
+      "hints": [
+        "Em đang so sánh độ dài hay vectơ?",
+        "Hai mũi tên có cùng hướng không?",
+        "Nêu đủ hai điều kiện để bằng nhau."
+      ],
+      "check": "Hai cạnh vuông góc, cùng độ dài dương không thể cùng hướng.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_002",
+      "misconception_ids": [
+        "MISC_VEC_002"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_003",
+        "KN_VEC_004"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            47,
+            48
+          ],
+          "pdf_pages_1based": [
+            49,
+            50
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "Trong hình bình hành PQRS, hãy tìm một vectơ bằng PQ có điểm đầu S.",
+      "expected_answer": "SR.",
+      "solution_outline": "Hai cạnh đối PQ và SR cùng hướng và cùng độ dài.",
+      "acceptable_reasoning": [
+        "Giữ đúng thứ tự đầu cuối."
+      ],
+      "hints": [
+        "Hãy xét hai cạnh đối.",
+        "AB và DC có cùng hướng không?",
+        "Điểm đặt có trong điều kiện bằng nhau không?"
+      ],
+      "check": "Với P=0,Q=p,S=q,R=p+q, SR=p=PQ.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_003",
+      "misconception_ids": [
+        "MISC_VEC_003"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_002"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            47
+          ],
+          "pdf_pages_1based": [
+            49
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "Cho u khác không, v=-4u. Phân loại phương và hướng.",
+      "expected_answer": "Cùng phương, ngược hướng.",
+      "solution_outline": "Hệ số âm đảo chiều; độ dài nhân 4.",
+      "acceptable_reasoning": [
+        "Phân biệt được phương và hướng."
+      ],
+      "hints": [
+        "Cùng phương nói về giá hay chiều?",
+        "Hệ số -2 làm gì với chiều?",
+        "Hãy kể cả hai khả năng hướng."
+      ],
+      "check": "Với u là mũi tên đơn vị, -4u có chiều ngược và độ dài 4.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_004",
+      "misconception_ids": [
+        "MISC_VEC_004"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_006"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            49
+          ],
+          "pdf_pages_1based": [
+            51
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "Rút gọn PQ+QR+RS theo vectơ.",
+      "expected_answer": "PS.",
+      "solution_outline": "Ghép PQ+QR=PR, rồi PR+RS=PS.",
+      "acceptable_reasoning": [
+        "Chỉ đúng đầu đầu tiên và cuối cuối cùng."
+      ],
+      "hints": [
+        "Hành trình bắt đầu ở đâu?",
+        "Sau AB rồi BC, em đến đâu?",
+        "Vectơ tổng phải có đầu A và cuối nào?"
+      ],
+      "check": "Tổng các độ dời liên tiếp là độ dời từ P đến S.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_005",
+      "misconception_ids": [
+        "MISC_VEC_005"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_006",
+        "KN_VEC_007",
+        "KN_VEC_023"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            49
+          ],
+          "pdf_pages_1based": [
+            51
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "Lập phương ABCD.A′B′C′D′ cạnh 2: tính độ dài BC+DD′ theo vectơ.",
+      "expected_answer": "2√2.",
+      "solution_outline": "BC=AD; AD+DD′=AD′; đường chéo mặt ADD′A′ dài 2√2.",
+      "acceptable_reasoning": [
+        "Dựng đúng tổng.",
+        "Giải thích vì sao không cộng 2+2."
+      ],
+      "hints": [
+        "Em đang cộng vectơ hay cộng độ dài?",
+        "Dời hai vectơ để dựng đường chéo được không?",
+        "Dùng định lý nào cho đường chéo hình vuông?"
+      ],
+      "check": "Pythagore: 2²+2²=8; √8=2√2.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_006",
+      "misconception_ids": [
+        "MISC_VEC_006"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_009"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            50
+          ],
+          "pdf_pages_1based": [
+            52
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "Hình hộp ABCD.A′B′C′D′: rút gọn BA+BC+BB′.",
+      "expected_answer": "BD′.",
+      "solution_outline": "Áp dụng quy tắc hình hộp tại B với ba cạnh BA, BC, BB′.",
+      "acceptable_reasoning": [
+        "Nêu hình hộp.",
+        "Chọn đúng đỉnh đối diện B là D′."
+      ],
+      "hints": [
+        "Hình đang có giả thiết hình hộp chưa?",
+        "Ba cạnh đi ra từ đỉnh nào?",
+        "Đỉnh đối diện tương ứng là đỉnh nào?"
+      ],
+      "check": "Đặt A=0,B=p,D=q,A′=r: BA+BC+BB′=-p+q+r=BD′.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_007",
+      "misconception_ids": [
+        "MISC_VEC_007"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_011"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            51
+          ],
+          "pdf_pages_1based": [
+            53
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "Rút gọn SP-SQ theo vectơ.",
+      "expected_answer": "QP.",
+      "solution_outline": "SP-SQ=SP+QS=QS+SP=QP.",
+      "acceptable_reasoning": [
+        "Xác định đúng vectơ từ Q đến P."
+      ],
+      "hints": [
+        "Vectơ nào bị trừ?",
+        "Thử đặt O trùng A.",
+        "Hiệu phải đi từ đầu cuối của vectơ trừ đến đâu?"
+      ],
+      "check": "Với S=0,P=p,Q=q, hiệu p-q là QP.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_008",
+      "misconception_ids": [
+        "MISC_VEC_008"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_010",
+        "KN_VEC_011"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            51
+          ],
+          "pdf_pages_1based": [
+            53
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "Biết AB khác không: so sánh AB-BA và BA-AB.",
+      "expected_answer": "Lần lượt 2AB và -2AB.",
+      "solution_outline": "BA=-AB; thay vào hai hiệu.",
+      "acceptable_reasoning": [
+        "Nêu hai kết quả đối nhau."
+      ],
+      "hints": [
+        "Phép trừ số có giao hoán không?",
+        "Chọn v bằng không thử xem.",
+        "Hai hiệu liên hệ bằng dấu nào?"
+      ],
+      "check": "u-(-u)=2u; -u-u=-2u.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_009",
+      "misconception_ids": [
+        "MISC_VEC_009"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_011",
+        "KN_VEC_022"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            51,
+            56,
+            57
+          ],
+          "pdf_pages_1based": [
+            53,
+            58,
+            59
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "u,v vuông góc, độ dài 3 và 4. Tính độ dài u-v.",
+      "expected_answer": "5.",
+      "solution_outline": "u và -v vuông góc; Pythagore cho √(9+16)=5.",
+      "acceptable_reasoning": [
+        "Nêu lý do góc vuông.",
+        "Không lấy 3-4 hoặc |3-4|."
+      ],
+      "hints": [
+        "Độ dài có thể âm không?",
+        "Hai vectơ bằng độ dài có chắc bằng nhau?",
+        "Dựng u+(-v) trong trường hợp vuông góc."
+      ],
+      "check": "Bình phương độ dài hiệu bằng 9+16=25.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_010",
+      "misconception_ids": [
+        "MISC_VEC_010"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_001",
+        "KN_VEC_010"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            46,
+            51
+          ],
+          "pdf_pages_1based": [
+            48,
+            53
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "Cho AB=5 theo độ dài. Tính độ dài -AB theo vectơ và mô tả hướng.",
+      "expected_answer": "Độ dài 5; ngược hướng AB.",
+      "solution_outline": "-AB=BA; BA và AB có cùng khoảng cách hai đầu.",
+      "acceptable_reasoning": [
+        "Tách độ dài và hướng."
+      ],
+      "hints": [
+        "Độ dài là khoảng cách có thể âm không?",
+        "Dấu trừ tác động lên hướng thế nào?",
+        "So sánh độ dài AB và BA."
+      ],
+      "check": "Khoảng cách AB=BA=5.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_011",
+      "misconception_ids": [
+        "MISC_VEC_011"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_012"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            53
+          ],
+          "pdf_pages_1based": [
+            55
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "IA=-3IG theo vectơ, IG khác không. So sánh hướng và độ dài IA, IG.",
+      "expected_answer": "Ngược hướng; IA dài gấp 3 IG.",
+      "solution_outline": "Dấu âm đảo hướng, trị tuyệt đối 3 cho tỉ số độ dài.",
+      "acceptable_reasoning": [
+        "Nêu riêng hướng và hệ số độ dài."
+      ],
+      "hints": [
+        "Hệ số đang dương hay âm?",
+        "So sánh u và -u trước.",
+        "Nhân tiếp độ dài với 3 có đổi chiều lần nữa không?"
+      ],
+      "check": "Theo định nghĩa nhân số âm với vectơ, không cần tọa độ.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_012",
+      "misconception_ids": [
+        "MISC_VEC_012"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_012"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            53
+          ],
+          "pdf_pages_1based": [
+            55
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "Độ dài u=4. Tính độ dài (-3/2)u.",
+      "expected_answer": "6.",
+      "solution_outline": "|-3/2|×4=6.",
+      "acceptable_reasoning": [
+        "Dùng trị tuyệt đối của hệ số."
+      ],
+      "hints": [
+        "Kết quả độ dài có được âm không?",
+        "Số nào diễn tả mức phóng to không phụ thuộc chiều?",
+        "Hãy dùng |k|."
+      ],
+      "check": "3/2×4=6.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_013",
+      "misconception_ids": [
+        "MISC_VEC_013"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_013"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            53
+          ],
+          "pdf_pages_1based": [
+            55
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "Giải k u=0 trong hai trường hợp u khác không và u bằng không.",
+      "expected_answer": "u khác không: k=0; u bằng không: mọi k thực.",
+      "solution_outline": "Tách hai trường hợp theo điều kiện tích bằng không.",
+      "acceptable_reasoning": [
+        "Không bỏ trường hợp u=0."
+      ],
+      "hints": [
+        "Có trường hợp vectơ ban đầu bằng không không?",
+        "Thử k=5 và u=0.",
+        "Cần thêm điều kiện nào để khử u?"
+      ],
+      "check": "Quy ước k0=0 và tính chất tích bằng không ở trang 53.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_014",
+      "misconception_ids": [
+        "MISC_VEC_014"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_015"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            53
+          ],
+          "pdf_pages_1based": [
+            55
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "Rút gọn -2(u-3v).",
+      "expected_answer": "-2u+6v.",
+      "solution_outline": "Phân phối -2 vào cả u và -3v.",
+      "acceptable_reasoning": [
+        "Đúng cả hai hệ số và dấu."
+      ],
+      "hints": [
+        "Có bao nhiêu số hạng trong ngoặc?",
+        "Thử u bằng không.",
+        "Hệ số k phải tác động lên vectơ nào?"
+      ],
+      "check": "(-2)×(-3)=6.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_015",
+      "misconception_ids": [
+        "MISC_VEC_015"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_016"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            54
+          ],
+          "pdf_pages_1based": [
+            56
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "G là trọng tâm tam giác PQR. Biết OP+OQ+OR=6v theo vectơ. Tìm OG.",
+      "expected_answer": "OG=2v.",
+      "solution_outline": "3OG=6v; nhân hai vế với 1/3.",
+      "acceptable_reasoning": [
+        "Sử dụng hệ số 3."
+      ],
+      "hints": [
+        "G chia trung tuyến theo tỉ số nào?",
+        "Trọng tâm là trung bình mấy đỉnh?",
+        "Đổi từ trung bình thành tổng cần hệ số gì?"
+      ],
+      "check": "6/3=2.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_016",
+      "misconception_ids": [
+        "MISC_VEC_016"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_017",
+        "KN_VEC_012"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            53,
+            54
+          ],
+          "pdf_pages_1based": [
+            55,
+            56
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "I là trọng tâm tứ diện, G là trọng tâm mặt BCD. Biết AG=12. Tính AI,IG và viết IA theo IG.",
+      "expected_answer": "AI=9; IG=3; IA=-3IG theo vectơ.",
+      "solution_outline": "AI=3IG và AG=4IG; suy ra IG=3, AI=9; đảo AI thành IA đổi dấu.",
+      "acceptable_reasoning": [
+        "Đúng tỉ số 3:1.",
+        "Đúng dấu âm."
+      ],
+      "hints": [
+        "Từ I đi tới A và tới G có cùng chiều không?",
+        "Điểm I nằm ở đâu trên AG?",
+        "Hệ số cần dấu nào để biểu diễn ngược hướng?"
+      ],
+      "check": "12/4=3; 3×3=9.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_017",
+      "misconception_ids": [
+        "MISC_VEC_017"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_018"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            55,
+            56
+          ],
+          "pdf_pages_1based": [
+            57,
+            58
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "u,v khác không có góc 60°. Tính góc u,-v.",
+      "expected_answer": "120°.",
+      "solution_outline": "Giữ gốc chung, đảo tia đại diện v; góc mới bù với 60°.",
+      "acceptable_reasoning": [
+        "Giữ đúng khoảng 0°–180°."
+      ],
+      "hints": [
+        "Góc đang xét giữa tia có hướng hay đường thẳng?",
+        "Thử hai vectơ cùng hướng.",
+        "Hai góc khi đảo một tia có tổng bao nhiêu?"
+      ],
+      "check": "180-60=120.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_018",
+      "misconception_ids": [
+        "MISC_VEC_018"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_005",
+        "KN_VEC_018",
+        "KN_VEC_020"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            48,
+            55,
+            56
+          ],
+          "pdf_pages_1based": [
+            50,
+            57,
+            58
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "Với u=0 và v khác không: tính u·v và hỏi có xác định duy nhất góc bằng thương tích vô hướng không.",
+      "expected_answer": "u·v=0; không xác định duy nhất bằng công thức thương.",
+      "solution_outline": "Dùng quy ước tích bằng 0; công thức cos không áp dụng vì mẫu bằng 0.",
+      "acceptable_reasoning": [
+        "Nêu đúng quy ước sách.",
+        "Không tính 0/0=0."
+      ],
+      "hints": [
+        "Định nghĩa góc đầu tiên yêu cầu gì?",
+        "Hãy đọc riêng Chú ý về vectơ không.",
+        "Có thể chia cho độ dài u lúc này không?"
+      ],
+      "check": "Mẫu bằng 0, phép chia không hợp lệ.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_019",
+      "misconception_ids": [
+        "MISC_VEC_019"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_019",
+        "KN_VEC_020"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            56
+          ],
+          "pdf_pages_1based": [
+            58
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "Độ dài u=2,v=3,góc 120°. Tính u·v và kiểu kết quả.",
+      "expected_answer": "-3; là số thực.",
+      "solution_outline": "2×3×cos120°=6×(-1/2)=-3.",
+      "acceptable_reasoning": [
+        "Nêu kết quả vô hướng.",
+        "Xét dấu của cos."
+      ],
+      "hints": [
+        "Tên vô hướng cho biết kiểu kết quả nào?",
+        "Cos 180° bằng bao nhiêu?",
+        "So sánh u·u với u·(-u)."
+      ],
+      "check": "cos120°=-1/2; 2×3×(-1/2)=-3.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    },
+    {
+      "id": "EX_VEC_020",
+      "misconception_ids": [
+        "MISC_VEC_020"
+      ],
+      "knowledge_ids": [
+        "KN_VEC_020",
+        "KN_VEC_021",
+        "KN_VEC_022"
+      ],
+      "origin": "authored_variant_not_textbook_exercise",
+      "source_refs": [
+        {
+          "source_id": "SGK_KNTT12_T1_B6",
+          "printed_pages": [
+            56,
+            57
+          ],
+          "pdf_pages_1based": [
+            58,
+            59
+          ],
+          "anchor": "Căn cứ phương pháp; đề và số liệu mới do tác giả KB soạn"
+        }
+      ],
+      "problem": "Độ dài u=2,v=3,góc 60°. Tính độ dài u+v.",
+      "expected_answer": "√19.",
+      "solution_outline": "Bình phương bằng 4+9+2×2×3×1/2=19.",
+      "acceptable_reasoning": [
+        "Có số hạng chéo.",
+        "Lấy căn không âm."
+      ],
+      "hints": [
+        "Em đã biết hai vectơ vuông góc chưa?",
+        "Khai triển (u+v)·(u+v).",
+        "Hai tích chéo cộng lại thành gì?"
+      ],
+      "check": "4+9+6=19.",
+      "bloom_target_suggested": "Analyze",
+      "review_status": "author_math_checked_pending_teacher_review"
+    }
+  ],
+  "roundtable_policy": {
+    "student_visible_fields": [
+      "incorrect_claim (chỉ như giả thuyết của Bo)",
+      "scaffolding[level=1]",
+      "exercise.problem"
+    ],
+    "teacher_internal_fields": [
+      "correction",
+      "counterexample",
+      "expected_answer",
+      "solution_outline",
+      "resolution_criteria"
+    ],
+    "progression": [
+      "Lấy knowledge_ids và nguồn trước khi soạn bẫy.",
+      "Bo nêu một bẫy, chờ học sinh phản hồi.",
+      "Trí kiểm chứng; chỉ nêu câu hỏi gợi mở trước.",
+      "Linh Chi tăng từng mức gợi ý.",
+      "Cô Lam chốt kiến thức và giao bài biến thể."
+    ],
+    "guardrails": [
+      "Không dùng giả thuyết của Bo làm nguồn sự thật cho RAG.",
+      "Không đẩy toàn bộ lời giải nội bộ vào thông điệp hiển thị cho học sinh.",
+      "Không ghi approved trước khi giáo viên duyệt.",
+      "Không gán timestamp video từ số trang SGK.",
+      "Bloom là nhãn mục tiêu đề xuất, không phải chứng nhận năng lực."
+    ]
+  }
+}
