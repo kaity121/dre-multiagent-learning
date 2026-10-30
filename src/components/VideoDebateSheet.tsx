@@ -10,7 +10,7 @@ import { FormattedMathText } from './MathVector';
 import { ChatSavedQuizBlock } from './ChatSavedQuizBlock';
 import { sound } from '../utils/soundEffects';
 import { sendClassroomChat } from '../services/dreBackendApi';
-import { BookOpen, Check, Ruler } from 'lucide-react';
+import { BookOpen, Check, CornerDownRight, Reply, Ruler } from 'lucide-react';
 import { hasCheckpoint } from '../utils/lessonAdapter';
 
 // ============================================================================
@@ -1055,7 +1055,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
         {/* Nội dung tin nhắn: Hàng 1 Tên + Giờ, Hàng 2 Khung Bubble */}
         <div className="flex-1 min-w-0 space-y-1">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-xs text-[#121712] truncate">
+            <span className="truncate text-[13px] font-bold text-[#121712]">
               {msg.author}
             </span>
             {(isCoLam || isTaAn || isBo || isChi || isKhang || isTri) && !isMe && (
@@ -1073,7 +1073,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             <button
               type="button"
               onClick={() => onSeekVideo?.(msg.second)}
-              className="px-1.5 py-0.5 rounded-md bg-[#F3F8E8] hover:bg-[#E2EAD2] text-[11px] font-mono font-medium text-[#121712] border border-[#E2EAD2] cursor-pointer transition-colors"
+              className="px-1.5 py-0.5 rounded-md bg-lime-bg hover:bg-lime-border text-[11px] font-mono font-medium text-[#121712] border border-lime-border cursor-pointer transition-colors"
               title={`Tua video tới ${formatSec(msg.second)}`}
             >
               {formatSec(msg.second)}
@@ -1090,19 +1090,20 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                 if (matchedOpt) setRecipient(matchedOpt.id);
                 chatInputRef.current?.focus();
               }}
-              className="opacity-0 group-hover:opacity-100 transition-opacity px-1.5 py-0.2 rounded text-[10px] font-semibold text-stone-500 hover:text-[#1B4338] hover:bg-stone-200/60 cursor-pointer flex items-center gap-0.5 ml-auto"
+              className="ml-auto flex cursor-pointer items-center gap-1 rounded px-1.5 py-0.5 text-[12px] font-semibold text-[#5B6657] opacity-0 transition-opacity hover:bg-lime-border/60 hover:text-[#121712] focus-visible:opacity-100 group-hover:opacity-100"
               title={`Trả lời tin nhắn của ${msg.author}`}
             >
-              <span>↩ Trả lời</span>
+              <Reply className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Trả lời</span>
             </button>
           </div>
-          <div className="p-3 rounded-2xl bg-white border border-[#E2EAD2] text-xs text-[#121712] leading-relaxed font-normal shadow-2xs select-text">
+          <div className="px-3 py-2.5 rounded-2xl bg-white border border-lime-border text-[14px] text-[#121712] leading-relaxed font-normal shadow-2xs select-text">
             {/* Trích dẫn tin nhắn đang được phản hồi (Quote chip) */}
             {msg.replyTo && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 mb-2 rounded-lg bg-[#F3F8E8] border border-[#E2EAD2] text-[10.5px] text-[#121712] font-medium max-w-full overflow-hidden">
-                <span className="text-[#121712] font-mono text-xs font-bold">↩</span>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 mb-2 rounded-lg bg-lime-bg border border-lime-border text-[12px] text-[#121712] font-medium max-w-full overflow-hidden">
+                <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-[#4A5546]" aria-hidden="true" />
                 <span className="font-bold text-[#121712] shrink-0">@{msg.replyTo.author}:</span>
-                <span className="truncate italic text-stone-600">"{cleanText(msg.replyTo.text)}"</span>
+                <span className="truncate italic text-[#4A5546]">"{cleanText(msg.replyTo.text)}"</span>
               </div>
             )}
             {(() => {
@@ -1181,7 +1182,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
             {/* Source list: shown on demand when the message has an evidence chip, otherwise always. */}
             {msg.citations && msg.citations.length > 0 && (openSourceIds.has(msg.id) || !evidenceSummary(msg)) && (
-              <div id={`msg-sources-${msg.id}`} className="mt-2 pt-2 border-t border-[#E2EAD2] flex flex-wrap items-center gap-1.5">
+              <div id={`msg-sources-${msg.id}`} className="mt-2 pt-2 border-t border-lime-border flex flex-wrap items-center gap-1.5">
                 <span className="text-[12px] font-semibold text-[#3D4739]">Nguồn:</span>
                 {msg.citations.filter((c) => c.label && c.label.trim()).map((c, cIdx) => {
                   const hasSeek = typeof c.timestamp === 'number';
@@ -1216,9 +1217,9 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   return (
     <div className="relative w-full h-full flex flex-col justify-between overflow-hidden select-none bg-white font-sans">
       {/* 1. THANH TIÊU ĐỀ: [🟢 Lớp học · 4 bạn AI] + [💡 Gợi ý (0/3)] + [⤢ Mở rộng] */}
-      <div className="px-3 pt-2.5 pb-2 flex items-center justify-between gap-1 shrink-0 bg-white border-b border-[#E2EAD2]">
+      <div className="px-3 pt-2.5 pb-2 flex items-center justify-between gap-1 shrink-0 bg-white border-b border-lime-border">
         <div className="flex items-center gap-2 shrink-0">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#C8F169] ring-2 ring-[#121712] inline-block shrink-0" />
+          <span className="w-2.5 h-2.5 rounded-full bg-lime-accent ring-2 ring-[#121712] inline-block shrink-0" />
           <span className="min-w-0">
             <span className="block text-[15px] font-bold leading-tight text-[#121712] truncate">
               Lớp học 4 bạn AI + Cô Lam
@@ -1236,7 +1237,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               sound.playPencilTap();
               setTaHintTier((prev) => (prev + 1) % 4);
             }}
-            className="px-2.5 py-1 bg-[#F3F8E8] hover:bg-[#E2EAD2] text-[#121712] border border-[#E2EAD2] font-semibold text-xs rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 transition-colors shadow-2xs whitespace-nowrap"
+            className="px-2.5 py-1 bg-lime-bg hover:bg-lime-border text-[#121712] border border-lime-border font-semibold text-xs rounded-lg cursor-pointer flex items-center gap-1.5 shrink-0 transition-colors shadow-2xs whitespace-nowrap"
             title="Xem gợi ý từ trợ giảng"
           >
             <GentleLightbulb className="w-3.5 h-3.5 text-[#121712]" />
@@ -1254,7 +1255,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               className={`px-2 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer flex items-center gap-1 shrink-0 whitespace-nowrap ${
                 isChatExpanded
                   ? 'bg-[#121712] text-white border-[#121712] shadow-xs'
-                  : 'bg-white hover:bg-[#F3F8E8] text-[#121712] border-[#E2EAD2] shadow-2xs'
+                  : 'bg-white hover:bg-lime-bg text-[#121712] border-lime-border shadow-2xs'
               }`}
               title={isChatExpanded ? 'Thu hẹp khung chat (về 33%)' : 'Mở rộng khung chat (lên 50%)'}
             >
@@ -1276,7 +1277,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
       {/* 2. DẢI 4 BẠN HỌC ĐỒNG HÀNH (HỖ TRỢ THU GỌN ĐỂ TỐI ĐA DIỆN TÍCH KHUNG CHAT) */}
       {isRosterCollapsed ? (
-        <div className="flex h-11 shrink-0 items-center justify-between gap-2 border-b border-[#E2EAD2] bg-[#F7FAF0] px-3">
+        <div className="flex h-11 shrink-0 items-center justify-between gap-2 border-b border-lime-border bg-[#F7FAF0] px-3">
           <div className="flex min-w-0 items-center gap-1.5" role="group" aria-label="4 bạn AI, bấm để nhắn riêng">
             {peopleRoster.map((p) => {
               const isSelected = recipient === p.id;
@@ -1293,7 +1294,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                   aria-label={`Nhắn riêng cho ${p.name}`}
                   title={`${p.name}: ${p.tagline}. Bấm để nhắn riêng`}
                   className={`rounded-full p-0.5 transition-shadow focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#121712] ${
-                    isSelected ? 'ring-2 ring-[#121712]' : 'hover:ring-2 hover:ring-[#C8F169]'
+                    isSelected ? 'ring-2 ring-[#121712]' : 'hover:ring-2 hover:ring-lime-accent'
                   }`}
                 >
                   {getRosterAvatar(p.id, 'w-7 h-7')}
@@ -1309,7 +1310,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             onClick={() => setIsRosterCollapsed(false)}
             aria-label="Hiện chi tiết 4 bạn"
             title="Hiện chi tiết 4 bạn"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#121712] hover:bg-[#E9F2D8] focus-visible:outline-2 focus-visible:outline-[#121712]"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#121712] hover:bg-lime-soft focus-visible:outline-2 focus-visible:outline-[#121712]"
           >
             <ChevronDownSvg className="w-3 h-3" />
           </button>
@@ -1317,15 +1318,15 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       ) : (
         <>
           {/* DÒNG PHỤ: 4 bạn đồng hành + Nút thu gọn */}
-          <div className="px-3.5 py-1 text-xs text-stone-500 leading-tight shrink-0 flex items-center justify-between bg-[#F3F8E8]/30">
+          <div className="px-3.5 py-1 text-xs text-[#5B6657] leading-tight shrink-0 flex items-center justify-between bg-lime-bg/30">
             <div className="truncate">
               <span className="font-bold text-[#121712] mr-1">4 bạn đồng hành:</span>
-              <span className="hidden xl:inline text-stone-500">Cùng tranh biện qua từng bài giảng</span>
+              <span className="hidden xl:inline text-[#5B6657]">Cùng tranh biện qua từng bài giảng</span>
             </div>
             <button
               type="button"
               onClick={() => setIsRosterCollapsed(true)}
-              className="text-xs font-semibold text-stone-500 hover:text-[#121712] flex items-center gap-0.5 shrink-0 cursor-pointer px-1.5 py-0.5 rounded hover:bg-white"
+              className="text-xs font-semibold text-[#5B6657] hover:text-[#121712] flex items-center gap-0.5 shrink-0 cursor-pointer px-1.5 py-0.5 rounded hover:bg-white"
               title="Thu gọn avatar để dành diện tích cho đoạn chat"
             >
               <span>Thu gọn</span>
@@ -1333,7 +1334,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             </button>
           </div>
 
-          <div className="px-3 pb-2 pt-1 grid grid-cols-4 gap-1.5 border-b border-[#E2EAD2] shrink-0 bg-[#F3F8E8]/20">
+          <div className="px-3 pb-2 pt-1 grid grid-cols-4 gap-1.5 border-b border-lime-border shrink-0 bg-lime-bg/20">
             {peopleRoster.map((p) => {
               const isSelected = recipient === p.id;
               return (
@@ -1348,18 +1349,18 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                     setActivePeerNote((prev) => (prev === p.id ? null : p.id));
                   }}
                   className={`p-1.5 rounded-xl transition-all cursor-pointer flex flex-col items-center text-center group border ${
-                    isSelected ? 'bg-white border-[#121712] ring-1 ring-[#121712] shadow-xs' : 'bg-white/60 hover:bg-white border-transparent hover:border-[#E2EAD2]'
+                    isSelected ? 'bg-white border-[#121712] ring-1 ring-[#121712] shadow-xs' : 'bg-white/60 hover:bg-white border-transparent hover:border-lime-border'
                   }`}
                   title={`${p.name} (${p.tagline}) - Bấm để nhắn riêng hoặc xem ghi chú`}
                 >
                   <div className="relative mb-1">
                     {getRosterAvatar(p.id, 'w-9 h-9')}
-                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#C8F169] ring-2 ring-white" />
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-lime-accent ring-2 ring-white" />
                   </div>
                   <span className="text-[11px] sm:text-xs font-bold text-[#121712] leading-snug text-center w-full truncate" title={p.name}>
                     {p.name}
                   </span>
-                  <span className="text-[11px] sm:text-xs text-stone-500 leading-tight text-center w-full mt-0.5 truncate">
+                  <span className="text-[11px] sm:text-xs text-[#5B6657] leading-tight text-center w-full mt-0.5 truncate">
                     {p.status}
                   </span>
                 </button>
@@ -1371,7 +1372,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
       {/* TOOLTIP NỔI KHI HOVER VÀO TỪNG BẠN (THÔNG TIN MÔ TẢ NGẮN / SUPERPOWER) */}
       {hoveredPeer && (
-        <div className="mx-3.5 my-1.5 p-2.5 rounded-xl bg-white/98 backdrop-blur-md text-stone-800 text-xs space-y-1.5 shadow-lg border border-amber-200/90 animate-in fade-in duration-100 shrink-0">
+        <div className="mx-3.5 my-1.5 p-2.5 rounded-xl bg-white/98 backdrop-blur-md text-[#121712] text-xs space-y-1.5 shadow-lg border border-amber-200/90 animate-in fade-in duration-100 shrink-0">
           {(() => {
             const hp = peopleRoster.find((x) => x.id === hoveredPeer);
             if (!hp) return null;
@@ -1382,12 +1383,12 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: hp.color }} />
                     <span>{hp.name} · {hp.tagline}</span>
                   </span>
-                  <span className="text-[11px] text-stone-500 font-medium">Bấm để nhắn riêng</span>
+                  <span className="text-[11px] text-[#5B6657] font-medium">Bấm để nhắn riêng</span>
                 </div>
-                <p className="text-[11px] text-stone-700 italic font-medium leading-snug">
+                <p className="text-[11px] text-[#3D4739] italic font-medium leading-snug">
                   {hp.speech}
                 </p>
-                <div className="text-[10px] text-stone-500 leading-tight border-t border-stone-100 pt-1 font-normal flex items-center gap-1">
+                <div className="text-[11px] text-[#5B6657] leading-tight border-t border-lime-border pt-1 font-normal flex items-center gap-1">
                   <GentleLightbulb className="w-3 h-3 text-amber-500 shrink-0" />
                   <span>{hp.power}</span>
                 </div>
@@ -1399,12 +1400,12 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
       {/* Ghi chú nhanh khi bấm vào 1 bạn (Whisper peek) */}
       {activePeerNote && (
-        <div className="mx-3.5 mt-2 p-2.5 bg-[#FFFBF2] border border-[#E8A33D]/50 rounded-xl text-xs flex items-center justify-between gap-2 shadow-2xs animate-in fade-in duration-100 shrink-0">
+        <div className="mx-3.5 mt-2 p-2.5 bg-[#F7FAF0] border border-lime-border rounded-xl text-xs flex items-center justify-between gap-2 shadow-2xs animate-in fade-in duration-100 shrink-0">
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="font-bold text-[#92400E] shrink-0">
+            <span className="font-bold text-[#121712] shrink-0">
               {peopleRoster.find((x) => x.id === activePeerNote)?.name}:
             </span>
-            <span className="text-stone-700 truncate font-normal">
+            <span className="text-[#3D4739] truncate font-normal">
               {activePeerNote === 'linhchi' && 'OA + AB = OB · Quy tắc hình hộp AB + AD + AA\' = AC\''}
               {activePeerNote === 'minhkhang' && 'Đi ngang 1m leo lên 1m -> đường chéo căn(1² + 1²) = √2m'}
               {activePeerNote === 'tri' && 'Cần kiểm tra cùng phương trước khi xét cùng/ngược hướng'}
@@ -1414,7 +1415,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           <button
             type="button"
             onClick={() => setActivePeerNote(null)}
-            className="text-stone-400 hover:text-stone-800 font-bold text-xs cursor-pointer px-1"
+            className="text-[#5B6657] hover:text-[#121712] font-bold text-xs cursor-pointer px-1"
           >
             ✕
           </button>
@@ -1422,14 +1423,14 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       )}
 
       {/* 3. THANH TAB CHUẨN ẢNH 4: [Lớp học] · [Bản chép lời] */}
-      <div className="px-3.5 pt-2 flex items-center gap-5 border-b border-stone-200 shrink-0 bg-white">
+      <div className="px-3.5 pt-2 flex items-center gap-5 border-b border-lime-border shrink-0 bg-white">
         <button
           type="button"
           onClick={() => setActiveTab('chat')}
           className={`pb-2 text-xs font-bold cursor-pointer transition-colors relative ${
             activeTab === 'chat'
-              ? 'text-stone-900 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-stone-900'
-              : 'text-stone-500 hover:text-stone-800'
+              ? 'text-[#121712] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#121712]'
+              : 'text-[#5B6657] hover:text-[#121712]'
           }`}
         >
           Lớp học
@@ -1439,8 +1440,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           onClick={() => setActiveTab('transcript')}
           className={`pb-2 text-xs font-bold cursor-pointer transition-colors relative ${
             activeTab === 'transcript'
-              ? 'text-stone-900 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-stone-900'
-              : 'text-stone-500 hover:text-stone-800'
+              ? 'text-[#121712] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#121712]'
+              : 'text-[#5B6657] hover:text-[#121712]'
           }`}
         >
           Bản chép lời
@@ -1449,8 +1450,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
       {/* 4. NỘI DUNG PANEL: CHAT HOẶC TRANSCRIPT */}
       {activeTab === 'transcript' ? (
-        <div className="transcript flex-1 overflow-y-auto no-scrollbar p-3 space-y-1.5 bg-stone-50/50">
-          <div className="text-[11px] font-bold text-stone-500 px-1 pb-1">
+        <div className="transcript flex-1 overflow-y-auto no-scrollbar p-3 space-y-1.5 bg-[#F7FAF0]/50">
+          <div className="text-[11px] font-bold text-[#5B6657] px-1 pb-1">
             BẢN CHÉP LỜI THEO TIẾN ĐỘ BÀI GIẢNG:
           </div>
           {lesson.transcriptCues?.map((cue, idx) => {
@@ -1463,11 +1464,11 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                 onClick={() => onSeekVideo?.(cue.start)}
                 className={`w-full text-left p-2.5 rounded-xl transition-all flex items-start gap-2.5 cursor-pointer border ${
                   isCurrent
-                    ? 'bg-[#FFFBF2] font-semibold text-stone-900 border-[#E8A33D] shadow-2xs'
-                    : 'bg-white hover:bg-stone-50 text-stone-700 border-stone-200/80'
+                    ? 'bg-[#F4FAE6] font-semibold text-[#121712] border-[#B7DB6A] shadow-2xs'
+                    : 'bg-white hover:bg-[#F7FAF0] text-[#3D4739] border-lime-border/80'
                 }`}
               >
-                <span className="shrink-0 text-xs font-mono font-bold text-[#E8A33D]">{formatSec(cue.start)}</span>
+                <span className="shrink-0 text-xs font-mono font-bold text-[#2F7A3B]">{formatSec(cue.start)}</span>
                 <span className="text-xs leading-relaxed font-normal">{cleanText(cue.text)}</span>
               </button>
             );
@@ -1477,7 +1478,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
         <div className="flex-1 flex flex-col min-h-0 overflow-clip">
           {/* Ghim Trợ giảng An: a one-line bar above the stream (not over it); opens on demand. */}
           {pinnedComment && (
-            <div className="shrink-0 border-b border-[#E2EAD2] bg-[#FBFDF7] px-3.5 py-2 text-[13px] text-[#121712]">
+            <div className="shrink-0 border-b border-lime-border bg-[#FBFDF7] px-3.5 py-2 text-[13px] text-[#121712]">
               <div className="flex items-start gap-2">
                 <AgentAvatar role="an" size={24} tooltip />
                 <span className="mt-0.5 shrink-0 rounded-md border border-[#121712] px-1.5 text-[11px] font-bold">Ghim</span>
@@ -1496,7 +1497,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                 </button>
               </div>
               {taHintTier > 0 && (
-                <div className="mt-2 ml-8 rounded-xl border border-[#E2EAD2] bg-white p-2.5 text-[13px] font-medium text-[#121712]">
+                <div className="mt-2 ml-8 rounded-xl border border-lime-border bg-white p-2.5 text-[13px] font-medium text-[#121712]">
                   {taHintTier === 1 && "Gợi ý 1: Kiểm tra điểm cuối của BC và điểm đầu của DD' đã nối tiếp chưa."}
                   {taHintTier === 2 && `Gợi ý 2: ${cleanText(lesson.freezeNote)}`}
                   {taHintTier === 3 && "Gợi ý 3: Thay DD' = CC' thì BC + CC' = BC' (đường chéo bằng √2)."}
@@ -1506,16 +1507,16 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           )}
 
           {/* Luồng tin nhắn chat với avatar minh hoạ SVG & bubble card */}
-          <div className="flex-1 overflow-y-auto no-scrollbar px-3.5 py-3 space-y-3.5 select-text">
+          <div className="flex-1 overflow-y-auto no-scrollbar px-3.5 py-3 space-y-3 select-text">
             {allStreamComments.length === 0 && (
-              <div className="py-12 px-4 text-center text-stone-500 text-xs flex flex-col items-center justify-center gap-2">
-                <span className="w-10 h-10 rounded-2xl bg-[#F3F8E8] border border-[#E2EAD2] flex items-center justify-center text-[#121712] shadow-2xs">
+              <div className="py-12 px-4 text-center text-[#5B6657] text-xs flex flex-col items-center justify-center gap-2">
+                <span className="w-10 h-10 rounded-2xl bg-lime-bg border border-lime-border flex items-center justify-center text-[#121712] shadow-2xs">
                   <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-[#121712]" stroke="currentColor" strokeWidth="1.8">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
                 </span>
                 <span className="font-bold text-[#121712] text-sm">Lớp học 4 bạn AI sẵn sàng</span>
-                <span className="text-xs text-stone-600 max-w-xs">
+                <span className="text-xs text-[#4A5546] max-w-xs">
                   Thảo luận sẽ tự động xuất hiện theo tiến độ bài giảng hoặc bạn có thể gửi câu hỏi bên dưới
                 </span>
               </div>
@@ -1524,7 +1525,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
             {/* THẺ CÂU HỎI KIỂM TRA NHANH ĐƯỢC CHÈN CỐ ĐỊNH TẠI ĐÚNG MỐC 37:13 NGAY SAU TIN NHẮN 37:05 CỦA TRÍ */}
             {shouldShowSavedQuizInChat && questionInTaskCard && (
-              <div className="flex items-center justify-between gap-2 rounded-xl border border-[#E2EAD2] bg-[#F7FBEF] px-3 py-2 text-[13px] text-[#121712]">
+              <div className="flex items-center justify-between gap-2 rounded-xl border border-lime-border bg-[#F7FBEF] px-3 py-2 text-[13px] text-[#121712]">
                 <span>
                   <span className="font-semibold">Câu hỏi {formatSec(lesson.checkpointTimestamp)}</span> nằm ở thẻ “Việc của bạn”.
                 </span>
@@ -1580,22 +1581,22 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
             {/* CẢNH TẠM BIỆT VÀ CHUYỂN TRẠM SANG TRẠM 2 */}
             {isLectureEnded && (
-              <div className="mt-4 pt-3 border-t border-dashed border-[#E2EAD2] space-y-2.5 animate-in fade-in duration-300">
-                <div className="flex items-center justify-between text-xs font-semibold text-stone-500 uppercase tracking-wider">
+              <div className="mt-4 pt-3 border-t border-dashed border-lime-border space-y-2.5 animate-in fade-in duration-300">
+                <div className="flex items-center justify-between text-[12px] font-semibold text-[#4A5546]">
                   <span>Hết video bài giảng — Chuyển trạm</span>
                   {autoRedirectCountdown !== null && autoRedirectCountdown > 0 && (
-                    <span className="text-[11px] text-stone-600 lowercase font-medium">
+                    <span className="text-[11px] text-[#4A5546] lowercase font-medium">
                       (Tự động chuyển sau {autoRedirectCountdown}s...)
                     </span>
                   )}
                 </div>
                 
-                <div className="bg-[#F3F8E8] border border-[#E2EAD2] rounded-xl p-3 text-xs text-[#121712] shadow-2xs">
+                <div className="bg-lime-bg border border-lime-border rounded-xl p-3 text-xs text-[#121712] shadow-2xs">
                   <span className="font-bold text-[#121712]">Bo [AI]: </span>
                   Hôm nay xem video vui ghê! Tạm biệt phòng video nhé, tụi mình qua <b>Trạm 2</b> xem hộ tờ giấy nháp của tớ sai ở đâu nha!
                 </div>
 
-                <div className="bg-[#F3F8E8] border border-[#E2EAD2] rounded-xl p-3 text-xs text-[#121712] shadow-2xs">
+                <div className="bg-lime-bg border border-lime-border rounded-xl p-3 text-xs text-[#121712] shadow-2xs">
                   <span className="font-bold text-[#121712]">Linh Chi [AI]: </span>
                   Tớ đã mở sẵn Sổ tay quy tắc bên Trạm 2 đợi cậu rồi đó. Hẹn gặp bên kia nhé!
                 </div>
@@ -1607,7 +1608,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                       sound.playPageFlip();
                       onSwitchToStation2?.();
                     }}
-                    className="flex-1 py-2.5 px-3 bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] font-bold text-xs rounded-xl cursor-pointer transition-all shadow-xs border border-[#A6D83B] flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2.5 px-3 bg-lime-accent hover:bg-[#B8E356] text-[#121712] font-bold text-xs rounded-xl cursor-pointer transition-all shadow-xs border border-[#A6D83B] flex items-center justify-center gap-1.5"
                   >
                     <span>Chuyển sang Trạm 2 ngay ➔</span>
                   </button>
@@ -1617,7 +1618,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                       sound.playPencilTap();
                       onSeekVideo?.(0);
                     }}
-                    className="py-2.5 px-3 bg-white hover:bg-stone-50 border border-[#E2EAD2] text-[#121712] font-semibold text-xs rounded-xl cursor-pointer transition-all shadow-2xs whitespace-nowrap"
+                    className="py-2.5 px-3 bg-white hover:bg-[#F7FAF0] border border-lime-border text-[#121712] font-semibold text-xs rounded-xl cursor-pointer transition-all shadow-2xs whitespace-nowrap"
                   >
                     <span>↺ Xem lại từ đầu</span>
                   </button>
@@ -1627,11 +1628,11 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
             {/* Live Typing Indicator */}
             {typingAgent && (
-              <div className="flex items-center gap-2.5 px-3 py-2 bg-stone-50/90 rounded-2xl border border-stone-200/90 w-fit animate-in fade-in duration-200 shadow-2xs">
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 ${typingAgent.avatarBg}`}>
+              <div className="flex items-center gap-2.5 px-3 py-2 bg-[#F7FAF0]/90 rounded-2xl border border-lime-border/90 w-fit animate-in fade-in duration-200 shadow-2xs">
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[11px] font-bold shrink-0 ${typingAgent.avatarBg}`}>
                   {typingAgent.initial}
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-stone-600 font-medium">
+                <div className="flex items-center gap-1.5 text-xs text-[#4A5546] font-medium">
                   <span>{typingAgent.text}</span>
                   <span className="flex items-center gap-0.5 ml-0.5">
                     <span className="typing-dot" style={{ animationDelay: '0ms' }} />
@@ -1649,7 +1650,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
       {/* 5. HỘP HỖ TRỢ NHANH KHI ĐANG DỪNG GIƠ TAY */}
       {phase === 'STUDENT_FREEZE' && !isQuizCollapsedToChat && (
-        <div className="my-1.5 mx-3.5 p-3 bg-[#F3F8E8] border border-[#E2EAD2] rounded-xl space-y-2 shrink-0">
+        <div className="my-1.5 mx-3.5 p-3 bg-lime-bg border border-lime-border rounded-xl space-y-2 shrink-0">
           <div className="flex items-center justify-between text-xs font-bold text-[#121712]">
             <span className="flex items-center gap-1.5">
               <HandStopIcon className="w-3.5 h-3.5 text-[#121712]" />
@@ -1658,7 +1659,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             <button
               type="button"
               onClick={onDismissFreeze}
-              className="font-bold text-xs cursor-pointer px-1.5 py-0.5 rounded text-stone-500 hover:text-[#121712]"
+              className="font-bold text-xs cursor-pointer px-1.5 py-0.5 rounded text-[#5B6657] hover:text-[#121712]"
             >
               Đóng ✕
             </button>
@@ -1682,7 +1683,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                   className={`py-1 text-[11px] font-semibold rounded-lg border cursor-pointer transition-all shadow-2xs ${
                     isSelected
                       ? 'bg-[#121712] text-white border-[#121712] shadow-xs'
-                      : 'bg-white hover:bg-stone-50 text-stone-700 border-[#E2EAD2]'
+                      : 'bg-white hover:bg-[#F7FAF0] text-[#3D4739] border-lime-border'
                   }`}
                 >
                   {item.label}
@@ -1691,7 +1692,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             })}
           </div>
 
-          <p className="text-xs text-[#121712] bg-white p-2.5 rounded-lg border border-[#E2EAD2] leading-relaxed font-medium">
+          <p className="text-xs text-[#121712] bg-white p-2.5 rounded-lg border border-lime-border leading-relaxed font-medium">
             {selectedFreezeIntent === 'not_understand' && (
               currentTime >= 2200 && currentTime <= 2260 && phase === 'STUDENT_FREEZE'
                 ? 'Gợi ý: Cần quy đổi hai vectơ về chung một đường chéo trước khi tính độ dài, tuyệt đối không tách rời 1 + 1 = 2!'
@@ -1704,11 +1705,11 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       )}
 
       {/* 6. BỘ GÕ COMPOSER ĐA NĂNG */}
-      <div className="px-3 py-2 bg-[#F3F8E8] border-t border-[#E2EAD2] shrink-0">
+      <div className="px-3 py-2 bg-lime-bg border-t border-lime-border shrink-0">
         {/* Dải Pill câu hỏi gợi ý nhanh - Gọn gàng 1 dòng thanh thoát, không vỡ bóng tròn */}
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1.5 shrink-0 flex-nowrap">
-          <span className="text-[11px] font-bold text-stone-600 shrink-0 uppercase tracking-wider whitespace-nowrap">
-            Gợi ý hỏi:
+          <span className="shrink-0 whitespace-nowrap text-[12px] font-semibold text-[#4A5546]">
+            Gợi ý hỏi
           </span>
           {[
             {
@@ -1731,7 +1732,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                 sound.playPencilTap();
                 handleSendUserChatMessage(item.full);
               }}
-              className="h-7 px-3 rounded-full text-xs font-medium cursor-pointer transition-all border border-[#E2EAD2] bg-white hover:bg-[#C8F169]/40 text-[#121712] shadow-2xs whitespace-nowrap shrink-0 inline-flex items-center justify-center leading-none"
+              className="h-7 px-3 rounded-full text-xs font-medium cursor-pointer transition-all border border-lime-border bg-white hover:bg-lime-accent/40 text-[#121712] shadow-2xs whitespace-nowrap shrink-0 inline-flex items-center justify-center leading-none"
               title={item.full}
             >
               <span>{item.display}</span>
@@ -1741,16 +1742,16 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
         {/* Banner hiển thị tin nhắn đang trả lời */}
         {replyingToComment && (
-          <div className="flex items-center justify-between px-2.5 py-1 mb-1.5 rounded-lg bg-[#F3F8E8] border border-[#E2EAD2] text-xs text-[#121712] shadow-2xs animate-in fade-in duration-100">
+          <div className="flex items-center justify-between px-2.5 py-1 mb-1.5 rounded-lg bg-lime-bg border border-lime-border text-xs text-[#121712] shadow-2xs animate-in fade-in duration-100">
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="font-mono text-[#121712] font-bold text-xs">↩</span>
+              <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-[#4A5546]" aria-hidden="true" />
               <span className="font-bold shrink-0">Đang trả lời @{replyingToComment.author}:</span>
-              <span className="truncate text-stone-600 italic">"{cleanText(replyingToComment.text)}"</span>
+              <span className="truncate text-[#4A5546] italic">"{cleanText(replyingToComment.text)}"</span>
             </div>
             <button
               type="button"
               onClick={() => setReplyingToComment(null)}
-              className="p-0.5 hover:bg-[#E2EAD2] rounded text-[#121712] text-xs font-bold cursor-pointer shrink-0 ml-1.5"
+              className="p-0.5 hover:bg-lime-border rounded text-[#121712] text-xs font-bold cursor-pointer shrink-0 ml-1.5"
               title="Hủy trả lời"
             >
               ✕
@@ -1760,8 +1761,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
         {/* Khung nhập tin nhắn tích hợp 1 DÒNG DUY NHẤT */}
         <div
-          className={`flex items-center gap-1.5 p-1 bg-white border border-[#E2EAD2] rounded-xl transition-all focus-within:border-[#121712] focus-within:ring-1 focus-within:ring-[#121712] ${
-            isComposerHighlighted ? 'ring-2 ring-[#C8F169] bg-[#F3F8E8]' : ''
+          className={`flex items-center gap-1.5 p-1 bg-white border border-lime-border rounded-xl transition-all focus-within:border-[#121712] focus-within:ring-1 focus-within:ring-[#121712] ${
+            isComposerHighlighted ? 'ring-2 ring-lime-accent bg-lime-bg' : ''
           }`}
         >
           {/* Dropdown người nhận */}
@@ -1777,7 +1778,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                     className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
                       isRecipientOpen
                         ? 'bg-[#121712] border-[#121712] text-white ring-1 ring-[#121712]'
-                        : 'bg-[#F3F8E8] hover:bg-[#E2EAD2] border-[#E2EAD2] text-[#121712]'
+                        : 'bg-lime-bg hover:bg-lime-border border-lime-border text-[#121712]'
                     }`}
                     title="Chọn người nhận tin nhắn"
                   >
@@ -1787,7 +1788,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                     />
                     <span className="text-xs font-medium">{currentOpt.label}</span>
                     <ChevronDownSvg
-                      className={`w-2.5 h-2.5 text-stone-400 transition-transform duration-150 ${
+                      className={`w-2.5 h-2.5 text-[#5B6657] transition-transform duration-150 ${
                         isRecipientOpen ? 'rotate-180 text-white' : ''
                       }`}
                     />
@@ -1795,8 +1796,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
                   {/* POPUP MENU */}
                   {isRecipientOpen && (
-                    <div className="absolute bottom-full mb-1.5 left-0 z-50 bg-white border border-[#E2EAD2] rounded-xl shadow-xl p-1.5 min-w-[200px] space-y-0.5 animate-in fade-in slide-in-from-bottom-2 duration-100">
-                      <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 border-b border-stone-100 mb-1">
+                    <div className="absolute bottom-full mb-1.5 left-0 z-50 bg-white border border-lime-border rounded-xl shadow-xl p-1.5 min-w-[200px] space-y-0.5 animate-in fade-in slide-in-from-bottom-2 duration-100">
+                      <div className="px-2 py-1 text-[12px] font-semibold text-[#5B6657] border-b border-lime-border mb-1">
                         Chọn đối tượng gửi
                       </div>
                       {RECIPIENT_OPTIONS.map((opt) => {
@@ -1812,8 +1813,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                             }}
                             className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer text-left ${
                               isSelected
-                                ? 'bg-[#F3F8E8] text-[#121712] font-bold border border-[#E2EAD2] shadow-2xs'
-                                : 'hover:bg-stone-50 text-stone-700 font-medium'
+                                ? 'bg-lime-bg text-[#121712] font-bold border border-lime-border shadow-2xs'
+                                : 'hover:bg-[#F7FAF0] text-[#3D4739] font-medium'
                             }`}
                           >
                             <div className="flex items-center gap-2 min-w-0">
@@ -1822,7 +1823,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                                 style={{ backgroundColor: opt.color }}
                               />
                               <span className="truncate">{opt.label}</span>
-                              <span className="text-[11px] text-stone-500 font-normal">
+                              <span className="text-[11px] text-[#5B6657] font-normal">
                                 ({opt.sublabel})
                               </span>
                             </div>
@@ -1851,15 +1852,15 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                 ? 'Nhắn cho cả lớp...'
                 : `Nhắn riêng cho ${peopleRoster.find((p) => p.id === recipient)?.name || 'bạn học'}...`
             }
-            className="flex-1 bg-transparent px-1.5 py-1 text-xs font-medium outline-none text-[#121712] placeholder:text-stone-500 min-w-0"
+            className="flex-1 bg-transparent px-1.5 py-1 text-xs font-medium outline-none text-[#121712] placeholder:text-[#5B6657] min-w-0"
           />
 
           {/* Badge thời gian video */}
           <span
-            className="hidden 2xl:inline-flex items-center gap-1 font-sans text-xs font-semibold px-2 py-0.5 rounded-md bg-[#F3F8E8] text-[#121712] border border-[#E2EAD2] shrink-0"
+            className="hidden 2xl:inline-flex items-center gap-1 font-sans text-xs font-semibold px-2 py-0.5 rounded-md bg-lime-bg text-[#121712] border border-lime-border shrink-0"
             title="Thời gian hiện tại trong video"
           >
-            <ClockBadgeSvg className="w-3 h-3 text-stone-500" />
+            <ClockBadgeSvg className="w-3 h-3 text-[#5B6657]" />
             <span>{formatSec(currentTime)}</span>
           </span>
 
@@ -1867,7 +1868,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           <button
             onClick={() => handleSendUserChatMessage()}
             type="button"
-            className="px-2.5 sm:px-3 py-1.5 font-bold text-xs rounded-lg cursor-pointer transition-all bg-[#C8F169] hover:bg-[#B8E356] text-[#121712] border border-[#A6D83B] shadow-xs flex items-center gap-1 shrink-0"
+            className="px-2.5 sm:px-3 py-1.5 font-bold text-xs rounded-lg cursor-pointer transition-all bg-lime-accent hover:bg-[#B8E356] text-[#121712] border border-[#A6D83B] shadow-xs flex items-center gap-1 shrink-0"
           >
             <span>Gửi</span>
             <SendArrowSvg className="w-3 h-3 text-[#121712]" />
