@@ -120,6 +120,14 @@ export interface TimelineComment {
     author: string;
     text?: string;
   } | null;
+  citations?: Array<{
+    source: 'video' | 'blackboard' | 'sgk' | 'slide';
+    label: string;
+    snippet?: string;
+    timestamp?: number;
+    partId?: string;
+  }> | null;
+  contextSnapshot?: any | null;
 }
 
 export interface PeerContextData {

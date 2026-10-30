@@ -11,6 +11,7 @@ import { chamPhanBien } from '../agents/assessor.js';
 import { getOrCreateSession, logActivityEvent } from '../sessionStore.js';
 import { executeTool } from '../tools/index.js';
 import { extractVectorExpr, extractClaimFromText, extractSideFromText } from '../tools/tool_verify_vector_algebra.js';
+import { buildRuntimeContext } from './contextSnapshot.js';
 
 /**
  * ============================================================================
@@ -105,10 +106,23 @@ export function hasSubstantiatedMathReason(normText) {
 }
 
 /**
- * Cung cấp ngữ cảnh bài giảng toán 12 theo mốc thời gian video
+ * Cung cấp ngữ cảnh bài giảng theo mốc thời gian video và videoId (Issue #30)
  */
-export function getVideoLectureContext(currentTime) {
+export function getVideoLectureContext(currentTime, videoId = 'VID_VECTO_12_TIEN') {
   const sec = Number(currentTime) || 0;
+  if (videoId && videoId !== 'VID_VECTO_12_TIEN') {
+    const stream = getLessonIndex(videoId);
+    if (stream) {
+      const boardState = getBoardStateAt(videoId, sec, 60);
+      const seg = boardState?.segment || stream.segments?.[0];
+      return {
+        segment: seg?.id || 'seg_general',
+        title: stream.videoTitle,
+        keyConcept: seg?.blackboardText || seg?.audioTranscript || stream.subject,
+        commonMisconception: seg?.trapRiskLevel === 'high' ? 'Điểm lưu ý/ngộ nhận của bài học' : undefined,
+      };
+    }
+  }
   if (sec < 75) { // 0:00 - 1:15
     return {
       segment: 'intro_2d_to_3d',
@@ -855,14 +869,24 @@ export async function dispatchMessage({
   message,
   currentTime = 2233,
   lessonTitle = 'Toán 12 — Vectơ trong không gian',
+  videoId = null,
   sessionId = null,
   recipient = 'all',
   useLLM = true,
   toolCalls = [],
   vectorAlgebraTool = null,
+  groundingTool = null,
   kbMatch = null,
 }) {
   const t0 = Date.now();
+
+  const normTitle = String(lessonTitle || '').toLowerCase();
+  const effectiveVideoId =
+    videoId ||
+    (normTitle.includes('trí tuệ nhân tạo') || normTitle.includes('machine learning')
+      ? 'VID_AI_INTRO_01'
+      : 'VID_VECTO_12_TIEN');
+  const isMathLesson = normTitle.includes('toán') || effectiveVideoId.includes('VECTO');
 
   // 1. Phân loại Intent & Chọn Agent
   const verdict = await classifyLearnerIntent({
@@ -872,23 +896,35 @@ export async function dispatchMessage({
     useLLM,
   });
 
-  // 2. Truy vấn RAG Knowledge Base nếu chưa được truyền từ trước
-  if (!kbMatch) {
+  // 2. Truy vấn RAG Knowledge Base nếu là môn Toán và chưa được truyền từ trước
+  if (!kbMatch && isMathLesson) {
     const searchHits = searchKb(message, 1);
-    if (searchHits && searchHits.length > 0) {
+    if (searchHits && searchHits.length > 0 && searchHits[0].score >= 2) {
       kbMatch = searchHits[0];
-    } else if (currentTime >= 2100 && currentTime <= 2400) {
-      kbMatch = getKbById('MISC_VEC_005');
     }
   }
 
-  // 3. Trích xuất biểu thức và kiểm chứng Deterministic Tool (nếu có liên quan)
+  // 3. Khởi chạy kiểm chứng bám nguồn chung (Issue #27 & #30 - dùng cho mọi môn)
+  let activeGroundingTool = groundingTool || null;
+  if (!activeGroundingTool) {
+    try {
+      activeGroundingTool = executeTool('tool_check_source_grounding', {
+        claim: message,
+        lessonId: effectiveVideoId,
+        aroundSecond: currentTime,
+      });
+    } catch (err) {
+      // ignore
+    }
+  }
+
+  // 4. Trích xuất biểu thức và kiểm chứng Deterministic Tool (Chỉ gọi khi là môn Toán)
   const detectedExpr = extractVectorExpr(message);
   const detectedClaim = extractClaimFromText(message);
   const detectedSide = extractSideFromText(message);
   let activeVectorAlgebraTool = vectorAlgebraTool || null;
 
-  if (!activeVectorAlgebraTool && detectedExpr) {
+  if (!activeVectorAlgebraTool && isMathLesson && detectedExpr) {
     try {
       const rawTool = executeTool('tool_verify_vector_algebra', {
         shape: 'cube',
@@ -919,9 +955,9 @@ export async function dispatchMessage({
     }
   }
 
-  // 4. Khởi tạo/Lấy session và ghi nhận ActivityLogEvent (Issue #11 & PR #21)
+  // 5. Khởi tạo/Lấy session và ghi nhận ActivityLogEvent (Issue #11 & PR #21)
   const activeSessionId = sessionId || (`session_ephemeral_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`);
-  const session = getOrCreateSession(activeSessionId, { misconceptionId: kbMatch?.misconception?.id || 'MISC_VEC_005' });
+  const session = getOrCreateSession(activeSessionId, { misconceptionId: kbMatch?.misconception?.id || (isMathLesson ? 'MISC_VEC_005' : 'MISC_GENERAL') });
   if (session) {
     logActivityEvent(session.id, {
       type: 'intent_routed',
@@ -941,12 +977,80 @@ export async function dispatchMessage({
   const mathProblem = kbMatch?.misconception?.title || lessonTitle;
   const targetAgent = verdict.dispatchedAgent;
 
+  // Đóng gói Context Isolation Snapshot bám sát bảng phấn tại giây hiện tại (Issue #402)
+  const contextSnapshot = buildRuntimeContext({
+    agentId: targetAgent,
+    second: currentTime,
+    sessionId: activeSessionId,
+    userMessage: message,
+    videoId: effectiveVideoId,
+  });
+  const citations = contextSnapshot?.citations || [];
+  if (activeGroundingTool?.output?.citations?.length > 0) {
+    for (const c of activeGroundingTool.output.citations) {
+      if (!citations.some((existing) => existing.quote === c.quote)) {
+        citations.push(c);
+      }
+    }
+  }
+
   let primaryResponse = null;
   let followUpResponse = null;
 
   const normMessage = normalizeText(message);
 
-  // 5. Kiểm tra trường hợp phản biện: Bo nhận thua vs Bo phản bác + TA An gợi ý bậc thang
+  // 6. Xử lý phản hồi đa môn bám nguồn (Issue #30)
+  if (!isMathLesson) {
+    const groundingVerdict = activeGroundingTool?.output?.verdict || 'not_in_source';
+    const citationsList = activeGroundingTool?.output?.citations || [];
+    const topCitation = citationsList[0] || null;
+
+    if (groundingVerdict === 'not_in_source' || verdict.isOffTopic) {
+      primaryResponse = {
+        author: AGENT_DISPLAY_NAMES.minhkhang,
+        avatarId: 'minhkhang',
+        text: `Câu hỏi này nằm ngoài nội dung bài giảng "${lessonTitle}". Chúng mình hãy cùng tập trung vào bài học nhé!`,
+        citations: [],
+      };
+      followUpResponse = {
+        author: AGENT_DISPLAY_NAMES.colam,
+        avatarId: 'colam',
+        text: `Cô nhắc cả lớp: Hãy đặt các câu hỏi bám sát vào nội dung bài giảng "${lessonTitle}" để buổi học đạt hiệu quả cao nhất nhé!`,
+        citations: [],
+      };
+    } else if (groundingVerdict === 'contradicted') {
+      const reasonText = activeGroundingTool?.output?.reason || 'Phát biểu mâu thuẫn với nội dung bài giảng.';
+      const quoteText = topCitation ? ` Theo bài giảng [${topCitation.timeFormatted}]: "${topCitation.quote}".` : '';
+      primaryResponse = {
+        author: AGENT_DISPLAY_NAMES.tri,
+        avatarId: 'tri',
+        text: `Phát biểu này chưa chính xác bạn nhé! ${reasonText}${quoteText}`,
+        citations: citationsList,
+      };
+      followUpResponse = {
+        author: AGENT_DISPLAY_NAMES.colam,
+        avatarId: 'colam',
+        text: `Trí đã chỉ ra rất đúng điểm sai lầm. Cả lớp lưu ý ghi nhớ điểm mấu chốt này nhé!`,
+        citations: citationsList,
+      };
+    } else {
+      // supported
+      const quoteText = topCitation ? ` Theo bài giảng ở mốc [${topCitation.timeFormatted}]: "${topCitation.quote}".` : '';
+      primaryResponse = {
+        author: AGENT_DISPLAY_NAMES.tri,
+        avatarId: 'tri',
+        text: `Đúng rồi bạn nhé! ${quoteText} Phát biểu của bạn hoàn toàn chính xác với nội dung bài học.`,
+        citations: citationsList,
+      };
+      followUpResponse = {
+        author: AGENT_DISPLAY_NAMES.colam,
+        avatarId: 'colam',
+        text: `Rất tốt! Bạn đã nắm chắc kiến thức của bài học. Hãy tiếp tục phát huy nhé!`,
+        citations: citationsList,
+      };
+    }
+  } else {
+    // 5. Kiểm tra trường hợp phản biện: Bo nhận thua vs Bo phản bác + TA An gợi ý bậc thang (Toán 12 Vectơ)
   const isRebuttalCandidate =
     verdict.detectedIntent === 'sharp_rebuttal' ||
     verdict.unsubstantiatedRebuttal ||
@@ -1518,6 +1622,7 @@ export async function dispatchMessage({
       toolCall: activeVectorAlgebraTool,
     };
   }
+}
 
   // Khử triệt để artifact mã hóa d6c2 nếu có xuất hiện từ LLM hay chuỗi thô
   const sanitizeText = (txt) => {
@@ -1529,9 +1634,15 @@ export async function dispatchMessage({
 
   if (primaryResponse?.text) {
     primaryResponse.text = sanitizeText(primaryResponse.text);
+    if (!primaryResponse.citations) {
+      primaryResponse.citations = citations;
+    }
   }
   if (followUpResponse?.text) {
     followUpResponse.text = sanitizeText(followUpResponse.text);
+    if (!followUpResponse.citations) {
+      followUpResponse.citations = citations;
+    }
   }
 
   const latencyMs = Date.now() - t0;
@@ -1541,6 +1652,8 @@ export async function dispatchMessage({
     verdict,
     primaryResponse,
     followUpResponse,
+    contextSnapshot,
+    citations,
     ragContextUsed: kbMatch
       ? {
           misconceptionId: kbMatch.misconception.id,

@@ -145,6 +145,16 @@ export interface IntentRoutingVerdict {
   reasoning: string;
 }
 
+export interface AgentCitation {
+  label: string;
+  timestamp: number;
+  timeFormatted: string;
+  source: 'video' | 'blackboard' | 'sgk' | 'slide';
+  quote?: string;
+  url?: string;
+  snippet?: string;
+}
+
 export interface AgentRuntimeContext {
   persona: {
     agentId: AgentRole;
@@ -167,6 +177,8 @@ export interface AgentRuntimeContext {
     currentBloomLevel: 'Remember' | 'Understand' | 'Apply' | 'Analyze' | 'Evaluate' | 'Create';
     activeMisconceptionId?: string;
   };
+  citations?: AgentCitation[];
+  metadata?: Record<string, any>;
 }
 
 // ----------------------------------------------------------------------------

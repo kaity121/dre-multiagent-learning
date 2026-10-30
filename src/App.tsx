@@ -73,6 +73,7 @@ import { LearningFlowGuideModal } from './components/LearningFlowGuideModal';
 import { MaicPeerClassroomDock } from './components/MaicPeerClassroomDock';
 import { PreClassLobbyModal } from './components/PreClassLobbyModal';
 import { OnboardingModal } from './components/OnboardingModal';
+import { MultiAgentInspectorModal } from './components/MultiAgentInspectorModal';
 import dreLogoImg from './assets/dre-logo.png';
 import { sound } from './utils/soundEffects';
 import { 
@@ -1735,6 +1736,21 @@ export default function App() {
                               </div>
                               <kbd className="px-1.5 py-0.5 text-xs bg-stone-100 rounded text-stone-600 font-sans font-bold">Alt+I</kbd>
                             </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                sound.playBubblePop();
+                                setIsAiInspectorOpen(true);
+                                setIsInternalMenuOpen(false);
+                              }}
+                              className="w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition hover:bg-stone-50 cursor-pointer text-stone-700 font-semibold"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                                <span>Soi não Agent &amp; Context Snapshot (#402)</span>
+                              </div>
+                              <kbd className="px-1.5 py-0.5 text-xs bg-stone-100 rounded text-stone-600 font-sans font-bold">#402</kbd>
+                            </button>
                           </div>
                         </>
                       )}
@@ -2389,6 +2405,19 @@ export default function App() {
         onTogglePause={showcase.togglePause}
         onNextStation={showcase.nextStation}
         onStop={showcase.stop}
+      />
+
+      {/* Multi-Agent Context Isolation Inspector Modal (#402) */}
+      <MultiAgentInspectorModal
+        isOpen={isAiInspectorOpen}
+        onClose={() => setIsAiInspectorOpen(false)}
+        isBackendLive={isBackendLive}
+        lastSessionId={backendSessionId}
+        lastBoSpeech={liveBoDialogue}
+        lastCoLamSpeech={Array.isArray(liveCoLamDialogue) ? liveCoLamDialogue.join(' ') : liveCoLamDialogue}
+        currentMode={currentMode}
+        currentVideoSecond={videoCurrentTime}
+        onSeekVideo={handleSeekVideo}
       />
     </>
   );
