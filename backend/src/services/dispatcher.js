@@ -1465,9 +1465,12 @@ export async function dispatchMessage({
       toolCall: bloomResult,
     };
   } else if (targetAgent === 'minhkhang' || verdict.detectedIntent === 'general_classroom_chitchat') {
-    let mkText = normMessage.includes('khong bang ban tri') || normMessage.includes('khong bang tri')
-      ? 'Đừng tự ti thế chứ bạn ơi! Mỗi người có một thế mạnh riêng mà: Trí thì đào sâu bản chất toán học, còn tớ thì khoái liên hệ đời sống thực tế nè. Tụi mình cùng học thì ai cũng tiến bộ hết á!'
-      : 'Chào bạn nha! Cùng tập trung vào bài giảng của Thầy Tiến nào, phần này cực kỳ quan trọng cho kỳ thi đó!';
+    const isFallingForBoTrap = /(as*ras*vay|cams*on.*ras*vay|this*ras*las*vay|nghes*hops*ly|tins*bo|theos*bo)/i.test(normMessage);
+    let mkText = (isFallingForBoTrap && kbMatch?.misconception && session && !session.done)
+      ? `Khoan đã bạn ơi, đừng vội tin mẹo làm tắt của Bo nhé! ${kbMatch.misconception.correction || 'Đó là ngộ nhận sai lầm phổ biến đấy!'}`
+      : normMessage.includes('khong bang ban tri') || normMessage.includes('khong bang tri')
+        ? 'Đừng tự ti thế chứ bạn ơi! Mỗi người có một thế mạnh riêng mà: Trí thì đào sâu bản chất toán học, còn tớ thì khoái liên hệ đời sống thực tế nè. Tụi mình cùng học thì ai cũng tiến bộ hết á!'
+        : 'Chào bạn nha! Cùng tập trung vào bài giảng của Thầy Tiến nào, phần này cực kỳ quan trọng cho kỳ thi đó!';
     let analogy = 'Dòng nước đẩy thuyền chạy xuôi dòng hoặc ngược dòng';
 
     if (useLLM) {
