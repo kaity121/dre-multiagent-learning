@@ -258,10 +258,12 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
   // Wrong first answer: Bo sides with it (the learner's own choice is what gets examined).
   // Right first answer: Bo argues the trap. Either way his steps come from that one claim.
   const isAlly = boMode === 'misconception_ally' && Boolean(answered);
-  const boClaim = cleanText(isAlly ? answered?.label : lesson.boArgument?.shortcutClaim || trap?.label);
+  // Edge-case skeptic: the learner was right and Bo doubts *their* working, so his panel shows it unstruck.
+  const isSkeptic = boMode === 'edge_case_skeptic' && Boolean(answered);
+  const boClaim = cleanText(isAlly || isSkeptic ? answered?.label : lesson.boArgument?.shortcutClaim || trap?.label);
   const { steps: boSteps, conclusion: boConclusion } = deriveBoSteps(boClaim);
   // Grades stay hidden until the rebuttal is graded: before that, an ally claim is not struck.
-  const revealCrux = resolved || !isAlly;
+  const revealCrux = !isSkeptic && (resolved || !isAlly);
   const boQuote = cleanText(resolved ? liveBoDialogue || lesson.boConcession?.speech : liveBoDialogue);
   const hints = [
     'Xem lại từng bước của Bo: bước nào dùng một quy tắc mà bạn chưa chắc lúc nào cũng đúng?',
@@ -291,7 +293,17 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
           <PanelHeader
             role="bo"
             title="Bo nói"
-            subtitle={resolved ? 'Bo đã nhận ra chỗ sai.' : isAlly ? 'Bo đồng ý với bạn.' : 'Đây là cách Bo làm, theo Bo thì đúng.'}
+            subtitle={
+              resolved
+                ? isSkeptic
+                  ? 'Bo đã hết nghi ngờ.'
+                  : 'Bo đã nhận ra chỗ sai.'
+                : isAlly
+                  ? 'Bo đồng ý với bạn.'
+                  : isSkeptic
+                    ? 'Bo nghi ngờ cách làm của bạn.'
+                    : 'Đây là cách Bo làm, theo Bo thì đúng.'
+            }
             tag="Bạn học AI"
           />
           {boQuote && (
@@ -300,7 +312,7 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
             </blockquote>
           )}
           {boSteps.length > 0 && (
-            <ol className="grid gap-2" aria-label="Các bước Bo làm">
+            <ol className="grid gap-2" aria-label={isSkeptic ? 'Cách làm của bạn mà Bo nghi ngờ' : 'Các bước Bo làm'}>
               {boSteps.map((step, i) => {
                 const struck = step.isCrux && revealCrux;
                 return (
@@ -333,7 +345,7 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
                 revealCrux ? 'border border-[#F2C9C4] bg-[#FDF3F1] text-[#5A1F17]' : 'border border-[#E2EAD2] text-[#121712]'
               }`}
             >
-              <span className="font-bold">Kết luận của Bo: </span>
+              <span className="font-bold">{isSkeptic ? 'Kết quả của bạn: ' : 'Kết luận của Bo: '}</span>
               <FormattedMathText text={boConclusion} />
             </p>
           )}
@@ -349,7 +361,9 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
             subtitle={
               isAlly && !resolved
                 ? `Bạn và Bo cùng chọn “${cleanText(answered?.label)}”. Kiểm lại xem có thật đúng không, rồi viết lập luận.`
-                : 'Bác lại cách làm của Bo bằng lập luận của bạn.'
+                : isSkeptic && !resolved
+                  ? 'Bo nghi ngờ cách làm của bạn. Giải thích vì sao cách đó vẫn đúng.'
+                  : 'Bác lại cách làm của Bo bằng lập luận của bạn.'
             }
             tag="Bạn"
           />
@@ -383,7 +397,7 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
                   maxLength={MAX_REBUTTAL}
                   rows={4}
                   onChange={(e) => setText(e.target.value)}
-                  placeholder={isAlly ? 'Viết lập luận của bạn… (cách này đúng hay sai, vì sao?)' : 'Viết phản biện của bạn… (ví dụ: “Bo sai ở bước …, vì …”)'}
+                  placeholder={isAlly || isSkeptic ? 'Viết lập luận của bạn… (cách này đúng hay sai, vì sao?)' : 'Viết phản biện của bạn… (ví dụ: “Bo sai ở bước …, vì …”)'}
                   className="block w-full resize-none rounded-xl bg-transparent px-3.5 py-3 text-[15px] leading-relaxed text-[#121712] placeholder:text-[#6B7766] focus:outline-none"
                 />
                 <p className="px-3.5 pb-2 text-right text-[12px] tabular-nums text-[#5B6657]">
