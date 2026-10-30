@@ -103,16 +103,16 @@ export interface TimelineComment {
     toolName: string;
     label: string;
     badgeText: string;
-    category?: 'rag' | 'math_verify' | 'bloom' | 'timeline';
-    isValid?: boolean;
+    category?: 'rag' | 'math_verify' | 'math_calc' | 'grounding' | 'bloom' | 'timeline';
+    isValid?: boolean | null;
     correct?: string;
   } | null;
   toolCalls?: Array<{
     toolName: string;
     label: string;
     badgeText: string;
-    category?: 'rag' | 'math_verify' | 'bloom' | 'timeline';
-    isValid?: boolean;
+    category?: 'rag' | 'math_verify' | 'math_calc' | 'grounding' | 'bloom' | 'timeline';
+    isValid?: boolean | null;
     correct?: string;
   }> | null;
   replyTo?: {
