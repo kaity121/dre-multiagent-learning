@@ -15,6 +15,18 @@ export interface AdaptedLessonResult {
 export const CANONICAL_MAX_DURATION_S = 5880; // 1h38m00s (Chuẩn thời lượng bài giảng Thầy Tiến)
 export const CANONICAL_CHECKPOINT_S = 2233;   // 37:13 (Đúng mốc dừng Ví dụ 3 Thầy Tiến)
 
+/** Sentinel checkpointTimestamp for a lesson whose teacher disabled/deleted every pause question. */
+export const NO_CHECKPOINT_S = -1;
+
+/**
+ * True when the lesson has an active checkpoint. Consumers must check this
+ * before comparing playback time with checkpointTimestamp, otherwise the
+ * NO_CHECKPOINT_S sentinel would trigger the checkpoint at second 0.
+ */
+export function hasCheckpoint(lesson: { checkpointTimestamp: number } | null | undefined): boolean {
+  return !!lesson && Number.isFinite(lesson.checkpointTimestamp) && lesson.checkpointTimestamp >= 0;
+}
+
 /**
  * Chuyển đổi DRELessonSchema (từ Editor hoặc Pipeline Fixture) sang VideoLessonItem của Classroom Player.
  * Đảm bảo:
@@ -80,7 +92,7 @@ export function adaptLessonToPlayer(rawLesson: any): ClassroomVideoLessonItem {
         typeof matchedQuestion.at_s === 'number' ? matchedQuestion.at_s : matchedQuestion.timestamp,
         totalDuration
       )
-    : -1;
+    : NO_CHECKPOINT_S;
 
   // Xây dựng danh sách phương án lựa chọn (Options)
   let mappedOptions = !hasActiveQuestions

@@ -4,6 +4,10 @@
  * Powered by OpenAI GPT-6 (Bo, Assessor & TA An on gpt-6-sol, Cô Lam on gpt-6.1-sol).
  */
 
+import type { AgentCitation } from '../types/pipeline';
+
+export type { AgentCitation };
+
 const API_BASE_URL = (import.meta as any).env?.VITE_DRE_API_URL || 'http://localhost:3001';
 
 export interface StartSessionResponse {
@@ -132,9 +136,13 @@ export interface ClassroomChatResponse {
   kbMatchedId?: string | null;
   toolCall?: DeterministicToolCallInfo | null;
   toolCalls?: DeterministicToolCallInfo[] | null;
+  citations?: AgentCitation[] | null;
+  contextSnapshot?: any | null;
+  followUpResponse?: { author?: string; agent?: string; text?: string; citations?: AgentCitation[] | null; contextSnapshot?: any | null } | null;
   timeStr: string;
   second?: number;
   sessionId?: string;
+  sessionState?: any;
 }
 
 /**

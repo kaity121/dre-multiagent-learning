@@ -11,6 +11,7 @@ import {
   EyeSticker
 } from './HandmadeArtwork';
 import { sound } from '../utils/soundEffects';
+import { hasCheckpoint } from '../utils/lessonAdapter';
 import { FormattedMathText } from './MathVector';
 
 declare global {
@@ -431,6 +432,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
           }
 
           if (
+            hasCheckpoint(lesson) &&
             sec >= lesson.checkpointTimestamp &&
             sec <= lesson.checkpointTimestamp + 4 &&
             !hasAutoPausedAtCheckpointRef.current
@@ -461,7 +463,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
       ytPlayerRef.current.seekTo(validSec, true);
     }
     // Tự động kích hoạt điểm dừng khi tua trúng mốc 37:13 (+/- 3s)
-    if (Math.abs(validSec - lesson.checkpointTimestamp) <= 3 && !hasAutoPausedAtCheckpointRef.current) {
+    if (hasCheckpoint(lesson) && Math.abs(validSec - lesson.checkpointTimestamp) <= 3 && !hasAutoPausedAtCheckpointRef.current) {
       setTimeout(() => handleTriggerCheckpointNow(), 50);
     }
   };

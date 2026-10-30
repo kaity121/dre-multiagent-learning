@@ -10,6 +10,7 @@ import { FormattedMathText } from './MathVector';
 import { ChatSavedQuizBlock } from './ChatSavedQuizBlock';
 import { sound } from '../utils/soundEffects';
 import { sendClassroomChat } from '../services/dreBackendApi';
+import { hasCheckpoint } from '../utils/lessonAdapter';
 
 // ============================================================================
 // CUSTOM SVG ICONS CHO CỘT LỚP HỌC TƯƠNG TÁC (ZERO EMOJI)
@@ -715,7 +716,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             chatSessionIdRef.current = aiRes.sessionId;
           }
           sound.playBubblePop();
-          const attachedToolCalls = (aiRes as any)?.toolCalls || (isMathVerificationNeeded ? [{
+          const attachedToolCalls = aiRes.toolCalls || (isMathVerificationNeeded ? [{
             toolName: 'tool_verify_vector_algebra',
             category: 'math_verify',
             label: 'Trí đang kiểm chứng hình học...',
@@ -726,7 +727,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
           const isPrimaryTa = aiRes.author.includes('Trợ giảng');
           const primaryRole = isPrimaryTeacher ? 'teacher' : isPrimaryTa ? 'ta' : 'classmate';
 
-          const replySecond = typeof (aiRes as any)?.second === 'number' ? (aiRes as any).second : effectiveSecond;
+          const replySecond = typeof aiRes.second === 'number' ? aiRes.second : effectiveSecond;
           setLiveChatMessages((prev) => [
             ...prev,
             {
@@ -737,8 +738,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               text: aiRes.text,
               toolCall: attachedToolCalls[0],
               toolCalls: attachedToolCalls,
-              citations: (aiRes as any)?.citations || null,
-              contextSnapshot: (aiRes as any)?.contextSnapshot || null,
+              citations: aiRes.citations || null,
+              contextSnapshot: aiRes.contextSnapshot || null,
               replyTo: {
                 id: newMsg.id,
                 author: newMsg.author,
@@ -754,7 +755,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             second: replySecond,
           });
 
-          const followUp = (aiRes as any)?.followUpResponse;
+          const followUp = aiRes.followUpResponse;
           const followUpText = followUp?.text || aiRes.followUpBoText;
           if (followUpText) {
             const followUpAuthor = followUp?.author || 'Cô Lam';
@@ -985,7 +986,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   const shouldShowSavedQuizInChat =
     showAllTimeline ||
     (currentTime > 0 &&
-      (currentTime >= lesson.checkpointTimestamp ||
+      ((hasCheckpoint(lesson) && currentTime >= lesson.checkpointTimestamp) ||
         isQuizCollapsedToChat ||
         isQuizSkipped ||
         Boolean(savedSelectedOptionId) ||
@@ -1001,12 +1002,15 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
   // Tách tin nhắn thành 2 phần: Trước 37:13 (trước câu hỏi) và Sau 37:13 (sau câu hỏi)
   const preCheckpointComments = useMemo(() => {
+    // Without a checkpoint every comment belongs before the (absent) quiz block.
+    if (!hasCheckpoint(lesson)) return allStreamComments;
     return allStreamComments.filter((c) => c.second < lesson.checkpointTimestamp);
-  }, [allStreamComments, lesson.checkpointTimestamp]);
+  }, [allStreamComments, lesson]);
 
   const postCheckpointComments = useMemo(() => {
+    if (!hasCheckpoint(lesson)) return [];
     return allStreamComments.filter((c) => c.second >= lesson.checkpointTimestamp);
-  }, [allStreamComments, lesson.checkpointTimestamp]);
+  }, [allStreamComments, lesson]);
 
   const renderPeerAvatar = (author: string, className = 'w-8 h-8') => {
     return <AgentAvatar role={author} size={className} />;
