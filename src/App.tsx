@@ -209,6 +209,19 @@ export default function App() {
   // right answer → he sets a trap.
   const [boMode, setBoMode] = useState<BoMode | null>(null);
   const sessionPrefetchRef = useRef<{ miscId: string; promise: Promise<string | null> } | null>(null);
+  // What the checkpoint session actually said, shown in the class chat: Cô Lam's opening,
+  // Bo's reply to the answer, the learner's rebuttal and the grading outcome.
+  const [checkpointOpening, setCheckpointOpening] = useState<string | null>(null);
+  const [checkpointChat, setCheckpointChat] = useState<TimelineComment[]>([]);
+  const pushCheckpointChat = (author: string, text: string | string[] | null | undefined) => {
+    const body = Array.isArray(text) ? text.join(' ') : text;
+    if (!body || !body.trim()) return;
+    const role: TimelineComment['role'] = author.includes('Lam') ? 'teacher' : 'classmate';
+    setCheckpointChat((prev) => [
+      ...prev,
+      { id: `cp-${prev.length}-${Date.now()}`, second: currentVideoLesson.checkpointTimestamp, author, role, text: body.trim() },
+    ]);
+  };
   const stationTopRef = useRef<HTMLDivElement | null>(null);
   const taskCardRef = useRef<HTMLDivElement | null>(null);
 
@@ -984,6 +997,7 @@ export default function App() {
     if (sessionPrefetchRef.current?.miscId === miscId) return sessionPrefetchRef.current.promise;
     const promise = withTimeout(startBackendSession(miscId), SESSION_START_TIMEOUT_MS).then((res) => {
       if (res?.sessionId) {
+        if (res.coLamDialogue) setCheckpointOpening(res.coLamDialogue);
         sessionIdRef.current = res.sessionId;
         setBackendSessionId(res.sessionId);
         return res.sessionId;
@@ -1130,6 +1144,7 @@ export default function App() {
         if (currentSess) {
           const ansRes = await withTimeout(submitBackendAnswer(currentSess, optionLabel), CHECKPOINT_CALL_TIMEOUT_MS);
           if (ansRes && ansRes.boDialogue) {
+            pushCheckpointChat('Bo', ansRes.boDialogue);
             sound.playStampThud();
             setBoMode(ansRes.mode || localOpening.mode);
             setLiveBoDialogue(ansRes.boDialogue);
@@ -1280,6 +1295,9 @@ export default function App() {
       try {
         const rebRes = await withTimeout(submitBackendRebuttal(activeSess, rebuttalText), CHECKPOINT_CALL_TIMEOUT_MS);
         if (rebRes) {
+          pushCheckpointChat(learnerProfile?.name || 'Bạn', rebuttalText);
+          pushCheckpointChat('Bo', rebRes.boDialogue);
+          pushCheckpointChat('Cô Lam', rebRes.coLamDialogue);
           if (rebRes.danhGiaPhanBien === 'sac_ben' || rebRes.done) {
             if (rebRes.boDialogue) setLiveBoDialogue(rebRes.boDialogue);
             if (rebRes.coLamDialogue) setLiveCoLamDialogue(rebRes.coLamDialogue);
@@ -1321,6 +1339,8 @@ export default function App() {
     sessionPrefetchRef.current = null;
     sessionIdRef.current = null;
     setBoMode(null);
+    setCheckpointOpening(null);
+    setCheckpointChat([]);
     setCheckpointResolved(false);
     setVideoCurrentTime(0);
     setVideoPhase('WATCHING');
@@ -1439,10 +1459,16 @@ export default function App() {
     isQuizSkipped,
   };
   const journeyStops = deriveJourneyStops(journeyInput);
+  const checkpointFired = checkpointSecond !== null && ((videoPhase !== 'WATCHING' && videoPhase !== 'STUDENT_FREEZE') || checkpointResolved);
+  const checkpointMessages: TimelineComment[] =
+    checkpointFired && checkpointOpening
+      ? [{ id: 'cp-colam-opening', second: checkpointSecond!, author: 'Cô Lam', role: 'teacher', text: checkpointOpening }, ...checkpointChat]
+      : checkpointChat;
   const taskBeat = deriveTaskBeat(journeyInput);
   const isFaceOffBeat = taskBeat === 'rebut' || taskBeat === 'closure';
   // During the face-off the paused video shrinks to a strip so the three panels fit the screen.
   const collapseVideo = currentMode === 'video_clash' && isFaceOffBeat && !showVideoInFaceOff;
+  const shrinkVideo = currentMode === 'video_clash' && (taskBeat === 'diagnose' || taskBeat === 'waiting');
   const lessonIdent = lessonIdentity(currentVideoLesson);
 
   const stationStatus: Record<LearningMode, StationStatus> = {
@@ -1618,7 +1644,7 @@ export default function App() {
       {/* ====================================================================
           KHÔNG GIAN HỌC TẬP EDTECH 4 TRẠM - LIME SOFT DESIGN SYSTEM
           ==================================================================== */}
-      <div className="min-h-screen bg-[#F3F8E8] text-[#121712] flex flex-col font-sans select-none">
+      <div className={`min-h-screen bg-[#F3F8E8] text-[#121712] flex flex-col font-sans select-none ${activeStudioView === 'classroom' ? 'lg:h-dvh lg:min-h-0 lg:overflow-hidden' : ''}`}>
         <JourneyTopBar
           logoSrc={dreLogoImg}
           lessonTitle={lessonIdent.title}
@@ -1659,6 +1685,10 @@ export default function App() {
             onToggleInspector: () => {
               sound.playBubblePop();
               setIsInspectorDrawerOpen((prev) => !prev);
+            },
+            onChangeVideoLink: () => {
+              if (currentMode !== 'video_clash') handleSelectStation('video_clash');
+              setIsAttachModalOpen(true);
             },
             onOpenContextSnapshot: () => {
               sound.playBubblePop();
@@ -1726,19 +1756,21 @@ export default function App() {
 
         {/* CLASSROOM: journey rail + the current station */}
         {activeStudioView === 'classroom' && (
-          <div className="mx-auto flex w-full max-w-[1920px] flex-1 flex-col gap-3 px-3 py-3 sm:px-5 lg:flex-row lg:gap-6 lg:py-5 2xl:px-8">
-            <aside className="rounded-2xl border border-[#E2EAD2] bg-white px-2 py-3 lg:sticky lg:top-[84px] lg:w-[200px] lg:shrink-0 lg:self-start lg:border-0 lg:border-r lg:bg-transparent lg:rounded-none lg:px-0 lg:py-4 lg:pr-4">
+          <div className="mx-auto flex w-full max-w-[1920px] flex-1 flex-col gap-3 px-3 py-3 sm:px-5 lg:min-h-0 lg:flex-row lg:gap-6 lg:py-4 2xl:px-8">
+            <aside className="rounded-2xl border border-[#E2EAD2] bg-white px-2 py-3 lg:w-[200px] lg:shrink-0 lg:overflow-y-auto lg:border-0 lg:border-r lg:bg-transparent lg:rounded-none lg:px-0 lg:py-4 lg:pr-4">
               <JourneyRail stops={journeyStops} actions={railActions} />
             </aside>
 
-            <main className="flex min-w-0 flex-1 flex-col">
+            <main className={`flex min-w-0 flex-1 flex-col lg:min-h-0 ${currentMode === 'video_clash' ? '' : 'lg:overflow-y-auto'}`}>
               {/* TRẠM 1: VIDEO, VIỆC CỦA BẠN, LỚP HỌC */}
               {currentMode === 'video_clash' && (
                 <div
-                  className={`grid w-full grid-cols-1 gap-4 lg:gap-5 ${collapseVideo ? '' : 'lg:grid-cols-[minmax(0,1fr)_var(--chat-w)]'}`}
+                  className="flex w-full flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:gap-5"
                   style={{ '--chat-w': `${chatWidth}px` } as React.CSSProperties}
                 >
-                  <div ref={stationTopRef} className="flex min-w-0 scroll-mt-[84px] flex-col gap-3 lg:col-start-1 lg:row-start-1">
+                  {/* Centre column scrolls on its own; the chat column keeps its composer pinned. */}
+                  <div className="flex min-w-0 flex-1 flex-col gap-3 lg:min-h-0 lg:overflow-y-auto lg:pb-2">
+                  <div ref={stationTopRef} className="flex min-w-0 scroll-mt-[84px] flex-col gap-2 lg:scroll-mt-0">
                     {collapseVideo && (
                       <VideoStrip
                         title={lessonIdent.title}
@@ -1748,7 +1780,14 @@ export default function App() {
                       />
                     )}
                     {/* Kept mounted while collapsed so the embedded player keeps its state. */}
-                    <div className={collapseVideo ? 'h-0 overflow-hidden' : ''} inert={collapseVideo} aria-hidden={collapseVideo || undefined}>
+                    <div
+                      className={collapseVideo ? 'h-0 overflow-hidden' : 'w-full lg:mx-auto'}
+                      // At the pause question the video gives up height so the question and its
+                      // actions stay in the first viewport.
+                      style={shrinkVideo ? { maxWidth: 'max(420px, calc((100dvh - 560px) * 16 / 9))' } : undefined}
+                      inert={collapseVideo}
+                      aria-hidden={collapseVideo || undefined}
+                    >
                     <VideoPlayerSheet
                       lesson={currentVideoLesson}
                       phase={videoPhase}
@@ -1805,7 +1844,7 @@ export default function App() {
                     )}
                   </div>
 
-                  <div ref={taskCardRef} className={`flex min-w-0 scroll-mt-[84px] flex-col gap-3 lg:col-start-1 lg:row-start-2 ${isFaceOffBeat && !collapseVideo ? 'lg:col-span-2' : ''}`}>
+                  <div ref={taskCardRef} className="flex min-w-0 scroll-mt-[84px] flex-col gap-3 lg:scroll-mt-0">
                     <Station1TaskCard
                       beat={taskBeat}
                       lesson={currentVideoLesson}
@@ -1847,7 +1886,6 @@ export default function App() {
                     <VideoActionBar
                       chapterTitle={currentChapterTitle}
                       onToggleChapters={() => setIsChaptersDrawerOpen(prev => !prev)}
-                      onOpenAttach={() => setIsAttachModalOpen(true)}
                       onReaction={handleQuickReaction}
                       onJumpToCheckpoint={checkpointSecond !== null ? () => {
                         setIsQuizCollapsedToChat(false);
@@ -1858,10 +1896,11 @@ export default function App() {
                       isRaiseHandOpen={isRaiseHandModalOpen}
                     />
                   </div>
+                  </div>
 
                   {/* LỚP HỌC: chat column; the splitter sits on its left edge */}
                   <div
-                    className={`relative h-[72vh] min-h-[460px] lg:col-start-2 lg:row-start-1 lg:h-auto ${collapseVideo ? 'lg:hidden' : isFaceOffBeat ? '' : 'lg:row-span-2'}`}
+                    className={`relative h-[72vh] min-h-[460px] lg:h-full lg:min-h-0 lg:w-[var(--chat-w)] lg:shrink-0 ${collapseVideo ? 'lg:hidden' : ''}`}
                   >
                     <ResizableSplitter
                       id="splitter-video-chat"
@@ -1918,6 +1957,7 @@ export default function App() {
                         onChatMessageProcessed={handleChatMessageProcessed}
                         onOpenEvidence={handleOpenEvidence}
                         questionInTaskCard
+                        extraMessages={checkpointMessages}
                         onFocusTaskCard={() => taskCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                       />
                     </div>
