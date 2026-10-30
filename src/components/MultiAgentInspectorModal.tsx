@@ -434,7 +434,7 @@ export const MultiAgentInspectorModal: React.FC<MultiAgentInspectorModalProps> =
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                   {/* Left: LaTeX trên bảng */}
                   <div className="p-2.5 rounded-lg bg-stone-900 text-emerald-300 font-mono text-xs space-y-1">
-                    <div className="text-[10px] text-stone-400 font-sans uppercase font-bold flex items-center justify-between">
+                    <div className="text-[11px] text-stone-500 font-sans uppercase font-bold flex items-center justify-between">
                       <span>LaTeX trên bảng đen:</span>
                       <span className="text-emerald-400">● Live Grounded</span>
                     </div>

@@ -74,7 +74,7 @@ const renderToolBadges = (toolCalls?: any[] | null, singleToolCall?: any | null)
             key={i}
             className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-[10px] font-semibold shadow-2xs ${bg}`}
           >
-            <span className={`w-1.5 h-1.5 rounded-full ${dot} animate-pulse`} />
+            <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
             <span>{icon} {tc.badgeText || tc.label}</span>
           </div>
         );

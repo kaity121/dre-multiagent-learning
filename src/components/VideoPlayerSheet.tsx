@@ -968,7 +968,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
         {/* THẺ CÂU HỎI NGẮT TẠI 37:13 (KHỚP 100% 4 ẢNH MOCKUP LIME SOFT - BỎ BLUR, PHỦ TỐI 35%, GỌN THẤY BẢNG PHẤN) */}
         {showFullQuizOverlay && (
           <div className="absolute inset-0 z-40 bg-black/35 flex flex-col justify-end p-3 sm:p-5 pointer-events-auto overflow-y-auto">
-            <div className="w-full max-w-3xl mx-auto bg-white border border-stone-200/90 text-[#121712] rounded-[24px] p-4 sm:p-5 shadow-2xl shrink-0 space-y-3.5 animate-in fade-in slide-in-from-bottom-3 duration-150">
+            <div className="w-full max-w-3xl mx-auto bg-white text-[#121712] rounded-[24px] p-4 sm:p-5 shadow-2xl shrink-0 space-y-3.5 animate-in fade-in slide-in-from-bottom-3 duration-150">
               
               {/* Header của Thẻ */}
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-100 pb-2.5">
@@ -1011,7 +1011,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
               {/* TRẠNG THÁI 1: CÂU HỎI & 3 ĐÁP ÁN A, B, C (ĐỘNG THEO LESSON DATA) */}
               {effectivePhase === 'CHECKPOINT_REACHED' && (
                 <div className="space-y-3.5">
-                  <h3 className="font-bold text-sm sm:text-[15px] text-[#121712] leading-snug m-0">
+                  <h3 className="font-bold text-sm sm:text-[15px] text-[#121712] leading-snug m-0 text-balance">
                     <FormattedMathText text={cleanText(lesson.checkpointQuestion?.prompt || '')} />
                   </h3>
 

@@ -73,7 +73,7 @@ export const ShowcaseHUD: React.FC<ShowcaseHUDProps> = ({
                 style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
               />
             </div>
-            <span className="text-[10px] text-stone-400 font-medium truncate hidden sm:block">
+            <span className="text-xs text-stone-300 font-medium truncate hidden sm:block">
               {currentStation.description}
             </span>
           </div>

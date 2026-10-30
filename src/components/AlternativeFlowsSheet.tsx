@@ -632,7 +632,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
               <span className="inline-block text-xs font-bold uppercase tracking-wider text-[#121712] bg-[#F3F8E8] px-2 py-0.5 rounded-md border border-[#E2EAD2]">
                 Nhiệm vụ 2 · Cấp độ Sáng tạo
               </span>
-              <h3 className="font-bold text-sm sm:text-base text-[#121712] leading-snug pt-0.5">
+              <h3 className="font-bold text-sm sm:text-base text-[#121712] leading-snug pt-0.5 text-balance">
                 Tự thiết kế đề toán thách đấu nhóm bạn
               </h3>
             </div>
