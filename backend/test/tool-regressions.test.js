@@ -605,4 +605,47 @@ describe('Review Follow-ups (Zero-vector Angle KB, Vietnamese wording vectơ, Bo
       );
     }
   });
+
+  it('P2: Invalid angleDeg does not crash tool_calculate_dot_product', () => {
+    // 1. angleDeg: 'abc'
+    const r1 = calculateDotProduct({ uMag: 2, vMag: 3, angleDeg: 'abc' });
+    assert.equal(r1.isValid, false);
+    assert.equal(r1.dotProduct, null);
+    assert.ok(r1.error.includes('không hợp lệ'));
+
+    // 2. angleDeg: 'NaN'
+    const r2 = calculateDotProduct({ uMag: 2, vMag: 3, angleDeg: 'NaN' });
+    assert.equal(r2.isValid, false);
+    assert.ok(r2.error.includes('không hợp lệ'));
+
+    // 3. angleDeg: NaN
+    const r3 = calculateDotProduct({ uMag: 2, vMag: 3, angleDeg: NaN });
+    assert.equal(r3.isValid, false);
+    assert.ok(r3.error.includes('không hợp lệ'));
+  });
+
+  it('P2: Collision check does not exempt an unrelated event marked isChained', () => {
+    // Two unrelated events (different groups or unlinked) with gap 10s < 20s
+    const resultUnrelated = checkTimelineCollision({
+      events: [
+        { id: 'ev_intro_comment', at_s: 30, type: 'comment', groupId: 'group_A' },
+        { id: 'ev_unrelated_chained', at_s: 40, type: 'comment', isChained: true, groupId: 'group_B' },
+      ],
+      minGapS: 20,
+    });
+    assert.equal(resultUnrelated.isValid, false, 'Unrelated event marked isChained must NOT bypass collision check');
+    assert.equal(resultUnrelated.collisions.length, 1);
+    assert.equal(resultUnrelated.collisions[0].gapS, 10);
+
+    // Related events sharing the same groupId DO bypass collision check
+    const resultRelated = checkTimelineCollision({
+      events: [
+        { id: 'ev_part1', at_s: 30, type: 'comment', groupId: 'group_same' },
+        { id: 'ev_part2', at_s: 40, type: 'comment', isChained: true, groupId: 'group_same' },
+      ],
+      minGapS: 20,
+    });
+    assert.equal(resultRelated.isValid, true, 'Related events with verified group link must bypass collision check');
+    assert.equal(resultRelated.collisions.length, 0);
+  });
 });

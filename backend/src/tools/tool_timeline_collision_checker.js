@@ -80,18 +80,38 @@ export function checkTimelineCollision({
       const prev = sorted[i - 1];
       const gap = current.at_s - prev.at_s;
 
-      // Kiểm tra xem hai sự kiện có cố ý nối nhau trong cùng một lần dừng hay không (chained / co-located)
-      // Ví dụ: Checkpoint dừng video tại 37:13 (2233s) và lượt tranh biện của Bo ngay sau đó (cách 2s)
-      const chained = Boolean(
+      // Kiểm tra xem hai sự kiện có cố ý nối nhau trong cùng một lần dừng hay không (verified chained / co-located link)
+      // Yêu cầu liên kết rõ ràng đến sự kiện trước đó hoặc cùng nhóm mốc dừng
+      const hasDirectIdLink = Boolean(
         (current.chainedTo && current.chainedTo === prev.id) ||
-        (prev.chainedTo && prev.chainedTo === current.id) ||
-        current.chained ||
-        current.isChained ||
-        current.coLocated ||
-        (current.groupId && current.groupId === prev.groupId) ||
-        (current.checkpointId && current.checkpointId === prev.checkpointId) ||
-        (prev.type === 'checkpoint' && ['comment', 'debate_turn', 'dialogue'].includes(current.type) && gap <= 5)
+        (prev.chainedTo && prev.chainedTo === current.id)
       );
+      const hasSharedGroupLink = Boolean(
+        (current.groupId && prev.groupId && current.groupId === prev.groupId) ||
+        (current.checkpointId && prev.checkpointId && current.checkpointId === prev.checkpointId)
+      );
+      // Nối tiếp với checkpoint đứng ngay trước:
+      // Miễn trừ nếu:
+      // - Có liên kết trực tiếp ID (chainedTo === prev.id)
+      // - Hoặc có cùng nhóm (groupId / checkpointId)
+      // - Hoặc có cờ chaining/coLocated rõ ràng gắn liền với checkpoint đứng trước đó (khi gap <= 5s)
+      // - Hoặc là cặp checkpoint + tương tác kế tiếp (comment / debate_turn / dialogue) trong vòng 5s khi không có chainedTo chỉ định sự kiện khác
+      const hasCheckpointProximityLink = Boolean(
+        prev.type === 'checkpoint' &&
+        ['comment', 'debate_turn', 'dialogue'].includes(current.type) &&
+        gap <= 5 &&
+        (!current.chainedTo || current.chainedTo === prev.id)
+      );
+
+      // Nếu sự kiện có cờ isChained, chained, hoặc coLocated:
+      // CHỈ miễn trừ khi nó thực sự liên kết với sự kiện trước đó (hasDirectIdLink, hasSharedGroupLink, hoặc đi kèm checkpoint trước đó trong 5s).
+      // Không được miễn trừ một sự kiện độc lập/không liên quan chỉ vì nó mang cờ isChained mà không liên kết tới prev.
+      const hasVerifiedChainedFlag = Boolean(
+        (current.chained || current.isChained || current.coLocated) &&
+        (hasDirectIdLink || hasSharedGroupLink || (prev.type === 'checkpoint' && gap <= 5))
+      );
+
+      const chained = hasDirectIdLink || hasSharedGroupLink || hasCheckpointProximityLink || hasVerifiedChainedFlag;
 
       if (gap < effectiveMinGap && !chained) {
         collisions.push({

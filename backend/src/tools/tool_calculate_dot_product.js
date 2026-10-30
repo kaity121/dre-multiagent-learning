@@ -23,9 +23,26 @@ export function calculateDotProduct({
   const u = typeof uMag === 'string' ? parseFloat(uMag) : uMag;
   const v = typeof vMag === 'string' ? parseFloat(vMag) : vMag;
   const baseTheta = typeof angleDeg === 'string' ? parseFloat(angleDeg) : angleDeg;
-  const hasTheta = baseTheta !== undefined && baseTheta !== null && !isNaN(baseTheta);
+  const isAngleProvided = angleDeg !== undefined && angleDeg !== null && angleDeg !== '';
+  const hasTheta = isAngleProvided && !isNaN(baseTheta);
+
+  if (isAngleProvided && !hasTheta) {
+    return {
+      isValid: false,
+      dotProduct: null,
+      cosValue: null,
+      angleDeg: null,
+      reversedAngleDeg: null,
+      correct: null,
+      error: 'Tham số angleDeg không hợp lệ: phải là một số thực biểu diễn góc bằng độ (°).',
+      reason: 'Góc angleDeg được truyền vào không phải là số hợp lệ.',
+      formula: '\\vec{u} \\cdot \\vec{v} = |\\vec{u}| |\\vec{v}| \\cos(\\theta)',
+      steps: [],
+    };
+  }
+
   const effectiveIsReversed = Boolean(reverseU || isReversed || claimType === 'reverse_angle');
-  const theta = hasTheta && effectiveIsReversed ? 180 - baseTheta : baseTheta;
+  const theta = hasTheta && effectiveIsReversed ? 180 - baseTheta : (hasTheta ? baseTheta : null);
   const reversedAngleVal = hasTheta ? 180 - baseTheta : null;
 
   // 1. Kiểm tra trường hợp với vectơ không (MISC_VEC_018)
@@ -115,7 +132,7 @@ export function calculateDotProduct({
 
   const steps = [];
   steps.push(`Độ dài các vectơ: |\\vec{u}| = ${u}, |\\vec{v}| = ${v}.`);
-  if (theta !== undefined && theta !== null) {
+  if (hasTheta && calculatedCos !== null && calculatedDot !== null) {
     steps.push(`Góc giữa hai vectơ: \\theta = ${theta}^\\circ \\implies \\cos(${theta}^\\circ) = ${calculatedCos.toFixed(3)}.`);
     steps.push(`Tích vô hướng: \\vec{u} \\cdot \\vec{v} = ${u} \\times ${v} \\times (${calculatedCos.toFixed(3)}) = ${calculatedDot}.`);
   }
