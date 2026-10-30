@@ -2,7 +2,16 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { extractClip, pickKeyframeSeconds, fuseTimeline, resolveClip, STAGES, CLIPS_DIR } from '../src/services/clipExtractor.js';
+import {
+  extractClip,
+  pickKeyframeSeconds,
+  fuseTimeline,
+  resolveClip,
+  STAGES,
+  CLIPS_DIR,
+  buildVisionPrompt,
+  boardRegion,
+} from '../src/services/clipExtractor.js';
 
 const CLIP = resolveClip('tien-vecto12-ex3-60s.mp4');
 const skipNoClip = CLIP ? false : 'demo clip missing: run scripts/fetch-demo-clip.sh';
@@ -40,6 +49,72 @@ test('fusion assigns each transcript line to the keyframe window it starts in', 
   assert.equal(segments[1].audioTranscript, 'Dời DD phẩy về CC phẩy.');
   assert.equal(segments[0].trapRiskLevel, 'none', 'unknown risk levels are normalized');
   assert.equal(segments[1].timeFormatted, '00:34');
+});
+
+// Issue #28 Test: buildVisionPrompt is neutral and accepts subject hint
+test('Issue #28: buildVisionPrompt is subject-neutral and injects subject hint when provided', () => {
+  const defaultPrompt = buildVisionPrompt();
+  assert.match(defaultPrompt, /bảng phấn hoặc slide trình chiếu/);
+  assert.match(defaultPrompt, /không có công thức/i);
+  assert.match(defaultPrompt, /diagramDescription/);
+
+  const aiPrompt = buildVisionPrompt({ subject: 'Trí tuệ nhân tạo' });
+  assert.match(aiPrompt, /Gợi ý môn học\/lĩnh vực bài giảng: "Trí tuệ nhân tạo"/);
+  assert.match(aiPrompt, /KHÔNG PHẢI hình học không gian 3D/);
+});
+
+// Issue #28 Test: boardRegion supports configurable ROI (xFrom)
+test('Issue #28: boardRegion supports full-width slides (xFrom=0.0) and custom ROI', () => {
+  const dummyFrame = new Uint8Array(96 * 54).fill(128);
+  const fullRegion = boardRegion(dummyFrame, 0.0);
+  assert.equal(fullRegion.length, 96 * 54);
+
+  const rightRegion = boardRegion(dummyFrame, 0.45);
+  const expectedCols = 96 - Math.floor(96 * 0.45);
+  assert.equal(rightRegion.length, expectedCols * 54);
+});
+
+// Issue #28 Test: Non-math slide clip extraction produces valid CognitiveEventStream
+test('Issue #28: non-math slide clip produces valid CognitiveEventStream without forced LaTeX or geometry', async () => {
+  const mockTranscript = [
+    { start: 0, end: 15, text: 'Hôm nay chúng ta tìm hiểu về Học có giám sát (Supervised Learning).' },
+    { start: 22, end: 40, text: 'Điểm mấu chốt là dữ liệu bắt buộc phải có ground truth nhãn đi kèm.' },
+  ];
+
+  const mockBoards = [
+    {
+      blackboardText: 'Chương 1: Supervised Learning\n- Input: (X, y)\n- Cần nhãn ground truth',
+      blackboardLatex: [],
+      spatialGeometry: null,
+      diagramDescription: 'Sơ đồ luồng dữ liệu huấn luyện từ tập mẫu sang mô hình phân lớp',
+      trapRiskLevel: 'none',
+      pedagogicalTags: ['supervised_learning', 'data_labels'],
+    },
+    {
+      blackboardText: 'Lưu ý: Không thể huấn luyện Supervised nếu thiếu nhãn nhãn y!',
+      blackboardLatex: [],
+      spatialGeometry: null,
+      diagramDescription: null,
+      trapRiskLevel: 'high',
+      pedagogicalTags: ['misconception_unlabeled_data'],
+    },
+  ];
+
+  const timeline = fuseTimeline({
+    keyframeSeconds: [0, 20],
+    boards: mockBoards,
+    transcript: mockTranscript,
+    speaker: 'TS. Hoàng Minh',
+  });
+
+  assert.equal(timeline.length, 2);
+  assert.equal(timeline[0].audioTranscript, 'Hôm nay chúng ta tìm hiểu về Học có giám sát (Supervised Learning).');
+  assert.equal(timeline[1].audioTranscript, 'Điểm mấu chốt là dữ liệu bắt buộc phải có ground truth nhãn đi kèm.');
+  assert.equal(timeline[0].blackboardLatex.length, 0, 'No forced LaTeX in non-math slides');
+  assert.equal(timeline[0].spatialGeometry, undefined, 'No forced 3D geometry');
+  assert.equal(timeline[0].diagramDescription, 'Sơ đồ luồng dữ liệu huấn luyện từ tập mẫu sang mô hình phân lớp');
+  assert.equal(timeline[1].trapRiskLevel, 'high');
+  assert.equal(timeline[0].speaker, 'TS. Hoàng Minh');
 });
 
 test('live run on the demo clip produces a CognitiveEventStream with named stages', { skip: skipNoClip }, async () => {
