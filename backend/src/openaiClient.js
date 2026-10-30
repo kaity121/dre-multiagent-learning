@@ -4,16 +4,20 @@ import { executeTool, OPENAI_TOOL_DEFINITIONS } from './tools/index.js';
 
 let client = null;
 
+/** True when an OpenAI key is configured, so callers can choose a deterministic fallback up front. */
+export function isLLMConfigured() {
+  return Boolean(config.openaiApiKey);
+}
+
 /**
- * Tạo OpenAI client khi thật sự cần gọi API (lazy), để các luồng tất định
- * (useLLM=false, test offline) import module này mà không cần OPENAI_API_KEY.
- * Thiếu key thì lỗi rõ ràng ngay tại lời gọi, khớp với cảnh báo trong config.js.
+ * The SDK throws at construction when no key is set, so the client is built on first use.
+ * Importing this module (tests, offline demo paths) therefore never requires a key.
  */
 function getClient() {
+  if (!config.openaiApiKey) {
+    throw new Error('OPENAI_API_KEY chưa được cấu hình — không thể gọi model.');
+  }
   if (!client) {
-    if (!config.openaiApiKey) {
-      throw new Error('OPENAI_API_KEY chưa được cấu hình — không thể gọi OpenAI.');
-    }
     client = new OpenAI({ apiKey: config.openaiApiKey });
   }
   return client;
@@ -169,4 +173,5 @@ function parseJSONSafe(raw, model = '') {
 export default {
   chatJSON,
   chatWithTools,
+  isLLMConfigured,
 };

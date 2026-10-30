@@ -16,6 +16,12 @@ const FIXTURES = [
   { file: 'mock/lesson.json', type: 'DRELessonSchema' },
   { file: 'mock/session_001.json', type: 'DRESessionSchema' },
   { file: 'mock/mock_reasoning_events.json', type: 'AgentReasoningEvent', isArray: true },
+  // Roundtable output (#9/#10): the generated lesson must stay a DRELessonSchema draft.
+  { file: 'mock/mock_roundtable_run_fixture.json', pick: 'lesson', type: 'DRELessonSchema' },
+  { file: 'mock/mock_roundtable_run_fixture.json', pick: 'reasoning_events', type: 'AgentReasoningEvent', isArray: true },
+  { file: 'backend/src/data/drafts/lesson_draft_VID_VECTO_12_TIEN.json', pick: 'lesson', type: 'DRELessonSchema', pacing: true },
+  { file: 'backend/src/data/drafts/lesson_draft_CLIP_DEMO_60S_TIEN_EX3.json', pick: 'lesson', type: 'DRELessonSchema' },
+  { file: 'backend/src/data/drafts/lesson_draft_VID_SHORT_60S.json', pick: 'lesson', type: 'DRELessonSchema' },
 ];
 
 // Pacing rules agreed for the classroom (PRODUCT.md, issue #9).
@@ -37,13 +43,16 @@ const schema = generator.createSchema('*');
 const ajv = new Ajv({ allErrors: true, strict: false });
 ajv.addSchema(schema, 'pipeline');
 
-for (const { file, type, isArray } of FIXTURES) {
-  const data = readJson(file);
+for (const { file, pick, type, isArray } of FIXTURES) {
+  const label = pick ? `${file}#${pick}` : file;
+  const data = pick ? readJson(file)[pick] : readJson(file);
   const ref = { $ref: `pipeline#/definitions/${type}` };
   const validate = ajv.compile(isArray ? { type: 'array', items: ref } : ref);
   if (!validate(data)) {
-    for (const err of validate.errors) fail(file, `${err.instancePath || '/'} ${err.message}`);
+    for (const err of validate.errors) fail(label, `${err.instancePath || '/'} ${err.message}`);
   }
+  // A roundtable draft is produced for teacher review and must never arrive pre-approved.
+  if (type === 'DRELessonSchema' && pick && data?.status !== 'draft') fail(label, `status is ${data?.status}, expected draft`);
 }
 
 function checkLesson(file, lesson) {
@@ -122,6 +131,10 @@ const lesson = readJson('mock/lesson.json');
 checkLesson('mock/lesson.json', lesson);
 checkSession('mock/session_001.json', readJson('mock/session_001.json'), lesson);
 checkReasoning('mock/mock_reasoning_events.json', readJson('mock/mock_reasoning_events.json'));
+checkReasoning('mock/mock_roundtable_run_fixture.json#reasoning_events', readJson('mock/mock_roundtable_run_fixture.json').reasoning_events);
+for (const { file, pick } of FIXTURES.filter((f) => f.pacing)) {
+  checkLesson(`${file}#${pick}`, readJson(file)[pick]);
+}
 
 if (errors.length) {
   console.error(`Fixture validation failed (${errors.length}):\n- ${errors.join('\n- ')}`);
