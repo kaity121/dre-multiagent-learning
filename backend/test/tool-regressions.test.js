@@ -421,4 +421,139 @@ describe('Review Follow-ups (Zero-vector Angle KB, Vietnamese wording vectơ, Bo
     // Also handles "theo Bo"
     assert.equal(extractClaimFromText('theo Bo thì BC + DD\' = 2a'), null);
   });
+
+  it('P2: Respect claimType after vector reversal (dot_product accepts -3, norm_sum_squared accepts 7)', () => {
+    // 1. claimType: 'dot_product' with reverseU: true
+    // u=2, v=3, angle=60°, reverseU -> angle becomes 120°, cos(120°)=-0.5, dot=-3
+    const dotRes = calculateDotProduct({
+      uMag: 2,
+      vMag: 3,
+      angleDeg: 60,
+      reverseU: true,
+      claimType: 'dot_product',
+      claimValue: '-3',
+    });
+    assert.equal(dotRes.isValid, true, 'claim -3 must be accepted for reversed dot_product');
+    assert.equal(dotRes.dotProduct, -3);
+
+    const dotAngleRejected = calculateDotProduct({
+      uMag: 2,
+      vMag: 3,
+      angleDeg: 60,
+      reverseU: true,
+      claimType: 'dot_product',
+      claimValue: '120',
+    });
+    assert.equal(dotAngleRejected.isValid, false, 'claim 120 (angle value) must be rejected for dot_product');
+
+    // 2. claimType: 'norm_sum_squared' with reverseU: true
+    // |u+v|^2 = 2^2 + 3^2 + 2(-3) = 4 + 9 - 6 = 7
+    const normRes = calculateDotProduct({
+      uMag: 2,
+      vMag: 3,
+      angleDeg: 60,
+      reverseU: true,
+      claimType: 'norm_sum_squared',
+      claimValue: '7',
+    });
+    assert.equal(normRes.isValid, true, 'claim 7 must be accepted for reversed norm_sum_squared');
+    assert.equal(normRes.correct, '7');
+
+    const normWrongRes = calculateDotProduct({
+      uMag: 2,
+      vMag: 3,
+      angleDeg: 60,
+      reverseU: true,
+      claimType: 'norm_sum_squared',
+      claimValue: '13',
+    });
+    assert.equal(normWrongRes.isValid, false, 'omitted cross-term claim 13 must be rejected');
+
+    // 3. Working angle controls are preserved
+    const angleCorrect = calculateDotProduct({
+      uMag: 2,
+      vMag: 3,
+      angleDeg: 60,
+      reverseU: true,
+      claimType: 'angle',
+      claimValue: '120',
+    });
+    assert.equal(angleCorrect.isValid, true, 'claim 120 must be accepted for reversed angle');
+
+    const angleBoTrap = calculateDotProduct({
+      uMag: 2,
+      vMag: 3,
+      angleDeg: 60,
+      reverseU: true,
+      claimType: 'angle',
+      claimValue: '60',
+    });
+    assert.equal(angleBoTrap.isValid, false, 'Bo unchanged angle claim 60 must be rejected');
+  });
+
+  it('P2: Keep omitted-ID runtime sessions independent in handleRuntimeDispatch', async () => {
+    process.env.NODE_ENV = 'test';
+    const { handleRuntimeDispatch } = await import('../server.js');
+    const { getOrCreateSession } = await import('../src/sessionStore.js');
+
+    function createMockReqRes(body) {
+      let statusCode = 200;
+      let responseData = null;
+      return {
+        req: { body },
+        res: {
+          status(code) {
+            statusCode = code;
+            return this;
+          },
+          json(data) {
+            responseData = data;
+            return this;
+          },
+        },
+        getStatus: () => statusCode,
+        getData: () => responseData,
+      };
+    }
+
+    // Call 1 without sessionId
+    const call1 = createMockReqRes({
+      message: 'Chào bạn Linh Chi',
+      useLLM: false,
+    });
+    await handleRuntimeDispatch(call1.req, call1.res);
+    assert.equal(call1.getStatus(), 200);
+    const session1Id = call1.getData().sessionState?.id;
+    assert.ok(session1Id, 'Session ID must be generated');
+    assert.notEqual(session1Id, 'test_session', 'Must not default to test_session');
+
+    // Modify session 1 hint level in store
+    const storeSession1 = getOrCreateSession(session1Id);
+    storeSession1.hintLevel = 3;
+
+    // Call 2 without sessionId
+    const call2 = createMockReqRes({
+      message: 'Chào bạn Minh Khang',
+      useLLM: false,
+    });
+    await handleRuntimeDispatch(call2.req, call2.res);
+    assert.equal(call2.getStatus(), 200);
+    const session2Id = call2.getData().sessionState?.id;
+    assert.ok(session2Id, 'Session ID must be generated');
+    assert.notEqual(session1Id, session2Id, 'Independent calls without sessionId must receive distinct session IDs');
+
+    // Session 2 in store must have default hint level (0), not contaminated by session 1
+    const storeSession2 = getOrCreateSession(session2Id);
+    assert.equal(storeSession2.hintLevel, 0, 'Session 2 must remain independent and uncontaminated');
+
+    // Call 3 with explicit sessionId preserves continuity
+    const explicitId = `custom_session_${Date.now()}`;
+    const call3 = createMockReqRes({
+      message: 'Chào Trí',
+      sessionId: explicitId,
+      useLLM: false,
+    });
+    await handleRuntimeDispatch(call3.req, call3.res);
+    assert.equal(call3.getData().sessionState?.id, explicitId, 'Explicit sessionId must be preserved');
+  });
 });

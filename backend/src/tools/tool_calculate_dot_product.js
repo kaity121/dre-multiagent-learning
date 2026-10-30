@@ -114,8 +114,8 @@ export function calculateDotProduct({
     const claimStr = String(claimValue).trim().toLowerCase();
     const claimNum = parseFloat(claimStr);
 
-    // DẠNG A: Góc đảo chiều angle(-u, v) = 180° - theta (MISC_VEC_017)
-    if (effectiveIsReversed) {
+    // DẠNG A: Góc giữa hai vectơ hoặc góc đảo chiều angle(-u, v) = 180° - theta (MISC_VEC_017)
+    if (claimType === 'angle' || claimType === 'reverse_angle') {
       if (!hasTheta) {
         return {
           isValid: false,
@@ -124,31 +124,50 @@ export function calculateDotProduct({
           angleDeg: null,
           reversedAngleDeg: null,
           correct: null,
-          error: 'Thiếu tham số angleDeg: cần có góc ban đầu để tính góc sau khi đảo hướng.',
-          reason: 'Cần có góc ban đầu angleDeg để tính góc bù 180° - θ khi đảo chiều vectơ.',
-          formula: '(\\vec{u}, -\\vec{v}) = 180^\\circ - (\\vec{u}, \\vec{v})',
+          error: effectiveIsReversed
+            ? 'Thiếu tham số angleDeg: cần có góc ban đầu để tính góc sau khi đảo hướng.'
+            : 'Thiếu tham số angleDeg để kiểm chứng góc giữa hai vectơ.',
+          reason: effectiveIsReversed
+            ? 'Cần có góc ban đầu angleDeg để tính góc bù 180° - θ khi đảo chiều vectơ.'
+            : 'Chưa có thông tin góc ban đầu giữa hai vectơ để kiểm chứng.',
+          formula: effectiveIsReversed
+            ? '(\\vec{u}, -\\vec{v}) = 180^\\circ - (\\vec{u}, \\vec{v})'
+            : '\\cos(\\vec{u}, \\vec{v}) = \\frac{\\vec{u} \\cdot \\vec{v}}{|\\vec{u}| |\\vec{v}|',
           steps: [],
         };
       }
       correct = `${theta}°`;
 
-      if (!isNaN(claimNum)) {
-        if (Math.abs(claimNum - theta) < 0.1) {
-          isValid = true;
-          reason = `Chính xác! Khi đảo một vectơ (ví dụ từ \\vec{v} thành -\\vec{v}), góc giữa hai vectơ trở thành góc bù: ${theta}°.`;
-        } else if (hasTheta && (Math.abs(claimNum - baseTheta) < 0.1 || claimStr.includes('không đổi') || claimStr.includes('bằng nhau'))) {
-          isValid = false;
-          reason = `Sai lầm ngộ nhận 'đảo một vectơ không đổi góc'! Với hai vectơ khác không, đảo một vectơ sẽ làm góc θ thành góc bù 180° - θ (tức 180° - ${baseTheta}° = ${theta}°), không giữ nguyên ${baseTheta}°.`;
+      if (effectiveIsReversed) {
+        if (!isNaN(claimNum)) {
+          if (Math.abs(claimNum - theta) < 0.1) {
+            isValid = true;
+            reason = `Chính xác! Khi đảo một vectơ (ví dụ từ \\vec{v} thành -\\vec{v}), góc giữa hai vectơ trở thành góc bù: ${theta}°.`;
+          } else if (hasTheta && (Math.abs(claimNum - baseTheta) < 0.1 || claimStr.includes('không đổi') || claimStr.includes('bằng nhau'))) {
+            isValid = false;
+            reason = `Sai lầm ngộ nhận 'đảo một vectơ không đổi góc'! Với hai vectơ khác không, đảo một vectơ sẽ làm góc θ thành góc bù 180° - θ (tức 180° - ${baseTheta}° = ${theta}°), không giữ nguyên ${baseTheta}°.`;
+          } else {
+            isValid = false;
+            reason = `Góc sau khi đảo một vectơ là ${theta}°, không phải ${claimNum}°.`;
+          }
         } else {
           isValid = false;
-          reason = `Góc sau khi đảo một vectơ là ${theta}°, không phải ${claimNum}°.`;
+          reason = `Góc bù khi đảo một vectơ là ${theta}°.`;
         }
-      } else {
-        isValid = false;
-        reason = `Góc bù khi đảo một vectơ là ${theta}°.`;
-      }
 
-      steps.push(`Đảo một vectơ: (-\\vec{u}, \\vec{v}) = 180^\\circ - (${baseTheta}^\\circ) = ${theta}^\\circ.`);
+        steps.push(`Đảo một vectơ: (-\\vec{u}, \\vec{v}) = 180^\\circ - (${baseTheta}^\\circ) = ${theta}^\\circ.`);
+      } else {
+        // Góc thông thường không đảo
+        if (!isNaN(claimNum)) {
+          if (Math.abs(claimNum - theta) < 0.1) {
+            isValid = true;
+            reason = `Chính xác! Góc giữa hai vectơ là ${theta}°.`;
+          } else {
+            isValid = false;
+            reason = `Góc tính toán là ${theta}°, trong khi phát biểu cho rằng là ${claimNum}°.`;
+          }
+        }
+      }
     }
     // DẠNG B: Bình phương tổng bỏ số hạng chéo (MISC_VEC_020)
     else if (claimType === 'norm_sum_squared' || claimType === 'dot_expansion') {
@@ -193,9 +212,9 @@ export function calculateDotProduct({
 
       steps.push(`Khai triển bình phương tổng: |\\vec{u}+\\vec{v}|^2 = ${u}^2 + ${v}^2 + 2(${calculatedDot}) = ${sumSquared}.`);
     }
-    // DẠNG C: Kiểm tra góc thông thường
-    else if (claimType === 'angle') {
-      if (!hasTheta) {
+    // DẠNG C: Tích vô hướng thông thường hoặc sau khi đảo vectơ (claimType === 'dot_product' hoặc mặc định)
+    else {
+      if (effectiveIsReversed && !hasTheta) {
         return {
           isValid: false,
           dotProduct: null,
@@ -203,25 +222,12 @@ export function calculateDotProduct({
           angleDeg: null,
           reversedAngleDeg: null,
           correct: null,
-          error: 'Thiếu tham số angleDeg để kiểm chứng góc giữa hai vectơ.',
-          reason: 'Chưa có thông tin góc ban đầu giữa hai vectơ để kiểm chứng.',
-          formula: '\\cos(\\vec{u}, \\vec{v}) = \\frac{\\vec{u} \\cdot \\vec{v}}{|\\vec{u}| |\\vec{v}|',
+          error: 'Thiếu tham số angleDeg: cần có góc ban đầu để tính tích vô hướng sau khi đảo hướng.',
+          reason: 'Cần có góc ban đầu angleDeg để tính góc bù 180° - θ khi đảo chiều vectơ.',
+          formula: '(\\vec{u}, -\\vec{v}) = 180^\\circ - (\\vec{u}, \\vec{v})',
           steps: [],
         };
       }
-      correct = `${theta}°`;
-      if (!isNaN(claimNum) && theta !== undefined) {
-        if (Math.abs(claimNum - theta) < 0.1) {
-          isValid = true;
-          reason = `Chính xác! Góc giữa hai vectơ là ${theta}°.`;
-        } else {
-          isValid = false;
-          reason = `Góc tính toán là ${theta}°, trong khi phát biểu cho rằng là ${claimNum}°.`;
-        }
-      }
-    }
-    // DẠNG D: Tích vô hướng thông thường (MISC_VEC_019, v.v.)
-    else {
       correct = String(calculatedDot);
       if (/vect[oơ]|vector/i.test(claimStr)) {
         isValid = false;
@@ -252,11 +258,15 @@ export function calculateDotProduct({
     angleDeg: theta,
     reversedAngleDeg: reversedAngleVal,
     correct,
-    formula: effectiveIsReversed 
-      ? '(\\vec{u}, -\\vec{v}) = 180^\\circ - (\\vec{u}, \\vec{v})'
-      : claimType === 'norm_sum_squared'
+    formula: (claimType === 'angle' || claimType === 'reverse_angle')
+      ? (effectiveIsReversed
+          ? '(\\vec{u}, -\\vec{v}) = 180^\\circ - (\\vec{u}, \\vec{v})'
+          : '\\cos(\\vec{u}, \\vec{v}) = \\frac{\\vec{u} \\cdot \\vec{v}}{|\\vec{u}| |\\vec{v}|')
+      : (claimType === 'norm_sum_squared' || claimType === 'dot_expansion')
         ? '|\\vec{u}+\\vec{v}|^2 = |\\vec{u}|^2 + |\\vec{v}|^2 + 2\\vec{u}\\cdot\\vec{v}'
-        : '\\vec{u} \\cdot \\vec{v} = |\\vec{u}| |\\vec{v}| \\cos(\\theta)',
+        : (effectiveIsReversed
+            ? '\\vec{u} \\cdot (-\\vec{v}) = |\\vec{u}| |\\vec{v}| \\cos(180^\\circ - \\theta)'
+            : '\\vec{u} \\cdot \\vec{v} = |\\vec{u}| |\\vec{v}| \\cos(\\theta)'),
     reason: reason || `Kết quả tích vô hướng: ${calculatedDot}.`,
     steps,
   };

@@ -212,7 +212,7 @@ app.post('/api/tools/execute', async (req, res) => {
 // Handler function for runtime dispatcher (#401 & backwards-compatible alias)
 export async function handleRuntimeDispatch(req, res) {
   try {
-    const { message, currentTime = 2233, lessonTitle = 'Toán 12 — Vectơ trong không gian', sessionId = null, recipient = 'all', useLLM = true } = req.body || {};
+    const { message, currentTime = 2233, lessonTitle = 'Toán 12 — Vectơ trong không gian', sessionId, recipient = 'all', useLLM = true } = req.body || {};
     if (!message) {
       return res.status(400).json({ error: 'Thiếu message' });
     }
@@ -222,7 +222,7 @@ export async function handleRuntimeDispatch(req, res) {
       message,
       currentTime,
       lessonTitle,
-      sessionId: sessionId || 'test_session',
+      sessionId: sessionId || undefined,
       recipient,
       useLLM,
     });
