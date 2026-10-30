@@ -52,3 +52,14 @@ test('missing measurements are omitted rather than invented', () => {
   assert.equal(t.lanes.answer[0].metric, undefined);
   assert.equal(t.answer, 'Tớ thấy 1 + 1 = 2');
 });
+
+test('a transcript placeholder is not shown as the teacher\'s words', () => {
+  const t = buildAgentMapTurn({
+    turnId: 't3',
+    timestamp: 0,
+    agent: 'Bo',
+    contextView: { visibleContext: ['Lời thầy, 30 giây gần nhất: Đã chép lời', 'Bảng phấn 37:13'], hiddenContext: [], teacherSpeech: 'Đã chép lời' },
+  });
+  assert.equal(t.lanes.context.find((b) => b.title === 'Lời thầy giảng'), undefined);
+  assert.deepEqual(t.contextItems, ['Bảng phấn 37:13']);
+});

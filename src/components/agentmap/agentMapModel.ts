@@ -98,6 +98,10 @@ export function friendlyToolName(toolName: string): string {
 
 const str = (v: unknown): string | undefined => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
 
+// Replay data sometimes records only that a transcript exists ("Đã chép lời"), not the words.
+const TRANSCRIPT_PLACEHOLDER = /^(đã chép lời|không dùng)$/i;
+const isPlaceholder = (v: string) => TRANSCRIPT_PLACEHOLDER.test(v.trim());
+
 function stringify(v: unknown): string | undefined {
   if (v === undefined || v === null) return undefined;
   if (typeof v === 'string') return str(v);
@@ -145,7 +149,8 @@ export function buildAgentMapTurn(turn: InspectorTurn): AgentMapTurn {
   const contextItems: string[] = [];
   if (cv) {
     const board = str(cv.boardSnippet);
-    const speech = str(cv.teacherSpeech);
+    const rawSpeech = str(cv.teacherSpeech);
+    const speech = rawSpeech && !isPlaceholder(rawSpeech) ? rawSpeech : undefined;
     const rag = str(cv.ragKnowledge);
     if (board) {
       lanes.context.push({
@@ -181,7 +186,11 @@ export function buildAgentMapTurn(turn: InspectorTurn): AgentMapTurn {
       });
     }
     for (const c of cv.visibleContext ?? []) {
-      if (str(c)) contextItems.push(c);
+      const value = str(c);
+      if (!value) continue;
+      const tail = value.includes(':') ? value.slice(value.lastIndexOf(':') + 1) : '';
+      if (tail && isPlaceholder(tail)) continue;
+      contextItems.push(value);
     }
     if (lanes.context.length === 0 && contextItems.length > 0) {
       lanes.context.push({
