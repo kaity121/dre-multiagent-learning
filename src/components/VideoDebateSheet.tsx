@@ -72,6 +72,9 @@ const RECIPIENT_OPTIONS: { id: RecipientTarget; label: string; sublabel: string;
   { id: 'colam', label: 'Cô Lam', sublabel: 'Giáo viên chủ trì', color: '#991b1b' },
 ];
 
+/** Messages longer than this open clamped to three lines with a "Xem thêm" toggle. */
+const LONG_MESSAGE_CHARS = 180;
+
 // Evidence on a chat message: only real data the message carries (tool calls, citations).
 const evidenceSummary = (msg: TimelineComment): { text: string; time: number | null } | null => {
   const tools = msg.toolCalls && msg.toolCalls.length > 0 ? msg.toolCalls : msg.toolCall ? [msg.toolCall] : [];
@@ -191,6 +194,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   const [userChatInput, setUserChatInput] = useState<string>('');
   const [recipient, setRecipient] = useState<RecipientTarget>('all');
   const [replyingToComment, setReplyingToComment] = useState<TimelineComment | null>(null);
+  // Long messages open clamped to three lines so one reply never buries the conversation.
+  const [expandedMessageIds, setExpandedMessageIds] = useState<Set<string>>(() => new Set());
   const [typingAgent, setTypingAgent] = useState<TypingAgentInfo | null>(null);
   const [isRecipientOpen, setIsRecipientOpen] = useState(false);
   const recipientDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -302,12 +307,26 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     }
   }, [isLectureEnded, onSwitchToStation2]);
 
+  // When the pause question fires, land on the class's lead-up to it (Bo's claim, Trí's check)
+  // rather than the newest message, so the conversation the question is about stays in view.
+  const checkpointLeadInId = useMemo(() => {
+    if (!hasCheckpoint(lesson)) return undefined;
+    const cp = lesson.checkpointTimestamp;
+    return allStreamComments.find((c) => !c.isPinned && c.second < cp && c.second >= cp - 90 && c.role !== 'ta')?.id;
+  }, [allStreamComments, lesson]);
+
+  const prevLiveCountRef = useRef<number>(0);
   useEffect(() => {
-    if (allStreamComments.length > prevCommentsCountRef.current || isLectureEnded || typingAgent) {
+    // The learner's own conversation always follows the newest message.
+    const learnerChatted = liveChatMessages.length > prevLiveCountRef.current || Boolean(typingAgent);
+    if (phase === 'CHECKPOINT_REACHED' && checkpointLeadInId && !learnerChatted) {
+      document.getElementById(`chat-msg-${checkpointLeadInId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (allStreamComments.length > prevCommentsCountRef.current || isLectureEnded || typingAgent) {
       chatStreamEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
     prevCommentsCountRef.current = allStreamComments.length;
-  }, [allStreamComments.length, isLectureEnded, typingAgent]);
+    prevLiveCountRef.current = liveChatMessages.length;
+  }, [allStreamComments.length, liveChatMessages.length, isLectureEnded, typingAgent, phase, checkpointLeadInId]);
 
   // Nhận câu hỏi từ Modal Giơ tay bên Video gửi sang
   useEffect(() => {
@@ -1024,7 +1043,9 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     return (
       <div
         key={msg.id}
-        className="flex items-start gap-2.5 transition-colors group"
+        id={`chat-msg-${msg.id}`}
+        // Leaves room for the sticky pinned note when a message is scrolled to the top.
+        className="flex scroll-mt-32 items-start gap-2.5 transition-colors group"
       >
         {renderPeerAvatar(msg.author, 'w-8 h-8 shrink-0 mt-0.5')}
 
@@ -1081,9 +1102,36 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                 <span className="truncate italic text-stone-600">"{cleanText(msg.replyTo.text)}"</span>
               </div>
             )}
-            <div>
-              <FormattedMathText text={cleanText(msg.text)} />
-            </div>
+            {(() => {
+              const body = cleanText(msg.text);
+              const isLong = body.length > LONG_MESSAGE_CHARS;
+              const expanded = expandedMessageIds.has(msg.id);
+              return (
+                <>
+                  <div id={`msg-body-${msg.id}`} className={isLong && !expanded ? 'line-clamp-3' : undefined}>
+                    <FormattedMathText text={body} />
+                  </div>
+                  {isLong && (
+                    <button
+                      type="button"
+                      aria-expanded={expanded}
+                      aria-controls={`msg-body-${msg.id}`}
+                      onClick={() =>
+                        setExpandedMessageIds((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(msg.id)) next.delete(msg.id);
+                          else next.add(msg.id);
+                          return next;
+                        })
+                      }
+                      className="mt-1 rounded text-[12px] font-semibold text-[#1F4D12] underline underline-offset-2 hover:text-[#121712] focus-visible:outline-2 focus-visible:outline-[#121712]"
+                    >
+                      {expanded ? 'Thu gọn' : 'Xem thêm'}
+                    </button>
+                  )}
+                </>
+              );
+            })()}
 
             {(() => {
               const evidence = evidenceSummary(msg);
