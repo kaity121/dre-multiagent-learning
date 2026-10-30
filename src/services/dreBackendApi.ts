@@ -4,10 +4,6 @@
  * Powered by OpenAI GPT-6 (Bo, Assessor & TA An on gpt-6-sol, Cô Lam on gpt-6.1-sol).
  */
 
-import type { AgentCitation } from '../types/pipeline';
-
-export type { AgentCitation };
-
 const API_BASE_URL = (import.meta as any).env?.VITE_DRE_API_URL || 'http://localhost:3001';
 
 export interface StartSessionResponse {
@@ -136,11 +132,8 @@ export interface ClassroomChatResponse {
   kbMatchedId?: string | null;
   toolCall?: DeterministicToolCallInfo | null;
   toolCalls?: DeterministicToolCallInfo[] | null;
-  citations?: AgentCitation[] | null;
-  contextSnapshot?: any | null;
   timeStr: string;
-  sessionId?: string;
-  sessionState?: any;
+  second?: number;
 }
 
 /**
@@ -149,8 +142,7 @@ export interface ClassroomChatResponse {
 export async function sendClassroomChat(
   message: string,
   currentTime: number,
-  recipient: string = 'all',
-  sessionId?: string
+  recipient: string = 'all'
 ): Promise<ClassroomChatResponse | null> {
   try {
     const controller = new AbortController();
@@ -158,7 +150,7 @@ export async function sendClassroomChat(
     const res = await fetch(`${API_BASE_URL}/api/chat/classroom`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, currentTime, recipient, sessionId }),
+      body: JSON.stringify({ message, currentTime, recipient }),
       signal: controller.signal,
     });
     clearTimeout(timeoutId);
@@ -215,6 +207,126 @@ export async function sendPeerChat(
   }
 }
 
+export interface RoundtableStreamOptions {
+  videoId?: string;
+  partNumber?: number;
+  streamDelayMs?: number;
+  useLLM?: boolean;
+  onEvent?: (event: any) => void;
+  onComplete?: (data: any) => void;
+  onError?: (err: any) => void;
+}
+
+/**
+ * Open real-time SSE stream for A2A Roundtable War Room Demo (#302)
+ * Returns an unsubscribe / close function.
+ */
+export function streamRoundtable({
+  videoId = 'VID_VECTO_12_TIEN',
+  partNumber,
+  streamDelayMs = 20,
+  useLLM = false,
+  onEvent,
+  onComplete,
+  onError,
+}: RoundtableStreamOptions): () => void {
+  const query = new URLSearchParams();
+  if (videoId) query.append('videoId', videoId);
+  if (partNumber !== undefined) query.append('partNumber', String(partNumber));
+  if (streamDelayMs) query.append('streamDelayMs', String(streamDelayMs));
+  if (useLLM) query.append('useLLM', 'true');
+
+  const url = `${API_BASE_URL}/api/roundtable/stream?${query.toString()}`;
+  const eventSource = new EventSource(url);
+
+  eventSource.addEventListener('reasoning_event', (e: MessageEvent) => {
+    try {
+      const data = JSON.parse(e.data);
+      onEvent?.(data);
+    } catch (err) {
+      console.warn('[DRE API] Parse error in SSE reasoning_event:', err);
+    }
+  });
+
+  eventSource.addEventListener('complete', (e: MessageEvent) => {
+    try {
+      const data = JSON.parse(e.data);
+      onComplete?.(data);
+    } catch (err) {
+      console.warn('[DRE API] Parse error in SSE complete:', err);
+    }
+    eventSource.close();
+  });
+
+  eventSource.onerror = (err) => {
+    console.warn('[DRE API] EventSource error:', err);
+    onError?.(err);
+    eventSource.close();
+  };
+
+  return () => {
+    eventSource.close();
+  };
+}
+
+
+export interface DispatchRequest {
+  message: string;
+  currentTime?: number;
+  recipient?: string;
+  lessonTitle?: string;
+  useLLM?: boolean;
+  sessionId?: string | null;
+}
+
+export interface DispatchResponse {
+  ok: boolean;
+  verdict: {
+    detectedIntent: string;
+    dispatchedAgent: string;
+    confidence: number;
+    reasoning: string;
+    isOffTopic?: boolean;
+    unsubstantiatedRebuttal?: boolean;
+  };
+  primaryResponse: {
+    agent: string;
+    text: string;
+    type: string;
+  };
+  followUpResponse?: {
+    agent: string;
+    text: string;
+  };
+  ragContextUsed?: {
+    misconceptionId: string;
+    title: string;
+    correction: string;
+  } | null;
+  latencyMs: number;
+  currentTimeStr: string;
+  timestamp: string;
+}
+
+/**
+ * Send learner input to the Runtime Intent Classifier & Dynamic Routing Dispatcher (#26)
+ */
+export async function dispatchRuntimeMessage(req: DispatchRequest): Promise<DispatchResponse | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/runtime/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req),
+    });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    return await res.json();
+  } catch (err) {
+    console.warn('[DRE API] dispatchRuntimeMessage error, will use local fallback:', err);
+    return null;
+  }
+}
 
 /**
  * AISDLC Issue #402: Fetch Context Isolation Snapshot for an agent at second T
