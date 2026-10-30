@@ -29,7 +29,8 @@
 export type TrapRiskLevel = 'none' | 'low' | 'medium' | 'high';
 
 export interface VisualGeometryContext {
-  shapeType: 'cube' | 'cuboid' | 'tetrahedron' | 'plane' | 'general_3d';
+  /** `diagram` covers non-geometry visuals on slides (flowcharts, plots, cell diagrams). */
+  shapeType: 'cube' | 'cuboid' | 'tetrahedron' | 'plane' | 'general_3d' | 'diagram';
   vertices: string[];
   highlightedVectors: string[];
   actionDescription: string;
@@ -44,6 +45,8 @@ export interface CognitiveTimelineSegment {
   blackboardText: string;
   blackboardLatex: string[];
   spatialGeometry?: VisualGeometryContext;
+  /** Short description of a diagram, chart, process or code shown on the board/slide. */
+  diagramDescription?: string;
   trapRiskLevel: TrapRiskLevel;
   pedagogicalTags: string[];
 }
