@@ -372,27 +372,37 @@ const handleRoundtableStream = async (req, res) => {
 
       if (isAborted) return res.end();
 
-      // Tự động record live run vào run recorder
+      // Build timeline comments from scenarios / scriptScenario
+      const rawScenarios = partResult.scenarios || partResult.scriptScenario || [];
+      const partTimelineComments = partResult.timelineComments || rawScenarios.map((sc, idx) => {
+        const actor = sc.actor || sc.actor_id || sc.avatarId || 'classmate';
+        const text = sc.dialogue || sc.speech || sc.text || '';
+        return {
+          id: `cmt_${partResult.checkpointSecond || 0}_${actor}_${idx}`,
+          second: (partResult.checkpointSecond || 0) + (actor === 'colam' ? 0 : actor === 'bo' ? 2 : 4),
+          author: actor === 'colam' ? 'Cô Lam' : actor === 'bo' ? 'Bo' : actor === 'tri' ? 'Trí' : actor === 'linhchi' ? 'Linh Chi' : 'Minh Khang',
+          role: actor === 'colam' ? 'teacher' : 'classmate',
+          avatarId: actor,
+          text,
+          isPinned: actor === 'colam' || actor === 'tri',
+        };
+      });
+
+      // Đóng gói DRELessonSchema candidate: bảo toàn status: 'draft' và approvedByTeacher: false khi chưa được giáo viên duyệt
       const lessonDraftPayload = {
-        lessonId: videoId,
+        lessonId: `LESSON_${videoId}_PART${partNumber || 1}_DRAFT`,
+        status: 'draft',
         title: stream.videoTitle || 'Bài 1.1: Vectơ Trong Không Gian',
         videoUrl: stream.videoUrl || 'https://www.youtube.com/watch?v=sample_vecto12',
         durationSeconds: stream.durationSeconds || 3480,
+        parts: [partResult],
         checkpoints: partResult.checkpoints || (partResult.checkpoint ? [partResult.checkpoint] : []),
-        timelineComments: partResult.timelineComments || (partResult.scriptScenario ? partResult.scriptScenario.map((sc, idx) => ({
-          id: `cmt_${partResult.checkpointSecond}_${sc.actor}_${idx}`,
-          second: (partResult.checkpointSecond || 0) + idx,
-          author: sc.actor === 'colam' ? 'Cô Lam' : sc.actor === 'bo' ? 'Bo' : sc.actor === 'tri' ? 'Trí' : sc.actor === 'linhchi' ? 'Linh Chi' : 'Minh Khang',
-          role: sc.actor === 'colam' ? 'teacher' : 'classmate',
-          avatarId: sc.actor,
-          text: sc.speech,
-          isPinned: sc.actor === 'colam' || sc.actor === 'tri',
-        })) : []),
+        timelineComments: partTimelineComments,
         pedagogicalSummary: {
           totalTrapsIdentified: (partResult.checkpoints?.length || (partResult.checkpoint ? 1 : 0)),
           bloomMasteryTarget: 'Analyze',
-          approvedByTeacher: true,
-          approvalTimestamp: new Date().toISOString(),
+          approvedByTeacher: false,
+          approvalTimestamp: null,
         },
       };
 

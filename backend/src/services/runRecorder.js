@@ -12,8 +12,16 @@
 import fs from 'fs';
 import path from 'path';
 
-const RUNS_DIR = path.resolve(process.cwd(), 'backend/src/data/runs');
-const FIXTURE_PATH = fs.existsSync(path.resolve(process.cwd(), 'mock/mock_roundtable_run_fixture.json')) ? path.resolve(process.cwd(), 'mock/mock_roundtable_run_fixture.json') : path.resolve(process.cwd(), 'mock/mock_reasoning_events.json');
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// Root of repository is 3 levels up from backend/src/services (services -> src -> backend -> root)
+const REPO_ROOT = path.resolve(__dirname, '../../../');
+const RUNS_DIR = path.resolve(REPO_ROOT, 'backend/src/data/runs');
+const FIXTURE_PATH = fs.existsSync(path.resolve(REPO_ROOT, 'mock/mock_roundtable_run_fixture.json'))
+  ? path.resolve(REPO_ROOT, 'mock/mock_roundtable_run_fixture.json')
+  : path.resolve(REPO_ROOT, 'mock/mock_reasoning_events.json');
 
 /**
  * Sanitize runId to prevent Path Traversal attacks (e.g. '../../etc')

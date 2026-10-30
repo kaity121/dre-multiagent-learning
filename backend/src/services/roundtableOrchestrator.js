@@ -771,7 +771,7 @@ Trả về JSON: { "thought": "Suy nghĩ trong đầu", "claim": "giá trị ho�
  */
 export async function runFullLessonRoundtable(
   cognitiveStream,
-  { useLLM = false, onEvent = null, streamDelayMs = 0 } = {}
+  { useLLM = false, onEvent = null, streamDelayMs = 0, isAborted = () => false } = {}
 ) {
   const partsConfig = partitionTimelineIntoParts(cognitiveStream);
   const generatedParts = [];
@@ -781,7 +781,14 @@ export async function runFullLessonRoundtable(
   const crossCheckLogs = [];
 
   for (const part of partsConfig) {
-    const partResult = await runRoundtableForPart(part, { useLLM, onEvent, streamDelayMs });
+    if (typeof isAborted === 'function' && isAborted()) {
+      return null;
+    }
+    const partResult = await runRoundtableForPart(part, { useLLM, onEvent, streamDelayMs, isAborted });
+    if (!partResult) continue;
+    if (typeof isAborted === 'function' && isAborted()) {
+      return null;
+    }
     generatedParts.push(partResult);
 
     if (partResult.reasoning_events) {
@@ -838,6 +845,10 @@ export async function runFullLessonRoundtable(
       generatedAt: new Date().toISOString(),
     },
   };
+
+  if ((typeof isAborted === 'function' && isAborted()) || generatedParts.length === 0) {
+    return null;
+  }
 
   // Lưu file draft trên đĩa phục vụ Multi-Track Timeline Editor (Bảo vệ Path Traversal)
   const rawVideoId = String(cognitiveStream.videoId || 'VECTO12').trim();

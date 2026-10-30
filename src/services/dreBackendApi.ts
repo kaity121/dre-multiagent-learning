@@ -257,7 +257,15 @@ export interface RoundtableStreamOptions {
   fallbackToOffline?: boolean;
   onReasoning?: (event: AgentReasoningEvent) => void;
   onEvent?: (event: AgentReasoningEvent) => void;
-  onDone?: (data: { runId: string; totalEvents: number; mode: string }) => void;
+  onDone?: (data: {
+    runId: string;
+    totalEvents: number;
+    mode: string;
+    provenance?: 'live' | 'replay' | 'fallback_fixture';
+    isFallback?: boolean;
+    lesson?: any;
+    lessonDraft?: any;
+  }) => void;
   onComplete?: (data: any) => void;
   onError?: (err: any) => void;
 }
@@ -363,7 +371,7 @@ export function streamRoundtable({
   // Fallback offline simulator if SSE connection fails
   const triggerOfflineSimulation = () => {
     if (isClosed) return;
-    console.info('[DRE API] Triggering offline replay simulation from fixture');
+    console.info('[DRE API] Triggering offline replay simulation from fixture (provenance: fallback_fixture)');
     const events = (fallbackFixture.reasoning_events || []) as AgentReasoningEvent[];
     const safeDelay = Math.max(10, Math.floor(40 / (Number(speed) || 1)));
 
@@ -377,10 +385,18 @@ export function streamRoundtable({
         index++;
         offlineTimer = setTimeout(playNext, safeDelay);
       } else {
-        onDone?.({ runId: fallbackFixture.runId, totalEvents: events.length, mode: 'replay' });
+        onDone?.({
+          runId: fallbackFixture.runId,
+          totalEvents: events.length,
+          mode: 'replay',
+          provenance: 'fallback_fixture',
+          isFallback: true,
+        });
         onComplete?.({
           ok: true,
           mode: 'replay',
+          provenance: 'fallback_fixture',
+          isFallback: true,
           runId: fallbackFixture.runId,
           draft: fallbackFixture.lessonDraft,
           stats: fallbackFixture.stats,
@@ -392,24 +408,30 @@ export function streamRoundtable({
 
   const eventSource = new EventSource(endpoint);
 
-  eventSource.addEventListener('reasoning', (e: MessageEvent) => {
+  // Set deduplication guard to ensure each event is dispatched exactly once
+  const dispatchedEventIds = new Set<string>();
+
+  const handleIncomingReasoningEvent = (rawData: string) => {
     try {
-      const data = JSON.parse(e.data);
+      const data = JSON.parse(rawData);
+      const eventKey = data.id || `evt_${data.timestamp || ''}_${data.eventType || ''}_${data.content?.slice(0, 20) || ''}`;
+      if (dispatchedEventIds.has(eventKey)) {
+        return; // Already dispatched via alias
+      }
+      dispatchedEventIds.add(eventKey);
       onReasoning?.(data);
       onEvent?.(data);
     } catch (err) {
-      console.warn('[DRE API] Parse error in SSE reasoning:', err);
+      console.warn('[DRE API] Parse error in SSE reasoning event:', err);
     }
+  };
+
+  eventSource.addEventListener('reasoning', (e: MessageEvent) => {
+    handleIncomingReasoningEvent(e.data);
   });
 
   eventSource.addEventListener('reasoning_event', (e: MessageEvent) => {
-    try {
-      const data = JSON.parse(e.data);
-      onReasoning?.(data);
-      onEvent?.(data);
-    } catch (err) {
-      console.warn('[DRE API] Parse error in SSE reasoning_event:', err);
-    }
+    handleIncomingReasoningEvent(e.data);
   });
 
   eventSource.addEventListener('done', (e: MessageEvent) => {
