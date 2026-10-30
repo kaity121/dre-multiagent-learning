@@ -129,6 +129,9 @@ export function formatClock(totalSeconds: number): string {
   return `${h > 0 ? `${h}:` : ''}${mm}:${sec.toString().padStart(2, '0')}`;
 }
 
+/** Bo's stance after the first answer, as chosen by the backend (or its local equivalent). */
+export type BoMode = 'misconception_ally' | 'shortcut_fallacy' | 'edge_case_skeptic';
+
 export type TaskBeat = 'watch' | 'diagnose' | 'rebut' | 'closure' | 'continue' | 'waiting';
 
 /** Which instruction the "Việc của bạn bây giờ" card shows on Station 1. */
@@ -164,4 +167,29 @@ export function lessonIdentity(lesson: { title: string; topic?: string }): { tit
     .replace(/[\s·\-—]+$/u, '')
     .trim();
   return { title: title || lesson.title, teacher };
+}
+
+export interface BoStep {
+  text: string;
+  /** The step where the argument goes wrong. */
+  isCrux?: boolean;
+}
+
+/**
+ * Bo's working, laid out as steps, from one wrong claim such as
+ * "Tách trực tiếp thành tổng hai độ dài: |BC| + |DD'| = 1 + 1 = 2".
+ * The method before the colon is step 1, the computation is the crux, the last value is his conclusion.
+ */
+export function deriveBoSteps(claim: string): { steps: BoStep[]; conclusion?: string } {
+  const text = claim.trim();
+  if (!text) return { steps: [] };
+  const colon = text.indexOf(': ');
+  const method = colon > 0 ? text.slice(0, colon).trim() : '';
+  const work = colon > 0 ? text.slice(colon + 2).trim() : text;
+  const lastEq = work.lastIndexOf('=');
+  const conclusion = lastEq >= 0 ? work.slice(lastEq + 1).trim() || undefined : undefined;
+  const steps: BoStep[] = [];
+  if (method) steps.push({ text: method });
+  steps.push({ text: work, isCrux: true });
+  return { steps, conclusion };
 }

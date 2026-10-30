@@ -74,3 +74,14 @@ test('jumping to a later station does not mark the checkpoint as done', () => {
   assert.deepEqual(statuses({ ...base, currentMode: 'worksheet' }), ['open', 'open', 'open', 'open', 'open', 'current']);
   assert.deepEqual(statuses({ ...base, currentMode: 'worksheet', checkpointResolved: true }), ['done', 'done', 'done', 'done', 'done', 'current']);
 });
+
+test('deriveBoSteps lays out method, crux and conclusion from one claim', async () => {
+  const { deriveBoSteps } = await import('./journeyModel');
+  const r = deriveBoSteps("Tách trực tiếp thành tổng hai độ dài: |BC| + |DD'| = 1 + 1 = 2");
+  assert.deepEqual(r.steps, [
+    { text: 'Tách trực tiếp thành tổng hai độ dài' },
+    { text: "|BC| + |DD'| = 1 + 1 = 2", isCrux: true },
+  ]);
+  assert.equal(r.conclusion, '2');
+  assert.deepEqual(deriveBoSteps('Bằng √3'), { steps: [{ text: 'Bằng √3', isCrux: true }], conclusion: undefined });
+});

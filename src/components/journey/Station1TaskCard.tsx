@@ -3,12 +3,12 @@
 // beat it expands into the three-panel face-off. All answers go through the existing App
 // handlers; this card only decides how each beat is presented.
 import React, { useId, useState } from 'react';
-import { ArrowRight, Lightbulb, Lock, Play, RotateCcw, Send, SkipForward, Target, X } from 'lucide-react';
+import { ArrowRight, Lightbulb, Lock, Play, RotateCcw, Send, ShieldCheck, SkipForward, Target, X } from 'lucide-react';
 import type { VideoLessonItem } from '../../types/dre';
 import { SPLIT_LENGTH_TRAP_OPTION_ID } from '../../types/showcase';
 import { AgentAvatar } from '../AgentAvatar';
 import { FormattedMathText } from '../MathVector';
-import { formatClock, type TaskBeat } from './journeyModel';
+import { deriveBoSteps, formatClock, type BoMode, type TaskBeat } from './journeyModel';
 
 const MAX_REBUTTAL = 1000;
 
@@ -32,7 +32,23 @@ export interface Station1TaskCardProps {
   onNextStation: () => void;
   /** The learner's last rebuttal, shown once Bo has conceded. */
   submittedRebuttal?: string | null;
+  /** Bo's stance for this checkpoint; drives the face-off copy. */
+  boMode?: BoMode | null;
+  /** The option the learner answered with. */
+  answeredOptionId?: string | null;
 }
+
+/** Waiting on the grader: say who is working and on what, never a bare spinner. */
+const GradingStatus: React.FC<{ text: string }> = ({ text }) => (
+  <p role="status" className="flex items-center gap-2.5 rounded-xl border border-[#E2EAD2] bg-[#F7FAF0] px-3 py-2.5 text-[14px] text-[#121712]">
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C8F169]" aria-hidden="true">
+      <ShieldCheck className="h-4 w-4 text-[#121712]" />
+    </span>
+    <span>
+      <span className="font-semibold">Assessor</span> {text}
+    </span>
+  </p>
+);
 
 const secondaryBtn =
   'inline-flex h-11 items-center gap-2 rounded-full border border-[#D5DFC4] bg-white px-4 text-[14px] font-semibold text-[#121712] transition-colors hover:bg-[#F3F8E8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#121712] disabled:cursor-not-allowed disabled:opacity-50';
@@ -126,37 +142,21 @@ const DiagnoseBeat: React.FC<Station1TaskCardProps & { headingId: string }> = ({
   headingId,
 }) => {
   const [selected, setSelected] = useState<string | null>(null);
-  const [wrongIds, setWrongIds] = useState<string[]>([]);
   const options = lesson.checkpointQuestion?.options ?? [];
   const chosen = options.find((o) => o.id === selected);
   const cp = checkpointTimestamp !== null ? formatClock(checkpointTimestamp) : '';
-  const hasKey = options.some((o) => o.isStandardBest);
-  const lastWrong = options.find((o) => o.id === wrongIds[wrongIds.length - 1]);
-
-  // A wrong choice is named as wrong right away, with the lesson's own feedback, and the learner
-  // tries again; the right choice moves the class on to Bo's challenge.
-  const confirm = () => {
-    if (!chosen) return;
-    if (hasKey && !chosen.isStandardBest) {
-      setWrongIds((prev) => (prev.includes(chosen.id) ? prev : [...prev, chosen.id]));
-      setSelected(null);
-      return;
-    }
-    onAnswer(cleanText(chosen.label), chosen.id);
-  };
 
   return (
     <>
-      <CardHeading id={headingId} title={`Việc của bạn bây giờ: chọn cách tính đúng ở ${cp}`}>
+      <CardHeading id={headingId} title={`Việc của bạn bây giờ: chọn cách tính ở ${cp}`}>
         <FormattedMathText text={cleanText(lesson.checkpointQuestion?.prompt)} />
       </CardHeading>
 
-      <fieldset className="mt-4">
+      <fieldset className="mt-3" disabled={isLoadingAi}>
         <legend className="sr-only">Các cách tính</legend>
-        <div role="radiogroup" aria-label="Các cách tính" className="grid gap-2">
+        <div role="radiogroup" aria-label="Các cách tính" className="grid gap-1.5">
           {options.map((opt, idx) => {
             const isSelected = selected === opt.id;
-            const wasWrong = wrongIds.includes(opt.id);
             return (
               <button
                 key={opt.id}
@@ -164,7 +164,7 @@ const DiagnoseBeat: React.FC<Station1TaskCardProps & { headingId: string }> = ({
                 role="radio"
                 aria-checked={isSelected}
                 onClick={() => setSelected(opt.id)}
-                className={`flex w-full items-center gap-3 rounded-2xl border px-3.5 py-3 text-left text-[15px] leading-snug transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#121712] ${
+                className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left text-[15px] leading-snug transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#121712] disabled:cursor-not-allowed ${
                   isSelected ? 'border-[#121712] bg-[#121712] text-white' : 'border-[#E2EAD2] bg-white text-[#121712] hover:border-[#B9C6A3]'
                 }`}
               >
@@ -178,40 +178,33 @@ const DiagnoseBeat: React.FC<Station1TaskCardProps & { headingId: string }> = ({
                 <span className="flex-1">
                   <FormattedMathText text={cleanText(opt.label)} />
                 </span>
-                {wasWrong && !isSelected && (
-                  <span className="shrink-0 rounded-full border border-[#E8B4AC] px-2 py-0.5 text-[12px] font-semibold text-[#8A2A1F]">Chưa đúng</span>
-                )}
               </button>
             );
           })}
         </div>
       </fieldset>
 
-      {lastWrong && (
-        <p role="status" className="mt-3 flex items-start gap-2.5 rounded-xl border border-[#F2C9C4] bg-[#FDF3F1] p-3 text-[15px] leading-snug text-[#5A1F17]">
-          <X className="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#C2412D] p-0.5 text-white" strokeWidth={3} aria-hidden="true" />
-          <span>
-            <span className="font-bold">Chưa đúng. </span>
-            <FormattedMathText text={cleanText(lastWrong.feedback)} /> Chọn lại nhé.
-          </span>
-        </p>
+      {isLoadingAi && (
+        <div className="mt-3">
+          <GradingStatus text="đang chấm câu trả lời của bạn, Bo sắp lên tiếng…" />
+        </div>
       )}
 
-      <div className="mt-4 flex flex-wrap items-center gap-2.5">
-        <button type="button" onClick={onReplayBeforeCheckpoint} className={secondaryBtn}>
+      <div className="mt-3 flex flex-wrap items-center gap-2.5">
+        <button type="button" onClick={onReplayBeforeCheckpoint} className={secondaryBtn} disabled={isLoadingAi}>
           <RotateCcw className="h-4 w-4" aria-hidden="true" />
           Xem lại 30 giây
         </button>
-        <button type="button" onClick={onSkip} className={secondaryBtn}>
+        <button type="button" onClick={onSkip} className={secondaryBtn} disabled={isLoadingAi}>
           Bỏ qua
         </button>
         <button
           type="button"
           disabled={!chosen || isLoadingAi}
-          onClick={confirm}
+          onClick={() => chosen && onAnswer(cleanText(chosen.label), chosen.id)}
           className={`${primaryBtn} ml-auto`}
         >
-          {isLoadingAi ? 'Đang gửi…' : 'Xác nhận đáp án'}
+          {isLoadingAi ? 'Đang chấm…' : 'Xác nhận đáp án'}
         </button>
       </div>
     </>
@@ -252,6 +245,8 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
   headingId,
   resolved,
   submittedRebuttal,
+  boMode,
+  answeredOptionId,
 }) => {
   const [text, setText] = useState('');
   const [hintsShown, setHintsShown] = useState(0);
@@ -259,10 +254,19 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
 
   const options = lesson.checkpointQuestion?.options ?? [];
   const trap = options.find((o) => o.id === SPLIT_LENGTH_TRAP_OPTION_ID) ?? options.find((o) => !o.isStandardBest);
-  // Bo's claim and the struck step come from one source, so the quote is the step being refuted.
-  const boClaim = cleanText(lesson.boArgument?.shortcutClaim || trap?.label);
-  const boConcession = cleanText(liveBoDialogue || lesson.boConcession?.speech);
-  const hints = [trap?.feedback, lesson.freezeNote].map((h) => cleanText(h)).filter(Boolean);
+  const answered = options.find((o) => o.id === answeredOptionId);
+  // Wrong first answer: Bo sides with it (the learner's own choice is what gets examined).
+  // Right first answer: Bo argues the trap. Either way his steps come from that one claim.
+  const isAlly = boMode === 'misconception_ally' && Boolean(answered);
+  const boClaim = cleanText(isAlly ? answered?.label : lesson.boArgument?.shortcutClaim || trap?.label);
+  const { steps: boSteps, conclusion: boConclusion } = deriveBoSteps(boClaim);
+  // Grades stay hidden until the rebuttal is graded: before that, an ally claim is not struck.
+  const revealCrux = resolved || !isAlly;
+  const boQuote = cleanText(resolved ? liveBoDialogue || lesson.boConcession?.speech : liveBoDialogue);
+  const hints = [
+    'Xem lại từng bước của Bo: bước nào dùng một quy tắc mà bạn chưa chắc lúc nào cũng đúng?',
+    cleanText(lesson.freezeNote),
+  ].filter(Boolean);
   // The rule Cô Lam locks in is the lesson's golden rule; a live line is only a fallback.
   const rule = cleanText(lesson.teacherClosure?.goldenRule || joinDialogue(liveCoLamDialogue));
 
@@ -284,26 +288,53 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
       <div className="grid gap-3 xl:grid-cols-3">
         {/* Bo nói */}
         <article className="flex flex-col gap-3 rounded-3xl border border-[#E2EAD2] bg-white p-4 sm:p-5">
-          <PanelHeader role="bo" title="Bo nói" subtitle={resolved ? 'Bo đã nhận ra chỗ sai.' : 'Đây là cách Bo làm, theo Bo thì đúng.'} tag="Bạn học AI" />
-          {resolved && boConcession && (
+          <PanelHeader
+            role="bo"
+            title="Bo nói"
+            subtitle={resolved ? 'Bo đã nhận ra chỗ sai.' : isAlly ? 'Bo đồng ý với bạn.' : 'Đây là cách Bo làm, theo Bo thì đúng.'}
+            tag="Bạn học AI"
+          />
+          {boQuote && (
             <blockquote className="text-[15px] leading-relaxed text-[#121712]">
-              “<FormattedMathText text={boConcession} />”
+              “<FormattedMathText text={boQuote} />”
             </blockquote>
           )}
-          {boClaim && (
-            <div className={`rounded-xl border border-[#F2C9C4] bg-[#FDF3F1] p-3 ${resolved ? 'mt-auto' : ''}`}>
-              <p className="mb-1.5 text-[12px] font-semibold text-[#8A2A1F]">{resolved ? 'Bước Bo đã làm sai' : 'Bo nói, và đây là bước sai'}</p>
-              <div className="flex items-start gap-2.5">
-                <X className="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#C2412D] p-0.5 text-white" strokeWidth={3} aria-hidden="true" />
-                <s className="text-[16px] leading-snug text-[#5A1F17] decoration-[#C2412D] decoration-2">
-                  “<FormattedMathText text={boClaim} />”
-                </s>
-              </div>
-            </div>
+          {boSteps.length > 0 && (
+            <ol className="grid gap-2" aria-label="Các bước Bo làm">
+              {boSteps.map((step, i) => {
+                const struck = step.isCrux && revealCrux;
+                return (
+                  <li
+                    key={i}
+                    className={`flex items-start gap-2.5 rounded-xl p-2.5 ${struck ? 'border border-[#F2C9C4] bg-[#FDF3F1]' : 'bg-[#F7FAF0]'}`}
+                  >
+                    {struck ? (
+                      <X className="mt-0.5 h-6 w-6 shrink-0 rounded-full bg-[#C2412D] p-1 text-white" strokeWidth={3} aria-label="Bước sai" />
+                    ) : (
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#E9F2D8] text-[12px] font-bold text-[#121712]">{i + 1}</span>
+                    )}
+                    {struck ? (
+                      <s className="text-[15px] leading-snug text-[#5A1F17] decoration-[#C2412D] decoration-2">
+                        <FormattedMathText text={step.text} />
+                      </s>
+                    ) : (
+                      <span className="text-[15px] leading-snug text-[#121712]">
+                        <FormattedMathText text={step.text} />
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
           )}
-          {!resolved && (
-            <p className="mt-auto text-[14px] leading-snug text-[#3D4739]">
-              Bo tin rằng cách này đúng. Việc của bạn: chỉ ra vì sao không được làm như vậy.
+          {boConclusion && (
+            <p
+              className={`mt-auto rounded-xl px-3 py-2.5 text-[15px] ${
+                revealCrux ? 'border border-[#F2C9C4] bg-[#FDF3F1] text-[#5A1F17]' : 'border border-[#E2EAD2] text-[#121712]'
+              }`}
+            >
+              <span className="font-bold">Kết luận của Bo: </span>
+              <FormattedMathText text={boConclusion} />
             </p>
           )}
         </article>
@@ -312,16 +343,34 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
         <article
           className={`flex flex-col gap-3 rounded-3xl border-2 p-4 sm:p-5 ${resolved ? 'border-[#E2EAD2] bg-white' : 'border-[#C8F169] bg-white shadow-[0_6px_20px_-10px_rgba(110,150,30,0.55)]'}`}
         >
-          <PanelHeader role="classmate" title="Lượt của bạn" subtitle="Bác lại cách làm của Bo bằng lập luận của bạn." tag="Bạn" />
+          <PanelHeader
+            role="classmate"
+            title="Lượt của bạn"
+            subtitle={
+              isAlly && !resolved
+                ? `Bạn và Bo cùng chọn “${cleanText(answered?.label)}”. Kiểm lại xem có thật đúng không, rồi viết lập luận.`
+                : 'Bác lại cách làm của Bo bằng lập luận của bạn.'
+            }
+            tag="Bạn"
+          />
           {resolved ? (
-            submittedRebuttal ? (
-              <div className="rounded-xl bg-[#F3F8E8] p-3 text-[15px] leading-relaxed text-[#121712]">
-                <p className="mb-1 text-[12px] font-semibold text-[#3D4739]">Phản biện bạn đã gửi</p>
-                <FormattedMathText text={submittedRebuttal} />
-              </div>
-            ) : (
-              <p className="text-[15px] leading-relaxed text-[#3D4739]">Bạn đã bác được Bo.</p>
-            )
+            <>
+              {submittedRebuttal ? (
+                <div className="rounded-xl bg-[#F3F8E8] p-3 text-[15px] leading-relaxed text-[#121712]">
+                  <p className="mb-1 text-[12px] font-semibold text-[#3D4739]">Lập luận bạn đã gửi</p>
+                  <FormattedMathText text={submittedRebuttal} />
+                </div>
+              ) : (
+                <p className="text-[15px] leading-relaxed text-[#3D4739]">Bạn đã bác được Bo.</p>
+              )}
+              {answered?.feedback && (
+                <div className="rounded-xl border border-[#E2EAD2] p-3 text-[14px] leading-snug text-[#121712]">
+                  <p className="mb-1 text-[12px] font-semibold text-[#3D4739]">Đáp án bạn chọn lúc đầu</p>
+                  <p className="font-semibold"><FormattedMathText text={cleanText(answered.label)} /></p>
+                  <p className="mt-1 text-[#3D4739]"><FormattedMathText text={cleanText(answered.feedback)} /></p>
+                </div>
+              )}
+            </>
           ) : (
             <form onSubmit={submit} className="flex flex-1 flex-col gap-3">
               <label htmlFor={editorId} className="sr-only">
@@ -334,13 +383,15 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
                   maxLength={MAX_REBUTTAL}
                   rows={4}
                   onChange={(e) => setText(e.target.value)}
-                  placeholder="Viết phản biện của bạn… (ví dụ: “Bo sai ở bước tách độ dài, vì …”)"
+                  placeholder={isAlly ? 'Viết lập luận của bạn… (cách này đúng hay sai, vì sao?)' : 'Viết phản biện của bạn… (ví dụ: “Bo sai ở bước …, vì …”)'}
                   className="block w-full resize-none rounded-xl bg-transparent px-3.5 py-3 text-[15px] leading-relaxed text-[#121712] placeholder:text-[#6B7766] focus:outline-none"
                 />
                 <p className="px-3.5 pb-2 text-right text-[12px] tabular-nums text-[#5B6657]">
                   {text.length}/{MAX_REBUTTAL}
                 </p>
               </div>
+
+              {isLoadingAi && <GradingStatus text="đang chấm lập luận của bạn…" />}
 
               {liveHintDialogue && !isLoadingAi && (
                 <p role="status" className="rounded-xl border border-[#F0D9A8] bg-[#FFF8E8] p-3 text-[14px] leading-snug text-[#5C4210]">
