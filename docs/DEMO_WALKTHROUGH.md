@@ -88,6 +88,27 @@ Tổng thời lượng demo: **23 giây**. Kịch bản được chia thành 4 g
 
 ---
 
+### Phần Trình Diễn Mở Rộng: Đổi Sang Video Môn Khác (~20s - Minh Chứng Lõi Dùng Chung Subject-Agnostic)
+
+- **Thời lượng**: ~20 giây.
+- **Mục tiêu**: Chứng minh với Ban Giám Khảo hệ thống không bị "hardcode" cho môn Toán 12 mà vận hành như một **Core Engine dùng chung cho mọi môn học** (Toán, AI / Khoa học máy tính, Sinh học, Ngữ văn...) thông qua kiến trúc Pluggable Subject Packs (EPIC 7 - Issue #31).
+- **Hành động hệ thống**:
+  1. Nạp video môn khác (clip bài giảng 60s `VID_AI_INTRO_01` - Trí tuệ nhân tạo: Nhập môn Học máy):
+     - Pipeline bóc tách (`clipExtractor.js` #28) sử dụng prompt thị giác trung lập, tự động nhận diện bố cục bài giảng dạng slide/văn bản thay vì ép bảng phấn Toán.
+     - Hệ thống nạp chỉ mục bài giảng AI và ngân hàng ngộ nhận tương ứng.
+  2. Học sinh gửi câu hỏi trong bài (*"Học có giám sát Supervised Learning bắt buộc phải có nhãn ground truth đúng không?"*):
+     - Trí trả lời khẳng định chính xác, trích dẫn chuẩn mốc thời gian nguồn `[02:00]`.
+  3. Học sinh hỏi câu hỏi ngoài lề (*"Thời tiết ngày mai ở Sa Pa thế nào bạn ơi?"* hoặc câu hỏi lạc đề):
+     - Bộ điều phối phát hiện `not_in_source`, lập tức phản hồi lịch sự: *"Câu hỏi này nằm ngoài nội dung bài giảng hiện tại. Bạn hãy tập trung vào bài học nhé!"*.
+  4. Bạn Bo phát biểu lập luận sai / gài bẫy ngộ nhận (*"Dữ liệu chưa cần nhãn vẫn học được Supervised Learning mà"*):
+     - Trí lập tức kích hoạt công cụ `tool_check_source_grounding` bác bỏ luận điểm sai của Bo, dẫn chứng trực tiếp từ slide định nghĩa học có giám sát.
+  5. Đảm bảo chuẩn sạch ngôn ngữ (Zero Vector Terminology):
+     - Toàn bộ câu trả lời của agent không chứa bất kỳ thuật ngữ Toán học nào (`vecto`, `vector`, `hình lập phương`, `đường chéo`, `BC'`, `DD'`, `Pytago`, `bất đẳng thức tam giác`, `độ dài tổng`).
+- **Lời thuyết minh dành cho người demo**:
+  > "Kính thưa Ban Giám Khảo, để chứng minh DRE không bị gắn cứng cho môn Toán, chúng tôi xin trình diễn tính tổng quát khi đổi sang một bài giảng Trí tuệ Nhân tạo. Ngay khi nạp video, hệ thống tự động tải Subject Pack tương ứng. Khi học sinh hỏi bài, Trí trích dẫn chính xác mốc 02:00. Khi học sinh hỏi ngoài luồng, hệ thống kích hoạt guardrail nhắc nhở. Và khi bạn Bo cố tình gài bẫy ngộ nhận, Trí sử dụng công cụ kiểm chứng nguồn `tool_check_source_grounding` để bác bẫy có bằng chứng. Toàn bộ câu thoại đều sạch 100% thuật ngữ toán học, khẳng định DRE là một nền tảng dùng chung cho mọi môn học."
+
+---
+
 ## 3. Bảng Tổng Hợp Thông Số Kỹ Thuật Demo
 
 | Trạm | Tên phân hệ | Thời lượng | View Router | Sự kiện tự động chính |

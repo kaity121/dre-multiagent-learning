@@ -115,13 +115,14 @@ Giao diện phía client được tối ưu hóa theo triết lý Lime Soft EdTe
 
 ## 3. Định Hướng Mở Rộng Đa Môn Học (Subject-Agnostic theo EPIC 7)
 
-Hệ thống DRE đang tiến hành chuẩn hóa kiến trúc bóc tách lõi cốt lõi và các gói chuyên môn:
+Hệ thống DRE đã hiện thực hóa kiến trúc bóc tách giữa Lõi dùng chung (Core Engine) và các Gói chuyên môn cắm ngoài (Pluggable Subject Packs) theo quyết định phương án B của PO:
 
 ```
 +-------------------------------------------------------------------------+
 |                          DRE CORE ENGINE                                |
 |  FSM State Machine · Multi-Agent Debate Council · Runtime Dispatcher    |
 |  Pacing Collision Checker · Bloom Evaluator · SSE Streaming Gateway     |
+|  Source Grounding Arbiter (tool_check_source_grounding)                 |
 +-------------------------------------------------------------------------+
                                     ▲
                                     │ Nạp bối cảnh (Context Ingestion)
@@ -136,13 +137,15 @@ Hệ thống DRE đang tiến hành chuẩn hóa kiến trúc bóc tách lõi c�
 +-------------------------------------------------------------------------+
 ```
 
-### 3.1. Nguyên lý tách rời Core Engine
-- **Lõi hệ thống không phụ thuộc môn học**: FSM điều phối đối thoại, chu trình tranh luận giữa Bo và Trí, thanh tra lượt thoại Inspector và bộ kiểm tra nhịp sư phạm đều hoạt động độc lập với nội dung giảng dạy.
-- **Subject Pack Interface**: Mỗi môn học chỉ cần định nghĩa:
-  1. `misconceptions.json`: Danh mục các lỗi tư duy hay gặp của học sinh trong môn học đó.
-  2. `lecture_timeline.json`: Phân đoạn video bài giảng và các mốc dừng đề xuất.
-  3. `verifier_tools`: Công cụ kiểm chứng đặc thù của môn học (ví dụ: bộ phân tích ngữ pháp đối với Ngữ Văn, bộ mô phỏng gen đối với Sinh Học).
-
-### 3.2. Lộ trình chuyển đổi
-- **Giai đoạn 1 (Hiện tại)**: Hoàn thiện và ổn định trên gói chuyên môn Toán 12 (Vectơ trong không gian - Thầy Tiến).
-- **Giai đoạn 2 (EPIC 7 - Issue #30 & #31)**: Đóng gói Subject Pack thành module độc lập, chuẩn hóa cơ chế tải động (Dynamic Pack Loader) cho phép người dùng nạp bất kỳ video bài giảng nào vào hệ thống.
+### 3.1. Các thành phần đã triển khai (Triển khai hoàn tất Issue #28, #30, #31)
+1. **Prompt thị giác trung lập & Nhận diện đa bố cục (`backend/services/clipExtractor.js` - Issue #28)**:
+   - Thay thế prompt gắn cứng bảng phấn Toán bằng prompt đa môn nhận diện cả slide bài thuyết trình, bảng đen, biểu đồ và văn bản OCR.
+   - Hỗ trợ cấu hình vùng quan tâm (ROI) linh hoạt theo từng môn học.
+2. **Bộ điều phối bám nguồn & Persona động (`backend/services/dispatcher.js` - Issue #30)**:
+   - Persona prompts được tạo động theo `subjectId`, `subjectName` và `domainTerms`.
+   - Phân biệt rõ câu hỏi trong nguồn và ngoài nguồn (`not_in_source`).
+   - Tích hợp công cụ trọng tài nguồn `tool_check_source_grounding`: Trí sử dụng để phản biện bẫy của Bo dựa trên tài liệu bài giảng có trích dẫn mốc thời gian.
+3. **Bộ dữ liệu kiểm chứng đa môn (`backend/fixtures/VID_AI_INTRO_01.json` & `dispatcher_subject_agnostic.test.js` - Issue #31)**:
+   - Kiểm thử đầu-cuối bài giảng Trí tuệ nhân tạo (Machine Learning).
+   - Kiểm định tự động: 0% từ khóa vectơ (`vecto`, `vector`, `hình lập phương`, `đường chéo`...) xuất hiện trong câu trả lời môn khác.
+   - Bảo đảm backward compatibility 100%: Bài giảng Toán 12 Thầy Tiến tại 37:13 không bị ảnh hưởng.
