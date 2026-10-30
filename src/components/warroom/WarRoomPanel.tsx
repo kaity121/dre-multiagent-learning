@@ -151,9 +151,9 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
         const parsed = new Date(evt.timestamp).getTime();
         if (!isNaN(parsed)) evt.timestamp = parsed;
       }
-      // Normalize toolCall input to params
-      if (evt.toolCall && (evt.toolCall as any).input && !evt.toolCall.params) {
-        evt.toolCall.params = (evt.toolCall as any).input;
+      // Normalize toolCall input to args/params
+      if (evt.toolCall && (evt.toolCall as any).input && !(evt.toolCall as any).args) {
+        (evt.toolCall as any).args = (evt.toolCall as any).input;
       }
       // Normalize eventType aliases from producer
       const normType = (evt.eventType || '').toLowerCase();

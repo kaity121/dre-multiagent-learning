@@ -327,3 +327,22 @@ export async function dispatchRuntimeMessage(req: DispatchRequest): Promise<Disp
     return null;
   }
 }
+
+/**
+ * AISDLC Issue #402: Fetch Context Isolation Snapshot for an agent at second T
+ */
+export async function fetchContextSnapshot(
+  agentId: string = 'tri',
+  second: number = 2233,
+  sessionId: string = 'session_001'
+): Promise<any | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/runtime/context-snapshot?agentId=${agentId}&second=${second}&sessionId=${sessionId}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.snapshot || null;
+  } catch (err) {
+    console.warn('[DRE API] fetchContextSnapshot error:', err);
+    return null;
+  }
+}

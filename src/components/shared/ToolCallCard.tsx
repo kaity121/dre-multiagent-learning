@@ -84,7 +84,7 @@ export const ToolCallCard: React.FC<ToolCallCardProps> = ({
         </div>
       )}
 
-      {toolResult?.result && !compact && (
+      {toolResult?.result != null && !compact && (
         <div className="mt-2 p-2.5 rounded-xl bg-[#F8FAF4] text-stone-800 text-xs font-mono max-h-32 overflow-y-auto border border-[#E2EAD2]">
           {typeof toolResult.result === 'object'
             ? JSON.stringify(toolResult.result, null, 2)

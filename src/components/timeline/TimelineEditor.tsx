@@ -13,7 +13,8 @@ import {
   Sliders,
   AlertCircle,
   ShieldCheck,
-  Edit3
+  Edit3,
+  Play
 } from 'lucide-react';
 import { DRELessonSchema, PauseQuestion, ScenarioItem } from '../../types/lesson';
 import { exportApprovedLessonJSON } from '../../utils/lessonAdapter';

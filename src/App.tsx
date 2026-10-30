@@ -971,12 +971,13 @@ export default function App() {
 
   const handleSubmitRebuttal = async (rebuttalText: string, isEffective: boolean) => {
     recordUserActivity();
+    const rebuttalTurnId = `live-reb-${Date.now()}`;
 
     // Ghi nhận lượt Soi não tác nhân khi học sinh phản biện thành công (P1 Fix)
     if (isEffective) {
       const rebuttalTurnNumber = inspectorTurns.length + 1;
       const newRebuttalTurn: InspectorTurn = {
-        turnId: `live-reb-${Date.now()}`,
+        turnId: rebuttalTurnId,
         timestamp: Date.now(),
         turnNumber: rebuttalTurnNumber,
         timestampStr: '37:13',
@@ -1038,7 +1039,7 @@ export default function App() {
           if (isEffective) {
             setInspectorTurns((prev) =>
               prev.map((t) =>
-                t.turnId === newRebuttalTurn.turnId
+                t.turnId === rebuttalTurnId
                   ? {
                       ...t,
                       dispatcher: {
@@ -1051,12 +1052,16 @@ export default function App() {
                         ? `Tác nhân đã phân tích: "${res.verdict.reasoning}"`
                         : t.thought,
                       speech: res.followUpResponse?.text || res.primaryResponse?.text || t.speech,
-                      contextView: {
-                        ...t.contextView,
-                        ragKnowledge: res.ragContextUsed
-                          ? `RAG [${res.ragContextUsed.misconceptionId}]: ${res.ragContextUsed.correction}`
-                          : t.contextView.ragKnowledge,
-                      },
+                      contextView: t.contextView
+                        ? {
+                            ...t.contextView,
+                            visibleContext: t.contextView.visibleContext || [],
+                            hiddenContext: t.contextView.hiddenContext || [],
+                            ragKnowledge: res.ragContextUsed
+                              ? `RAG [${res.ragContextUsed.misconceptionId}]: ${res.ragContextUsed.correction}`
+                              : t.contextView.ragKnowledge,
+                          }
+                        : undefined,
                     }
                   : t
               )
@@ -1716,7 +1721,7 @@ export default function App() {
                 setCurrentVideoLesson((prev) => ({
                   ...prev,
                   title: approved.title || prev.title,
-                  duration: approved.video_duration_s || prev.duration,
+                  duration: (approved as any).video_duration_s || updatedVideoLesson.duration || prev.duration,
                   checkpointTimestamp: updatedVideoLesson.checkpointTimestamp || prev.checkpointTimestamp,
                   checkpointQuestion: updatedVideoLesson.checkpointQuestion || prev.checkpointQuestion,
                   boArgument: updatedVideoLesson.boArgument || prev.boArgument,
@@ -2247,7 +2252,6 @@ export default function App() {
         currentMode={currentMode}
         currentVideoSecond={videoCurrentTime}
         onSeekVideo={handleSeekVideo}
-      />
       />
     </>
   );

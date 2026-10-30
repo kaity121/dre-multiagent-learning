@@ -116,6 +116,10 @@ class SoundEngine {
     } catch {}
   }
 
+  public playPaperRustle() {
+    this.playPageFlip();
+  }
+
   /**
    * Crisp button tap / selection click
    */
