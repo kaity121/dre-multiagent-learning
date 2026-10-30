@@ -6,7 +6,7 @@ Bài demo là *Toán 12, Vectơ trong không gian*, thầy Nguyễn Phan Tiến.
 
 Ảnh tổng hợp cả 7 bước: [images/huong-dan-tong-hop.jpg](images/huong-dan-tong-hop.jpg)
 
-> Ảnh trong tài liệu là ảnh minh họa của bố cục "Tuyến hành trình dọc" đã được duyệt. Giao diện thật có thể lệch đôi chút về chữ và khoảng cách.
+> Ảnh trong tài liệu được chụp từ app thật, chạy với backend AI thật, ở độ phân giải 1920×1080. Lời thoại của các bạn AI có thể khác đôi chút giữa các lần chạy.
 
 ---
 
@@ -48,28 +48,33 @@ Bốn nhân vật trong lớp học:
    - Hỏi bản chất thì **Trí** trả lời, kèm công cụ kiểm chứng.
    - Hỏi công thức hay mẹo nhớ thì **Linh Chi**.
    - Bí bài thì **Trợ giảng An** gợi ý từng bậc.
-3. Câu trả lời có chip **"✓ đã kiểm · 37:13"** nghĩa là đã được công cụ toán kiểm. Bấm chip để xem chi tiết (xem Bước 6).
+3. Câu trả lời có chip bằng chứng viền xanh (ví dụ **"✓ Đã kiểm chứng · 37:13"**) nghĩa là đã được công cụ toán kiểm. Bấm chip để xem chi tiết (xem Bước 6).
 4. Câu hỏi nằm ngoài bài giảng sẽ được nhắc quay lại đúng đoạn trong video.
 
 ## Bước 3. Dừng ở 37:13: Bo sai
 
 ![Bước 3: dừng ở 37:13](images/03-dung-3713.jpg)
 
-1. Tới **37:13**, video tự dừng và tuyến hành trình chuyển sang ga **Bo sai ở 37:13**.
-2. **Cô Lam** mở câu hỏi của Ví dụ 3: hình lập phương cạnh 1, tính |BC + DD'|.
-3. Chọn đáp án của bạn. Bo sẽ chen vào bằng một cách giải tắt nghe rất xuôi tai, nhưng sai.
+1. Tới **37:13**, hoặc khi bạn bấm **Tới điểm dừng 37:13**, video dừng lại và tuyến hành trình chuyển sang ga **Chẩn đoán**.
+2. Trong chat:
+   - **Bo** đưa ra cách tính tắt của mình.
+   - **Trí** tỏ ra nghi ngờ.
+   - **Cô Lam** gợi một câu: hãy để ý hướng của hai vectơ.
+3. Thẻ **"Việc của bạn bây giờ"** hiện câu hỏi của Ví dụ 3 (hình lập phương cạnh 1, tính |BC + DD'|) với 3 cách tính. Chọn một cách rồi bấm **Xác nhận đáp án**. Trong lúc chờ chấm, thẻ ghi "Đang chấm câu trả lời của bạn…".
 
-> Chọn đúng vẫn chưa xong. Bo sẽ thử bạn bằng một cái bẫy, vì chọn đúng chưa chắc đã là hiểu.
+> Chọn xong chưa phải là hết.
+> - **Bạn chọn sai:** Bo sẽ *đồng ý với bạn*. Bạn phải tự kiểm lại.
+> - **Bạn chọn đúng:** Bo sẽ *gài bẫy*, bằng một cách tính tắt hoặc một trường hợp biên. Chọn đúng chưa chắc đã là hiểu.
 
 ## Bước 4. Bác Bo
 
 ![Bước 4: bác Bo](images/04-bac-bo.jpg)
 
-Thẻ việc cần làm mở ra thành **bàn đối chất 3 ô**:
+Video thu lại thành một dải mỏng, vẫn giữ mốc 37:13. Thẻ việc cần làm mở ra thành **bàn đối chất 3 ô**:
 
 | Ô | Nội dung |
 |---|---|
-| **Bo nói** | Lời giải của Bo. Bước sai bị gạch đỏ. |
+| **Bo nói** | Lời của Bo và các bước giải của Bo. Nếu Bo gài cách tính tắt, bước sai bị gạch đỏ. |
 | **Lượt của bạn** | Viết vì sao Bo sai, ví dụ: *"BC và DD' không cùng hướng, phải cộng vectơ: BC + CC' = BC', nên độ dài là √2."* |
 | **Cô Lam chốt** | Khóa lại cho tới khi bạn bác được Bo. |
 
@@ -109,11 +114,10 @@ Bấm vào một block để xem đầu vào và đầu ra của bước đó. T
 ![Bước 7: dạy lại Bo](images/07-day-lai-bo.jpg)
 
 1. Ở **Trạm 2 · Sổ tay** và **Trạm 3 · Đoán**, bạn luyện tiếp: soi lỗi trong một bài giải, rồi dự đoán, kiểm chứng và giải thích.
-2. Ở **Trạm 4 · Dạy kèm**, bạn giảng lại quy tắc cho Bo bằng lời của mình. Tự dạy lại là cách nhớ lâu nhất.
-3. Thẻ **Kết quả buổi học** cho biết:
-   - ngộ nhận bạn đã tự sửa;
-   - bậc tư duy Bloom bạn đạt được;
-   - lịch ôn lại.
+2. Ở **Trạm 4 · Dạy kèm**, tuyến hành trình sáng ở ga **Dạy lại Bo**, gồm hai nhiệm vụ:
+   - **Nhiệm vụ 1:** giúp Bo chọn bí kíp dễ nhớ nhất (của Minh Khang hoặc Linh Chi). Tự dạy lại là cách nhớ lâu nhất.
+   - **Nhiệm vụ 2:** tự đặt một bài thử thách cho cả nhóm.
+3. Bấm **Xem tổng kết hành trình** để xem lại những gì bạn đã làm trong buổi học.
 
 ---
 
