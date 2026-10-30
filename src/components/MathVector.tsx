@@ -103,6 +103,35 @@ export const Vec: React.FC<VecProps> = React.memo(({
   );
 });
 
+type MathToken = { type: 'text' | 'inline' | 'display' | 'raw_latex'; content: string };
+
+// A vector term is a pair of points (BC, DD') or a named vector (a, b, c, u, v, w).
+const VECTOR_TERM = String.raw`(?:[A-Z][A-Z]'?|[abcuvw])`;
+const VECTOR_NORM = new RegExp(String.raw`\|\s*(${VECTOR_TERM}(?:\s*[+\-−]\s*${VECTOR_TERM})*)\s*\|`, 'g');
+
+const termToTex = (term: string) => (/^[A-Z]/.test(term) ? String.raw`\overrightarrow{${term}}` : String.raw`\vec{${term}}`);
+
+/**
+ * Plain-text vector lengths such as "|BC + DD'|" or "|a| + |b|" become KaTeX with arrows;
+ * everything else stays text. Algebra like "|x − 3|" is left alone.
+ */
+export function splitVectorNorms(text: string): MathToken[] {
+  const out: MathToken[] = [];
+  let last = 0;
+  for (const m of text.matchAll(VECTOR_NORM)) {
+    const start = m.index ?? 0;
+    if (start > last) out.push({ type: 'text', content: text.slice(last, start) });
+    const body = m[1]
+      .split(/\s*([+\-−])\s*/)
+      .map((part) => (part === '+' ? '+' : part === '-' || part === '−' ? '-' : termToTex(part)))
+      .join(' ');
+    out.push({ type: 'inline', content: String.raw`\left|${body}\right|` });
+    last = start + m[0].length;
+  }
+  if (last < text.length) out.push({ type: 'text', content: text.slice(last) });
+  return out;
+}
+
 /**
  * Component tự động phân tích và render văn bản chứa công thức KaTeX
  * Hỗ trợ các cú pháp: \(...\), $...$, \[...\], $$...$$, hoặc các lệnh \vec / \overrightarrow rải rác
@@ -119,7 +148,8 @@ export const FormattedMathText: React.FC<{
     // Tách theo các khối phân cách KaTeX chuẩn
     const regex = /(\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|\$\$[\s\S]*?\$\$|\$(?:\\.|[^$\n])+\$)/g;
     const rawParts = normalized.split(regex);
-    const result: Array<{ type: 'text' | 'inline' | 'display' | 'raw_latex'; content: string }> = [];
+    const result: MathToken[] = [];
+    const pushText = (content: string) => result.push(...splitVectorNorms(content));
 
     for (const part of rawParts) {
       if (!part) continue;
@@ -142,11 +172,11 @@ export const FormattedMathText: React.FC<{
             if (/\\(?:vec|overrightarrow)\b/.test(sub)) {
               result.push({ type: 'raw_latex', content: sub.trim() });
             } else {
-              result.push({ type: 'text', content: sub });
+              pushText(sub);
             }
           }
         } else {
-          result.push({ type: 'text', content: part });
+          pushText(part);
         }
       }
     }
