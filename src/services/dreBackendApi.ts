@@ -4,10 +4,6 @@
  * Powered by OpenAI GPT-6 (Bo, Assessor & TA An on gpt-6-sol, Cô Lam on gpt-6.1-sol).
  */
 
-import type { AgentCitation } from '../types/pipeline';
-
-export type { AgentCitation };
-
 const API_BASE_URL = (import.meta as any).env?.VITE_DRE_API_URL || 'http://localhost:3001';
 
 export interface StartSessionResponse {
@@ -136,11 +132,9 @@ export interface ClassroomChatResponse {
   kbMatchedId?: string | null;
   toolCall?: DeterministicToolCallInfo | null;
   toolCalls?: DeterministicToolCallInfo[] | null;
-  citations?: AgentCitation[] | null;
-  contextSnapshot?: any | null;
   timeStr: string;
+  second?: number;
   sessionId?: string;
-  sessionState?: any;
 }
 
 /**
@@ -150,7 +144,7 @@ export async function sendClassroomChat(
   message: string,
   currentTime: number,
   recipient: string = 'all',
-  sessionId?: string
+  sessionId?: string | null
 ): Promise<ClassroomChatResponse | null> {
   try {
     const controller = new AbortController();
@@ -215,102 +209,123 @@ export async function sendPeerChat(
   }
 }
 
-
-/**
- * AISDLC Issue #402: Fetch Context Isolation Snapshot for an agent at second T
- */
-export async function fetchContextSnapshot(
-  agentId: string = 'tri',
-  second: number = 2233,
-  sessionId: string = 'session_001'
-): Promise<any | null> {
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/runtime/context-snapshot?agentId=${agentId}&second=${second}&sessionId=${sessionId}`);
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.snapshot || null;
-  } catch (err) {
-    console.warn('[DRE API] fetchContextSnapshot error:', err);
-    return null;
-  }
+export interface RoundtableStreamOptions {
+  videoId?: string;
+  partNumber?: number;
+  streamDelayMs?: number;
+  useLLM?: boolean;
+  onEvent?: (event: any) => void;
+  onComplete?: (data: any) => void;
+  onError?: (err: any) => void;
 }
 
 /**
- * ============================================================================
- * AISDLC Issue #403: Cognitive Evaluator & Bloom Certification Client APIs
- * ============================================================================
+ * Open real-time SSE stream for A2A Roundtable War Room Demo (#302)
+ * Returns an unsubscribe / close function.
  */
+export function streamRoundtable({
+  videoId = 'VID_VECTO_12_TIEN',
+  partNumber,
+  streamDelayMs = 20,
+  useLLM = false,
+  onEvent,
+  onComplete,
+  onError,
+}: RoundtableStreamOptions): () => void {
+  const query = new URLSearchParams();
+  if (videoId) query.append('videoId', videoId);
+  if (partNumber !== undefined) query.append('partNumber', String(partNumber));
+  if (streamDelayMs) query.append('streamDelayMs', String(streamDelayMs));
+  if (useLLM) query.append('useLLM', 'true');
 
-export async function evaluateCognitiveResponse(payload: {
-  answer: string;
-  expectedPoints?: string[];
+  const url = `${API_BASE_URL}/api/roundtable/stream?${query.toString()}`;
+  const eventSource = new EventSource(url);
+
+  eventSource.addEventListener('reasoning_event', (e: MessageEvent) => {
+    try {
+      const data = JSON.parse(e.data);
+      onEvent?.(data);
+    } catch (err) {
+      console.warn('[DRE API] Parse error in SSE reasoning_event:', err);
+    }
+  });
+
+  eventSource.addEventListener('complete', (e: MessageEvent) => {
+    try {
+      const data = JSON.parse(e.data);
+      onComplete?.(data);
+    } catch (err) {
+      console.warn('[DRE API] Parse error in SSE complete:', err);
+    }
+    eventSource.close();
+  });
+
+  eventSource.onerror = (err) => {
+    console.warn('[DRE API] EventSource error:', err);
+    onError?.(err);
+    eventSource.close();
+  };
+
+  return () => {
+    eventSource.close();
+  };
+}
+
+
+export interface DispatchRequest {
+  message: string;
   currentTime?: number;
-  misconceptionId?: string;
-  deltaSeconds?: number;
-  characterCount?: number;
-  backspaceCount?: number;
-}): Promise<any | null> {
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/evaluator/assess`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch (err) {
-    console.warn('[DRE API] evaluateCognitiveResponse error:', err);
-    return null;
-  }
+  recipient?: string;
+  lessonTitle?: string;
+  useLLM?: boolean;
+  sessionId?: string | null;
 }
 
-export async function sendEvaluatorAction(payload: {
-  sessionId: string;
-  action: 'create_learning_record' | 'update_mastery_state' | 'create_review_task';
-  payload: Record<string, any>;
-}): Promise<any | null> {
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/evaluator/action`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch (err) {
-    console.warn('[DRE API] sendEvaluatorAction error:', err);
-    return null;
-  }
+export interface DispatchResponse {
+  ok: boolean;
+  verdict: {
+    detectedIntent: string;
+    dispatchedAgent: string;
+    confidence: number;
+    reasoning: string;
+    isOffTopic?: boolean;
+    unsubstantiatedRebuttal?: boolean;
+  };
+  primaryResponse: {
+    agent: string;
+    text: string;
+    type: string;
+  };
+  followUpResponse?: {
+    agent: string;
+    text: string;
+  };
+  ragContextUsed?: {
+    misconceptionId: string;
+    title: string;
+    correction: string;
+  } | null;
+  latencyMs: number;
+  currentTimeStr: string;
+  timestamp: string;
 }
 
-export async function certifyStation4Bloom(payload: {
-  sessionId: string;
-  teachingAnswer: string;
-  createdProblem?: any;
-  videoTimeS?: number;
-}): Promise<any | null> {
+/**
+ * Send learner input to the Runtime Intent Classifier & Dynamic Routing Dispatcher (#26)
+ */
+export async function dispatchRuntimeMessage(req: DispatchRequest): Promise<DispatchResponse | null> {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/evaluator/certify-station4`, {
+    const res = await fetch(`${API_BASE_URL}/api/runtime/dispatch`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(req),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
     return await res.json();
   } catch (err) {
-    console.warn('[DRE API] certifyStation4Bloom error:', err);
-    return null;
-  }
-}
-
-export async function exportSessionSchema(sessionId: string): Promise<any | null> {
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/session/${sessionId}/export`);
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.session || null;
-  } catch (err) {
-    console.warn('[DRE API] exportSessionSchema error:', err);
+    console.warn('[DRE API] dispatchRuntimeMessage error, will use local fallback:', err);
     return null;
   }
 }

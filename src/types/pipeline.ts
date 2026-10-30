@@ -66,6 +66,8 @@ export interface CognitiveEventStream {
     sttModel?: string;
     visionModel?: string;
     processingLatencyMs?: number;
+    /** Set when live extraction failed and the authored fixture was served instead. */
+    fallbackReason?: string;
   };
   segments: CognitiveTimelineSegment[];
 }
@@ -141,15 +143,6 @@ export interface IntentRoutingVerdict {
   dispatchedAgent: AgentRole;
   confidence: number;
   reasoning: string;
-}
-
-export interface AgentCitation {
-  label: string;
-  timestamp: number;
-  timeFormatted: string;
-  source: 'video' | 'blackboard' | 'sgk' | 'slide';
-  quote?: string;
-  url?: string;
 }
 
 export interface AgentRuntimeContext {
