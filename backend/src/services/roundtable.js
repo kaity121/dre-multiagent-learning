@@ -6,7 +6,8 @@ import { config } from '../config.js';
 /**
  * Xác định công cụ kiểm chứng tương ứng với từng dạng ngộ nhận
  */
-function getMisconceptionVerifiableConfig(misconception) {
+export function getMisconceptionVerifiableConfig(misconceptionInput) {
+  const misconception = misconceptionInput?.misconception || misconceptionInput || {};
   // 1. Phép toán trong hình lập phương / cộng độ dài
   if (misconception.id === 'MISC_VEC_005' || (misconception.tags || []).includes('cube')) {
     return {
@@ -60,6 +61,72 @@ function getMisconceptionVerifiableConfig(misconception) {
     toolName: 'tool_query_misconception_kb',
     params: { misconceptionId: misconception.id, defaultClaim: misconception.incorrect_claim },
   };
+}
+
+/**
+ * Xây dựng prompt và forced tool choice cho Trí dựa trên bẫy của Bo và cấu hình tool
+ */
+export function buildTriPrompt({ misconception: misconceptionInput, boTurn, toolConfig }) {
+  const misconception = misconceptionInput?.misconception || misconceptionInput || {};
+  let triPrompt = '';
+  let forcedToolChoice = null;
+
+  if (toolConfig.toolType === 'vector_algebra') {
+    const expr = toolConfig.params.expr;
+    const claim = boTurn.claim || toolConfig.params.defaultClaim;
+    const sideLine = toolConfig.params.side ? `\n- side: "${toolConfig.params.side}"` : '';
+    triPrompt = `Bạn là "Trí" — bạn học Deep Thinker đào sâu bản chất trong buồng họp Roundtable.
+Bo vừa phát biểu: "${boTurn.dialogue}" với claim là "${claim}".
+BẠN BẮT BUỘC PHẢI DÙNG TOOL "tool_verify_vector_algebra" để kiểm chứng claim này trước khi phát biểu!
+- expr: "${expr}"
+- claim: "${claim}"${sideLine}
+
+Sau khi nhận kết quả từ tool:
+- Dựa vào kết quả đúng (correct) và căn cứ hình học từ tool để BÁC BỎ dứt khoát bẫy của Bo. Chỉ rõ Bo sai ở đâu và gợi ý cho học sinh tự sửa.
+Trả về JSON chuẩn:
+{
+  "counter_claim": "<kết luận toán học chuẩn từ tool, ví dụ: a\\sqrt{2}>",
+  "dialogue": "<câu Trí trích dẫn kết quả tool để bác bẫy Bo và đặt câu hỏi gợi mở>",
+  "geometric_basis": "<căn cứ hình học từ tool reason>"
+}`;
+    forcedToolChoice = { type: 'function', function: { name: 'tool_verify_vector_algebra' } };
+  } else if (toolConfig.toolType === 'dot_product') {
+    const claim = boTurn.claim || toolConfig.params.claimValue;
+    const reverseULine = (toolConfig.params.reverseU || toolConfig.params.isReversed) ? '\n- reverseU: true' : '';
+    triPrompt = `Bạn là "Trí" — bạn học Deep Thinker đào sâu bản chất trong buồng họp Roundtable.
+Bo vừa phát biểu: "${boTurn.dialogue}" với claim là "${claim}".
+BẠN BẮT BUỘC PHẢI DÙNG TOOL "tool_calculate_dot_product" để kiểm chứng claim này trước khi phát biểu!
+- uMag: ${toolConfig.params.uMag}
+- vMag: ${toolConfig.params.vMag}
+- angleDeg: ${toolConfig.params.angleDeg}
+- claimValue: "${claim}"
+- claimType: "${toolConfig.params.claimType || 'dot_product'}"${reverseULine}
+
+Sau khi nhận kết quả từ tool:
+- Bác bỏ sai lầm của Bo dựa trên kết quả tính toán từ tool và nêu rõ bản chất hình học.
+Trả về JSON chuẩn:
+{
+  "counter_claim": "<kết luận toán học chuẩn từ tool>",
+  "dialogue": "<câu Trí trích dẫn kết quả tool để bác bẫy Bo>",
+  "geometric_basis": "<căn cứ từ tool reason>"
+}`;
+    forcedToolChoice = { type: 'function', function: { name: 'tool_calculate_dot_product' } };
+  } else {
+    triPrompt = `Bạn là "Trí" — bạn học Deep Thinker đào sâu bản chất trong buồng họp Roundtable.
+Bo vừa phát biểu: "${boTurn.dialogue}".
+BẠN BẮT BUỘC PHẢI DÙNG TOOL "tool_query_misconception_kb" với misconceptionId: "${misconception.id}" để kiểm chứng chân lý bài toán.
+Sau khi nhận kết quả từ tool:
+- Bác bỏ bẫy sai của Bo dựa trên tri thức chuẩn xác và phản ví dụ.
+Trả về JSON chuẩn:
+{
+  "counter_claim": "<kết luận toán học chuẩn từ tri thức SGK>",
+  "dialogue": "<câu Trí phản biện Bo và gợi ý hướng đi đúng>",
+  "geometric_basis": "<căn cứ kiến thức toán>"
+}`;
+    forcedToolChoice = { type: 'function', function: { name: 'tool_query_misconception_kb' } };
+  }
+
+  return { triPrompt, forcedToolChoice };
 }
 
 /**
@@ -160,61 +227,7 @@ Trả về JSON chuẩn:
       recordEvent('debate_turn', 'bo', 'Bo (Hệ 1 - Trực giác)', boTurn.dialogue);
 
       // --- Lượt 2: Trí kích hoạt Tool xác thực toán học & bác bẫy của Bo ---
-      let triPrompt = '';
-      let forcedToolChoice = null;
-
-      if (toolConfig.toolType === 'vector_algebra') {
-        const expr = toolConfig.params.expr;
-        const claim = boTurn.claim || toolConfig.params.defaultClaim;
-        triPrompt = `Bạn là "Trí" — bạn học Deep Thinker đào sâu bản chất trong buồng họp Roundtable.
-Bo vừa phát biểu: "${boTurn.dialogue}" với claim là "${claim}".
-BẠN BẮT BUỘC PHẢI DÙNG TOOL "tool_verify_vector_algebra" để kiểm chứng claim này trước khi phát biểu!
-- expr: "${expr}"
-- claim: "${claim}"
-
-Sau khi nhận kết quả từ tool:
-- Dựa vào kết quả đúng (correct) và căn cứ hình học từ tool để BÁC BỎ dứt khoát bẫy của Bo. Chỉ rõ Bo sai ở đâu và gợi ý cho học sinh tự sửa.
-Trả về JSON chuẩn:
-{
-  "counter_claim": "<kết luận toán học chuẩn từ tool, ví dụ: a\\sqrt{2}>",
-  "dialogue": "<câu Trí trích dẫn kết quả tool để bác bẫy Bo và đặt câu hỏi gợi mở>",
-  "geometric_basis": "<căn cứ hình học từ tool reason>"
-}`;
-        forcedToolChoice = { type: 'function', function: { name: 'tool_verify_vector_algebra' } };
-      } else if (toolConfig.toolType === 'dot_product') {
-        const claim = boTurn.claim || toolConfig.params.claimValue;
-        triPrompt = `Bạn là "Trí" — bạn học Deep Thinker đào sâu bản chất trong buồng họp Roundtable.
-Bo vừa phát biểu: "${boTurn.dialogue}" với claim là "${claim}".
-BẠN BẮT BUỘC PHẢI DÙNG TOOL "tool_calculate_dot_product" để kiểm chứng claim này trước khi phát biểu!
-- uMag: ${toolConfig.params.uMag}
-- vMag: ${toolConfig.params.vMag}
-- angleDeg: ${toolConfig.params.angleDeg}
-- claimValue: "${claim}"
-- claimType: "${toolConfig.params.claimType || 'dot_product'}"
-
-Sau khi nhận kết quả từ tool:
-- Bác bỏ sai lầm của Bo dựa trên kết quả tính toán từ tool và nêu rõ bản chất hình học.
-Trả về JSON chuẩn:
-{
-  "counter_claim": "<kết luận toán học chuẩn từ tool>",
-  "dialogue": "<câu Trí trích dẫn kết quả tool để bác bẫy Bo>",
-  "geometric_basis": "<căn cứ từ tool reason>"
-}`;
-        forcedToolChoice = { type: 'function', function: { name: 'tool_calculate_dot_product' } };
-      } else {
-        triPrompt = `Bạn là "Trí" — bạn học Deep Thinker đào sâu bản chất trong buồng họp Roundtable.
-Bo vừa phát biểu: "${boTurn.dialogue}".
-BẠN BẮT BUỘC PHẢI DÙNG TOOL "tool_query_misconception_kb" với misconceptionId: "${misconception.id}" để kiểm chứng chân lý bài toán.
-Sau khi nhận kết quả từ tool:
-- Bác bỏ bẫy sai của Bo dựa trên tri thức chuẩn xác và phản ví dụ.
-Trả về JSON chuẩn:
-{
-  "counter_claim": "<kết luận toán học chuẩn từ tri thức SGK>",
-  "dialogue": "<câu Trí phản biện Bo và gợi ý hướng đi đúng>",
-  "geometric_basis": "<căn cứ kiến thức toán>"
-}`;
-        forcedToolChoice = { type: 'function', function: { name: 'tool_query_misconception_kb' } };
-      }
+      const { triPrompt, forcedToolChoice } = buildTriPrompt({ misconception, boTurn, toolConfig });
 
       const triResponse = await chatWithTools({
         model: config.models.tri || config.models.bo,
@@ -498,4 +511,4 @@ Trả về JSON chuẩn:
   return draft;
 }
 
-export default { runRoundtable };
+export default { runRoundtable, getMisconceptionVerifiableConfig, buildTriPrompt };

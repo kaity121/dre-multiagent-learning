@@ -78,12 +78,16 @@ export const OPENAI_TOOL_DEFINITIONS = [
           },
           claimType: {
             type: 'string',
-            enum: ['dot_product', 'angle'],
-            description: 'Loại phát biểu: dot_product (tích vô hướng) hoặc angle (góc)',
+            enum: ['dot_product', 'angle', 'norm_sum_squared', 'reverse_angle'],
+            description: 'Loại phát biểu: dot_product (tích vô hướng), angle (góc), norm_sum_squared (bình phương độ dài tổng |u+v|^2), hoặc reverse_angle (góc khi đảo chiều một vectơ)',
           },
           reverseU: {
             type: 'boolean',
             description: 'true để tính với -u (đảo hướng u): góc thành 180° - angleDeg',
+          },
+          isReversed: {
+            type: 'boolean',
+            description: 'true để tính góc khi đảo một vectơ (tương đương reverseU)',
           },
         },
         required: ['uMag', 'vMag'],

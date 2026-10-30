@@ -11,11 +11,12 @@ import {
 } from '../src/tools/tool_verify_vector_algebra.js';
 import { calculateDotProduct } from '../src/tools/tool_calculate_dot_product.js';
 import { checkTimelineCollision } from '../src/tools/tool_timeline_collision_checker.js';
-import { executeTool } from '../src/tools/index.js';
+import { executeTool, OPENAI_TOOL_DEFINITIONS } from '../src/tools/index.js';
+import { getById } from '../src/services/knowledgeBase.js';
 
 // The roundtable imports the OpenAI client, which needs a key to construct.
 process.env.OPENAI_API_KEY ||= 'test-key';
-const { runRoundtable } = await import('../src/services/roundtable.js');
+const { runRoundtable, buildTriPrompt, getMisconceptionVerifiableConfig } = await import('../src/services/roundtable.js');
 
 /**
  * Caller-level badge simulation mirroring backend/server.js:280-325
@@ -205,4 +206,62 @@ describe('Roundtable verifies angle and dot-product traps with the dot-product t
       assert.equal(call.output.isValid, expected);
     });
   }
+});
+
+describe('LLM-backed Roundtable Instructions and Tool Schema (Review P1 Regression Tests)', () => {
+  it('P1-1: MISC_VEC_017 prompt includes reverseU: true and rejects Bo when called with instructions', () => {
+    const { misconception: misc17 } = getById('MISC_VEC_017');
+    assert.ok(misc17, 'MISC_VEC_017 must exist in KB');
+    const toolConfig = getMisconceptionVerifiableConfig(misc17);
+    assert.equal(toolConfig.params.reverseU, true);
+
+    const boTurn = { dialogue: 'Góc giữa u và v là 60° thì đảo một vectơ v thành -v thì góc vẫn là 60° chứ!', claim: '60' };
+    const { triPrompt, forcedToolChoice } = buildTriPrompt({ misconception: misc17, boTurn, toolConfig });
+
+    // 1. Prompt for LLM must explicitly specify reverseU: true
+    assert.ok(triPrompt.includes('- reverseU: true'), 'triPrompt must instruct LLM to use reverseU: true');
+    assert.equal(forcedToolChoice.function.name, 'tool_calculate_dot_product');
+
+    // 2. If reverseU is omitted (the old bug), the tool falsely accepts Bo\'s claim
+    const withoutReverse = calculateDotProduct({ uMag: 2, vMag: 3, angleDeg: 60, claimValue: '60', claimType: 'angle' });
+    assert.equal(withoutReverse.isValid, true, 'Without reverseU, tool falsely confirms 60°');
+
+    // 3. With reverseU included per prompt instruction, the tool correctly rejects Bo\'s claim
+    const withReverse = calculateDotProduct({ uMag: 2, vMag: 3, angleDeg: 60, claimValue: '60', claimType: 'angle', reverseU: true });
+    assert.equal(withReverse.isValid, false, 'With reverseU: true, Bo is rejected');
+    assert.equal(withReverse.angleDeg, 120);
+    assert.equal(withReverse.correct, '120°');
+  });
+
+  it('P1-2: Tool schema permits norm_sum_squared and MISC_VEC_020 computes 19 rejecting Bo', () => {
+    const dotDef = OPENAI_TOOL_DEFINITIONS.find((t) => t.function.name === 'tool_calculate_dot_product');
+    assert.ok(dotDef, 'tool_calculate_dot_product definition must exist');
+
+    // 1. Tool schema enum must include norm_sum_squared
+    const allowedModes = dotDef.function.parameters.properties.claimType.enum;
+    assert.ok(allowedModes.includes('norm_sum_squared'), 'claimType enum must include norm_sum_squared');
+    assert.ok(allowedModes.includes('reverse_angle'), 'claimType enum should include reverse_angle');
+
+    // 2. Prompt for MISC_VEC_020 instructs claimType: "norm_sum_squared"
+    const { misconception: misc20 } = getById('MISC_VEC_020');
+    assert.ok(misc20, 'MISC_VEC_020 must exist in KB');
+    const toolConfig = getMisconceptionVerifiableConfig(misc20);
+    assert.equal(toolConfig.params.claimType, 'norm_sum_squared');
+
+    const boTurn = { dialogue: '|u + v|^2 = |u|^2 + |v|^2 = 2^2 + 3^2 = 13!', claim: '13' };
+    const { triPrompt } = buildTriPrompt({ misconception: misc20, boTurn, toolConfig });
+    assert.ok(triPrompt.includes('- claimType: "norm_sum_squared"'), 'triPrompt must instruct claimType: norm_sum_squared');
+
+    // 3. Executing tool with schema-constrained LLM arguments computes 19 and rejects Bo\'s 13
+    const toolCall = executeTool('tool_calculate_dot_product', {
+      uMag: 2,
+      vMag: 3,
+      angleDeg: 60,
+      claimValue: '13',
+      claimType: 'norm_sum_squared',
+    });
+    assert.equal(toolCall.isValid, false, 'Bo omitting cross term must be rejected');
+    assert.equal(toolCall.output.correct, '19');
+    assert.ok(toolCall.output.reason.includes('số hạng chéo'), 'Reason must explain cross term');
+  });
 });
