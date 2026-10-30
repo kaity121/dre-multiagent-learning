@@ -26,12 +26,12 @@ export function normalizeAgentName(raw: any): AgentName {
   const norm = raw.trim().toLowerCase();
   if (norm.includes('trí') || norm === 'tri') return 'Trí';
   if (norm.includes('bo')) return 'Bo';
-  if (norm.includes('an') || norm === 'ta') return 'An';
-  if (norm.includes('lam') || norm === 'colam' || norm.includes('tutor')) return 'Cô Lam';
-  if (norm.includes('chi') || norm === 'linhchi') return 'Linh Chi';
   if (norm.includes('khang') || norm === 'minhkhang') return 'Minh Khang';
+  if (norm.includes('chi') || norm === 'linhchi') return 'Linh Chi';
+  if (norm.includes('lam') || norm === 'colam' || norm.includes('tutor')) return 'Cô Lam';
   if (norm.includes('assessor') || norm.includes('trọng tài')) return 'Assessor';
   if (norm.includes('dispatcher') || norm.includes('điều phối')) return 'Dispatcher';
+  if (norm.includes('an') || norm === 'ta') return 'An';
 
   return raw;
 }
