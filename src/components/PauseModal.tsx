@@ -78,7 +78,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
           </div>
 
           <p className="text-xs text-stone-700 italic leading-relaxed bg-white p-2.5 rounded-xl border border-[#E2EAD2]">
-            “Vị trí của bạn và mọi ghi chú đã được lưu vào bộ nhớ trình duyệt. Khi nào sẵn sàng, bạn quay lại học tiếp cùng nhóm nhé.”
+            Vị trí video và tiến độ các trạm đã được lưu trong trình duyệt này. Tin nhắn trong khung lớp học không được lưu. Khi nào sẵn sàng, bạn quay lại học tiếp cùng nhóm nhé.
           </p>
 
           {formattedSavedTime && (

@@ -1,4 +1,5 @@
 // File: src/components/VideoPlayerSheet.tsx
+import { createPortal } from 'react-dom';
 import React, { useState, useRef, useEffect } from 'react';
 import { VideoLessonItem, VideoCheckpointPhase, RebuttalSticker } from '../types/dre';
 import { VIDEO_LESSON_LIBRARY } from '../data/videoLessons';
@@ -300,6 +301,8 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   const playerContainerId = useRef<string>(`yt-player-${Math.random().toString(36).slice(2, 8)}`);
   const hasAutoPausedAtCheckpointRef = useRef<boolean>(false);
   const lastSyncTimeRef = useRef<number>(0);
+  const currentTimeRef = useRef<number>(currentTime);
+  currentTimeRef.current = currentTime;
 
   // 1. Đồng bộ trạng thái Phase từ props (ví dụ khi bấm nút vàng [Câu hỏi dừng (37:13)] ở thanh công cụ hoặc Giơ tay)
   useEffect(() => {
@@ -385,6 +388,13 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
         },
         events: {
           onReady: (event: any) => {
+            // Restored sessions continue where the learner left off.
+            const resumeAt = currentTimeRef.current;
+            if (resumeAt > 2 && typeof event.target?.seekTo === 'function') {
+              lastSyncTimeRef.current = resumeAt;
+              event.target.seekTo(resumeAt, true);
+              event.target.pauseVideo?.();
+            }
             const dur = Math.floor(event.target?.getDuration?.() || 0);
             if (dur > 0) {
               setVideoDuration(lesson.durationSeconds || dur || 9503);
@@ -1285,38 +1295,70 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
         </div>
       )}
 
-      {/* Modal Dán link YouTube */}
-      {isAttachModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="relative w-full max-w-md bg-white border border-slate-200 rounded-2xl p-5 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
-              <h3 className="font-bold text-base text-slate-900">Dán link YouTube bài giảng</h3>
+      {/* Modal Dán link YouTube: portalled above every column, closes on Esc, backdrop and ✕ */}
+      {isAttachModalOpen && typeof document !== 'undefined' && createPortal(
+        <div
+          className="fixed inset-0 z-[210] flex items-center justify-center bg-[#121712]/55 p-4"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setIsAttachModalOpen(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              e.stopPropagation();
+              setIsAttachModalOpen(false);
+            }
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="attach-link-title"
+            className="relative w-full max-w-md space-y-4 rounded-2xl border border-[#E2EAD2] bg-white p-5 shadow-[0_24px_64px_-16px_rgba(18,23,18,0.45)]"
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-[#E2EAD2] pb-2.5">
+              <h3 id="attach-link-title" className="text-base font-bold text-[#121712]">Dán link YouTube bài giảng</h3>
               <button
                 type="button"
                 onClick={() => setIsAttachModalOpen(false)}
-                className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 text-xs font-bold cursor-pointer flex items-center justify-center transition-colors"
+                aria-label="Đóng"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F3F8E8] text-[#121712] transition-colors hover:bg-[#E2EAD2] focus-visible:outline-2 focus-visible:outline-[#121712]"
               >
-                ✕
+                <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
+                  <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                </svg>
               </button>
             </div>
             <form onSubmit={handleApplyYoutubeLink} className="space-y-3">
+              <label htmlFor="attach-link-input" className="sr-only">Link YouTube</label>
               <input
-                type="text"
+                id="attach-link-input"
+                type="url"
+                autoFocus
                 value={inputUrl}
                 onChange={(e) => setInputUrl(e.target.value)}
                 placeholder="https://www.youtube.com/watch?v=phvpqxLNTUQ"
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl font-mono text-xs outline-none focus:border-[#1B4338] focus:ring-1 focus:ring-[#1B4338] text-stone-900 shadow-2xs"
+                className="w-full rounded-xl border border-[#D5DFC4] bg-white px-3.5 py-2.5 font-mono text-[13px] text-[#121712] outline-none focus:border-[#121712]"
               />
-              <button
-                type="submit"
-                className="w-full py-2.5 bg-[#1B4338] hover:bg-[#285E4F] text-white font-bold text-xs rounded-xl cursor-pointer flex items-center justify-center gap-2 transition-colors shadow-xs"
-              >
-                <CheckCircleIcon className="w-4 h-4 text-white" />
-                <span>Phát Video & Đồng bộ kịch bản</span>
-              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAttachModalOpen(false)}
+                  className="h-11 flex-1 rounded-xl border border-[#D5DFC4] bg-white text-[14px] font-semibold text-[#121712] transition-colors hover:bg-[#F3F8E8] focus-visible:outline-2 focus-visible:outline-[#121712]"
+                >
+                  Huỷ
+                </button>
+                <button
+                  type="submit"
+                  className="flex h-11 flex-[2] items-center justify-center gap-2 rounded-xl bg-[#121712] text-[14px] font-bold text-white transition-colors hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#121712]"
+                >
+                  <CheckCircleIcon className="h-4 w-4 text-[#C8F169]" />
+                  <span>Phát video này</span>
+                </button>
+              </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
