@@ -167,8 +167,16 @@ describe('Dot product with a zero vector (PR #25 companions)', () => {
     assert.equal(calculateDotProduct({ uMag: 0, vMag: 2, claimValue: 'không âm' }).isValid, true);
   });
 
-  it('rejects any angle because the angle is undefined', () => {
-    assert.equal(calculateDotProduct({ uMag: 0, vMag: 2, angleDeg: 0, claimValue: '0', claimType: 'angle' }).isValid, false);
+  it('rejects fixed angle 0° and accepts arbitrary angle 0° to 180° per KB (MISC_VEC_018)', () => {
+    // Bo claims fixed 0° -> false per KN_VEC_018
+    const rZero = calculateDotProduct({ uMag: 0, vMag: 2, angleDeg: 0, claimValue: '0', claimType: 'angle' });
+    assert.equal(rZero.isValid, false);
+    assert.ok(rZero.reason.includes('tùy ý từ 0° đến 180°') || rZero.reason.includes('không bắt buộc duy nhất'));
+    assert.equal(rZero.correct, '0° đến 180° (tùy ý)');
+
+    // Textbook convention: arbitrary angle from 0° to 180° -> true
+    const rArbitrary = calculateDotProduct({ uMag: 0, vMag: 2, claimValue: 'tùy ý từ 0° đến 180°', claimType: 'angle' });
+    assert.equal(rArbitrary.isValid, true);
   });
 });
 
@@ -363,5 +371,54 @@ describe('Runtime Dispatcher API Endpoints (POST /api/runtime/dispatch & POST /a
     await handleRuntimeDispatch(req, res);
     assert.equal(statusCode, 400);
     assert.equal(responseData.error, 'Thiếu message');
+  });
+});
+
+describe('Review Follow-ups (Zero-vector Angle KB, Vietnamese wording vectơ, Bo bảo pattern)', () => {
+  it('P1: Zero-vector angle complies with KB KN_VEC_018 allowing arbitrary 0° to 180°', () => {
+    const misc18 = getById('MISC_VEC_018');
+    assert.ok(misc18.misconception.correction.includes('0° đến 180°'));
+
+    // Fixed angle claim is rejected with pedagogical explanation
+    const fixedRes = calculateDotProduct({ uMag: 0, vMag: 2, angleDeg: 0, claimValue: '0', claimType: 'angle' });
+    assert.equal(fixedRes.isValid, false);
+    assert.ok(fixedRes.reason.includes('KN_VEC_018') || fixedRes.reason.includes('0° đến 180°'));
+    assert.equal(fixedRes.correct, '0° đến 180° (tùy ý)');
+
+    // Permissible textbook claim is accepted
+    const permRes = calculateDotProduct({ uMag: 0, vMag: 2, claimValue: 'tùy ý từ 0° đến 180°', claimType: 'angle' });
+    assert.equal(permRes.isValid, true);
+  });
+
+  it('P2: Vietnamese wording "vectơ" (with ơ) in dot product is rejected as non-scalar (MISC_VEC_019)', () => {
+    // 1. Single word "vectơ"
+    const r1 = calculateDotProduct({ uMag: 2, vMag: 3, angleDeg: 120, claimValue: 'vectơ', claimType: 'dot_product' });
+    assert.equal(r1.isValid, false, 'Claim "vectơ" must be rejected');
+    assert.ok(r1.reason.includes('SỐ THỰC'));
+
+    // 2. Phrase "là một vectơ"
+    const r2 = calculateDotProduct({ uMag: 2, vMag: 3, angleDeg: 120, claimValue: 'là một vectơ', claimType: 'dot_product' });
+    assert.equal(r2.isValid, false, 'Claim "là một vectơ" must be rejected');
+    assert.ok(r2.reason.includes('SỐ THỰC'));
+
+    // 3. For zero vector
+    const r3 = calculateDotProduct({ uMag: 0, vMag: 2, claimValue: 'ra vectơ', claimType: 'dot_product' });
+    assert.equal(r3.isValid, false);
+    assert.ok(r3.reason.includes('số thực'));
+  });
+
+  it('P2: "Bo bảo" in both NFC and NFD Unicode normalization is recognized as questioning Bo', () => {
+    const msgNFC = 'Bo bảo BC + DD\' bằng 2a, sai đúng không?';
+    const msgNFD = msgNFC.normalize('NFD');
+
+    // Both must return null claim (not attributing Bo\'s claim to the student)
+    assert.equal(extractClaimFromText(msgNFC), null, 'NFC message must not extract 2a as learner claim');
+    assert.equal(extractClaimFromText(msgNFD), null, 'NFD message must not extract 2a as learner claim');
+
+    // Also handles unaccented "Bo bao"
+    assert.equal(extractClaimFromText('Bo bao BC + DD\' bang 2a'), null);
+
+    // Also handles "theo Bo"
+    assert.equal(extractClaimFromText('theo Bo thì BC + DD\' = 2a'), null);
   });
 });

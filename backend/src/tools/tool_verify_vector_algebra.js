@@ -220,8 +220,14 @@ export function extractSideFromText(text) {
  */
 export function extractClaimFromText(text) {
   if (!text) return null;
-  // A value someone else said ("Bo nói ... bằng 2a") is being questioned, not claimed by the learner.
-  if (/(?:^|\s)(?:bo|bạn ấy|cậu ấy|bạn)\s+(?:nói|bảo|ghi|viết|cho rằng)\b/i.test(text)) return null;
+  const normalizedText = text.normalize('NFC');
+  // A value someone else said ("Bo nói / bảo ... bằng 2a") is being questioned, not claimed by the learner.
+  if (
+    /(?:^|\s)(?:bo|bạn ấy|ban ay|cậu ấy|cau ay|bạn|ban)\s+(?:nói|noi|bảo|bao|ghi|viết|viet|cho rằng|cho rang|phán|phan)(?![A-Za-zÀ-ỹ0-9_])/i.test(normalizedText) ||
+    /(?:^|\s)theo\s+bo(?![A-Za-zÀ-ỹ0-9_])/i.test(normalizedText)
+  ) {
+    return null;
+  }
 
   // Strip given side length specification so it is not mistaken for a claimed result
   // (e.g., "cạnh bằng 2, BC + DD' tính thế nào?" specifies side=2, not claim=2)

@@ -31,23 +31,38 @@ export function calculateDotProduct({
   // 1. Kiểm tra trường hợp với vectơ không (MISC_VEC_018)
   if (u === 0 || v === 0) {
     let zeroValid = null;
-    let zeroReason = 'Vectơ không có độ dài bằng 0 nên tích vô hướng bằng 0, còn góc với vectơ khác không xác định (mẫu số |u||v| = 0 trong công thức cos).';
+    let zeroReason = 'Theo quy ước SGK (KN_VEC_018), góc giữa vectơ không với một vectơ khác có thể nhận giá trị tùy ý từ 0° đến 180°, còn tích vô hướng bằng 0 (không áp dụng công thức chia cos vì mẫu bằng 0).';
+    let correctVal = null;
 
     if (claimValue !== undefined && claimValue !== null && claimValue !== '') {
       const claimStr = String(claimValue).trim().toLowerCase();
       const claimNum = parseFloat(claimStr);
+
       if (claimType === 'angle' || claimType === 'reverse_angle') {
-        // Với góc: góc với vectơ-không là KHÔNG XÁC ĐỊNH, mọi phát biểu góc cụ thể đều sai
-        zeroValid = false;
-        zeroReason = 'Vectơ không có độ dài bằng 0 nên không xác định góc với vectơ khác (mẫu số |u||v| = 0 trong công thức cos).';
-      } else if (claimStr.includes('vecto') || claimStr.includes('vector')) {
+        correctVal = '0° đến 180° (tùy ý)';
+        const isArbitraryClaim = /tùy\s*ý|tuy\s*y|0.*180|từ\s*0|tu\s*0/i.test(claimStr);
+
+        if (isArbitraryClaim) {
+          zeroValid = true;
+          zeroReason = 'Chính xác! Theo quy ước SGK (KN_VEC_018), góc giữa vectơ không với một vectơ khác nhận giá trị tùy ý từ 0° đến 180°.';
+        } else if (!isNaN(claimNum)) {
+          // Bẫy Bo: gán góc cố định duy nhất (ví dụ bắt buộc bằng 0°)
+          zeroValid = false;
+          zeroReason = `Sai lầm ngộ nhận 'gán góc cố định cho vectơ không' (MISC_VEC_018)! Quy ước SGK cho phép góc với vectơ không nhận giá trị tùy ý từ 0° đến 180°, không bắt buộc duy nhất là ${claimNum}°. Ngoài ra mẫu số |u||v| = 0 nên không thể áp dụng công thức chia cos.`;
+        } else {
+          zeroValid = false;
+          zeroReason = 'Theo quy ước SGK (KN_VEC_018), góc với vectơ không nhận giá trị tùy ý từ 0° đến 180°.';
+        }
+      } else if (/vect[oơ]|vector/i.test(claimStr)) {
         zeroValid = false;
         zeroReason = 'Tích vô hướng là một số thực (ở đây bằng 0), không phải một vectơ.';
-      } else if (['không âm', '>= 0'].includes(claimStr)) {
+      } else if (['không âm', 'khong am', '>= 0', '>=0'].includes(claimStr)) {
         zeroValid = true;
-      } else if (claimStr === '> 0') {
+      } else if (claimStr === '> 0' || claimStr === '>0') {
         zeroValid = false;
+        zeroReason = 'Tích vô hướng với vectơ không bằng đúng 0, không lớn hơn 0.';
       } else if (!isNaN(claimNum)) {
+        correctVal = '0';
         zeroValid = Math.abs(claimNum - 0) < 1e-5;
         zeroReason = zeroValid
           ? 'Chính xác! Tích vô hướng của vectơ không với mọi vectơ luôn bằng 0.'
@@ -63,9 +78,12 @@ export function calculateDotProduct({
       dotProduct: 0,
       angleDeg: null,
       reversedAngleDeg: null,
+      correct: correctVal,
       isZeroVector: true,
       reason: zeroReason,
-      formula: '\\vec{u} \\cdot \\vec{v} = 0 \\text{ nhưng góc không xác định}',
+      formula: (claimType === 'angle' || claimType === 'reverse_angle')
+        ? '0^\\circ \\le (\\vec{u}, \\vec{v}) \\le 180^\\circ \\text{ (tùy ý theo quy ước SGK)}'
+        : '\\vec{u} \\cdot \\vec{v} = 0',
     };
   }
 
@@ -205,7 +223,7 @@ export function calculateDotProduct({
     // DẠNG D: Tích vô hướng thông thường (MISC_VEC_019, v.v.)
     else {
       correct = String(calculatedDot);
-      if (claimStr.includes('vecto') || claimStr.includes('vector')) {
+      if (/vect[oơ]|vector/i.test(claimStr)) {
         isValid = false;
         reason = 'Tích vô hướng của hai vectơ là một SỐ THỰC (vô hướng), không phải là một vectơ!';
       } else if (!isNaN(claimNum) && calculatedDot !== null) {

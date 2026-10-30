@@ -286,7 +286,10 @@ app.post('/api/chat/classroom', async (req, res) => {
     const detectedExpr = extractVectorExpr(message);
     const detectedClaim = extractClaimFromText(message);
     const detectedSide = extractSideFromText(message);
-    const isQuestioningBo = /(?:bo|bạn ấy|cậu ấy|bạn)\s+(?:nói|bảo|ghi|viết|cho rằng)\b/i.test(message);
+    const normalizedMessage = (message || '').normalize('NFC');
+    const isQuestioningBo =
+      /(?:^|\s)(?:bo|bạn ấy|ban ay|cậu ấy|cau ay|bạn|ban)\s+(?:nói|noi|bảo|bao|ghi|viết|viet|cho rằng|cho rang|phán|phan)(?![A-Za-zÀ-ỹ0-9_])/i.test(normalizedMessage) ||
+      /(?:^|\s)theo\s+bo(?![A-Za-zÀ-ỹ0-9_])/i.test(normalizedMessage);
     const hasAlgebraClaim = detectedExpr || lower.includes('bc') || lower.includes('dd') || lower.includes('2a') ||
       lower.includes('a√2') || lower.includes('√2') || lower.includes('căn 2') || lower.includes('1+1') ||
       (kbMatch?.misconception?.id === 'MISC_VEC_005' && (lower.includes('độ dài') || lower.includes('do dai')));

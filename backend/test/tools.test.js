@@ -249,7 +249,7 @@ describe('Deterministic Tools - Unit Tests', () => {
       });
       assert.strictEqual(wrongTen.isValid, false);
 
-      // Với góc: góc với vectơ không luôn không xác định
+      // Với góc: SGK cho phép tùy ý từ 0° đến 180°, gán góc cố định (0°) là sai (MISC_VEC_018)
       const invalidAngle = calculateDotProduct({
         uMag: 0,
         vMag: 3,
@@ -259,7 +259,17 @@ describe('Deterministic Tools - Unit Tests', () => {
       });
       assert.strictEqual(invalidAngle.isZeroVector, true);
       assert.strictEqual(invalidAngle.isValid, false);
-      assert.ok(invalidAngle.reason.includes('không xác định góc'));
+      assert.ok(invalidAngle.reason.includes('tùy ý') || invalidAngle.reason.includes('0° đến 180°'));
+
+      // Phát biểu đúng quy ước SGK: tùy ý từ 0° đến 180° -> true
+      const validArbitrary = calculateDotProduct({
+        uMag: 0,
+        vMag: 3,
+        claimValue: 'tùy ý từ 0° đến 180°',
+        claimType: 'angle',
+      });
+      assert.strictEqual(validArbitrary.isValid, true);
+      assert.ok(validArbitrary.reason.includes('tùy ý từ 0° đến 180°'));
     });
 
     it('MISC_VEC_017: Đảo một vectơ thì góc bù angle(-u, v) = 180° - theta', () => {
