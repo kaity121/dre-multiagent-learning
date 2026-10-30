@@ -1,120 +1,120 @@
 # Hướng Dẫn Trình Diễn 1-Click Và Kịch Bản 4 Trạm (Showcase Walkthrough)
 
-Tài liệu này cung cấp quy trình vận hành bộ điều khiển Showcase tự động 1-Click (Issue #17) và kịch bản thuyết trình chi tiết qua 4 Trạm trong hệ thống DRE Multi-Agent Interactive Learning.
+Tài liệu này mô tả bộ điều khiển Showcase 1-Click (Issue #17) và kịch bản thuyết trình 4 Trạm của DRE Multi-Agent Interactive Learning.
+
+> **Phạm vi trung thực.** Showcase 1-Click là một **tour phát lại có kịch bản (fixture replay)** dài 23 giây qua các màn hình UI. Nó **không** chứng minh pipeline ingestion trực tiếp, bàn tròn đa tác tử chạy LLM thật, hay đo lường tiến bộ của người học. Mục 4 tách rõ phần đã trình diễn được và phần là tích hợp tương lai.
 
 ---
 
 ## 1. Hướng Dẫn Vận Hành 1-Click
 
-Hệ thống hỗ trợ các phương thức kích hoạt và điều khiển linh hoạt dành cho người demo, giảng viên và chuyên gia đánh giá:
-
 ### 1.1. Các phương thức kích hoạt
-- **Phím tắt toàn cục F2**: Nhấn phím `F2` ở bất kỳ màn hình nào để lập tức khởi chạy chu trình trình diễn 4 Trạm tự động. Nhấn lại `F2` để dừng demo và trở về trạng thái ban đầu.
-- **Nút bấm trên thanh Header**: Nhấn nút **Demo 1-Click (F2)** có biểu tượng tia sét ở góc phải thanh tiêu đề. Nút có màu xanh chanh (#C8F169), chữ đen (#121712) và chuyển sang trạng thái hoạt động khi đang demo.
-- **Tham số URL tự động**: Truy cập trực tiếp địa chỉ `http://localhost:3000/?showcase=1` để trình duyệt tự động khởi chạy kịch bản ngay sau khi tải trang. *(Lưu ý kỹ thuật: URL `?showcase=1` và chế độ mặc định chạy trên `ReplaySource` được mô phỏng từ fixture chuẩn hóa để đảm bảo nhịp độ demo mượt mà. Người dùng có thể bật sang chế độ `Trực tiếp (Live SSE)` tại thanh điều khiển War Room khi kết nối route `/api/roundtable/stream`)*.
+- **Phím tắt F2**: Nhấn `F2` để khởi chạy chu trình 4 Trạm. Nhấn lại `F2` để dừng và trở về trạng thái ban đầu.
+- **Nút trên thanh Header**: Nút **Demo 1-Click (F2)** (biểu tượng tia sét) ở góc phải thanh tiêu đề.
+- **Tham số URL**: Mở `http://localhost:3000/?showcase=1` (hoặc `?demo=1`) để tự khởi chạy khoảng 300 ms sau khi tải trang. Tham số này chỉ được dùng **một lần** cho mỗi lần tải trang: sau khi người demo nhấn `Esc`, `Space`, `F2` hoặc nút dừng, showcase không tự bật lại.
+- **Nguồn sự kiện War Room**: Showcase luôn dùng `ReplaySource`, phát lại fixture `mock/mock_reasoning_events.json` (18 sự kiện) cộng với một marker kết thúc do UI thêm vào. Nút chuyển sang `SSE backend (fixture)` trong War Room chỉ đổi **kênh truyền** sang route `GET /api/roundtable/stream`; ở phiên bản hiện tại route đó cũng phát lại chính file fixture trên qua SSE, nên đó vẫn chưa phải suy luận trực tiếp của các tác tử.
 
-### 1.2. Các phím điều hướng trong quá trình trình diễn
-- **Phím Space (Khoảng trắng)**: Tạm dừng (Pause) hoặc Tiếp tục (Resume) dòng thời gian của Trạm hiện tại. Bộ đếm ngược và thanh tiến trình sẽ đóng băng tạm thời.
-- **Phím Escape (Esc)**: Thoát ngay lập tức khỏi chế độ Showcase, đóng thanh Mini-HUD và đưa hệ thống về trạng thái tiêu chuẩn.
-- **Nút "Trạm kế tiếp" trên Mini-HUD**: Bỏ qua phần thời gian còn lại của trạm hiện tại và nhảy ngay sang trạm kế tiếp.
+### 1.2. Các phím điều hướng trong khi trình diễn
+- **Space**: Tạm dừng / tiếp tục trạm hiện tại (bỏ qua khi đang gõ trong ô nhập liệu).
+- **Escape**: Thoát Showcase và đóng Mini-HUD.
+- **Nút "Trạm kế tiếp" trên Mini-HUD**: Bỏ qua thời gian còn lại của trạm hiện tại.
 
 ---
 
-## 2. Kịch Bản Thuyết Trình 4 Trạm (Timing & Pitching Script)
+## 2. Kịch Bản Thuyết Trình 4 Trạm
 
-Tổng thời lượng demo: **23 giây**. Kịch bản được chia thành 4 giai đoạn nối tiếp với lời thoại thuyết minh (Pitching Script) dành cho người trình bày.
+Tổng thời lượng dự kiến: **23 giây**. Trạm 1 có thể kéo dài hơn 7 giây nếu backend phản hồi chậm (xem Trạm 1).
 
 ```
 00:00 ─── Trạm 1: Lớp học tương tác & Phản biện ─────── 00:07
-00:07 ─── Trạm 2: Multi-Agent War Room ──────────────── 00:13
+00:07 ─── Trạm 2: War Room (phát lại fixture) ───────── 00:13
 00:13 ─── Trạm 3: Multi-Track Timeline Editor ───────── 00:18
-00:18 ─── Trạm 4: Đánh giá nhận thức Tháp Bloom ─────── 00:23 (Hoàn tất)
+00:18 ─── Trạm 4: Inspector & Tháp Bloom ────────────── 00:23 (Hoàn tất)
 ```
 
 ---
 
 ### Trạm 1: Lớp học tương tác & Phản biện bẫy nhận thức (00:00 - 00:07)
 
-- **Thời lượng**: 7 giây.
 - **Hành động hệ thống**:
-  1. Giao diện đưa về chế độ Lớp học (`activeStudioView = 'classroom'`, `station = 1`).
-  2. Video nhảy đến điểm dừng 37:13 (Ví dụ 3 hình lập phương của Thầy Tiến). Hộp thoại câu hỏi trắc nghiệm KaTeX xuất hiện trên khung hình.
-  3. Tại giây thứ 2.2: Hệ thống tự động chọn Phương án B (`1 + 1 = 2 (Tách trực tiếp)`), kích hoạt bẫy ngộ nhận về độ dài vectơ.
-  4. Tại giây thứ 4.4: Bo phát biểu lập luận sai. Học sinh gửi phản biện hình học nối tiếp vectơ DD' = CC'. Bo thừa nhận sai sót và Cô Lam chốt quy tắc vàng trên nền bảng phấn mô phỏng.
-- **Lời thuyết minh dành cho người demo**:
-  > "Kính thưa ban giám khảo, đây là Trạm 1: Lớp học tương tác DRE. Tại giây thứ 37:13 trong bài giảng Thầy Tiến, học sinh gặp phải ngộ nhận điển hình: tách độ dài tổng thành tổng hai độ dài. Thay vì chỉ chấm điểm đúng sai đơn thuần, DRE kích hoạt người bạn học Bo để tranh luận trực tiếp. Học sinh phải dùng lập luận hình học nối tiếp để bẻ gãy bẫy ngộ nhận, sau đó Cô Lam sẽ chuẩn hóa kiến thức bằng quy tắc vàng sư phạm."
+  1. Giao diện chuyển về Lớp học (`activeStudioView = 'classroom'`, `currentMode = 'video_clash'`).
+  2. Video nhảy đến điểm dừng 37:13 (Ví dụ 3, hình lập phương của Thầy Tiến) và hiện câu hỏi trắc nghiệm. Nếu giáo viên đã tắt toàn bộ câu hỏi dừng, bài học không có điểm dừng và bước này không làm gì.
+  3. Tại giây 2.2: chọn phương án bẫy theo **id ổn định** `opt_b` ("Tách trực tiếp thành tổng hai độ dài: |BC| + |DD'| = 1 + 1 = 2"). Không chọn theo nội dung nhãn, vì nhãn của đáp án đúng cũng chứa chữ "BC".
+  4. Phản biện được gửi **không sớm hơn giây 4.4** và **chỉ sau khi bước trả lời đã hoàn tất** (kể cả khi bước trả lời phải tạo phiên backend). Trạm 1 chỉ chuyển sang Trạm 2 khi phản biện đã xử lý xong, chờ tối đa 8 giây.
+  5. Với bài `VID_VECTO_12`, lời Bo nhận thua và quy tắc vàng của Cô Lam lấy từ nội dung bài học đã biên soạn. Khi backend đang chạy, App gọi thêm `/api/runtime/dispatch` để cập nhật Inspector bằng kết quả của bộ điều phối.
+- **Lời thuyết minh**:
+  > "Đây là Trạm 1: Lớp học tương tác DRE. Ở mốc 37:13 của bài giảng Thầy Tiến, học sinh gặp ngộ nhận điển hình: tách độ dài của tổng thành tổng hai độ dài. Thay vì chỉ chấm đúng sai, DRE để bạn học Bo tranh luận trực tiếp. Học sinh dùng lập luận vectơ nối tiếp để bẻ bẫy, sau đó Cô Lam chốt quy tắc vàng."
 
 ---
 
-### Trạm 2: Multi-Agent War Room suy luận thời gian thực (00:07 - 00:13)
+### Trạm 2: Multi-Agent War Room, phát lại fixture (00:07 - 00:13)
 
-- **Thời lượng**: 6 giây.
 - **Hành động hệ thống**:
-  1. Giao diện tự động chuyển sang màn hình Phòng điều hành suy luận (`activeStudioView = 'warroom'`).
-  2. Chế độ mặc định hiển thị nguồn sự kiện `ReplaySource` (mô phỏng chuẩn hóa từ fixture), người dùng có thể chuyển đổi sang `Trực tiếp (Live SSE)` kết nối route `/api/roundtable/stream` khi backend đang hoạt động.
-  3. 4 pha suy luận (Trích xuất đề bài, Truy hồi kiến thức, Bàn tròn phản biện, Đánh giá nhận thức) chuyển trạng thái sang hoàn thành.
-  4. Luồng sự kiện suy luận (thought stream) cuộn thời gian thực, hiển thị các lời gọi công cụ xác thực đại số vectơ (`tool_verify_vector_algebra`) và tra cứu tri thức RAG (`tool_query_misconception_kb`).
-- **Lời thuyết minh dành cho người demo**:
-  > "Trạm 2 hé lộ hậu trường trí tuệ nhân tạo: Bàn tròn suy luận War Room. Trước khi đưa nội dung đến học sinh, hội đồng AI gồm Trí, Bo, An và Cô Lam phải tự phản biện chéo nhau qua 4 pha nghiêm ngặt. Luồng sự kiện suy luận (phát lại chuẩn hóa từ fixture, có thể chuyển đổi Live SSE) cho thấy Trí đào sâu bản chất hình học, Bo thử nghiệm các phương án gây nhầm lẫn, và bộ kiểm toán tất định giúp giảm thiểu ảo giác toán học nhờ kiểm chứng qua công cụ tất định."
+  1. Giao diện chuyển sang War Room (`activeStudioView = 'warroom'`) và tự phát lại khi showcase đang chạy.
+  2. Nguồn sự kiện là `ReplaySource` (fixture `RT_math_12_vecto_01_part03`). Các loại sự kiện trong fixture: `thought`, `tool_call`, `tool_result`, `debate_turn`, `cross_check_verdict`, `checkpoint_created`. `reasoningAdapter` chuyển chúng sang kiểu UI (`thinking`, `speaking`, ...); `checkpoint_created` hiển thị như một lượt phát biểu, **không** được coi là kết thúc.
+  3. Các lượt gọi công cụ có trong fixture: `tool_query_misconception_kb`, `tool_verify_vector_algebra`, `tool_evaluate_bloom_level`, `tool_timeline_collision_checker`. Kết quả hiển thị đúng ba trạng thái `isValid` (`true` / `false` / chưa xác định).
+  4. Phán quyết phản biện chéo không có trường `crossCheck` sẽ được đọc từ `metadata.verdict` hoặc cụm mở đầu ("Chấp nhận…", "Bác…"). Nếu không xác định được, UI hiện nhãn trung tính thay vì tự suy ra đồng thuận.
+- **Lời thuyết minh**:
+  > "Trạm 2 cho thấy hậu trường: bàn tròn suy luận War Room. Đây là bản phát lại một phiên bàn tròn đã ghi lại, trong đó Trí phản biện đề xuất của Bo và các kết quả tính toán được kiểm bằng công cụ tất định thay vì chỉ tin vào lời của mô hình. Mục tiêu của thiết kế này là giảm sai sót toán học. Chúng tôi chưa có số liệu đo mức giảm đó."
 
 ---
 
-### Trạm 3: Multi-Track Timeline Editor biên tập kịch bản bài học (00:13 - 00:18)
+### Trạm 3: Multi-Track Timeline Editor (00:13 - 00:18)
 
-- **Thời lượng**: 5 giây.
 - **Hành động hệ thống**:
-  1. Giao diện chuyển sang chế độ biên tập giáo án (`activeStudioView = 'editor'`).
-  2. Hiển thị dòng thời gian đa luồng của bài giảng 58:00 với thước đo nhịp sư phạm 5 phút (5m ruler).
-  3. Hộp thẻ Bento thống kê: 3 điểm dừng tương tác, 4 bẫy ngộ nhận được đánh dấu, mục tiêu Tháp Bloom L4 (Phân tích).
-  4. Thẻ xem trước bối cảnh video mô phỏng bảng phấn 16:9 tích hợp công thức KaTeX và cơ chế cảnh báo va chạm thời gian (< 20s).
-- **Lời thuyết minh dành cho người demo**:
-  > "Tại Trạm 3, giáo viên hoàn toàn làm chủ nội dung qua Timeline Editor. Mọi điểm dừng và kịch bản tranh biện của AI được sắp xếp trực quan trên dòng thời gian đa luồng. Hệ thống tích hợp sẵn công cụ kiểm tra nhịp sư phạm giúp ngăn ngừa việc ngắt lời bài giảng quá dày đặc, cho phép giáo viên phê duyệt và chuyển giáo án vào lớp học chỉ với một cú nhấp chuột."
+  1. Giao diện chuyển sang trình biên tập giáo án (`activeStudioView = 'editor'`).
+  2. Hiển thị dòng thời gian đa luồng theo từng phần của giáo án demo (4 phần, tổng 98:00). Thước đo chia vạch 5 phút trong phạm vi của phần đang chọn.
+  3. Thẻ Bento tính từ bản nháp hiện tại: tổng thời lượng, số câu hỏi dừng đang bật / tổng số, số lượt thoại tác tử, mức Tháp Bloom cao nhất được gắn nhãn.
+  4. Bộ kiểm tra va chạm cảnh báo hai mốc cách nhau dưới 20 giây (trừ các mốc được đánh dấu nối tiếp chủ ý) và mốc rơi vào 15 giây khởi động. Khi backend đang chạy, kiểm tra được gửi tới `tool_timeline_collision_checker` qua `/api/tools/execute`; nếu không, dùng bộ kiểm tra cục bộ.
+- **Lời thuyết minh**:
+  > "Tại Trạm 3, giáo viên làm chủ nội dung. Điểm dừng và kịch bản tranh biện của AI nằm trên dòng thời gian đa luồng, bộ kiểm tra nhịp cảnh báo khi các lần ngắt bài giảng quá dày, và giáo viên phê duyệt để đưa giáo án vào lớp học."
 
 ---
 
-### Trạm 4: Đánh giá nhận thức Tháp Bloom & Soi não tác nhân (00:18 - 00:23)
+### Trạm 4: Inspector & Tháp Bloom (00:18 - 00:23)
 
-- **Thời lượng**: 5 giây.
 - **Hành động hệ thống**:
-  1. Giao diện quay trở lại Lớp học và tự động mở ngăn kéo Thanh tra lượt thoại (`InspectorDrawer`).
-  2. Trực quan hóa 4 khối phân tích chuyên sâu:
-     - **Khối 1 (Điều phối)**: Ý định phản biện sắc bén, Bo được chọn, độ tin cậy 0.91.
-     - **Khối 2 (Ngữ cảnh cách ly)**: Nội dung bảng phấn, lời thoại gần nhất và phần tri thức cách ly có ổ khóa (Ẩn với Bo).
-     - **Khối 3 (Suy nghĩ ngầm)**: Luồng suy nghĩ ngầm của Bo trước khi nhận thua và câu thoại thực tế.
-     - **Khối 4 (Chấm ngầm Tháp Bloom)**: Sự tiến triển từ mức Nhớ (L1) lên Đánh giá (L5), thanh đo lường độ do dự (hesitation score) 12%.
-  3. Khi hết thời gian, Mini-HUD hiển thị thông báo: `SHOWCASE HOÀN TẤT - Đã chạy qua toàn bộ 4 trạm liên hoàn`.
-- **Lời thuyết minh dành cho người demo**:
-  > "Trạm 4 là trái tim đánh giá của DRE: Thanh tra lượt thoại Inspector. Hệ thống liên tục chấm ngầm sự tiến triển nhận thức của người học từ mức Nhớ lên mức Phản biện và Đánh giá theo Tháp Bloom. Đồng thời, giáo viên có thể soi thấu suy nghĩ ngầm bên trong của AI và kiểm tra tính cách ly thông tin, bảo đảm an toàn sư phạm tuyệt đối."
+  1. Giao diện quay lại Lớp học và mở ngăn kéo Inspector (`InspectorDrawer`).
+  2. Inspector hiển thị 4 khối của lượt thoại mới nhất: Điều phối (ý định, tác tử được chọn, độ tin cậy), Ngữ cảnh (phần hiển thị và phần bị ẩn với Bo), Suy nghĩ ngầm và câu thoại, Đánh giá (ý đã đạt, ý còn thiếu, Bloom, độ do dự).
+  3. Các trường không có số đo thật từ evaluator hoặc dispatcher được gắn nhãn **"(Chưa đo / Mô phỏng)"**. Trong showcase, độ tin cậy, Bloom và độ do dự chỉ có giá trị khi backend trả về; tour này không trình diễn tiến bộ Bloom đã đo được.
+  4. Khi hết giờ, Mini-HUD hiện thông báo hoàn tất và tự trở về trạng thái thường sau 3,5 giây.
+- **Lời thuyết minh**:
+  > "Trạm 4 là Inspector. Giáo viên xem được vì sao bộ điều phối chọn tác tử này, tác tử được thấy và không được thấy những gì, và nó nghĩ gì trước khi nói. Ô nào chưa có số đo thật thì hệ thống ghi rõ là chưa đo, không trình bày như kết quả đánh giá."
 
 ---
 
-### Phần Trình Diễn Mở Rộng: Đổi Sang Video Môn Khác (~20s - Minh Chứng Lõi Dùng Chung Subject-Agnostic)
+### Phần mở rộng: đổi sang video môn khác (không nằm trong chu trình F2)
 
-- **Thời lượng**: ~20 giây.
-- **Mục tiêu**: Chứng minh với Ban Giám Khảo hệ thống không bị "hardcode" cho môn Toán 12 mà vận hành như một **Core Engine dùng chung cho mọi môn học** (Toán, AI / Khoa học máy tính, Sinh học, Ngữ văn...) thông qua kiến trúc Pluggable Subject Packs (EPIC 7 - Issue #31).
-- **Hành động hệ thống**:
-  1. Nạp video môn khác (clip bài giảng 60s `VID_AI_INTRO_01` - Trí tuệ nhân tạo: Nhập môn Học máy):
-     - Pipeline bóc tách (`clipExtractor.js` #28) sử dụng prompt thị giác trung lập, tự động nhận diện bố cục bài giảng dạng slide/văn bản thay vì ép bảng phấn Toán.
-     - Hệ thống nạp chỉ mục bài giảng AI và ngân hàng ngộ nhận tương ứng.
-  2. Học sinh gửi câu hỏi trong bài (*"Học có giám sát Supervised Learning bắt buộc phải có nhãn ground truth đúng không?"*):
-     - Trí trả lời khẳng định chính xác, trích dẫn chuẩn mốc thời gian nguồn `[02:00]`.
-  3. Học sinh hỏi câu hỏi ngoài lề (*"Thời tiết ngày mai ở Sa Pa thế nào bạn ơi?"* hoặc câu hỏi lạc đề):
-     - Bộ điều phối phát hiện `not_in_source`, lập tức phản hồi lịch sự: *"Câu hỏi này nằm ngoài nội dung bài giảng hiện tại. Bạn hãy tập trung vào bài học nhé!"*.
-  4. Bạn Bo phát biểu lập luận sai / gài bẫy ngộ nhận (*"Dữ liệu chưa cần nhãn vẫn học được Supervised Learning mà"*):
-     - Trí lập tức kích hoạt công cụ `tool_check_source_grounding` bác bỏ luận điểm sai của Bo, dẫn chứng trực tiếp từ slide định nghĩa học có giám sát.
-  5. Đảm bảo chuẩn sạch ngôn ngữ (Zero Vector Terminology):
-     - Toàn bộ câu trả lời của agent không chứa bất kỳ thuật ngữ Toán học nào (`vecto`, `vector`, `hình lập phương`, `đường chéo`, `BC'`, `DD'`, `Pytago`, `bất đẳng thức tam giác`, `độ dài tổng`).
-- **Lời thuyết minh dành cho người demo**:
-  > "Kính thưa Ban Giám Khảo, để chứng minh DRE không bị gắn cứng cho môn Toán, chúng tôi xin trình diễn tính tổng quát khi đổi sang một bài giảng Trí tuệ Nhân tạo. Ngay khi nạp video, hệ thống tự động tải Subject Pack tương ứng. Khi học sinh hỏi bài, Trí trích dẫn chính xác mốc 02:00. Khi học sinh hỏi ngoài luồng, hệ thống kích hoạt guardrail nhắc nhở. Và khi bạn Bo cố tình gài bẫy ngộ nhận, Trí sử dụng công cụ kiểm chứng nguồn `tool_check_source_grounding` để bác bẫy có bằng chứng. Toàn bộ câu thoại đều sạch 100% thuật ngữ toán học, khẳng định DRE là một nền tảng dùng chung cho mọi môn học."
+- **Mục tiêu**: Cho thấy lõi điều phối không gắn cứng vào môn Toán (EPIC 7, Issue #28/#30/#31).
+- **Trạng thái**: Đây là **năng lực phía backend** thuộc cụm PR backend (`backend/src/services/clipExtractor.js`, `backend/src/services/dispatcher.js`, `backend/src/tools/tool_check_source_grounding.js`, chỉ mục `backend/src/data/lesson-index/VID_AI_INTRO_01.json`). Nó được kiểm bởi `backend/test/dispatcher_subject_agnostic.test.js` và `backend/test/tool_check_source_grounding.test.js`. Showcase F2 không tự chạy phần này, và nhánh tích hợp UI này cũng không xác minh lại nó.
+- **Kịch bản dự kiến khi trình diễn thủ công qua API**:
+  1. Câu hỏi trong bài (*"Học có giám sát bắt buộc phải có nhãn đúng không?"*): Trí trả lời và trích mốc nguồn `[02:00]`.
+  2. Câu hỏi ngoài lề (*"Thời tiết ngày mai ở Sa Pa thế nào?"*): bộ điều phối trả về `not_in_source` và nhắc quay lại bài học.
+  3. Bo gài bẫy (*"Dữ liệu chưa có nhãn vẫn học có giám sát được mà"*): Trí dùng `tool_check_source_grounding` để bác bẫy dựa trên nguồn bài giảng.
+  4. Test backend kiểm tra rằng câu trả lời cho môn khác không chứa danh sách từ khóa Toán bị cấm (`vecto`, `vector`, `hình lập phương`, `đường chéo`, ...).
 
 ---
 
-## 3. Bảng Tổng Hợp Thông Số Kỹ Thuật Demo
+## 3. Bảng Tổng Hợp Thông Số Demo
 
-| Trạm | Tên phân hệ | Thời lượng | View Router | Sự kiện tự động chính |
+| Trạm | Phân hệ | Thời lượng | Trạng thái UI | Sự kiện tự động chính |
 | :--- | :--- | :--- | :--- | :--- |
-| **Trạm 1** | Lớp học tương tác | 7s | `view=classroom&station=1` | Nhảy 37:13, chọn Phương án B, phản biện sticker, chốt Cô Lam |
-| **Trạm 2** | War Room suy luận | 6s | `view=warroom` | Kích hoạt Live SSE, 4 pha biên kịch, 6 tác tử tham gia |
-| **Trạm 3** | Timeline Editor | 5s | `view=editor` | Hiển thị 5m ruler, Bento metrics, Blackboard preview, phê duyệt |
-| **Trạm 4** | Đánh giá Tháp Bloom | 5s | `view=classroom&inspector=1` | Mở Inspector Drawer, 4 khối nhận thức, tiến trình Bloom L1->L5 |
-| **Kết thúc** | Hoàn tất Showcase | 3.5s | Không đổi | Hiện thông báo hoàn tất trên Mini-HUD, tự động trả về tiêu chuẩn |
+| **Trạm 1** | Lớp học tương tác | 7s (chờ phản biện tối đa thêm 8s) | `activeStudioView=classroom`, `currentMode=video_clash` | Nhảy tới 37:13, chọn `opt_b`, gửi phản biện sau khi trả lời xong, Cô Lam chốt |
+| **Trạm 2** | War Room | 6s | `activeStudioView=warroom` | Phát lại fixture qua `ReplaySource` |
+| **Trạm 3** | Timeline Editor | 5s | `activeStudioView=editor` | Thước 5 phút, thẻ Bento, cảnh báo va chạm nhịp |
+| **Trạm 4** | Inspector | 5s | `activeStudioView=classroom`, Inspector mở | 4 khối của lượt mới nhất; trường chưa đo được gắn nhãn |
+| **Kết thúc** | Hoàn tất | 3,5s | Không đổi | Thông báo hoàn tất trên Mini-HUD rồi trở về trạng thái thường |
+
+---
+
+## 4. Đã trình diễn và tích hợp tương lai
+
+| Hạng mục | Trạng thái trên nhánh này |
+| :--- | :--- |
+| Tour UI 4 trạm bằng F2 / `?showcase=1` | Đã trình diễn (fixture replay) |
+| Kênh SSE `/api/roundtable/stream` | Có route; hiện phát lại file fixture, chưa phải suy luận trực tiếp |
+| Ingestion video trực tiếp (STT/vision) và bàn tròn chạy LLM | Tích hợp tương lai; không có trong chu trình F2 |
+| Đồng bộ phiên lớp học (`sessionId`) giữa các lượt chat | Có trong mã nguồn; chưa có kiểm thử trình duyệt |
+| Đo tiến bộ Bloom / độ do dự của người học | Mục tiêu; Inspector hiện "Chưa đo" khi không có số đo |
+| Giảm sai sót toán học nhờ kiểm chứng bằng công cụ | Mục tiêu thiết kế; chưa có số liệu |
+| Kiểm thử E2E trên trình duyệt, kiểm toán WCAG, diễn tập của nhóm, video dự phòng | Chưa thực hiện |

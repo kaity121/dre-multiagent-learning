@@ -192,14 +192,14 @@ DRE biến bài giảng một chiều thành môi trường học tập tương 
   * **Pluggable Subject Packs (Gói chuyên môn cắm ngoài):**
     - `[Toán 12 Pack]`: Hình học không gian 3D, quy tắc hình hộp, `tool_verify_vector_algebra`.
     - `[AI / CS Pack]`: Bóc tách slide bài giảng, OCR thuật toán, `VID_AI_INTRO_01`.
-    - `[Sinh Học Pack]`: Di truyền học, phiên mã ADN, chu trình tế bào.
-    - `[Ngữ Văn Pack]`: Trích dẫn văn học hiện thực, phân tích biện pháp tu từ.
+    - `[Sinh Học Pack]` *(định hướng, chưa có dữ liệu)*: Di truyền học, phiên mã ADN, chu trình tế bào.
+    - `[Ngữ Văn Pack]` *(định hướng, chưa có dữ liệu)*: Trích dẫn văn học hiện thực, phân tích biện pháp tu từ.
 
 * **2. Bảo Đảm Chất Lượng Khi Đổi Môn (Quality Safeguards):**
   * **Hỏi trong bài:** Trả lời bám sát transcript & slide, trích dẫn mốc giây chính xác (ví dụ: `[02:00]`).
   * **Hỏi ngoài bài / lạc đề:** Guardrail nhận diện `not_in_source`, nhắc nhở người học quay lại trọng tâm.
   * **Bác bẫy ngộ nhận:** Trí dùng `tool_check_source_grounding` phản biện Bo dựa trên nội dung nguồn.
-  * **Zero Vector Terminology:** Cam kết 0% rò rỉ từ khóa vectơ/hình học khi chạy các môn phi toán.
-  * **Không hồi quy (No Regression):** Demo Toán 12 Thầy Tiến tại 37:13 vẫn chạy 100% chuẩn xác.
+  * **Không rò rỉ thuật ngữ Toán:** Test backend `dispatcher_subject_agnostic.test.js` kiểm rằng câu trả lời cho bài AI không chứa danh sách từ khóa vectơ/hình học bị cấm (kiểm trên bộ câu hỏi mẫu, chưa phải cam kết cho mọi đầu vào).
+  * **Không hồi quy (No Regression):** Test backend kiểm rằng luồng Toán 12 Thầy Tiến tại 37:13 giữ hành vi cũ.
 
 > **Tuyên ngôn Công nghệ:** DRE không phải một phần mềm dạy Toán đơn lẻ. DRE là một hệ điều hành lớp học đa tác nhân (Multi-Agent Classroom OS) có khả năng cắm thêm bất kỳ môn học nào trong chương trình giáo dục.
