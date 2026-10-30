@@ -66,6 +66,8 @@ export interface CognitiveEventStream {
     sttModel?: string;
     visionModel?: string;
     processingLatencyMs?: number;
+    /** Set when live extraction failed and the authored fixture was served instead. */
+    fallbackReason?: string;
   };
   segments: CognitiveTimelineSegment[];
 }

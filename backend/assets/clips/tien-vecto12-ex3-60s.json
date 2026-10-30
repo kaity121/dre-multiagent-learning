@@ -1,0 +1,11 @@
+{
+  "videoId": "CLIP_DEMO_60S_TIEN_EX3",
+  "videoTitle": "Trích đoạn 60s: Ví dụ 3 - Bẫy tính độ dài vectơ trong hình lập phương",
+  "teacherName": "Thầy Nguyễn Phan Tiến",
+  "subject": "Toán 12 - Hình học không gian",
+  "sourceClip": {
+    "parentVideoId": "VID_VECTO_12_TIEN",
+    "startSecond": 2204,
+    "endSecond": 2264
+  }
+}
