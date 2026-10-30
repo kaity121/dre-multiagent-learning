@@ -145,6 +145,10 @@ interface VideoPlayerSheetProps {
   onToggleRaiseHandModal?: (open?: boolean) => void;
   onTriggerRaiseHand?: () => void;
   hideInternalBottomBar?: boolean;
+  /** The checkpoint question, Bo's debate and Cô Lam's closure are shown outside the video (task card). */
+  checkpointUiExternal?: boolean;
+  /** Ask the embedded player to play, optionally from a given second. A new id triggers a new request. */
+  playRequest?: { id: number; fromSecond?: number } | null;
 }
 
 const cleanText = (str?: string) => (str ? str.replace(/\u20d7/g, '') : '');
@@ -186,6 +190,8 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   onToggleRaiseHandModal,
   onTriggerRaiseHand,
   hideInternalBottomBar = true,
+  checkpointUiExternal = false,
+  playRequest = null,
 }) => {
   const defaultYtId = lesson.youtubeId || extractYouTubeId(lesson.videoUrl) || 'phvpqxLNTUQ';
   const [activeYoutubeId, setActiveYoutubeId] = useState<string>(defaultYtId);
@@ -451,6 +457,20 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
     return () => clearInterval(timer);
   }, [lesson.checkpointTimestamp, onSeek, onJumpToCheckpoint]);
 
+  // Play requests from outside the player (task card "Xem lại 30 giây", "Tiếp tục bài giảng").
+  useEffect(() => {
+    if (!playRequest) return;
+    const player = ytPlayerRef.current;
+    if (typeof playRequest.fromSecond === 'number') {
+      const from = Math.max(0, playRequest.fromSecond);
+      if (from < lesson.checkpointTimestamp - 2) hasAutoPausedAtCheckpointRef.current = false;
+      lastSyncTimeRef.current = from;
+      if (player && typeof player.seekTo === 'function') player.seekTo(from, true);
+    }
+    setHasStartedPlayback(true);
+    if (player && typeof player.playVideo === 'function') player.playVideo();
+  }, [playRequest?.id]);
+
   const handleSeekBoth = (targetSec: number) => {
     sound.playPencilTap();
     const validSec = Math.max(0, targetSec);
@@ -610,7 +630,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
     isQuizCollapsedToChat ||
     (typeof window !== 'undefined' && (new URLSearchParams(window.location.search).get('banner') === '1' || new URLSearchParams(window.location.search).get('collapsed') === '1'));
 
-  const showFullQuizOverlay = isCheckpointActive && !isQuizCollapsed;
+  const showFullQuizOverlay = !checkpointUiExternal && isCheckpointActive && !isQuizCollapsed;
 
   return (
     <div

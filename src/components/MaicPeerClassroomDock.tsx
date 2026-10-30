@@ -90,6 +90,11 @@ export interface MaicPeerClassroomDockProps {
   errorStepIndex?: number;
   peerContext?: PeerContextData;
   onSelectPeerPerspective?: (peerId: 'bo' | 'tri' | 'linhchi' | 'minhkhang') => void;
+  /** Controlled open state, for opening the notebook from a menu elsewhere. */
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Hide the built-in pill trigger when another control opens the notebook. */
+  hideTrigger?: boolean;
 }
 
 interface PeerChatMessage {
@@ -111,8 +116,17 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
   lessonTopic = 'Bài 1.1: Vectơ Trong Không Gian',
   peerContext,
   onSelectPeerPerspective,
+  isOpen,
+  onOpenChange,
+  hideTrigger = false,
 }) => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
+  const [localDrawerOpen, setLocalDrawerOpen] = useState<boolean>(false);
+  const isDrawerOpen = isOpen ?? localDrawerOpen;
+  const setIsDrawerOpen = (next: boolean | ((prev: boolean) => boolean)) => {
+    const value = typeof next === 'function' ? next(isDrawerOpen) : next;
+    setLocalDrawerOpen(value);
+    onOpenChange?.(value);
+  };
   const [activePeer, setActivePeer] = useState<'bo' | 'tri' | 'linhchi' | 'minhkhang'>('linhchi');
   const [activeSubTab, setActiveSubTab] = useState<'chat' | 'note'>('chat');
   const [peerChatInput, setPeerChatInput] = useState<string>('');
@@ -349,6 +363,7 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
   return (
     <>
       {/* 1 NÚT PILL GỌN DUY NHẤT (Không bao giờ tràn lề hay làm rối thanh Tab!) */}
+      {!hideTrigger && (
       <button
         type="button"
         onClick={() => {
@@ -368,6 +383,7 @@ export const MaicPeerClassroomDock: React.FC<MaicPeerClassroomDockProps> = ({
         </div>
         <span>Sổ tay & Hỏi riêng 4 bạn</span>
       </button>
+      )}
 
       {/* MODAL HỎI RIÊNG 4 BẠN & SỔ TAY */}
       {isDrawerOpen && (
