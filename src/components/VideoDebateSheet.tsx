@@ -197,6 +197,8 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
   // Long messages open clamped to three lines so one reply never buries the conversation.
   const [expandedMessageIds, setExpandedMessageIds] = useState<Set<string>>(() => new Set());
   const [isPinnedOpen, setIsPinnedOpen] = useState(false);
+  // One evidence chip per message; the source list behind it opens on demand.
+  const [openSourceIds, setOpenSourceIds] = useState<Set<string>>(() => new Set());
   const [typingAgent, setTypingAgent] = useState<TypingAgentInfo | null>(null);
   const [isRecipientOpen, setIsRecipientOpen] = useState(false);
   const recipientDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -1138,12 +1140,15 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               const evidence = evidenceSummary(msg);
               if (!evidence) return null;
               const label = `${evidence.text}${evidence.time !== null ? ` · ${formatSec(evidence.time)}` : ''}`;
+              const sourceCount = (msg.citations || []).filter((c) => c.label && c.label.trim()).length;
+              const sourcesOpen = openSourceIds.has(msg.id);
               return (
+                <div className="mt-2 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => onOpenEvidence?.(msg)}
                   disabled={!onOpenEvidence}
-                  className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-[#B7DB6A] bg-[#F7FBEF] px-2 py-1 text-[12px] font-semibold text-[#1F4D12] transition-colors hover:bg-[#EDF6DA] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#121712] disabled:cursor-default"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#B7DB6A] bg-[#F7FBEF] px-2 py-1 text-[12px] font-semibold text-[#1F4D12] transition-colors hover:bg-[#EDF6DA] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#121712] disabled:cursor-default"
                   title="Xem trong Agent Map: tác nhân nào trả lời, đã kiểm chứng gì"
                   aria-label={`${label}. Mở Agent Map cho tin nhắn này`}
                 >
@@ -1152,12 +1157,31 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                   </span>
                   <span>{label}</span>
                 </button>
+                {sourceCount > 0 && (
+                  <button
+                    type="button"
+                    aria-expanded={sourcesOpen}
+                    aria-controls={`msg-sources-${msg.id}`}
+                    onClick={() =>
+                      setOpenSourceIds((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(msg.id)) next.delete(msg.id);
+                        else next.add(msg.id);
+                        return next;
+                      })
+                    }
+                    className="rounded text-[12px] font-semibold text-[#1F4D12] underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-[#121712]"
+                  >
+                    {sourcesOpen ? 'Ẩn nguồn' : `${sourceCount} nguồn`}
+                  </button>
+                )}
+                </div>
               );
             })()}
 
-            {/* Structured Citations Chips (#402 / #12) */}
-            {msg.citations && msg.citations.length > 0 && (
-              <div className="mt-2 pt-2 border-t border-slate-200/70 flex flex-wrap items-center gap-1.5">
+            {/* Source list: shown on demand when the message has an evidence chip, otherwise always. */}
+            {msg.citations && msg.citations.length > 0 && (openSourceIds.has(msg.id) || !evidenceSummary(msg)) && (
+              <div id={`msg-sources-${msg.id}`} className="mt-2 pt-2 border-t border-[#E2EAD2] flex flex-wrap items-center gap-1.5">
                 <span className="text-[12px] font-semibold text-[#3D4739]">Nguồn:</span>
                 {msg.citations.filter((c) => c.label && c.label.trim()).map((c, cIdx) => {
                   const hasSeek = typeof c.timestamp === 'number';
@@ -1502,7 +1526,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
             {shouldShowSavedQuizInChat && questionInTaskCard && (
               <div className="flex items-center justify-between gap-2 rounded-xl border border-[#E2EAD2] bg-[#F7FBEF] px-3 py-2 text-[13px] text-[#121712]">
                 <span>
-                  <span className="font-semibold">Câu hỏi dừng {formatSec(lesson.checkpointTimestamp)}</span> đang ở thẻ “Việc của bạn bây giờ”.
+                  <span className="font-semibold">Câu hỏi {formatSec(lesson.checkpointTimestamp)}</span> nằm ở thẻ “Việc của bạn”.
                 </span>
                 {onFocusTaskCard && (
                   <button
