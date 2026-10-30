@@ -437,6 +437,19 @@ app.post('/api/chat/classroom', async (req, res) => {
   }
 });
 
+// Error handling middleware (bắt lỗi cú pháp JSON payload từ body-parser và lỗi hệ thống)
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    console.warn('[Backend] Bỏ qua lỗi cú pháp JSON payload:', err.message);
+    return res.status(400).json({ ok: false, error: 'Malformed JSON payload' });
+  }
+  console.error('[Backend Server Error]:', err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  res.status(err.status || 500).json({ ok: false, error: err.message || 'Internal Server Error' });
+});
+
 app.listen(config.port, () => {
   console.log(`DRE backend đang chạy ở http://localhost:${config.port}`);
 });
