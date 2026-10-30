@@ -119,8 +119,8 @@ pre,
 }
 
 body {
-  background-color: var(--canvas, #f8fafc);
-  color: var(--ink, #111827);
+  background-color: var(--canvas, #F3F8E8);
+  color: var(--ink, #121712);
   margin: 0;
   padding: 0;
   min-height: 100vh;

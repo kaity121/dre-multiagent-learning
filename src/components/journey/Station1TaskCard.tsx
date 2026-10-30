@@ -44,9 +44,7 @@ const GradingStatus: React.FC<{ text: string }> = ({ text }) => (
     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C8F169]" aria-hidden="true">
       <ShieldCheck className="h-4 w-4 text-[#121712]" />
     </span>
-    <span>
-      <span className="font-semibold">Assessor</span> {text}
-    </span>
+    <span>{text}</span>
   </p>
 );
 
@@ -186,7 +184,7 @@ const DiagnoseBeat: React.FC<Station1TaskCardProps & { headingId: string }> = ({
 
       {isLoadingAi && (
         <div className="mt-3">
-          <GradingStatus text="đang chấm câu trả lời của bạn, Bo sắp lên tiếng…" />
+          <GradingStatus text="Đang chấm câu trả lời của bạn, Bo sắp lên tiếng…" />
         </div>
       )}
 
@@ -405,7 +403,7 @@ const FaceOff: React.FC<Station1TaskCardProps & { headingId: string; resolved: b
                 </p>
               </div>
 
-              {isLoadingAi && <GradingStatus text="đang chấm lập luận của bạn…" />}
+              {isLoadingAi && <GradingStatus text="Đang chấm lập luận của bạn…" />}
 
               {liveHintDialogue && !isLoadingAi && (
                 <p role="status" className="rounded-xl border border-[#F0D9A8] bg-[#FFF8E8] p-3 text-[14px] leading-snug text-[#5C4210]">

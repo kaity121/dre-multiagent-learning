@@ -9,6 +9,7 @@ import {
   Activity,
   Eye,
   Layers,
+  Link2,
   MoreHorizontal,
   NotebookPen,
   Pause,
@@ -30,6 +31,7 @@ export interface JourneyMenuActions {
   onPause: () => void;
   levelLabel: string;
   onOpenLevel: () => void;
+  onChangeVideoLink: () => void;
   onOpenPeerNotebook: () => void;
   isDemoRunning: boolean;
   onToggleDemo: () => void;
@@ -277,6 +279,10 @@ const OverflowMenu: React.FC<{ menu: JourneyMenuActions }> = ({ menu }) => {
             <button type="button" role="menuitem" onClick={run(menu.onChangeLesson)} className={menuItemClass}>
               <RefreshCw className="h-4 w-4" aria-hidden="true" />
               <span className="flex-1">Đổi bài</span>
+            </button>
+            <button type="button" role="menuitem" onClick={run(menu.onChangeVideoLink)} className={menuItemClass}>
+              <Link2 className="h-4 w-4" aria-hidden="true" />
+              <span className="flex-1">Đổi link video</span>
             </button>
             <button type="button" role="menuitem" onClick={run(menu.onOpenLevel)} className={menuItemClass}>
               <UserRound className="h-4 w-4" aria-hidden="true" />

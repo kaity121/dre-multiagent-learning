@@ -1,14 +1,13 @@
-// Quiet toolbar under the Station 1 task card: chapters, change link, quick reactions,
+// Quiet toolbar under the Station 1 task card: chapters, quick reactions,
 // jump to the pause question and raise hand. On small screens the secondary actions
 // collapse into a "Thêm" menu so the row never wraps.
 import React from 'react';
-import { BookOpenText, CircleHelp, Hand, Link2, MoreHorizontal, SkipForward, ThumbsUp } from 'lucide-react';
+import { BookOpenText, CircleHelp, Hand, MoreHorizontal, SkipForward, ThumbsUp } from 'lucide-react';
 import { useMenuButton } from './useMenuButton';
 
 export interface VideoActionBarProps {
   chapterTitle: string;
   onToggleChapters: () => void;
-  onOpenAttach: () => void;
   onReaction: (type: 'understood' | 'confused') => void;
   /** Absent when the lesson has no pause question. */
   onJumpToCheckpoint?: () => void;
@@ -28,7 +27,6 @@ const menuItem =
 export const VideoActionBar: React.FC<VideoActionBarProps> = ({
   chapterTitle,
   onToggleChapters,
-  onOpenAttach,
   onReaction,
   onJumpToCheckpoint,
   checkpointLabel,
@@ -66,10 +64,6 @@ export const VideoActionBar: React.FC<VideoActionBarProps> = ({
       <button type="button" onClick={onToggleChapters} className={`${wideOnly} max-w-[240px]`} title="Phân cảnh và bản chép lời">
         <BookOpenText className="h-4 w-4 shrink-0" aria-hidden="true" />
         <span className="truncate">{chapterTitle}</span>
-      </button>
-      <button type="button" onClick={onOpenAttach} className={wideOnly} title="Đổi link YouTube bài giảng">
-        <Link2 className="h-4 w-4" aria-hidden="true" />
-        Đổi link
       </button>
       <span className="hidden flex-1 sm:block" />
       <button type="button" onClick={() => onReaction('understood')} className={wideOnly} title="Bấm nếu bạn đã hiểu đoạn này">
@@ -118,10 +112,6 @@ export const VideoActionBar: React.FC<VideoActionBarProps> = ({
             <button type="button" role="menuitem" onClick={run(() => onReaction('confused'))} className={menuItem}>
               <CircleHelp className="h-4 w-4" aria-hidden="true" />
               Chưa rõ đoạn này
-            </button>
-            <button type="button" role="menuitem" onClick={run(onOpenAttach)} className={menuItem}>
-              <Link2 className="h-4 w-4" aria-hidden="true" />
-              Đổi link
             </button>
           </div>
         )}
