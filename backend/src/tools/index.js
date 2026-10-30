@@ -182,7 +182,7 @@ export function executeTool(toolName, inputArgs = {}) {
   const timestampMs = Date.now();
   try {
     const rawOutput = toolFn(inputArgs);
-    const isValid = Boolean(rawOutput && rawOutput.isValid !== false);
+    const isValid = rawOutput?.isValid ?? null;
 
     return {
       toolName,

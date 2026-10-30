@@ -23,5 +23,14 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "_backup_local_teacher_portal",
+    "backend"
+  ]
 }

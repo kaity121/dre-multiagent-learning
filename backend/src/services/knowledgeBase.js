@@ -80,9 +80,22 @@ const ALIASES = {
   'binh phuong tong': ['cross_term'],
   'so hang cheo': ['cross_term'],
   'cung phuong': ['parallel', 'opposite'],
-  'vecto doi': ['negative_length', 'reverse'],
+  'vecto doi': ['negative_length', 'reverse', 'opposite'],
   'quy tac ba diem': ['triangle_rule', 'endpoint_order'],
   'trong tam tu dien': ['tetrahedron_centroid', 'sign', 'protege'],
+  'ab ba': ['equal_length', 'direction', 'opposite'],
+  'ba ab': ['equal_length', 'direction', 'opposite'],
+  'vecto ab': ['equal_length', 'direction'],
+  'vecto ba': ['equal_length', 'direction', 'opposite'],
+  'vector ab': ['equal_length', 'direction'],
+  'vector ba': ['equal_length', 'direction', 'opposite'],
+  'ab bang ba': ['equal_length', 'direction'],
+  'doan thang ab': ['equal_length', 'direction'],
+  'giong het nhau': ['equal_length'],
+  'vecto bang nhau': ['equal_length', 'direction'],
+  'vector bang nhau': ['equal_length', 'direction'],
+  'cung do dai': ['equal_length'],
+  'quang duong': ['equal_length', 'direction'],
 };
 
 function getAliasTags(query) {

@@ -3,7 +3,10 @@
   "videoTitle": "Bài 1.1: Vectơ Trong Không Gian - Toán 12 (SGK Mới) || Thầy Nguyễn Phan Tiến",
   "teacherName": "Thầy Nguyễn Phan Tiến",
   "subject": "Hình học 12 (Chương trình GDPT 2018)",
-  "durationSeconds": 3480,
+  "durationSeconds": 9503,
+  "processedBy": {
+    "mode": "authored"
+  },
   "segments": [
     {
       "id": "seg_00_08",
@@ -12,15 +15,25 @@
       "audioTranscript": "Chào các em! Hôm nay chúng ta bắt đầu bài đầu tiên của Hình học 12: Vectơ trong không gian.",
       "speaker": "Thầy Tiến",
       "blackboardText": "CHƯƠNG II: VECTƠ TRONG KHÔNG GIAN\nBài 1.1: Định nghĩa, Tổng và Hiệu hai vectơ",
-      "blackboardLatex": ["\\vec{AB}"],
+      "blackboardLatex": [
+        "\\vec{AB}"
+      ],
       "spatialGeometry": {
         "shapeType": "general_3d",
-        "vertices": ["A", "B"],
-        "highlightedVectors": ["AB"],
+        "vertices": [
+          "A",
+          "B"
+        ],
+        "highlightedVectors": [
+          "AB"
+        ],
         "actionDescription": "Vẽ mũi tên từ điểm A tới điểm B trong không gian"
       },
       "trapRiskLevel": "none",
-      "pedagogicalTags": ["introduction", "definition"]
+      "pedagogicalTags": [
+        "introduction",
+        "definition"
+      ]
     },
     {
       "id": "seg_01_18",
@@ -29,9 +42,15 @@
       "audioTranscript": "Vectơ trong không gian là một đoạn thẳng có hướng. Điểm A là điểm đầu, điểm B là điểm cuối. Đoạn thẳng AB thì bằng BA, nhưng vectơ AB khác vectơ BA vì ngược hướng.",
       "speaker": "Thầy Tiến",
       "blackboardText": "1. Định nghĩa:\n• Đoạn thẳng: AB = BA\n• Vectơ: \\vec{AB} ≠ \\vec{BA} (ngược hướng)",
-      "blackboardLatex": ["AB = BA", "\\vec{AB} \\neq \\vec{BA}"],
+      "blackboardLatex": [
+        "AB = BA",
+        "\\vec{AB} \\neq \\vec{BA}"
+      ],
       "trapRiskLevel": "low",
-      "pedagogicalTags": ["direction_concept", "notation"]
+      "pedagogicalTags": [
+        "direction_concept",
+        "notation"
+      ]
     },
     {
       "id": "seg_04_42",
@@ -40,9 +59,14 @@
       "audioTranscript": "Hai vectơ được gọi là cùng phương nếu giá của chúng song song hoặc trùng nhau. Chú ý: Hai đường thẳng chéo nhau thì không cùng phương, không được xét cùng hướng hay ngược hướng.",
       "speaker": "Thầy Tiến",
       "blackboardText": "2. Cùng phương, cùng hướng:\n• Giá song song hoặc trùng nhau <=> Cùng phương\n• Chéo nhau => KHÔNG cùng phương",
-      "blackboardLatex": ["\\vec{a} \\parallel \\vec{b} \\iff \\text{Giá}(\\vec{a}) \\parallel \\text{Giá}(\\vec{b})"],
+      "blackboardLatex": [
+        "\\vec{a} \\parallel \\vec{b} \\iff \\text{Giá}(\\vec{a}) \\parallel \\text{Giá}(\\vec{b})"
+      ],
       "trapRiskLevel": "medium",
-      "pedagogicalTags": ["skew_lines_trap", "collinear_condition"]
+      "pedagogicalTags": [
+        "skew_lines_trap",
+        "collinear_condition"
+      ]
     },
     {
       "id": "seg_22_30",
@@ -57,12 +81,24 @@
       ],
       "spatialGeometry": {
         "shapeType": "plane",
-        "vertices": ["A", "B", "C", "D"],
-        "highlightedVectors": ["AB", "AD", "AC"],
+        "vertices": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "highlightedVectors": [
+          "AB",
+          "AD",
+          "AC"
+        ],
         "actionDescription": "Vẽ hình bình hành ABCD với đường chéo AC"
       },
       "trapRiskLevel": "low",
-      "pedagogicalTags": ["triangle_rule", "parallelogram_rule"]
+      "pedagogicalTags": [
+        "triangle_rule",
+        "parallelogram_rule"
+      ]
     },
     {
       "id": "seg_30_13",
@@ -71,15 +107,34 @@
       "audioTranscript": "Quy tắc hình hộp: Xuất phát từ gốc A, tổng 3 cạnh AB cộng AD cộng AA' bằng đường chéo xuyên tâm AC'.",
       "speaker": "Thầy Tiến",
       "blackboardText": "4. Quy tắc hình hộp:\n\\vec{AB} + \\vec{AD} + \\vec{AA'} = \\vec{AC'}",
-      "blackboardLatex": ["\\vec{AB} + \\vec{AD} + \\vec{AA'} = \\vec{AC'}"],
+      "blackboardLatex": [
+        "\\vec{AB} + \\vec{AD} + \\vec{AA'} = \\vec{AC'}"
+      ],
       "spatialGeometry": {
         "shapeType": "cuboid",
-        "vertices": ["A", "B", "C", "D", "A'", "B'", "C'", "D'"],
-        "highlightedVectors": ["AB", "AD", "AA'", "AC'"],
+        "vertices": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "A'",
+          "B'",
+          "C'",
+          "D'"
+        ],
+        "highlightedVectors": [
+          "AB",
+          "AD",
+          "AA'",
+          "AC'"
+        ],
         "actionDescription": "Vẽ hình hộp chữ nhật với đường chéo không gian AC'"
       },
       "trapRiskLevel": "medium",
-      "pedagogicalTags": ["box_rule", "spatial_diagonal"]
+      "pedagogicalTags": [
+        "box_rule",
+        "spatial_diagonal"
+      ]
     },
     {
       "id": "seg_37_13",
@@ -95,12 +150,30 @@
       ],
       "spatialGeometry": {
         "shapeType": "cube",
-        "vertices": ["A", "B", "C", "D", "A'", "B'", "C'", "D'"],
-        "highlightedVectors": ["BC", "DD'", "CC'", "BC'"],
+        "vertices": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "A'",
+          "B'",
+          "C'",
+          "D'"
+        ],
+        "highlightedVectors": [
+          "BC",
+          "DD'",
+          "CC'",
+          "BC'"
+        ],
         "actionDescription": "Hình lập phương cạnh 1, tam giác BCC' vuông cân tại C, đường chéo BC' = căn 2"
       },
       "trapRiskLevel": "high",
-      "pedagogicalTags": ["critical_trap", "checkpoint_quiz", "length_addition_fallacy"]
+      "pedagogicalTags": [
+        "critical_trap",
+        "checkpoint_quiz",
+        "length_addition_fallacy"
+      ]
     },
     {
       "id": "seg_52_14",
@@ -109,9 +182,14 @@
       "audioTranscript": "Quy tắc trừ: Hiệu hai vectơ chung gốc OA trừ OB bằng vectơ BA. Khẩu quyết: Chung đầu - Lộn ngược, điểm sau viết trước, điểm trước viết sau.",
       "speaker": "Thầy Tiến",
       "blackboardText": "5. Quy tắc trừ (Chung đầu - Lộn ngược):\n\\vec{OA} - \\vec{OB} = \\vec{BA}",
-      "blackboardLatex": ["\\vec{OA} - \\vec{OB} = \\vec{BA}"],
+      "blackboardLatex": [
+        "\\vec{OA} - \\vec{OB} = \\vec{BA}"
+      ],
       "trapRiskLevel": "medium",
-      "pedagogicalTags": ["subtraction_rule", "mnemonic"]
+      "pedagogicalTags": [
+        "subtraction_rule",
+        "mnemonic"
+      ]
     }
   ]
 }
