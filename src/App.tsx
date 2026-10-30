@@ -1828,6 +1828,7 @@ export default function App() {
           <main className="flex-1 w-full px-3 sm:px-6 py-6 max-w-7xl mx-auto flex flex-col space-y-4">
             <WarRoomPanel
               source={activeReasoningSource}
+              autoPlayReplay={showcase.status === 'running'}
               isLiveStream={useLiveSSE}
               onToggleStreamMode={() => {
                 sound.playPencilTap();

@@ -1076,11 +1076,13 @@ export const TimelineEditor: React.FC<TimelineEditorProps> = ({
 
             {/* Công thức toán trung tâm KaTeX có overflow-x-auto */}
             <div className="py-3 px-2 text-center space-y-2 overflow-x-auto">
-              <div className="text-base sm:text-lg font-serif font-bold text-emerald-300 tracking-wide">
-                <FormattedMathText
-                  text="\[ |\overrightarrow{BC} + \overrightarrow{DD'}| = \sqrt{2} \neq 2 \]"
-                />
-              </div>
+              {(!focusedQuestion || focusedQuestion.id === 'pq-02') && (
+                <div className="text-base sm:text-lg font-serif font-bold text-emerald-300 tracking-wide">
+                  <FormattedMathText
+                    text="\[ |\overrightarrow{BC} + \overrightarrow{DD'}| = \sqrt{2} \neq 2 \]"
+                  />
+                </div>
+              )}
               <div className="text-xs text-stone-200 font-sans leading-relaxed px-2">
                 {focusedQuestion ? (
                   <span>{focusedQuestion.question}</span>

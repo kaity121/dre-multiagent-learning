@@ -33,6 +33,7 @@ interface WarRoomPanelProps {
   onTransferDraftToTimeline?: (draftLesson?: any) => void;
   onToggleStreamMode?: () => void;
   isLiveStream?: boolean;
+  autoPlayReplay?: boolean;
 }
 
 export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
@@ -41,6 +42,7 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
   onTransferDraftToTimeline,
   onToggleStreamMode,
   isLiveStream,
+  autoPlayReplay = false,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [events, setEvents] = useState<ReasoningEvent[]>(() => {
@@ -263,6 +265,15 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
       }
     }
   };
+
+  // Tự động phát khi showcase đang chạy (chỉ phát 1 lần mỗi lần mount)
+  const hasAutoPlayedRef = useRef<boolean>(false);
+  useEffect(() => {
+    if (autoPlayReplay && !hasAutoPlayedRef.current) {
+      hasAutoPlayedRef.current = true;
+      handleTogglePlay();
+    }
+  }, [autoPlayReplay]);
 
   const handleReset = () => {
     sound.playPaperRustle();
