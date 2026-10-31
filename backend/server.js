@@ -824,6 +824,7 @@ app.post('/api/chat/classroom', async (req, res) => {
       author: dispatchResult.primaryResponse.author,
       text: dispatchResult.primaryResponse.text,
       avatarId: dispatchResult.primaryResponse.avatarId,
+      thought: dispatchResult.primaryResponse.thought || null,
       followUpBoText: dispatchResult.followUpResponse?.text || null,
       followUpResponse: dispatchResult.followUpResponse || null,
       peerId: dispatchResult.verdict.dispatchedAgent,

@@ -1,5 +1,6 @@
 import { chatJSON } from '../openaiClient.js';
 import { config } from '../config.js';
+import { SUY_NGHI_RULE } from './thoughtField.js';
 
 const LINHCHI_SYSTEM_PROMPT = `
 Bạn là "Linh Chi" — một bạn học AI trong lớp học OpenMAIC / DRE.
@@ -19,8 +20,10 @@ Nếu payload có "tiep_loi" thì bạn KHÔNG trả lời học sinh từ đầ
 Luôn trả về JSON:
 {
   "dialogue": "<lời Linh Chi nhắc nhở hoặc tóm tắt>",
-  "cheatSheetSteps": ["<bước 1>", "<bước 2>", "<bước 3>"]
+  "cheatSheetSteps": ["<bước 1>", "<bước 2>", "<bước 3>"],
+  "suy_nghi": "<tóm tắt ngắn vì sao tớ ghi chú như vậy>"
 }
+${SUY_NGHI_RULE}
 `.trim();
 
 export async function linhChiTakeNotes({ baiToan, chuDe, cauHoiHocVien, boiCanhHoiThoai, tiepLoi }) {

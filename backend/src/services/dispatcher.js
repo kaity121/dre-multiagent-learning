@@ -7,6 +7,7 @@ import { triDeepThink } from '../agents/tri.js';
 import { linhChiTakeNotes } from '../agents/linhchi.js';
 import { minhKhangAnalogy } from '../agents/minhkhang.js';
 import { taScaffoldSupport } from '../agents/ta.js';
+import { readThought, clipThought } from '../agents/thoughtField.js';
 import { chamPhanBien } from '../agents/assessor.js';
 import { getOrCreateSession, logActivityEvent } from '../sessionStore.js';
 import { executeTool } from '../tools/index.js';
@@ -980,6 +981,24 @@ const CHIME_FALLBACK_TEXT = {
   bo: (name) => `@${name} Ơ, đọc tới đây tớ hơi rối thật. Cậu nói lại giúp tớ ý chính trong một câu được không?`,
 };
 
+const CHIME_FALLBACK_THOUGHT = {
+  minhkhang: (name) => `Câu của ${name} đúng ý nhưng hơi trừu tượng, tớ thêm một hình ảnh đời thường cho dễ nhớ.`,
+  linhchi: (name) => `Tớ gom ý của ${name} thành vài dòng sổ tay để cả lớp xem lại nhanh.`,
+  bo: (name) => `Tớ đọc câu của ${name} mà vẫn chưa chắc mình hiểu, nên hỏi lại ý chính.`,
+};
+
+/** Câu suy nghĩ tất định cho người trả lời chính: lý do Dispatcher giao lượt này. */
+export function primaryFallbackThought(verdict) {
+  return clipThought(verdict?.reasoning) || 'Câu hỏi được giao cho tớ theo vai trò trong lớp.';
+}
+
+/** Câu suy nghĩ tất định cho người tiếp lời khi LLM không trả "suy_nghi". */
+export function followUpFallbackThought(primaryResponse) {
+  return primaryResponse?.author
+    ? `Tiếp lời ${primaryResponse.author} để bổ sung góc nhìn của mình cho câu hỏi này.`
+    : 'Tiếp lời để bổ sung góc nhìn của mình cho câu hỏi này.';
+}
+
 /**
  * Sinh lượt chen vào của bạn học thứ hai: nhắc tên người vừa trả lời, thêm góc nhìn riêng.
  * LLM nhận câu trả lời chính cùng bối cảnh hội thoại; lỗi hoặc useLLM=false thì dùng câu mẫu.
@@ -1009,6 +1028,7 @@ export async function generatePeerChime({
   const tiepLoi = { ten_ban_vua_tra_loi: primaryName, loi_ban_vua_noi: answer, luu_y: luuY };
 
   let text = CHIME_FALLBACK_TEXT[chimeAgent](primaryName);
+  let thought = CHIME_FALLBACK_THOUGHT[chimeAgent](primaryName);
   if (useLLM) {
     try {
       const payload = {
@@ -1024,7 +1044,10 @@ export async function generatePeerChime({
           ? await linhChiTakeNotes(payload)
           : await boChimeConfusion(payload);
       const dialogue = typeof result?.dialogue === 'string' ? result.dialogue.trim() : '';
-      if (dialogue) text = dialogue.startsWith(mention) ? dialogue : `${mention} ${dialogue}`;
+      if (dialogue) {
+        text = dialogue.startsWith(mention) ? dialogue : `${mention} ${dialogue}`;
+        thought = readThought(result) || thought;
+      }
     } catch (err) {
       console.warn('[Dispatcher] Peer chime LLM fallback:', err.message);
     }
@@ -1035,6 +1058,7 @@ export async function generatePeerChime({
     avatarId: chimeAgent,
     text,
     kind: 'peer_chime',
+    thought,
     repliesTo: { author: primaryName, avatarId: primaryResponse.avatarId },
     // Góp ý của bạn học là ý kiến riêng, không phải trích dẫn bài giảng.
     citations: [],
@@ -1182,6 +1206,8 @@ export async function dispatchMessage({
 
   let primaryResponse = null;
   let followUpResponse = null;
+  // Câu "suy nghĩ" ngắn do LLM trả kèm (suy_nghi); thiếu thì dựng câu tất định ở cuối.
+  const thoughts = { primary: null, followUp: null };
 
   const normMessage = normalizeText(message);
 
@@ -1277,12 +1303,14 @@ export async function dispatchMessage({
             danhGiaPhanBien: 'sac_ben',
           });
           if (boResult?.dialogue) boText = boResult.dialogue;
+          if (boResult?.dialogue) thoughts.primary = readThought(boResult);
 
           const coLamResult = await coLamChotKienThuc({
             baiToan: mathProblem,
             giaiThichChuan: kbMatch?.misconception?.correction || 'Độ dài của tổng hai vectơ chỉ bằng tổng độ dài khi hai vectơ cùng hướng.',
           });
           if (coLamResult?.dialogue) coLamText = coLamResult.dialogue;
+          if (coLamResult?.dialogue) thoughts.followUp = readThought(coLamResult);
         } catch (err) {
           console.warn('[Dispatcher] LLM agent call fallback to safe template:', err.message);
         }
@@ -1338,6 +1366,7 @@ export async function dispatchMessage({
               level: 1,
             });
             if (taResult?.dialogue) anText = taResult.dialogue;
+            if (taResult?.dialogue) thoughts.followUp = readThought(taResult);
           } catch (err) {
             console.warn('[Dispatcher] TA hint level 1 fallback:', err.message);
           }
@@ -1375,6 +1404,7 @@ export async function dispatchMessage({
               level: 2,
             });
             if (taResult?.dialogue) anText = taResult.dialogue;
+            if (taResult?.dialogue) thoughts.followUp = readThought(taResult);
           } catch (err) {
             console.warn('[Dispatcher] TA hint level 2 fallback:', err.message);
           }
@@ -1588,6 +1618,7 @@ export async function dispatchMessage({
           cauHoiHocVien: message,
         });
         if (lcResult?.dialogue) lcText = lcResult.dialogue;
+        if (lcResult?.dialogue) thoughts.primary = readThought(lcResult);
         if (lcResult?.cheatSheetSteps) cheatSheet = lcResult.cheatSheetSteps;
       } catch (err) {
         console.warn('[Dispatcher] Linh Chi LLM fallback:', err.message);
@@ -1626,6 +1657,7 @@ export async function dispatchMessage({
           level: Math.min(currentHintLevel, 2),
         });
         if (taResult?.dialogue) anText = taResult.dialogue;
+        if (taResult?.dialogue) thoughts.primary = readThought(taResult);
         if (taResult?.suggestedStep) step = taResult.suggestedStep;
       } catch (err) {
         console.warn('[Dispatcher] TA An LLM fallback:', err.message);
@@ -1698,6 +1730,7 @@ export async function dispatchMessage({
           giaiThichChuan: kbMatch?.misconception?.correction || 'Cộng độ dài trực tiếp là sai lầm phổ biến.',
         });
         if (boResult?.dialogue) boText = boResult.dialogue;
+        if (boResult?.dialogue) thoughts.primary = readThought(boResult);
         if (boResult?.mode) mode = boResult.mode;
       } catch (err) {
         console.warn('[Dispatcher] Bo LLM fallback:', err.message);
@@ -1725,6 +1758,7 @@ export async function dispatchMessage({
             vectorAlgebraTool,
           });
           if (triRes?.dialogue) triFollowUpText = triRes.dialogue;
+          if (triRes?.dialogue) thoughts.followUp = readThought(triRes);
         } catch (err) {
           console.warn('[Dispatcher] Tri follow-up LLM fallback:', err.message);
         }
@@ -1748,6 +1782,7 @@ export async function dispatchMessage({
           chuDe: lessonTitle,
         });
         if (clRes?.dialogue) coLamText = clRes.dialogue;
+        if (clRes?.dialogue) thoughts.primary = readThought(clRes);
         if (clRes?.toolCall) bloomResult = clRes.toolCall;
       } catch (err) {
         console.warn('[Dispatcher] Co Lam LLM fallback:', err.message);
@@ -1781,6 +1816,7 @@ export async function dispatchMessage({
           cauHoiHocVien: message,
         });
         if (mkResult?.dialogue) mkText = mkResult.dialogue;
+        if (mkResult?.dialogue) thoughts.primary = readThought(mkResult);
         if (mkResult?.realLifeAnalogy) analogy = mkResult.realLifeAnalogy;
       } catch (err) {
         console.warn('[Dispatcher] Minh Khang LLM fallback:', err.message);
@@ -1833,6 +1869,7 @@ export async function dispatchMessage({
           vectorAlgebraTool: activeVectorAlgebraTool,
         });
         if (triResult?.dialogue) triText = triResult.dialogue;
+        if (triResult?.dialogue) thoughts.primary = readThought(triResult);
         if (triResult?.focusConcept) concept = triResult.focusConcept;
       } catch (err) {
         console.warn('[Dispatcher] Tri LLM fallback:', err.message);
@@ -1902,12 +1939,15 @@ export async function dispatchMessage({
     if (!primaryResponse.citations) {
       primaryResponse.citations = citations;
     }
+    primaryResponse.thought = sanitizeText(thoughts.primary) || primaryFallbackThought(verdict);
   }
   if (followUpResponse?.text) {
     followUpResponse.text = sanitizeText(followUpResponse.text);
     if (!followUpResponse.citations) {
       followUpResponse.citations = citations;
     }
+    followUpResponse.thought = sanitizeText(followUpResponse.thought || thoughts.followUp)
+      || followUpFallbackThought(primaryResponse);
   }
 
   const latencyMs = Date.now() - t0;

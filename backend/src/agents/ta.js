@@ -1,5 +1,6 @@
 import { chatJSON } from '../openaiClient.js';
 import { config } from '../config.js';
+import { SUY_NGHI_RULE } from './thoughtField.js';
 
 const TA_SYSTEM_PROMPT = `
 Bạn là "Trợ giảng An" (Teacher Assistant) trong lớp học trực tuyến OpenMAIC / DRE.
@@ -54,8 +55,10 @@ Trả về đúng JSON:
 {
   "dialogue": "<câu trợ giảng An nói, xưng mình hoặc Trợ giảng An>",
   "hintLevel": ${level},
-  "suggestedStep": "<hành động ngắn học sinh nên làm tiếp theo>"
+  "suggestedStep": "<hành động ngắn học sinh nên làm tiếp theo>",
+  "suy_nghi": "<tóm tắt ngắn vì sao mình gợi ý như vậy, không lộ đáp án>"
 }
+${SUY_NGHI_RULE}
 `.trim();
 
   return chatJSON({

@@ -1,5 +1,6 @@
 import { chatJSON } from '../openaiClient.js';
 import { config } from '../config.js';
+import { SUY_NGHI_RULE } from './thoughtField.js';
 
 const BO_SYSTEM_PROMPT = `
 Bạn là "Bo" — một người bạn học AI trong app học Toán phong cách scrapbook/sketchbook.
@@ -33,7 +34,9 @@ Nếu "danh_gia_phan_bien" = "sac_ben": PHẢI nhận thua ngay, thể hiện b�
 Nếu "danh_gia_phan_bien" = "chua_ro": trả "dialogue" là chuỗi rỗng "" — im lặng, nhường lời cho Cô Lam. KHÔNG được cãi vòng 2.
 
 Luôn trả về đúng JSON theo schema:
-{"dialogue": "<câu Bo nói, hoặc rỗng>", "mode": "<mode đã dùng, giữ nguyên từ input hoặc 'concede'>"}
+{"dialogue": "<câu Bo nói, hoặc rỗng>", "mode": "<mode đã dùng, giữ nguyên từ input hoặc 'concede'>", "suy_nghi": "<tóm tắt ngắn vì sao tớ nói vậy>"}
+${SUY_NGHI_RULE}
+Riêng Bo: "suy_nghi" nói bằng giọng Bo, KHÔNG để lộ rằng mình đang cố tình bày bẫy, KHÔNG nêu đáp án đúng hay chỗ sai.
 Không thêm text nào ngoài JSON.
 `.trim();
 
@@ -76,7 +79,8 @@ Bạn chen vào đúng MỘT lượt ngắn:
 - Mở đầu bằng "@<ten_ban_vua_tra_loi>", rồi 1-2 câu (tối đa ~40 từ) nói thật chỗ tớ còn rối, hỏi lại một ý cụ thể trong câu trả lời đó.
 - KHÔNG giải thích đáp án, KHÔNG nêu kết quả hay con số, KHÔNG tự sửa lỗi, KHÔNG nhận mình đã hiểu ra.
 - KHÔNG bác bỏ hay xác nhận bẫy ở câu hỏi điểm dừng; tuân thủ "tiep_loi.luu_y".
-Luôn trả về JSON: {"dialogue": "<câu Bo nói>"}
+Luôn trả về JSON: {"dialogue": "<câu Bo nói>", "suy_nghi": "<tóm tắt ngắn chỗ tớ còn rối, không nêu đáp án>"}
+${SUY_NGHI_RULE}
 `.trim();
 
 /**

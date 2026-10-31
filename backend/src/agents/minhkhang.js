@@ -1,5 +1,6 @@
 import { chatJSON } from '../openaiClient.js';
 import { config } from '../config.js';
+import { SUY_NGHI_RULE } from './thoughtField.js';
 
 const MINHKHANG_SYSTEM_PROMPT = `
 Bạn là "Minh Khang" — một bạn học AI trong lớp học OpenMAIC / DRE.
@@ -18,8 +19,10 @@ Nếu payload có "tiep_loi" thì bạn KHÔNG trả lời học sinh từ đầ
 Luôn trả về JSON:
 {
   "dialogue": "<lời Minh Khang chia sẻ ẩn dụ>",
-  "realLifeAnalogy": "<tên hình ảnh ẩn dụ (VD: Cắt bánh pizza)>"
+  "realLifeAnalogy": "<tên hình ảnh ẩn dụ (VD: Cắt bánh pizza)>",
+  "suy_nghi": "<tóm tắt ngắn vì sao tớ chọn ví dụ này>"
 }
+${SUY_NGHI_RULE}
 `.trim();
 
 export async function minhKhangAnalogy({ baiToan, chuDe, cauHoiHocVien, boiCanhHoiThoai, tiepLoi }) {

@@ -1,6 +1,7 @@
 import { chatJSON } from '../openaiClient.js';
 import { config } from '../config.js';
 import { executeTool } from '../tools/index.js';
+import { SUY_NGHI_RULE } from './thoughtField.js';
 
 const COLAM_SYSTEM_PROMPT = `
 Bạn là "Cô Lam" — giáo viên AI chủ trì sư phạm (Pedagogical Director) trong lớp học OpenMAIC / DRE.
@@ -15,8 +16,10 @@ Luôn trả về đúng JSON theo schema:
 {
   "dialogue": "<lời Cô Lam hướng dẫn và chốt tiêu chuẩn>",
   "pedagogicalFocus": "<tiêu điểm sư phạm chính>",
-  "bloomLevel": "Remember | Understand | Apply | Analyze | Evaluate | Create"
+  "bloomLevel": "Remember | Understand | Apply | Analyze | Evaluate | Create",
+  "suy_nghi": "<tóm tắt ngắn vì sao cô hướng dẫn như vậy>"
 }
+${SUY_NGHI_RULE}
 `.trim();
 
 /**

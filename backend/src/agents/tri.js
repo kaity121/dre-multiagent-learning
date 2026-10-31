@@ -1,5 +1,6 @@
 import { chatJSON } from '../openaiClient.js';
 import { config } from '../config.js';
+import { SUY_NGHI_RULE } from './thoughtField.js';
 import { executeTool } from '../tools/index.js';
 import { extractSideFromText, extractClaimFromText } from '../tools/tool_verify_vector_algebra.js';
 
@@ -13,13 +14,16 @@ Nhiệm vụ theo Bloom:
 - Evaluate: Đặt câu hỏi phản biện để học sinh tự nhận ra lỗ hổng tư duy, KHÔNG giải hộ.
 Tối đa 2-3 câu mỗi phản hồi. Luôn chuẩn mực, khơi gợi tư duy.
 Nếu có "tool_verification" từ Deterministic Tool (Toạ độ số 3D), hãy chủ động trích dẫn căn cứ hình học và giá trị độ dài chuẩn xác từ tool để giải thích rõ ràng cho học sinh.
+QUY ƯỚC SGK TOÁN 12 (KẾT NỐI TRI THỨC): vectơ-không cùng phương và cùng hướng với mọi vectơ (bài giảng nhắc ở 6:20).
 QUY TẮC KÝ HIỆU VECTƠ: Luôn viết chữ 'vectơ AB' hoặc dùng '\\vec{AB}'. TUYỆT ĐỐI KHÔNG dùng mã ký tự lạ như 'd6c2AB' hay 'd6c2'.
 
 Luôn trả về JSON:
 {
   "dialogue": "<câu Trí nói với học sinh>",
-  "focusConcept": "<khái niệm toán học cốt lõi đang đào sâu>"
+  "focusConcept": "<khái niệm toán học cốt lõi đang đào sâu>",
+  "suy_nghi": "<tóm tắt ngắn vì sao tớ trả lời như vậy>"
 }
+${SUY_NGHI_RULE}
 `.trim();
 
 export async function triDeepThink({ baiToan, chuDe, cauHoiHocVien, loiBoGiai, vectorAlgebraTool, boiCanhHoiThoai }) {
