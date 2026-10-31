@@ -42,6 +42,10 @@ interface WarRoomPanelProps {
   onToggleStreamMode?: () => void;
   isLiveStream?: boolean;
   autoPlayReplay?: boolean;
+  /** The analysed video the council is reading, or null for the indexed lesson. */
+  councilClip?: string | null;
+  /** Switches the council to an analysed video (null returns to the indexed lesson). */
+  onRunCouncilOnClip?: (clip: string | null) => void;
 }
 
 export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
@@ -51,6 +55,8 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
   onToggleStreamMode,
   isLiveStream,
   autoPlayReplay = false,
+  councilClip = null,
+  onRunCouncilOnClip,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [events, setEvents] = useState<ReasoningEvent[]>(() => {
@@ -341,6 +347,8 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
   return (
     <div className="w-full space-y-4 mb-6">
       <LessonSourceCard
+        councilClip={councilClip}
+        onRunCouncil={onRunCouncilOnClip}
         onExtractPhase={(status, detail) => {
           setPhaseStatuses((prev) => ({ ...prev, extract: status }));
           setExtractDetail(status === 'running' ? detail : undefined);

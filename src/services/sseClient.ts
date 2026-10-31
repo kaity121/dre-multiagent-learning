@@ -3,7 +3,7 @@ import { ReasoningSource, EventListener, StatusListener } from './reasoningSourc
 import { sanitizeFixtureData } from '../utils/sanitizeKatex';
 
 import { mapBackendToReasoningEvent, normalizeAgentName } from './reasoningAdapter';
-import type { RoundtableProvenance } from './dreBackendApi';
+import { API_BASE_URL, type RoundtableProvenance } from './dreBackendApi';
 
 const KNOWN_PROVENANCES: ReadonlySet<string> = new Set(['live', 'replay', 'fallback_fixture']);
 
@@ -11,6 +11,8 @@ export interface SSEClientOptions {
   url?: string;
   videoId?: string;
   partNumber?: number;
+  /** A video analysed in the War Room; the council then reads it instead of the indexed lesson. */
+  clip?: string;
   streamDelayMs?: number;
   useLLM?: boolean;
   autoReconnect?: boolean;
@@ -22,6 +24,7 @@ export class SSEReasoningSource implements ReasoningSource {
   private url: string;
   private videoId: string;
   private partNumber?: number;
+  private clip?: string;
   private streamDelayMs: number;
   private useLLM: boolean;
   private autoReconnect: boolean;
@@ -45,11 +48,12 @@ export class SSEReasoningSource implements ReasoningSource {
     const apiBase =
       ((globalThis as any).process?.env?.REACT_APP_API_BASE_URL) ||
       (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_BASE_URL) ||
-      '';
+      API_BASE_URL;
 
     this.url = options.url || `${apiBase}/api/roundtable/stream`;
     this.videoId = options.videoId || 'VID_VECTO_12_TIEN';
     this.partNumber = options.partNumber;
+    this.clip = options.clip;
     this.streamDelayMs = options.streamDelayMs ?? 20;
     this.useLLM = options.useLLM ?? false;
     this.autoReconnect = options.autoReconnect ?? true;
@@ -156,6 +160,7 @@ export class SSEReasoningSource implements ReasoningSource {
     const params = new URLSearchParams();
     params.set('videoId', this.videoId);
     if (this.partNumber !== undefined) params.set('partNumber', String(this.partNumber));
+    if (this.clip) params.set('clip', this.clip);
     params.set('streamDelayMs', String(this.streamDelayMs));
     if (this.useLLM) params.set('useLLM', 'true');
     const sep = this.url.includes('?') ? '&' : '?';

@@ -11,6 +11,7 @@
  * 4. Gia sư nhí (Protégé Teaching): Học viên giảng lại cho Bo
  */
 
+import { draftToEditorLesson } from './components/timeline/draftToEditorLesson';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { DEMO_LESSON_SCHEMA, DEMO_REASONING_EVENTS, DEMO_INSPECTOR_TURNS } from './demo/demoLesson';
 import { InspectorTurn } from './types/reasoning';
@@ -286,7 +287,18 @@ export default function App() {
     return false;
   });
 
+  // Set from the War Room: the council runs live, with the LLM, on that analysed video.
+  const [councilClip, setCouncilClip] = useState<string | null>(null);
   const activeReasoningSource = useMemo(() => {
+    if (councilClip) {
+      return createSSEClient({
+        videoId: currentVideoLesson.id,
+        clip: councilClip,
+        useLLM: true,
+        streamDelayMs: 25,
+        autoReconnect: false,
+      });
+    }
     if (useLiveSSE) {
       return createSSEClient({
         videoId: currentVideoLesson.id,
@@ -295,7 +307,7 @@ export default function App() {
     }
     const isShowcase = typeof window !== 'undefined' && (new URLSearchParams(window.location.search).get('showcase') === '1');
     return new ReplaySource(FULL_REPLAY_REASONING_EVENTS as any, isShowcase ? 6.0 : 1.0);
-  }, [useLiveSSE, currentVideoLesson.id]);
+  }, [useLiveSSE, councilClip, currentVideoLesson.id]);
   const [inspectorTurns, setInspectorTurns] = useState<InspectorTurn[]>(() => DEMO_INSPECTOR_TURNS);
   const [activeTurnIndex, setActiveTurnIndex] = useState<number>(() => Math.max(0, DEMO_INSPECTOR_TURNS.length - 1));
 
@@ -1734,17 +1746,21 @@ export default function App() {
             <WarRoomPanel
               source={activeReasoningSource}
               autoPlayReplay={showcase.status === 'running'}
-              isLiveStream={useLiveSSE}
+              isLiveStream={useLiveSSE || Boolean(councilClip)}
+              councilClip={councilClip}
+              onRunCouncilOnClip={setCouncilClip}
               onToggleStreamMode={() => {
                 sound.playPencilTap();
+                setCouncilClip(null);
                 setUseLiveSSE((prev) => !prev);
               }}
               defaultCollapsed={false}
               onTransferDraftToTimeline={(draftLesson) => {
                 sound.playTabSwitch();
                 if (draftLesson) {
-                  setCurrentLessonSchema(draftLesson);
-                  lessonStore.setDraft(draftLesson);
+                  const editorLesson = draftToEditorLesson(draftLesson);
+                  setCurrentLessonSchema(editorLesson);
+                  lessonStore.setDraft(editorLesson);
                 } else {
                   lessonStore.setDraft(currentLessonSchema);
                 }

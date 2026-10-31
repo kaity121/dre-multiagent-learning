@@ -38,6 +38,10 @@ const FALLBACK_STAGES: ExtractionStage[] = [
 interface LessonSourceCardProps {
   /** Drives the "Trích xuất" phase of the War Room stepper; `detail` names the running stage. */
   onExtractPhase?: (status: PhaseStatus, detail?: string) => void;
+  /** The analysed video the council is reading, or null for the indexed lesson. */
+  councilClip?: string | null;
+  /** Hands an analysed video to the council (null returns to the indexed lesson). */
+  onRunCouncil?: (clip: string | null) => void;
 }
 
 type Catalog =
@@ -103,7 +107,7 @@ const stopRunning = (rows: Record<string, StageRow>): Record<string, StageRow> =
     Object.entries(rows).map(([id, row]) => [id, row.status === 'running' ? { status: 'stopped' as const } : row]),
   );
 
-export const LessonSourceCard: React.FC<LessonSourceCardProps> = ({ onExtractPhase }) => {
+export const LessonSourceCard: React.FC<LessonSourceCardProps> = ({ onExtractPhase, councilClip = null, onRunCouncil }) => {
   const [catalog, setCatalog] = useState<Catalog>({ state: 'loading' });
   const [selected, setSelected] = useState<string | null>(null);
   const [upload, setUpload] = useState<UploadState>({ state: 'idle' });
@@ -329,6 +333,36 @@ export const LessonSourceCard: React.FC<LessonSourceCardProps> = ({ onExtractPha
                       </li>
                     ))}
                   </ul>
+                  {extraction.stream.segments.every((seg) => !seg.blackboardText && !seg.audioTranscript) && (
+                    <p className="text-xs text-[#4A5546]">
+                      Video không có lời nói và chưa đọc được chữ trên bảng hay slide, nên hội đồng sẽ không có nội dung để soạn.
+                    </p>
+                  )}
+                  {onRunCouncil && (
+                    councilClip === extraction.clip ? (
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <span className="text-[13px] font-semibold text-[#1F4D12]">Hội đồng đang đọc video này. Bấm Phát suy luận bên dưới.</span>
+                        <button
+                          type="button"
+                          onClick={() => onRunCouncil(null)}
+                          className="rounded-lg px-2 py-1 text-[13px] font-semibold text-[#1F4D12] underline underline-offset-2 hover:bg-[#EDF6DA] focus-visible:outline-2 focus-visible:outline-[#121712]"
+                        >
+                          Quay về bài đã lập chỉ mục
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onRunCouncil(extraction.clip);
+                          document.getElementById('warroom-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }}
+                        className="mt-1 inline-flex h-9 items-center rounded-full bg-[#121712] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#121712]"
+                      >
+                        Cho hội đồng soạn kịch bản từ video này
+                      </button>
+                    )
+                  )}
                 </div>
               )}
             </div>
