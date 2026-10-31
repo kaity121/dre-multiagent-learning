@@ -183,6 +183,36 @@ test('injected media: a full run produces a live stream and cleans its work fold
   }
 });
 
+test('a clip without an audio track skips transcription and still reads the board', async () => {
+  const clip = fakeClip();
+  let audioExtracted = false;
+  let transcribed = false;
+  try {
+    const stream = await extractClip(clip, {
+      useCache: false,
+      media: fakeMedia({
+        hasAudio: async () => false,
+        extractAudio: async () => {
+          audioExtracted = true;
+          throw new Error('Output file does not contain any stream');
+        },
+      }),
+      transcribe: async () => {
+        transcribed = true;
+        return [];
+      },
+      readBoard: async () => ({ blackboardText: 'B' }),
+    });
+    assert.equal(audioExtracted, false);
+    assert.equal(transcribed, false);
+    assert.equal(stream.processedBy.mode, 'live');
+    assert.ok(stream.segments.length > 0);
+    assert.deepEqual(workDirs(), []);
+  } finally {
+    removeCacheFor(clip);
+  }
+});
+
 test('asymmetric failure: the surviving branch drains before cleanup and the terminal error', async () => {
   const clip = fakeClip();
   const events = [];

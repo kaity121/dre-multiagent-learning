@@ -144,7 +144,26 @@ async function probeDuration(clipPath, { signal } = {}) {
   return stdout.trim();
 }
 
-const FFMPEG_MEDIA = { extractAudio, boardThumbnails, grabFrame: grabFrameJpeg, probeDuration };
+/**
+ * Screen recordings and some phone clips carry no audio track; ffmpeg cannot extract one from them.
+ * If the probe itself fails, assume sound so audio extraction runs and reports the real error.
+ */
+async function hasAudio(clipPath, { signal } = {}) {
+  const ffprobe = process.env.FFPROBE_PATH || 'ffprobe';
+  try {
+    const { stdout } = await execFileAsync(
+      ffprobe,
+      ['-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=index', '-of', 'csv=p=0', clipPath],
+      { signal },
+    );
+    return stdout.trim().length > 0;
+  } catch (err) {
+    if (signal?.aborted) throw err;
+    return true;
+  }
+}
+
+const FFMPEG_MEDIA = { extractAudio, boardThumbnails, grabFrame: grabFrameJpeg, probeDuration, hasAudio };
 
 let client = null;
 function openai() {
@@ -345,9 +364,12 @@ export async function extractClip(clipPath, options = {}) {
     const xFrom = [options.roi?.xFrom, meta.roi?.xFrom].find(Number.isFinite) ?? (isMathBoard ? DEFAULT_BOARD_X_FROM : 0.0);
 
     // Speech and board reading do not depend on each other, so both branches run concurrently.
-    const transcriptPromise = run('split_audio', async () =>
-      transcribe(await media.extractAudio(clipPath, audioFile, { signal }), { signal }),
-    );
+    // A silent clip has nothing to transcribe; the board is still read. Injected media without
+    // hasAudio are treated as having sound.
+    const transcriptPromise = run('split_audio', async () => {
+      if (media.hasAudio && !(await media.hasAudio(clipPath, { signal }))) return [];
+      return transcribe(await media.extractAudio(clipPath, audioFile, { signal }), { signal });
+    });
     const boardsPromise = run('keyframes', async () =>
       pickKeyframeSeconds(await media.boardThumbnails(clipPath, xFrom, { signal })),
     ).then((seconds) =>
