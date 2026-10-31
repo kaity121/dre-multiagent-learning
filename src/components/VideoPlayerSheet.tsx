@@ -152,6 +152,8 @@ interface VideoPlayerSheetProps {
   playRequest?: { id: number; fromSecond?: number } | null;
   /** Reports the lecture length the player uses, so other views show the same number. */
   onDurationChange?: (seconds: number) => void;
+  /** True while the player is folded away (zero height); on unfold a paused player repaints its frame. */
+  isCollapsed?: boolean;
 }
 
 const cleanText = (str?: string) => (str ? str.replace(/\u20d7/g, '') : '');
@@ -196,6 +198,7 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   checkpointUiExternal = false,
   playRequest = null,
   onDurationChange,
+  isCollapsed = false,
 }) => {
   const defaultYtId = lesson.youtubeId || extractYouTubeId(lesson.videoUrl) || 'phvpqxLNTUQ';
   const [activeYoutubeId, setActiveYoutubeId] = useState<string>(defaultYtId);
@@ -307,6 +310,19 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
   const currentTimeRef = useRef<number>(currentTime);
   currentTimeRef.current = currentTime;
 
+  // A paused YouTube iframe that was folded to zero height comes back black: Chrome drops the
+  // decoded frame. Seeking to the same second on unfold makes the player draw it again.
+  const wasCollapsedRef = useRef(isCollapsed);
+  useEffect(() => {
+    const unfolded = wasCollapsedRef.current && !isCollapsed;
+    wasCollapsedRef.current = isCollapsed;
+    const player = ytPlayerRef.current;
+    if (!unfolded || !player || typeof player.seekTo !== 'function') return;
+    if (player.getPlayerState?.() === 1) return;
+    player.seekTo(currentTimeRef.current, true);
+    player.pauseVideo?.();
+  }, [isCollapsed]);
+
   // 1. Đồng bộ trạng thái Phase từ props (ví dụ khi bấm nút vàng [Câu hỏi dừng (37:13)] ở thanh công cụ hoặc Giơ tay)
   useEffect(() => {
     if (phase) {
@@ -317,8 +333,9 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
         setIsRaiseHandModalOpen(false);
         setRebuttalFeedback(null);
         if (ytPlayerRef.current) {
-          if (typeof ytPlayerRef.current.pauseVideo === 'function') ytPlayerRef.current.pauseVideo();
+          // Seek first: seekTo on a player that never played starts playback, so pause last.
           if (typeof ytPlayerRef.current.seekTo === 'function') ytPlayerRef.current.seekTo(lesson.checkpointTimestamp, true);
+          if (typeof ytPlayerRef.current.pauseVideo === 'function') ytPlayerRef.current.pauseVideo();
         }
       } else if (phase === 'BO_DEBATE') {
         hasAutoPausedAtCheckpointRef.current = true;
@@ -356,6 +373,8 @@ export const VideoPlayerSheet: React.FC<VideoPlayerSheetProps> = ({
       if (Math.abs(currentTime - currentYtTime) > 2) {
         lastSyncTimeRef.current = currentTime;
         ytPlayerRef.current.seekTo(currentTime, true);
+        // seekTo can start a player that never played; keep it paused when the app is paused.
+        if (!isPlaying) ytPlayerRef.current.pauseVideo?.();
       }
     }
   }, [currentTime]);

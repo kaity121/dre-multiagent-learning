@@ -1823,6 +1823,7 @@ export default function App() {
                     <VideoPlayerSheet
                       lesson={currentVideoLesson}
                       phase={videoPhase}
+                      isCollapsed={collapseVideo}
                       currentTime={videoCurrentTime}
                       isPlaying={isVideoPlaying}
                       isLoadingAi={isLoadingAi}
