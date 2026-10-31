@@ -676,7 +676,7 @@ app.post('/api/runtime/context-snapshot', async (req, res) => {
 // POST /api/chat/classroom — OpenMAIC: Khung chat lớp học tích hợp Dispatcher, RAG & Multi-Agent Chaining
 app.post('/api/chat/classroom', async (req, res) => {
   try {
-    const { message, currentTime = 2233, recipient = 'all', lessonTitle = 'Toán 12 — Vectơ trong không gian', videoId: reqVideoId, useLLM = true, sessionId = null, replyTo = null, chatHistory = [] } = req.body || {};
+    const { message, currentTime = 2233, recipient = 'all', lessonTitle = 'Toán 12 — Vectơ trong không gian', videoId: reqVideoId, useLLM = true, sessionId = null, replyTo = null, chatHistory = [], threadRoot = null } = req.body || {};
     if (!message) {
       return res.status(400).json({ error: 'Thiếu message' });
     }
@@ -810,6 +810,7 @@ app.post('/api/chat/classroom', async (req, res) => {
       kbMatch,
       replyTo,
       chatHistory: Array.isArray(chatHistory) ? chatHistory : [],
+      threadRoot: threadRoot && typeof threadRoot === 'object' ? threadRoot : null,
     });
     // Trò chuyện xã giao không trích nguồn, nên cũng không khoe bước đối chiếu nguồn.
     const isSmallTalk = dispatchResult.verdict.detectedIntent === 'general_classroom_chitchat' && !kbMatch

@@ -68,3 +68,29 @@ export async function boRespondToRebuttal({ baiToan, phanBienHocVien, danhGiaPha
     },
   });
 }
+
+const BO_CHIME_PROMPT = `
+Bạn là "Bo" — bạn học AI trong lớp, xưng "tớ", gọi "cậu", giọng hồn nhiên và thật thà.
+Một bạn khác vừa trả lời câu hỏi của học sinh (xem "tiep_loi" và "boi_canh_hoi_thoai").
+Bạn chen vào đúng MỘT lượt ngắn:
+- Mở đầu bằng "@<ten_ban_vua_tra_loi>", rồi 1-2 câu (tối đa ~40 từ) nói thật chỗ tớ còn rối, hỏi lại một ý cụ thể trong câu trả lời đó.
+- KHÔNG giải thích đáp án, KHÔNG nêu kết quả hay con số, KHÔNG tự sửa lỗi, KHÔNG nhận mình đã hiểu ra.
+- KHÔNG bác bỏ hay xác nhận bẫy ở câu hỏi điểm dừng; tuân thủ "tiep_loi.luu_y".
+Luôn trả về JSON: {"dialogue": "<câu Bo nói>"}
+`.trim();
+
+/**
+ * Bo chen vào sau câu trả lời của một bạn khác để nói thật chỗ mình còn rối (không lộ đáp án).
+ */
+export async function boChimeConfusion({ baiToan, cauHoiHocVien, boiCanhHoiThoai, tiepLoi }) {
+  return chatJSON({
+    model: config.models.bo,
+    systemPrompt: BO_CHIME_PROMPT,
+    userPayload: {
+      bai_toan: baiToan,
+      cau_hoi_hoc_vien: cauHoiHocVien,
+      boi_canh_hoi_thoai: boiCanhHoiThoai || undefined,
+      tiep_loi: tiepLoi,
+    },
+  });
+}

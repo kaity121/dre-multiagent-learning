@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { chatJSON } from '../openaiClient.js';
 import { search as searchKb, getById as getKbById } from './knowledgeBase.js';
-import { boChallenge, boRespondToRebuttal } from '../agents/bo.js';
+import { boChallenge, boRespondToRebuttal, boChimeConfusion } from '../agents/bo.js';
 import { coLamChotKienThuc, coLamConsult } from '../agents/colam.js';
 import { triDeepThink } from '../agents/tri.js';
 import { linhChiTakeNotes } from '../agents/linhchi.js';
@@ -861,27 +861,184 @@ export async function classifyLearnerIntent({ message, currentTime = 2233, recip
   };
 }
 
+const clipText = (text, max) => {
+  const flat = String(text || '').replace(/\s+/g, ' ').trim();
+  return flat.length > max ? `${flat.slice(0, max)}…` : flat;
+};
+
 /**
- * Tóm tắt hội thoại cho tác nhân trả lời: tin học sinh đang trả lời và vài tin gần nhất.
+ * Tóm tắt hội thoại cho tác nhân trả lời: tin gốc của thread (nếu học sinh đang trả lời trong thread),
+ * tin học sinh đang trả lời và vài tin gần nhất (trong thread đó, hoặc trong lớp).
  * Trả về null khi không có gì, để payload gửi LLM không mang trường rỗng.
  */
-export function buildConversationContext({ replyTo = null, chatHistory = [] } = {}) {
-  const clip = (text, max) => {
-    const flat = String(text || '').replace(/\s+/g, ' ').trim();
-    return flat.length > max ? `${flat.slice(0, max)}…` : flat;
-  };
+export function buildConversationContext({ replyTo = null, chatHistory = [], threadRoot = null } = {}) {
   const parts = [];
+  const hasRoot = Boolean(threadRoot?.author && threadRoot?.text);
+  // Khi học sinh trả lời một tin con, tác nhân vẫn cần biết thread đang bàn về câu hỏi nào.
+  if (hasRoot && clipText(threadRoot.text, 240) !== clipText(replyTo?.text, 240)) {
+    parts.push(`Thread này bắt đầu từ tin của ${threadRoot.author}: "${clipText(threadRoot.text, 240)}"`);
+  }
   if (replyTo?.author && replyTo?.text) {
-    parts.push(`Học sinh đang trả lời tin của ${replyTo.author}: "${clip(replyTo.text, 240)}"`);
+    parts.push(`Học sinh đang trả lời tin của ${replyTo.author}: "${clipText(replyTo.text, 240)}"`);
   }
   const turns = (Array.isArray(chatHistory) ? chatHistory : [])
     .filter((turn) => turn?.text)
     .slice(-6)
-    .map((turn) => `${turn.author || 'Bạn học'}: ${clip(turn.text, 160)}`);
+    .map((turn) => `${turn.author || 'Bạn học'}: ${clipText(turn.text, 160)}`);
   if (turns.length > 0) {
-    parts.push(`Các tin gần nhất trong lớp:\n${turns.join('\n')}`);
+    parts.push(`${hasRoot ? 'Các tin trong thread này' : 'Các tin gần nhất trong lớp'}:\n${turns.join('\n')}`);
   }
   return parts.length > 0 ? parts.join('\n\n') : null;
+}
+
+// Ý định mặc định khi học sinh trả lời đích danh một tác nhân (không phải Bo).
+const REPLY_RECIPIENT_INTENT = {
+  tri: 'ask_deep_concept',
+  linhchi: 'ask_formula_mnemonic',
+  minhkhang: 'general_classroom_chitchat',
+  an: 'ask_scaffolding_help',
+  colam: 'ask_deep_concept',
+};
+
+// Chủ đề có câu trả lời soạn sẵn theo từ khoá; câu soạn sẵn không nhìn thấy hội thoại.
+const CANNED_TOPIC_FLAGS = [
+  'isSumOnePlusOneTopic',
+  'isLineOfVectorTopic',
+  'isWhyNeedVectorsTopic',
+  'isVectorEqualityTopic',
+  'isZeroVectorTopic',
+  'isTrivializingTopic',
+];
+
+/**
+ * Học sinh bấm "Trả lời" vào tin của một bạn khác Bo thì câu đó là câu hỏi tiếp cho bạn ấy:
+ * - không phải lời phản biện Bo, kể cả khi có cụm như "ngược hướng" vốn khớp mẫu phản biện;
+ * - khi có LLM, bạn ấy tự trả lời theo ngữ cảnh thread thay vì câu soạn sẵn theo từ khoá
+ *   (câu soạn sẵn trả lời một câu hỏi chung, không phải câu học sinh vừa hỏi tiếp).
+ * Chỉ áp dụng cho tin trả lời có người nhận cụ thể; câu gửi cả lớp hoặc gửi Bo giữ nguyên phân loại.
+ */
+export function routeReplyToAddressee(verdict, { recipient = 'all', replyTo = null, useLLM = true } = {}) {
+  const intent = REPLY_RECIPIENT_INTENT[recipient];
+  if (!replyTo || !intent || !verdict) return verdict;
+  if (verdict.isOffTopic || verdict.isDistraction) return verdict;
+  const sentToBo = verdict.dispatchedAgent === 'bo';
+  const cannedTopic = CANNED_TOPIC_FLAGS.some((flag) => verdict[flag]);
+  if (!sentToBo && !(useLLM && cannedTopic)) return verdict;
+  return {
+    detectedIntent: intent,
+    dispatchedAgent: recipient,
+    confidence: verdict.confidence,
+    reasoning: `Học sinh đang trả lời tin của ${replyTo.author || 'một bạn'}; người được hỏi trả lời theo ngữ cảnh thread.`,
+    fastPath: true,
+    routedToReplyAddressee: true,
+  };
+}
+
+/** True when `name` appears as a whole word in the opening words of `text`. */
+export function opensByNaming(text, name) {
+  if (typeof text !== 'string' || typeof name !== 'string' || !name.trim()) return false;
+  // NFC plus the \p{M} guard keep "Bo" from matching "Bởi" whichever way the diacritics are encoded.
+  const escaped = name.trim().normalize('NFC').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const opening = text.normalize('NFC').slice(0, 40);
+  return new RegExp(`(^|[^\\p{L}\\p{M}])${escaped}(?![\\p{L}\\p{M}])`, 'u').test(opening);
+}
+
+// Mốc câu hỏi điểm dừng của bài Vectơ: trước mốc này không bạn nào được hé lộ lời giải.
+const MATH_CHECKPOINT_SECOND = 2233;
+// Bạn học có góc nhìn riêng để chen vào, theo thứ tự luân phiên.
+const CHIME_PEERS = ['minhkhang', 'linhchi', 'bo'];
+// Trợ giảng An không nằm trong danh sách: thang gợi ý của An (mức 1 → 2 → Cô Lam) phải giữ nguyên nhịp.
+const CHIME_ELIGIBLE_PRIMARIES = new Set(['tri', 'minhkhang', 'linhchi']);
+const CHIME_SKIPPED_INTENTS = new Set(['general_classroom_chitchat', 'encourage_study_focus']);
+
+/**
+ * Quy tắc tất định cho việc một bạn học thứ hai chen vào sau câu trả lời chính:
+ * cứ mỗi lượt hỏi thứ hai của học sinh trong cùng phiên (lượt 2, 4, 6...), nếu chưa có ai tiếp lời
+ * và người trả lời chính là Trí, Minh Khang hoặc Linh Chi (không phải Bo, Trợ giảng An hay Cô Lam),
+ * thì một bạn khác (luân phiên Minh Khang → Linh Chi → Bo, bỏ qua chính người trả lời) góp thêm góc nhìn.
+ * Trả về id tác nhân chen vào, hoặc null.
+ */
+export function pickPeerChime({
+  primaryAgent,
+  detectedIntent,
+  learnerTurn,
+  hasFollowUp,
+  isMathLesson,
+  isOffTopic = false,
+  isSmallTalk = false,
+}) {
+  if (hasFollowUp || !isMathLesson || isOffTopic || isSmallTalk) return null;
+  if (!CHIME_ELIGIBLE_PRIMARIES.has(primaryAgent) || CHIME_SKIPPED_INTENTS.has(detectedIntent)) return null;
+  if (!Number.isInteger(learnerTurn) || learnerTurn < 2 || learnerTurn % 2 !== 0) return null;
+  const candidates = CHIME_PEERS.filter((id) => id !== primaryAgent);
+  return candidates[(learnerTurn / 2 - 1) % candidates.length];
+}
+
+const CHIME_FALLBACK_TEXT = {
+  minhkhang: (name) => `@${name} Tớ thêm một ví dụ đời thường nè: vectơ giống mũi tên chỉ đường trên Google Maps, vừa cho biết đi bao xa vừa cho biết đi hướng nào. Thiếu hướng là đi lạc liền!`,
+  linhchi: (name) => `@${name} Tớ ghi gọn vào sổ cho cả lớp: (1) xác định điểm đầu, điểm cuối; (2) xét cùng phương rồi mới xét cùng hướng; (3) nối đuôi thì dùng quy tắc 3 điểm.`,
+  bo: (name) => `@${name} Ơ, đọc tới đây tớ hơi rối thật. Cậu nói lại giúp tớ ý chính trong một câu được không?`,
+};
+
+/**
+ * Sinh lượt chen vào của bạn học thứ hai: nhắc tên người vừa trả lời, thêm góc nhìn riêng.
+ * LLM nhận câu trả lời chính cùng bối cảnh hội thoại; lỗi hoặc useLLM=false thì dùng câu mẫu.
+ */
+export async function generatePeerChime({
+  chimeAgent,
+  primaryResponse,
+  message,
+  conversationContext,
+  mathProblem,
+  lessonTitle,
+  currentTime,
+  useLLM,
+}) {
+  const primaryName = primaryResponse.author;
+  const mention = `@${primaryName}`;
+  const answer = clipText(primaryResponse.text, 400);
+  const contextWithAnswer = [conversationContext, `${primaryName} vừa trả lời học sinh: "${answer}"`]
+    .filter(Boolean)
+    .join('\n\n');
+  const luuY = [
+    'Chỉ một lượt ngắn, không chào hỏi lại, không giải bài hộ.',
+    currentTime < MATH_CHECKPOINT_SECOND
+      ? 'Video chưa tới câu hỏi điểm dừng [37:13]: tuyệt đối không nêu kết quả độ dài, đáp số hay lý do của bài toán ở điểm dừng.'
+      : null,
+  ].filter(Boolean).join(' ');
+  const tiepLoi = { ten_ban_vua_tra_loi: primaryName, loi_ban_vua_noi: answer, luu_y: luuY };
+
+  let text = CHIME_FALLBACK_TEXT[chimeAgent](primaryName);
+  if (useLLM) {
+    try {
+      const payload = {
+        baiToan: mathProblem,
+        chuDe: lessonTitle,
+        cauHoiHocVien: message,
+        boiCanhHoiThoai: contextWithAnswer,
+        tiepLoi,
+      };
+      const result = chimeAgent === 'minhkhang'
+        ? await minhKhangAnalogy(payload)
+        : chimeAgent === 'linhchi'
+          ? await linhChiTakeNotes(payload)
+          : await boChimeConfusion(payload);
+      const dialogue = typeof result?.dialogue === 'string' ? result.dialogue.trim() : '';
+      if (dialogue) text = dialogue.startsWith(mention) ? dialogue : `${mention} ${dialogue}`;
+    } catch (err) {
+      console.warn('[Dispatcher] Peer chime LLM fallback:', err.message);
+    }
+  }
+
+  return {
+    author: AGENT_DISPLAY_NAMES[chimeAgent],
+    avatarId: chimeAgent,
+    text,
+    kind: 'peer_chime',
+    repliesTo: { author: primaryName, avatarId: primaryResponse.avatarId },
+    // Góp ý của bạn học là ý kiến riêng, không phải trích dẫn bài giảng.
+    citations: [],
+  };
 }
 
 /**
@@ -902,19 +1059,23 @@ export async function dispatchMessage({
   kbMatch = null,
   replyTo = null,
   chatHistory = [],
+  threadRoot = null,
 }) {
   const t0 = Date.now();
-  const conversationContext = buildConversationContext({ replyTo, chatHistory });
+  const conversationContext = buildConversationContext({ replyTo, chatHistory, threadRoot });
 
   const { videoId: effectiveVideoId, isMathLesson } = resolveLessonSubject({ videoId, lessonTitle });
 
   // 1. Phân loại Intent & Chọn Agent
-  const verdict = await classifyLearnerIntent({
-    message,
-    currentTime,
-    recipient,
-    useLLM,
-  });
+  const verdict = routeReplyToAddressee(
+    await classifyLearnerIntent({
+      message,
+      currentTime,
+      recipient,
+      useLLM,
+    }),
+    { recipient, replyTo, useLLM },
+  );
 
   // 2. Truy vấn RAG Knowledge Base nếu là môn Toán và chưa được truyền từ trước
   if (!kbMatch && isMathLesson) {
@@ -1652,7 +1813,8 @@ export async function dispatchMessage({
       triText = `Theo kiểm chứng toạ độ 3D: Biểu thức ${activeVectorAlgebraTool.input.expr} có độ dài chuẩn xác là ${activeVectorAlgebraTool.output.correct}. Hai vectơ không cùng hướng nên không thể cộng độ dài số học thông thường được bạn nhé!`;
     }
 
-    if (isVectorEqualityClaim && !followUpResponse) {
+    // A threaded follow-up question gets Trí's own answer; the stock airline analogy would answer a different question.
+    if (isVectorEqualityClaim && !followUpResponse && !verdict.routedToReplyAddressee) {
       followUpResponse = {
         author: AGENT_DISPLAY_NAMES.minhkhang,
         avatarId: 'minhkhang',
@@ -1687,12 +1849,52 @@ export async function dispatchMessage({
   }
 }
 
+  // 7. Thỉnh thoảng một bạn học khác chen vào, trả lời chính câu vừa rồi (không đè lượt tiếp lời sẵn có).
+  const learnerTurn = session?.activity_log?.filter((e) => e.type === 'intent_routed').length || 0;
+  const chimeAgent = primaryResponse?.text
+    ? pickPeerChime({
+        primaryAgent: primaryResponse.avatarId,
+        detectedIntent: verdict.detectedIntent,
+        learnerTurn,
+        hasFollowUp: Boolean(followUpResponse),
+        isMathLesson,
+        isOffTopic: Boolean(verdict.isOffTopic || verdict.isDistraction),
+        isSmallTalk,
+      })
+    : null;
+  if (chimeAgent) {
+    followUpResponse = await generatePeerChime({
+      chimeAgent,
+      primaryResponse,
+      message,
+      conversationContext,
+      mathProblem,
+      lessonTitle,
+      currentTime,
+      useLLM,
+    });
+    if (session) {
+      logActivityEvent(session.id, {
+        type: 'peer_chime',
+        payload: { chimeAgent, repliesTo: primaryResponse.avatarId, learnerTurn },
+      });
+    }
+  }
+
+  // Lượt tiếp lời mở đầu bằng tên người vừa nói ("Chuẩn đó Trí!", "Khoan đã Bo ơi!") là đang đáp người đó.
+  if (followUpResponse && !followUpResponse.repliesTo && opensByNaming(followUpResponse.text, primaryResponse?.author)) {
+    followUpResponse.repliesTo = { author: primaryResponse.author, avatarId: primaryResponse.avatarId };
+  }
+
   // Khử triệt để artifact mã hóa d6c2 nếu có xuất hiện từ LLM hay chuỗi thô
   const sanitizeText = (txt) => {
     if (!txt || typeof txt !== 'string') return txt;
     return txt
       .replace(/d6c2([A-Za-z0-9'′]+)/gi, 'vectơ $1')
-      .replace(/d6c2/gi, 'vectơ ');
+      .replace(/d6c2/gi, 'vectơ ')
+      // Model output occasionally carries terminal escapes (e.g. "\u001b[0m") that render as garbage in chat.
+      .replace(/\u001b\[[0-9;?]*[A-Za-z]/g, '')
+      .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '');
   };
 
   if (primaryResponse?.text) {

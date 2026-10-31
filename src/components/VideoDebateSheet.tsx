@@ -134,6 +134,16 @@ interface VideoDebateSheetProps {
   extraMessages?: TimelineComment[];
 }
 
+// Chat labels carry the addressee ("Hải (tới Trí)"); a ping names only the person.
+const pingName = (author: string) => author.replace(/\s*\(tới [^)]*\)\s*$/, '').trim();
+
+// Drops a leading "@Name" when the bubble already shows who is being answered.
+const stripLeadingPing = (body: string, author: string) => {
+  const name = pingName(author);
+  if (!name || !body.startsWith(`@${name}`)) return body;
+  return body.slice(name.length + 1).replace(/^[\s,:]+/, '');
+};
+
 const cleanText = (str?: string) =>
   str
     ? str
@@ -436,9 +446,16 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
       threadRootId,
     };
 
-    // Recent turns the answering agent should see, oldest first, so it can follow the conversation.
-    const recentHistory = allStreamComments
-      .filter((c) => !c.isPinned)
+    // Turns the answering agent should see, oldest first: inside a thread, that thread (root and its
+    // replies); otherwise the latest messages of the class stream.
+    const threadRoot = threadRootId
+      ? allStreamComments.find((c) => c.id === threadRootId) ?? (replyTarget && !replyTarget.threadRootId ? replyTarget : undefined)
+      : undefined;
+    const recentHistory = (
+      threadRootId
+        ? allStreamComments.filter((c) => c.id === threadRootId || c.threadRootId === threadRootId)
+        : allStreamComments.filter((c) => !c.isPinned)
+    )
       .slice(-6)
       .map((c) => ({ author: c.author, text: cleanText(c.text) }));
 
@@ -759,6 +776,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     sendClassroomChat(text, effectiveSecond, target, chatSessionIdRef.current, {
       replyTo: currentReplyTo ? { author: currentReplyTo.author, text: cleanText(currentReplyTo.text || '') } : null,
       history: recentHistory,
+      threadRoot: threadRoot ? { author: threadRoot.author, text: cleanText(threadRoot.text) } : null,
     })
       .then((aiRes) => {
         setToolCallThinking([]);
@@ -813,6 +831,12 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
 
           const followUp = aiRes.followUpResponse;
           const followUpText = followUp?.text || aiRes.followUpBoText;
+          // A follow-up that answers the speaker (a classmate chiming in, "Chuẩn đó Trí!") quotes the
+          // reply just posted; other follow-ups answer the learner.
+          const followUpReplyTo =
+            followUp?.repliesTo
+              ? { id: replyId, author: aiRes.author, text: aiRes.text }
+              : { id: newMsg.id, author: newMsg.author, text: newMsg.text };
           if (followUpText) {
             const followUpAuthor = followUp?.author || 'Cô Lam';
             setTypingAgent(getAgentMeta(followUpAuthor));
@@ -833,11 +857,7 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
                   citations: followUp?.citations || null,
                   contextSnapshot: followUp?.contextSnapshot || null,
                   threadRootId: newMsg.threadRootId,
-                  replyTo: {
-                    id: newMsg.id,
-                    author: newMsg.author,
-                    text: newMsg.text,
-                  },
+                  replyTo: followUpReplyTo,
                 },
               ]);
             }, 800);
@@ -1147,6 +1167,10 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
     const isMeRight = isMe && !inThread;
     // In a thread the root is implied, so a quote only appears when you answer one specific reply.
     const showQuote = Boolean(msg.replyTo) && (!inThread || (isMe && msg.replyTo?.id !== msg.threadRootId));
+    // Inside a thread, someone answering a reply (not the root) pings that person, as in a group chat.
+    const threadPing =
+      inThread && !showQuote && msg.replyTo && msg.replyTo.id !== msg.threadRootId ? pingName(msg.replyTo.author) : null;
+    const pingsLearner = Boolean(threadPing && msg.replyTo && (msg.replyTo.author.includes('Bạn') || (learnerName && msg.replyTo.author.startsWith(learnerName))));
     const row = (
       <div
         id={`chat-msg-${msg.id}`}
@@ -1206,12 +1230,22 @@ export const VideoDebateSheet: React.FC<VideoDebateSheetProps> = ({
               </div>
             )}
             {(() => {
-              const body = cleanText(msg.text);
+              const rawBody = cleanText(msg.text);
+              const body = msg.replyTo && (showQuote || inThread) ? stripLeadingPing(rawBody, msg.replyTo.author) : rawBody;
               const isLong = body.length > LONG_MESSAGE_CHARS;
               const expanded = expandedMessageIds.has(msg.id);
               return (
                 <>
                   <div id={`msg-body-${msg.id}`} className={isLong && !expanded ? 'line-clamp-3' : undefined}>
+                    {threadPing && (
+                      <span
+                        className={`mr-1 rounded px-1 py-px text-[13px] font-semibold ${
+                          pingsLearner ? 'bg-lime-accent text-[#121712]' : 'bg-[#EDF6DA] text-[#1F4D12]'
+                        }`}
+                      >
+                        @{threadPing}
+                      </span>
+                    )}
                     <FormattedMathText text={body} />
                   </div>
                   {isLong && (

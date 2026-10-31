@@ -190,7 +190,7 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
     },
     {
       id: 'c_00_3',
-      second: 38, // 0:38
+      second: 30, // 0:30
       author: 'Minh Khang',
       role: 'classmate',
       text: '@Bo Yên tâm đi! Hồi lớp 10 mình vẽ vectơ trên một mặt giấy phẳng 2D, còn lên lớp 12 là nhấc mũi tên đó ra không gian 3 chiều như căn phòng học của mình thôi.',
@@ -199,13 +199,33 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
         author: 'Bo',
         text: 'Nghe tới "Hình không gian" kết hợp với "Vectơ" là thấy hơi hồi hộp rồi đó. Không biết có khác nhiều so với hồi lớp 10 không mọi người?',
       },
+      threadRootId: 'c_00_2',
     },
     {
       id: 'c_00_4',
-      second: 55, // 0:55
+      second: 52, // 0:52
       author: 'Trí',
       role: 'classmate',
-      text: 'Đúng rồi. Thầy Tiến vừa nhắc ở [0:50] kìa: Gần như toàn bộ định nghĩa, phép cộng, phép trừ vectơ ở lớp 10 đều được giữ nguyên bản chất khi đưa lên không gian 3D.',
+      text: 'Chuẩn đó Khang. Thầy Tiến vừa nhắc ở [0:50] kìa: gần như toàn bộ định nghĩa, phép cộng, phép trừ vectơ ở lớp 10 đều được giữ nguyên bản chất khi đưa lên không gian 3D.',
+      replyTo: {
+        id: 'c_00_3',
+        author: 'Minh Khang',
+        text: '@Bo Yên tâm đi! Hồi lớp 10 mình vẽ vectơ trên một mặt giấy phẳng 2D, còn lên lớp 12 là nhấc mũi tên đó ra không gian 3 chiều như căn phòng học của mình thôi.',
+      },
+      threadRootId: 'c_00_2',
+    },
+    {
+      id: 'c_00_5',
+      second: 60, // 1:00
+      author: 'Bo',
+      role: 'classmate',
+      text: 'Vậy là quy tắc cũ vẫn dùng được hả? Đỡ lo hẳn, tớ cứ tưởng phải học lại từ đầu!',
+      replyTo: {
+        id: 'c_00_4',
+        author: 'Trí',
+        text: 'Chuẩn đó Khang. Thầy Tiến vừa nhắc ở [0:50] kìa: gần như toàn bộ định nghĩa, phép cộng, phép trừ vectơ ở lớp 10 đều được giữ nguyên bản chất khi đưa lên không gian 3D.',
+      },
+      threadRootId: 'c_00_2',
     },
 
     // =======================================================================
@@ -227,7 +247,7 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
     },
     {
       id: 'c_01_3',
-      second: 120, // 2:00
+      second: 110, // 1:50
       author: 'Trí',
       role: 'classmate',
       text: '@Bo Khác hoàn toàn nhé! Đoạn thẳng thì không phân biệt chiều nên AB = BA. Nhưng vectơ có mũi tên chỉ hướng: AB là đi từ A đến B, còn BA là đi ngược từ B về A.',
@@ -236,18 +256,20 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
         author: 'Bo',
         text: 'Khoan đã, nếu hai điểm A và B cố định trong không gian thì đoạn thẳng AB với BA là một, vậy vectơ AB với vectơ BA cũng bằng nhau luôn chứ nhỉ?',
       },
+      threadRootId: 'c_01_2',
     },
     {
       id: 'c_01_4',
-      second: 138, // 2:18
+      second: 122, // 2:02
       author: 'Minh Khang',
       role: 'classmate',
-      text: '@Bo Cứ liên tưởng vé máy bay từ Đà Nẵng (A) ra Hà Nội (B) khác hẳn chiều bay từ Hà Nội (B) về Đà Nẵng (A) là không bao giờ nhầm gốc với ngọn!',
+      text: 'Chuẩn luôn Trí! Cứ liên tưởng vé máy bay Đà Nẵng (A) ra Hà Nội (B) khác hẳn chiều bay Hà Nội (B) về Đà Nẵng (A), là không bao giờ nhầm gốc với ngọn.',
       replyTo: {
-        id: 'c_01_2',
-        author: 'Bo',
-        text: 'Khoan đã, nếu hai điểm A và B cố định trong không gian thì đoạn thẳng AB với BA là một, vậy vectơ AB với vectơ BA cũng bằng nhau luôn chứ nhỉ?',
+        id: 'c_01_3',
+        author: 'Trí',
+        text: '@Bo Khác hoàn toàn nhé! Đoạn thẳng thì không phân biệt chiều nên AB = BA. Nhưng vectơ có mũi tên chỉ hướng: AB là đi từ A đến B, còn BA là đi ngược từ B về A.',
       },
+      threadRootId: 'c_01_2',
     },
     {
       id: 'c_01_5',
@@ -258,10 +280,16 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
     },
     {
       id: 'c_01_6',
-      second: 175, // 2:55
+      second: 168, // 2:48
       author: 'Bo',
       role: 'classmate',
-      text: 'À hiểu rồi! Tức là vectơ AB ≠ vectơ BA (vì ngược chiều mũi tên), nhưng khi đóng dấu giá trị tuyệt đối tính độ dài thì |AB| = |BA|. Ghi vào sổ ngay!',
+      text: 'À hiểu rồi! Vectơ AB ≠ vectơ BA (vì ngược chiều mũi tên), nhưng khi tính độ dài thì |AB| = |BA|. Ghi vào sổ ngay!',
+      replyTo: {
+        id: 'c_01_5',
+        author: 'Linh Chi',
+        text: 'Ghi chú thêm ở [2:38]: Độ dài của vectơ AB (ký hiệu |AB|) là khoảng cách giữa điểm đầu A và điểm cuối B. Nên về độ dài thì |AB| = |BA| = đoạn thẳng AB.',
+      },
+      threadRootId: 'c_01_5',
     },
 
     // =======================================================================
@@ -280,13 +308,25 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
       author: 'Linh Chi',
       role: 'classmate',
       text: '@Bo Định nghĩa chuẩn thầy đang ghi trên bảng ở [3:32] nè: Đường thẳng đi qua điểm đầu A và điểm cuối B của vectơ AB được gọi là "giá" của vectơ đó.',
+      replyTo: {
+        id: 'c_03_1',
+        author: 'Bo',
+        text: 'Ở [3:15] thầy Tiến vừa viết thuật ngữ "Giá của vectơ". Sao lại gọi là cái giá vậy mọi người? Nghe hơi trừu tượng.',
+      },
+      threadRootId: 'c_03_1',
     },
     {
       id: 'c_03_3',
-      second: 230, // 3:50
+      second: 222, // 3:42
       author: 'Minh Khang',
       role: 'classmate',
-      text: 'Nhìn đường nét đứt thầy Tiến vừa kéo dài hai đầu qua A và B kìa Bo! Nếu vectơ AB là đoàn tàu hỏa thì đường thẳng chứa nó chính là "đường ray" (giá) đỡ đoàn tàu đó.',
+      text: 'Thêm hình dung nè: nhìn đường nét đứt thầy vừa kéo dài qua A và B kìa! Nếu vectơ AB là đoàn tàu thì đường thẳng chứa nó chính là "đường ray" (giá) đỡ đoàn tàu đó.',
+      replyTo: {
+        id: 'c_03_2',
+        author: 'Linh Chi',
+        text: '@Bo Định nghĩa chuẩn thầy đang ghi trên bảng ở [3:32] nè: Đường thẳng đi qua điểm đầu A và điểm cuối B của vectơ AB được gọi là "giá" của vectơ đó.',
+      },
+      threadRootId: 'c_03_1',
     },
     {
       id: 'c_03_4',
@@ -315,10 +355,29 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
     },
     {
       id: 'c_04_3',
-      second: 298, // 4:58
+      second: 290, // 4:50
       author: 'Trí',
       role: 'classmate',
       text: '@Bo Tuyệt đối không nhé! Hai đường thẳng chéo nhau thì giá của chúng không song song cũng không trùng nhau, nên hai vectơ đó KHÔNG cùng phương.',
+      replyTo: {
+        id: 'c_04_2',
+        author: 'Bo',
+        text: 'Nếu trong không gian có 2 vectơ nằm trên 2 đường thẳng chéo nhau (không cắt cũng không song song) thì mình gọi là hai vectơ ngược hướng được không?',
+      },
+      threadRootId: 'c_04_2',
+    },
+    {
+      id: 'c_04_3b',
+      second: 302, // 5:02
+      author: 'Bo',
+      role: 'classmate',
+      text: 'Ơ vậy hai vectơ nằm trên hai đường chéo nhau thì còn chưa tới lượt hỏi cùng hướng hay ngược hướng luôn hả?',
+      replyTo: {
+        id: 'c_04_3',
+        author: 'Trí',
+        text: '@Bo Tuyệt đối không nhé! Hai đường thẳng chéo nhau thì giá của chúng không song song cũng không trùng nhau, nên hai vectơ đó KHÔNG cùng phương.',
+      },
+      threadRootId: 'c_04_2',
     },
     {
       id: 'c_04_4',
@@ -354,7 +413,7 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
     },
     {
       id: 'c_05_1c',
-      second: 455, // 7:35
+      second: 443, // 7:23
       author: 'Trí',
       role: 'classmate',
       text: '@Bo Phải phân biệt rạch ròi QUÃNG ĐƯỜNG với ĐỘ DỜI! Đi từ Nhà (A) đến Trường rồi về Nhà, đồng hồ xe vẫn đo quãng đường s > 0. Nhưng về VECTƠ ĐỘ DỜI: điểm đầu là A, điểm cuối là A, nên vectơ tổng bằng vectơ AA = vectơ 0!',
@@ -363,18 +422,20 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
         author: 'Bo',
         text: 'Ủa, từ C về A thì vẫn là 1 đoạn dài mà, giống như tớ tới trường rồi về nhà cũng đi 1 đoạn dài mà, chứ đâu phải là 0?',
       },
+      threadRootId: 'c_05_1b',
     },
     {
       id: 'c_05_1d',
-      second: 475, // 7:55
+      second: 458, // 7:38
       author: 'Minh Khang',
       role: 'classmate',
-      text: '@Bo Chuẩn luôn Trí! Giống bạn chạy máy tập gym 5km mồ hôi nhễ nhại, nhưng bước xuống máy thì vị trí vẫn ở phòng tập (độ dời = 0)! Vectơ chỉ nhìn điểm đầu và điểm cuối thôi.',
+      text: 'Chuẩn luôn Trí! Giống chạy máy tập gym 5km mồ hôi nhễ nhại, nhưng bước xuống máy thì vẫn ở phòng tập (độ dời = 0)! Vectơ chỉ nhìn điểm đầu và điểm cuối thôi.',
       replyTo: {
-        id: 'c_05_1b',
-        author: 'Bo',
-        text: 'Ủa, từ C về A thì vẫn là 1 đoạn dài mà, giống như tớ tới trường rồi về nhà cũng đi 1 đoạn dài mà, chứ đâu phải là 0?',
+        id: 'c_05_1c',
+        author: 'Trí',
+        text: '@Bo Phải phân biệt rạch ròi QUÃNG ĐƯỜNG với ĐỘ DỜI! Đi từ Nhà (A) đến Trường rồi về Nhà, đồng hồ xe vẫn đo quãng đường s > 0. Nhưng về VECTƠ ĐỘ DỜI: điểm đầu là A, điểm cuối là A, nên vectơ tổng bằng vectơ AA = vectơ 0!',
       },
+      threadRootId: 'c_05_1b',
     },
     {
       id: 'c_05_2',
@@ -403,10 +464,29 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
     },
     {
       id: 'c_10',
-      second: 960, // 16:00
+      second: 940, // 15:40
       author: 'Minh Khang',
       role: 'classmate',
-      text: "@Bo Nhìn kỹ hình lăng trụ tam giác nha! AB và B'C' không hề song song (không cùng phương). Vectơ AB chỉ bằng vectơ A'B' thôi, còn cạnh bên thì AA' = BB' = CC'.",
+      text: '@Bo Nhìn kỹ hình lăng trụ tam giác nha! AB và B\'C\' không hề song song (không cùng phương). Vectơ AB chỉ bằng vectơ A\'B\' thôi, còn cạnh bên thì AA\' = BB\' = CC\'.',
+      replyTo: {
+        id: 'c_09',
+        author: 'Bo',
+        text: 'Ở Ví dụ 1 hình lăng trụ tam giác ABC.A\'B\'C\' [15:30], cạnh AB với B\'C\' đều nằm ở mặt đáy cả, vậy vectơ AB = vectơ B\'C\' đúng không?',
+      },
+      threadRootId: 'c_09',
+    },
+    {
+      id: 'c_10b',
+      second: 952, // 15:52
+      author: 'Trí',
+      role: 'classmate',
+      text: 'Thêm một ý nha: AA\' = BB\' = CC\' không chỉ vì ba cạnh bên song song, mà vì chúng cùng hướng và cùng độ dài, đủ cả 2 điều kiện hai vectơ bằng nhau ở [12:20].',
+      replyTo: {
+        id: 'c_10',
+        author: 'Minh Khang',
+        text: '@Bo Nhìn kỹ hình lăng trụ tam giác nha! AB và B\'C\' không hề song song (không cùng phương). Vectơ AB chỉ bằng vectơ A\'B\' thôi, còn cạnh bên thì AA\' = BB\' = CC\'.',
+      },
+      threadRootId: 'c_09',
     },
     {
       id: 'c_11',
@@ -518,10 +598,29 @@ export const VECTO_12_THAY_TIEN_LESSON: VideoLessonItem = {
     },
     {
       id: 'c_22',
-      second: 3480, // 58:00
+      second: 3432, // 57:12
       author: 'Bo',
       role: 'classmate',
-      text: 'Quy tắc trừ OA - OB = BA ở [58:00] dễ nhầm thứ tự thật, mình rất hay quen tay viết xuôi thành AB khi phân tích vectơ.',
+      text: 'Mẹo "Chung đầu - Lộn ngược" hay ghê! Tớ rất hay quen tay viết xuôi thành AB khi phân tích vectơ.',
+      replyTo: {
+        id: 'c_21',
+        author: 'Minh Khang',
+        text: 'Quy tắc trừ chung gốc O của thầy Tiến ở [57:02]: "Chung đầu - Lộn ngược" — OA - OB = BA (chung gốc O thì đảo điểm B lên viết trước điểm A).',
+      },
+      threadRootId: 'c_21',
+    },
+    {
+      id: 'c_22b',
+      second: 3445, // 57:25
+      author: 'Linh Chi',
+      role: 'classmate',
+      text: 'Mẹo tự kiểm tra nè: viết OA − OB = BA xong thì cộng ngược lại OB + BA = OA, đúng quy tắc 3 điểm là cậu viết đúng thứ tự.',
+      replyTo: {
+        id: 'c_22',
+        author: 'Bo',
+        text: 'Mẹo "Chung đầu - Lộn ngược" hay ghê! Tớ rất hay quen tay viết xuôi thành AB khi phân tích vectơ.',
+      },
+      threadRootId: 'c_21',
     },
     {
       id: 'c_end_1',

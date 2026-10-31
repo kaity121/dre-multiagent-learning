@@ -142,7 +142,17 @@ export interface ClassroomChatResponse {
   toolCalls?: DeterministicToolCallInfo[] | null;
   citations?: AgentCitation[] | null;
   contextSnapshot?: any | null;
-  followUpResponse?: { author?: string; agent?: string; text?: string; citations?: AgentCitation[] | null; contextSnapshot?: any | null } | null;
+  followUpResponse?: {
+    author?: string;
+    agent?: string;
+    text?: string;
+    citations?: AgentCitation[] | null;
+    contextSnapshot?: any | null;
+    /** 'peer_chime': a second classmate adding their own angle to the primary reply. */
+    kind?: 'peer_chime';
+    /** Set when the follow-up answers the primary speaker rather than the learner. */
+    repliesTo?: { author: string; avatarId?: string } | null;
+  } | null;
   timeStr: string;
   second?: number;
   sessionId?: string;
@@ -160,11 +170,14 @@ export async function sendClassroomChat(
   conversation?: {
     replyTo?: { author: string; text?: string } | null;
     history?: { author: string; text: string }[];
+    /** Top-level message of the thread the learner is replying in, if any. */
+    threadRoot?: { author: string; text: string } | null;
   }
 ): Promise<ClassroomChatResponse | null> {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    // A turn may chain the primary answer and a classmate's follow-up, each a model call.
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
     const res = await fetch(`${API_BASE_URL}/api/chat/classroom`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -175,6 +188,7 @@ export async function sendClassroomChat(
         sessionId,
         replyTo: conversation?.replyTo ?? null,
         chatHistory: conversation?.history ?? [],
+        threadRoot: conversation?.threadRoot ?? null,
       }),
       signal: controller.signal,
     });
