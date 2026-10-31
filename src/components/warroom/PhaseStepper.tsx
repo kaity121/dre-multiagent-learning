@@ -5,6 +5,8 @@ import { Check, Loader2, Clock, AlertCircle } from 'lucide-react';
 interface PhaseStepperProps {
   currentPhase: PhaseType | null;
   phaseStatuses: Record<PhaseType, PhaseStatus>;
+  /** Replaces a phase's description while it runs, e.g. the extraction stage in progress. */
+  details?: Partial<Record<PhaseType, string>>;
 }
 
 const phasesConfig: { id: PhaseType; stepNum: number; label: string; description: string }[] = [
@@ -14,7 +16,7 @@ const phasesConfig: { id: PhaseType; stepNum: number; label: string; description
   { id: 'bloom', stepNum: 4, label: 'Đánh giá nhận thức', description: 'Xếp mức Tháp Bloom L1–L6' },
 ];
 
-export const PhaseStepper: React.FC<PhaseStepperProps> = ({ currentPhase, phaseStatuses }) => {
+export const PhaseStepper: React.FC<PhaseStepperProps> = ({ currentPhase, phaseStatuses, details }) => {
   return (
     <div className="w-full bg-[#FDFEFA] p-5 sm:p-6 rounded-3xl border border-[#E2EAD2] shadow-2xs">
       <div className="relative">
@@ -74,7 +76,7 @@ export const PhaseStepper: React.FC<PhaseStepperProps> = ({ currentPhase, phaseS
                     {phase.label}
                   </div>
                   <div className="text-xs text-stone-600 font-medium line-clamp-1">
-                    {phase.description}
+                    {details?.[phase.id] ?? phase.description}
                   </div>
 
                   {/* Badge trạng thái */}

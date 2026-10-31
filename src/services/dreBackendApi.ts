@@ -12,7 +12,7 @@ export type { AgentCitation };
 // Bundled recording of a deterministic run; JSON imports are typed loosely, the shape is checked by validate:fixtures.
 const fallbackFixture = fallbackFixtureData as any;
 
-const API_BASE_URL = (import.meta as any).env?.VITE_DRE_API_URL || 'http://localhost:3001';
+export const API_BASE_URL = (import.meta as any).env?.VITE_DRE_API_URL || 'http://localhost:3001';
 
 export interface StartSessionResponse {
   sessionId: string;

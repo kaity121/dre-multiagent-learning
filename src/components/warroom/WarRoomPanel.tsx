@@ -5,7 +5,6 @@ import {
   AgentState,
   PhaseType,
   PhaseStatus,
-  ToolResultPayload,
 } from '../../types/reasoning';
 import { ReasoningSource } from '../../services/reasoningSource';
 import type { RoundtableProvenance } from '../../services/dreBackendApi';
@@ -19,7 +18,8 @@ const STREAM_PROVENANCE_LABELS: Record<RoundtableProvenance, string> = {
 import { mapBackendToReasoningEvent } from '../../services/reasoningAdapter';
 import { PhaseStepper } from './PhaseStepper';
 import { AgentStatusRow } from './AgentStatusRow';
-import { EventRow } from '../shared/EventRow';
+import { ReasoningLog } from './ReasoningLog';
+import { LessonSourceCard } from './LessonSourceCard';
 import mockReasoningEvents from '../../../mock/mock_reasoning_events.json';
 import {
   Play,
@@ -128,6 +128,8 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
     return false;
   });
   const [speed, setSpeed] = useState(1.0);
+  // Stage label shown under "Trích xuất" while a lecture video is being analysed.
+  const [extractDetail, setExtractDetail] = useState<string | undefined>(undefined);
   const [streamProvenance, setStreamProvenance] = useState<RoundtableProvenance | null>(null);
   const [isDone, setIsDone] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -338,51 +340,12 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
 
   return (
     <div className="w-full space-y-4 mb-6">
-      {/* =========================================================================
-          DẢI "ĐÃ NẠP SẴN" - KHỚP 100% TRANG 1 MOCKUP
-          ========================================================================= */}
-      <div className="w-full bg-white border border-[#E2EAD2] rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
-        <div className="flex flex-wrap items-center gap-6">
-          <span className="bg-[#C8F169] text-[#121712] font-extrabold text-[11px] px-3 py-1 rounded-md tracking-wider uppercase whitespace-nowrap">
-            ĐÃ NẠP SẴN
-          </span>
-          <div className="flex flex-col">
-            <span className="text-[11px] font-semibold text-stone-600 uppercase tracking-wide">
-              VIDEO BÀI GIẢNG
-            </span>
-            <span className="text-[12px] font-bold text-[#121712]">
-              Bài 1.1 Vectơ trong không gian · Thầy Nguyễn Phan Tiến
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[11px] font-semibold text-stone-600 uppercase tracking-wide">
-              TÀI LIỆU RAG
-            </span>
-            <span className="text-[12px] font-bold text-[#121712]">
-              SGK Toán 12 Kết nối tri thức, Tập 1 · Bài 6, tr.45–59
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[11px] font-semibold text-stone-600 uppercase tracking-wide">
-              KHO TRI THỨC
-            </span>
-            <span className="text-[12px] font-bold text-[#121712]">
-              24 kiến thức · 20 ngộ nhận · 20 bài tập
-            </span>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            sound.playPencilTap();
-            handleReset();
-            source.start();
-          }}
-          className="px-4 py-2 rounded-full bg-[#121712] hover:bg-black text-white text-xs font-bold transition flex items-center gap-1.5 self-start md:self-auto cursor-pointer shadow-xs whitespace-nowrap"
-        >
-          <span>↻ Phát lại phiên họp</span>
-        </button>
-      </div>
+      <LessonSourceCard
+        onExtractPhase={(status, detail) => {
+          setPhaseStatuses((prev) => ({ ...prev, extract: status }));
+          setExtractDetail(status === 'running' ? detail : undefined);
+        }}
+      />
 
       <div
         id="warroom-section"
@@ -410,17 +373,17 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
                 <button
                   type="button"
                   onClick={onToggleStreamMode}
-                  title="Nhấn để chuyển sang kênh SSE từ backend (nguồn thực tế hiển thị theo provenance máy chủ báo về)"
+                  title="Đang phát lại bản ghi phiên họp. Nhấn để nhận luồng trực tiếp từ backend."
                   className="bg-[#F3F8E8] hover:bg-[#E2EAD2] text-stone-700 border border-[#E2EAD2] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider cursor-pointer transition shadow-2xs flex items-center gap-1.5"
                 >
                   <span className="w-2 h-2 rounded-full bg-stone-400" />
-                  <span>Mô phỏng (Replay)</span>
+                  <span>Phát lại</span>
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={onToggleStreamMode}
-                  title="Nhấn để chuyển về chế độ Replay Mock"
+                  title="Nhấn để chuyển về phát lại bản ghi phiên họp"
                   style={{ backgroundColor: "#121712", color: "#C8F169" }} className="hover:bg-stone-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider cursor-pointer transition shadow-xs flex items-center gap-1.5 border border-[#121712]"
                 >
                   <span className="w-2 h-2 rounded-full bg-[#C8F169] animate-ping" />
@@ -505,7 +468,11 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
       {!isCollapsed && (
         <div className="p-6 sm:p-7 space-y-6">
           {/* 1. STEPPER 4 PHA CÓ ĐƯỜNG NỐI */}
-          <PhaseStepper currentPhase={currentPhase} phaseStatuses={phaseStatuses} />
+          <PhaseStepper
+            currentPhase={currentPhase}
+            phaseStatuses={phaseStatuses}
+            details={extractDetail ? { extract: extractDetail } : undefined}
+          />
 
           {/* 2. HÀNG AVATAR TÁC TỬ ĐỒNG BỘ */}
           <AgentStatusRow agentStates={agentStates} />
@@ -639,30 +606,7 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
                   </div>
                 </div>
               ) : (
-                events.map((evt, idx) => {
-                  let matchedToolResult: ToolResultPayload | undefined;
-                  if (evt.eventType === 'tool_call') {
-                    const nextResult = events.slice(idx + 1).find((e) =>
-                      e.eventType === 'tool_result' &&
-                      (
-                        (evt.toolCall?.callId && e.toolResult?.callId === evt.toolCall.callId) ||
-                        (e.agent === evt.agent && (!e.toolResult?.toolName || e.toolResult.toolName === evt.toolCall?.toolName))
-                      )
-                    );
-                    matchedToolResult = nextResult?.toolResult;
-                  }
-                  return (
-                    <EventRow
-                      key={evt.id || idx}
-                      event={evt}
-                      isLast={idx === events.length - 1}
-                      baseTimestamp={events[0]?.timestamp}
-                      index={idx}
-                      matchedToolResult={matchedToolResult}
-                      isDone={isDone}
-                    />
-                  );
-                })
+                <ReasoningLog events={events} isDone={isDone} />
               )}
               <div ref={feedBottomRef} />
             </div>
