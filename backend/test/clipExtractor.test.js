@@ -140,6 +140,7 @@ const removeCacheFor = (file) => {
 // Still board, new writing appears at second 2 and has settled by second 3 -> keyframes [0, 3].
 const twoBoards = () => [flat(10), flat(10), flat(80), flat(80)];
 const fakeMedia = (overrides = {}) => ({
+  hasAudio: async () => true,
   extractAudio: async (_clip, outFile) => outFile,
   boardThumbnails: async () => twoBoards(),
   grabFrame: async () => Buffer.alloc(2000),
