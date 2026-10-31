@@ -228,6 +228,40 @@ function resolveRoundtableInput({ customStream, partNumber }) {
   return { stream };
 }
 
+/** Summary of the lecture a council run reads: an analysed War Room video or the indexed lesson. */
+function describeLectureSource(stream, clip) {
+  const segments = Array.isArray(stream?.segments) ? stream.segments : [];
+  return {
+    kind: clip ? 'clip' : 'indexed',
+    clip: clip ? String(clip) : null,
+    title: stream?.videoTitle || stream?.videoId || '',
+    segments: segments.length,
+    durationSeconds: Number(stream?.durationSeconds) || null,
+  };
+}
+
+function lectureSourceEvent(stream, clip) {
+  const source = describeLectureSource(stream, clip);
+  const fmt = (sec) => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
+  const lines = (stream?.segments || []).slice(0, 4).map((seg) => {
+    const text = String(seg.blackboardText || seg.audioTranscript || '(không có lời và chưa đọc được bảng)').replace(/\s+/g, ' ');
+    return `[${seg.timeFormatted || fmt(Number(seg.second) || 0)}] ${text.slice(0, 110)}`;
+  });
+  const origin = source.kind === 'clip'
+    ? `video "${source.clip}" vừa phân tích trong War Room`
+    : 'bài giảng đã lập chỉ mục';
+  return {
+    id: `EVT_${Date.now()}_source`,
+    eventType: 'thought',
+    agentId: 'colam',
+    agentDisplayName: 'Cô Lam (Director)',
+    secondTarget: 0,
+    content: `Nạp nguồn bài giảng: ${origin} (${source.segments} đoạn${source.durationSeconds ? `, ${source.durationSeconds} giây` : ''}). ${lines.join(' · ')}`,
+    metadata: { source },
+    timestamp: new Date().toISOString(),
+  };
+}
+
 function findPart(stream, partNumber) {
   const parts = partitionTimelineIntoParts(stream);
   const part = parts.find(p => p.partNumber === Number(partNumber));
@@ -389,6 +423,8 @@ const handleRoundtableStream = async (req, res) => {
       requestedGeneration: useLLM ? 'llm' : 'deterministic',
       videoId: stream.videoId,
       partNumber: partNumber ? Number(partNumber) : 'all',
+      // Which lecture the council reads, so the War Room can show the link to the analysed video.
+      source: describeLectureSource(stream, clip),
       timestamp: new Date().toISOString(),
     });
 
@@ -404,6 +440,9 @@ const handleRoundtableStream = async (req, res) => {
       }
       sendSSE('message', tagged);
     };
+
+    // First event of the run: the council states what it is reading before anyone speaks.
+    await onEvent(lectureSourceEvent(stream, clip));
 
     let lesson;
     let generation;
