@@ -1,8 +1,8 @@
-// The lesson as one metro line: six stops from "Xem bài" to "Dạy lại Bo".
+// The lesson as one metro line: seven stops from "Xem bài" to "Dạy lại Bo".
 // Vertical rail on desktop, compact horizontal strip on small screens.
 import React from 'react';
 import { ArrowLeftRight, Check } from 'lucide-react';
-import type { JourneyStop, JourneyStopId } from './journeyModel';
+import type { JourneyStop, JourneyStopId, JourneySubStation } from './journeyModel';
 
 export interface JourneyRailProps {
   stops: JourneyStop[];
@@ -17,9 +17,38 @@ function disabledReason(stop: JourneyStop): string {
   if (stop.status === 'current') return 'Bạn đang ở bước này';
   if (stop.status === 'done') return 'Bước này đã xong';
   if (stop.status === 'waiting') return 'Câu hỏi đang chờ bạn trong khung chat';
-  if (stop.status === 'open') return 'Bước này ở Trạm 1, bạn chưa làm';
+  if (stop.status === 'open') return stop.subStations ? 'Bạn chưa làm xong bước này' : 'Bước này ở Trạm 1, bạn chưa làm';
   return 'Mở khi bạn đi tới bước này';
 }
+
+const subStationLabel = (s: JourneySubStation) => `Trạm ${s.number} ${s.name}: ${s.statusText}`;
+
+/** Small dots under a grouped stop, one per station it covers. */
+const SubStationDots: React.FC<{ subStations: JourneySubStation[] }> = ({ subStations }) => (
+  <ul aria-label="Các trạm trong bước này" className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 pl-[52px]">
+    {subStations.map((s) => (
+      <li key={s.id} className="flex items-center gap-1.5 text-[12px] leading-tight text-[#4A5546]" title={subStationLabel(s)}>
+        <span
+          aria-hidden="true"
+          className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full ${
+            s.status === 'done'
+              ? 'bg-[#1F5E3A] text-white'
+              : s.status === 'current'
+                ? 'bg-[#C8F169] ring-[3px] ring-[#C8F169]/40'
+                : 'border-2 border-[#C9D4B6] bg-white'
+          }`}
+        >
+          {s.status === 'done' && <Check className="h-2.5 w-2.5" strokeWidth={3.5} />}
+          {s.status === 'current' && <span className="h-1.5 w-1.5 rounded-full bg-[#121712]" />}
+        </span>
+        <span aria-hidden="true" className={s.status === 'current' ? 'font-semibold text-[#121712]' : undefined}>
+          Trạm {s.number}
+        </span>
+        <span className="sr-only">{subStationLabel(s)}</span>
+      </li>
+    ))}
+  </ul>
+);
 
 const StopDot: React.FC<{ stop: JourneyStop; compact?: boolean }> = ({ stop, compact }) => {
   const size = compact ? 'h-7 w-7' : 'h-10 w-10';
@@ -67,7 +96,8 @@ export const JourneyRail: React.FC<JourneyRailProps> = ({ stops, actions }) => {
     const action = actions[stop.id];
     const enabled = Boolean(action) && stop.status !== 'current';
     const title = enabled ? action!.hint : disabledReason(stop);
-    const label = `${stop.label}: ${stop.statusText}`;
+    const subText = stop.subStations?.length ? ` (${stop.subStations.map(subStationLabel).join('; ')})` : '';
+    const label = `${stop.label}: ${stop.statusText}${subText}`;
 
     const content = compact ? (
       <StopDot stop={stop} compact />
@@ -134,6 +164,7 @@ export const JourneyRail: React.FC<JourneyRailProps> = ({ stops, actions }) => {
               />
             )}
             {renderStop(stop, false)}
+            {stop.subStations && <SubStationDots subStations={stop.subStations} />}
           </li>
         ))}
       </ol>

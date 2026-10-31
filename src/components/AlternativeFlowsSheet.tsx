@@ -18,6 +18,7 @@ import { Vec, MathView, SegmentVectorDiagram, BoxVectorDiagram } from './MathVec
 import { sound } from '../utils/soundEffects';
 import { RotateCcw } from 'lucide-react';
 import { DEMO_TEACHER_SUMMARY, DEMO_LESSON_INFO, BLOOM_TAXONOMY } from '../demo/demoLesson';
+import type { BloomProgress } from './journey/bloomProgress';
 
 const StepBadge = ({ num }: { num: string | number }) => (
   <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-[#121712] text-[#C8F169] font-mono text-[11px] font-bold shrink-0">
@@ -35,6 +36,12 @@ interface AlternativeFlowsSheetProps {
   onSwitchMode: (mode: LearningMode) => void;
   onPoeTopicChange?: (topic: string) => void;
   onPoeCompletedChange?: (completed: boolean) => void;
+  /** Called when the learner's own problem in Station 4 passes the check. */
+  onTeachBackCompleted?: () => void;
+  /** Bloom levels the learner has actually reached, derived by the app from the journey. */
+  bloomProgress: BloomProgress;
+  /** How many of the four stations the app has recorded as finished. */
+  completedStationCount: number;
   learningRecords?: SilentLearningRecord[];
 }
 
@@ -42,6 +49,9 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
   mode,
   onSwitchMode,
   onPoeCompletedChange,
+  onTeachBackCompleted,
+  bloomProgress,
+  completedStationCount,
   learningRecords = [],
 }) => {
   // Trạm 3 (POE): Dự đoán (Predict) -> Quan sát (Observe) -> Giải thích (Explain)
@@ -131,6 +141,7 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
       lhs,
       rhs
     });
+    onTeachBackCompleted?.();
   };
 
   // =========================================================================
@@ -891,17 +902,21 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                             MỨC BLOOM CAO NHẤT
                           </span>
                           <div className="text-[44px] sm:text-[52px] lg:text-[60px] font-extrabold text-[#C8F169] leading-none my-0.5 tracking-tight">
-                            L6
+                            {bloomProgress.highest > 0 ? `L${bloomProgress.highest}` : '—'}
                           </div>
                           <div>
-                            <div className="text-base sm:text-lg font-bold text-white">Sáng tạo</div>
-                            <div className="text-xs text-[#B9C4A8]">Toàn diện cả 4 trạm</div>
+                            <div className="text-base sm:text-lg font-bold text-white">
+                              {BLOOM_TAXONOMY.find((b) => b.index === bloomProgress.highest)?.skill ?? 'Chưa đạt bậc nào'}
+                            </div>
+                            <div className="text-xs text-[#B9C4A8]">
+                              {completedStationCount === 4 ? 'Toàn diện cả 4 trạm' : 'Làm tiếp các trạm để lên bậc'}
+                            </div>
                           </div>
                         </div>
 
                         <div className="flex flex-col gap-2 justify-center min-w-[130px] sm:min-w-[145px]">
                           <div className="bg-[#1F271F] rounded-xl sm:rounded-2xl p-2 sm:p-2.5 px-3">
-                            <div className="text-xl sm:text-2xl font-extrabold text-white leading-tight">4/4</div>
+                            <div className="text-xl sm:text-2xl font-extrabold text-white leading-tight">{completedStationCount}/4</div>
                             <div className="text-xs text-[#B9C4A8]">trạm hoàn thành</div>
                           </div>
                           <div className="bg-[#1F271F] rounded-xl sm:rounded-2xl p-2 sm:p-2.5 px-3">
@@ -918,12 +933,14 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                             Tháp Bloom
                           </h2>
                           <span className="text-xs font-bold bg-[#C8F169] text-[#121712] rounded-full px-2.5 py-0.5 border border-[#A6D83B]">
-                            Đạt 6/6 bậc
+                            Đạt {bloomProgress.reachedCount}/6 bậc
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-6 gap-1 sm:gap-1.5 items-end flex-1 pt-1">
+                        <ol aria-label="Các bậc Bloom" className="m-0 p-0 list-none grid grid-cols-6 gap-1 sm:gap-1.5 items-end flex-1 pt-1">
                           {BLOOM_TAXONOMY.map((item, idx) => {
+                            const level = bloomProgress.levels.find((l) => l.index === item.index);
+                            const reached = level?.reached ?? false;
                             const barHeights = [
                               'h-[28px] sm:h-[34px]',
                               'h-[44px] sm:h-[52px]',
@@ -934,44 +951,53 @@ export const AlternativeFlowsSheet: React.FC<AlternativeFlowsSheetProps> = ({
                             ];
                             const isL6 = item.index === 6;
                             return (
-                              <div key={item.index} className="flex flex-col gap-1 justify-end h-full">
+                              <li key={item.index} className="flex flex-col gap-1 justify-end h-full">
+                                <span className="sr-only">{reached ? 'Đã đạt:' : 'Chưa đạt:'}</span>
                                 <div
                                   className={`${barHeights[idx]} rounded-lg p-1 px-1.5 flex items-center justify-between ${
-                                    isL6
-                                      ? 'bg-[#121712] text-[#C8F169]'
-                                      : 'bg-[#C8F169] text-[#121712]'
+                                    !reached
+                                      ? 'bg-white text-[#5B6657] border border-dashed border-[#C9D4B6]'
+                                      : isL6
+                                        ? 'bg-[#121712] text-[#C8F169]'
+                                        : 'bg-[#C8F169] text-[#121712]'
                                   }`}
                                 >
                                   <span className="text-xs font-bold whitespace-nowrap">{item.level}</span>
-                                  <svg
-                                    width="12"
-                                    height="12"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke={isL6 ? '#C8F169' : '#121712'}
-                                    strokeWidth="2.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    aria-hidden="true"
-                                  >
-                                    <path d="M20 6 9 17l-5-5" />
-                                  </svg>
+                                  {reached && (
+                                    <svg
+                                      width="12"
+                                      height="12"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke={isL6 ? '#C8F169' : '#121712'}
+                                      strokeWidth="2.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="M20 6 9 17l-5-5" />
+                                    </svg>
+                                  )}
                                 </div>
-                                <div className="text-xs font-bold text-[#121712] mt-0.5">{item.skill}</div>
+                                <div className={`text-xs font-bold mt-0.5 ${reached ? 'text-[#121712]' : 'text-[#5B6657]'}`}>{item.skill}</div>
                                 <div
                                   className={`text-[11px] font-semibold leading-tight ${
-                                    isL6 ? 'text-[#68765A]' : 'text-[#4A5540]'
+                                    !reached ? 'text-[#8C9A80]' : isL6 ? 'text-[#68765A]' : 'text-[#4A5540]'
                                   }`}
                                 >
                                   {item.skillSub}
                                 </div>
-                                <div className="text-[11px] sm:text-xs leading-snug text-[#3F4A36] pt-0.5 min-h-[30px]">
-                                  {item.desc}
+                                <div
+                                  className={`text-[11px] sm:text-xs leading-snug pt-0.5 min-h-[30px] ${
+                                    reached ? 'text-[#3F4A36]' : 'font-semibold text-[#4A5546]'
+                                  }`}
+                                >
+                                  {reached ? item.desc : level?.unlockHint}
                                 </div>
-                              </div>
+                              </li>
                             );
                           })}
-                        </div>
+                        </ol>
                       </div>
                     </div>
 

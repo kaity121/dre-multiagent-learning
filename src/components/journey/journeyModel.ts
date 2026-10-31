@@ -1,11 +1,21 @@
-// Pure derivations for the learner journey shell: the six-stop rail and the four-station switcher.
+// Pure derivations for the learner journey shell: the seven-stop rail and the four-station switcher.
 // Everything here reads existing app state (video phase, current station, completion flags);
 // it never changes business rules, it only decides how the story is told.
 import type { LearningMode, VideoCheckpointPhase } from '../../types/dre';
 
 export type StopStatus = 'done' | 'current' | 'waiting' | 'open' | 'locked';
 
-export type JourneyStopId = 'watch' | 'bo_mistake' | 'diagnose' | 'rebut' | 'closure' | 'teach_back';
+export type JourneyStopId = 'watch' | 'bo_mistake' | 'diagnose' | 'rebut' | 'closure' | 'practice' | 'teach_back';
+
+/** One station inside a grouped stop (the "Luyện tập" stop covers Stations 2 and 3). */
+export interface JourneySubStation {
+  id: LearningMode;
+  number: 1 | 2 | 3 | 4;
+  name: string;
+  status: StationStatus;
+  /** Plain-language status for screen readers, e.g. "đã xong". */
+  statusText: string;
+}
 
 export interface JourneyStop {
   id: JourneyStopId;
@@ -14,6 +24,7 @@ export interface JourneyStop {
   statusText: string;
   /** The 37:13 checkpoint is drawn as an interchange on the line. */
   isInterchange?: boolean;
+  subStations?: JourneySubStation[];
 }
 
 export interface JourneyInput {
@@ -24,6 +35,8 @@ export interface JourneyInput {
   /** True once Cô Lam has closed the checkpoint in this session. */
   checkpointResolved: boolean;
   isQuizSkipped: boolean;
+  /** Stations the app has recorded as finished (Station 2 closed, Station 3 explained, ...). */
+  completedStations: Partial<Record<LearningMode, boolean>>;
 }
 
 const STATUS_TEXT: Record<StopStatus, string> = {
@@ -34,11 +47,23 @@ const STATUS_TEXT: Record<StopStatus, string> = {
   locked: 'Chưa mở',
 };
 
+const SUB_STATUS_TEXT: Record<StationStatus, string> = {
+  done: 'đã xong',
+  current: 'đang làm',
+  open: 'chưa làm',
+};
+
+/** Stations practised in the "Luyện tập" stop, in rail order. */
+const PRACTICE_MODES: LearningMode[] = ['worksheet', 'predict_poe'];
+const PRACTICE_INDEX = 5;
+const TEACH_BACK_INDEX = 6;
+
 const CHECKPOINT_PHASES: VideoCheckpointPhase[] = ['CHECKPOINT_REACHED', 'BO_DEBATE', 'BO_CONCEDED', 'CO_LAM_CLOSURE'];
 
 /** Index of the stop the learner is on; stops before it are done, after it are locked. */
 function currentStopIndex(input: JourneyInput): number {
-  if (input.currentMode !== 'video_clash') return 5;
+  if (input.currentMode === 'protege_teaching') return TEACH_BACK_INDEX;
+  if (PRACTICE_MODES.includes(input.currentMode)) return PRACTICE_INDEX;
   switch (input.videoPhase) {
     case 'CHECKPOINT_REACHED':
       return 2;
@@ -49,8 +74,8 @@ function currentStopIndex(input: JourneyInput): number {
       return 4;
     default:
       // Watching (or a learner-initiated freeze): after the rule is locked the lesson continues
-      // towards the teach-back stations, otherwise the learner is still watching.
-      return input.checkpointResolved ? 5 : 0;
+      // towards the practice stations, otherwise the learner is still watching.
+      return input.checkpointResolved ? PRACTICE_INDEX : 0;
   }
 }
 
@@ -62,15 +87,27 @@ export function deriveJourneyStops(input: JourneyInput): JourneyStop[] {
     ['diagnose', 'Chẩn đoán'],
     ['rebut', 'Bác Bo'],
     ['closure', 'Cô Lam chốt'],
+    ['practice', 'Luyện tập'],
     ['teach_back', 'Dạy lại Bo'],
   ];
   const hasCheckpoint = input.checkpointTimestamp !== null;
+  const subStations: JourneySubStation[] = PRACTICE_MODES.map((mode) => {
+    const meta = stationFor(mode);
+    const status: StationStatus =
+      input.currentMode === mode ? 'current' : input.completedStations[mode] ? 'done' : 'open';
+    return { id: mode, number: meta.number, name: meta.name, status, statusText: SUB_STATUS_TEXT[status] };
+  });
+  const practiceDone = PRACTICE_MODES.every((mode) => input.completedStations[mode]);
 
   return labels.map(([id, label], i) => {
     let status: StopStatus = i < idx ? 'done' : i === idx ? 'current' : 'locked';
 
     // Jumping ahead to Stations 2–4 does not complete the checkpoint: those stops stay to do.
     if (input.currentMode !== 'video_clash' && !input.checkpointResolved && i < idx) status = 'open';
+
+    // "Luyện tập" is done only when both of its stations are; passing it on the way to Station 4
+    // leaves it to do.
+    if (id === 'practice' && i !== idx) status = practiceDone ? 'done' : i < idx ? 'open' : 'locked';
 
     // "Bo sai ở 37:13" is a moment, not a task: it is done as soon as the class reaches it.
     if (id === 'bo_mistake' && idx === 1) status = 'done';
@@ -92,10 +129,11 @@ export function deriveJourneyStops(input: JourneyInput): JourneyStop[] {
 
     return {
       id,
-      label: hasCheckpoint || id === 'watch' || id === 'teach_back' ? label : label.replace(/ ở .*$/, ''),
+      label: hasCheckpoint || id === 'watch' || id === 'practice' || id === 'teach_back' ? label : label.replace(/ ở .*$/, ''),
       status,
       statusText: STATUS_TEXT[status],
       isInterchange: id === 'bo_mistake',
+      ...(id === 'practice' ? { subStations } : {}),
     };
   });
 }

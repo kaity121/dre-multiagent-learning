@@ -81,6 +81,7 @@ import { Station1TaskCard } from './components/journey/Station1TaskCard';
 import { VideoActionBar } from './components/journey/VideoActionBar';
 import { VideoStrip } from './components/journey/VideoStrip';
 import { deriveJourneyStops, deriveTaskBeat, formatClock, lessonIdentity, type StationStatus } from './components/journey/journeyModel';
+import { deriveBloomProgress } from './components/journey/bloomProgress';
 import { AgentMapDialog } from './components/agentmap/AgentMapDialog';
 import dreLogoImg from './assets/dre-logo.png';
 import { sound } from './utils/soundEffects';
@@ -251,6 +252,8 @@ export default function App() {
     return false;
   });
   const [isPoeCompleted, setIsPoeCompleted] = useState<boolean>(false);
+  // Station 4: the learner's own problem passed the council's check.
+  const [isTeachBackCompleted, setIsTeachBackCompleted] = useState<boolean>(false);
   const [isSoundEnabled, setIsSoundEnabled] = useState<boolean>(sound.getEnabled());
 
   // Multi-Agent Studio Views (War Room, Timeline Editor, Inspector)
@@ -1456,6 +1459,12 @@ export default function App() {
   // JOURNEY SHELL: rail, task beat, station switcher, Agent Map
   // =========================================================================
   const checkpointSecond = hasCheckpoint(currentVideoLesson) ? currentVideoLesson.checkpointTimestamp : null;
+  const completedStations: Record<LearningMode, boolean> = {
+    video_clash: videoPhase === 'BO_CONCEDED' || checkpointResolved || isPoeCompleted,
+    worksheet: currentState === 'CLOSE',
+    predict_poe: isPoeCompleted,
+    protege_teaching: isTeachBackCompleted,
+  };
   const journeyInput = {
     currentMode,
     videoPhase,
@@ -1463,7 +1472,16 @@ export default function App() {
     checkpointTimestamp: checkpointSecond,
     checkpointResolved,
     isQuizSkipped,
+    completedStations,
   };
+  const bloomProgress = deriveBloomProgress({
+    lessonStarted: videoCurrentTime > 0 || isVideoPlaying || videoPhase !== 'WATCHING' || checkpointResolved,
+    checkpointAnswered:
+      boMode !== null || checkpointResolved || videoPhase === 'BO_DEBATE' || videoPhase === 'BO_CONCEDED' || videoPhase === 'CO_LAM_CLOSURE',
+    worksheetDone: completedStations.worksheet,
+    boRefuted: checkpointResolved,
+    teachBackDone: isTeachBackCompleted,
+  });
   const journeyStops = deriveJourneyStops(journeyInput);
   const checkpointFired = checkpointSecond !== null && ((videoPhase !== 'WATCHING' && videoPhase !== 'STUDENT_FREEZE') || checkpointResolved);
   const checkpointMessages: TimelineComment[] =
@@ -1478,10 +1496,10 @@ export default function App() {
   const lessonIdent = lessonIdentity(currentVideoLesson);
 
   const stationStatus: Record<LearningMode, StationStatus> = {
-    video_clash: videoPhase === 'BO_CONCEDED' || checkpointResolved || isPoeCompleted ? 'done' : 'open',
-    worksheet: currentState === 'CLOSE' ? 'done' : 'open',
-    predict_poe: isPoeCompleted ? 'done' : 'open',
-    protege_teaching: 'open',
+    video_clash: completedStations.video_clash ? 'done' : 'open',
+    worksheet: completedStations.worksheet ? 'done' : 'open',
+    predict_poe: completedStations.predict_poe ? 'done' : 'open',
+    protege_teaching: completedStations.protege_teaching ? 'done' : 'open',
   };
 
   const prevBeatRef = useRef(taskBeat);
@@ -1517,6 +1535,13 @@ export default function App() {
         handleJumpToCheckpoint();
       },
       hint: `Tua tới ${formatClock(checkpointSecond)} và mở câu hỏi dừng`,
+    };
+  }
+  if (currentMode !== 'worksheet' && currentMode !== 'predict_poe') {
+    const nextPractice: LearningMode = !completedStations.worksheet || completedStations.predict_poe ? 'worksheet' : 'predict_poe';
+    railActions.practice = {
+      run: () => handleSelectStation(nextPractice),
+      hint: nextPractice === 'worksheet' ? 'Sang Trạm 2 · Sổ tay' : 'Sang Trạm 3 · Đoán',
     };
   }
   if (currentMode !== 'protege_teaching') {
@@ -2020,6 +2045,9 @@ export default function App() {
                     onSwitchMode={(mode) => setCurrentMode(mode)}
                     onPoeTopicChange={(topic) => setCurrentPoeTopic(topic)}
                     onPoeCompletedChange={(completed) => setIsPoeCompleted(completed)}
+                    onTeachBackCompleted={() => setIsTeachBackCompleted(true)}
+                    bloomProgress={bloomProgress}
+                    completedStationCount={Object.values(completedStations).filter(Boolean).length}
                   />
                 </div>
               )}

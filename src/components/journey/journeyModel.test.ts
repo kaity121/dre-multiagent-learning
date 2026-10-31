@@ -1,6 +1,7 @@
 // Run: npx tsx --test src/components/journey/journeyModel.test.ts src/components/agentmap/agentMapModel.test.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { deriveBloomProgress } from './bloomProgress';
 import { deriveJourneyStops, deriveTaskBeat, formatClock, lessonIdentity, type JourneyInput } from './journeyModel';
 
 const base: JourneyInput = {
@@ -10,29 +11,63 @@ const base: JourneyInput = {
   checkpointTimestamp: 2233,
   checkpointResolved: false,
   isQuizSkipped: false,
+  completedStations: {},
 };
 
 const statuses = (input: JourneyInput) => deriveJourneyStops(input).map((s) => s.status);
 
 test('watching: first stop is current, the rest are locked', () => {
-  assert.deepEqual(statuses(base), ['current', 'locked', 'locked', 'locked', 'locked', 'locked']);
+  assert.deepEqual(statuses(base), ['current', 'locked', 'locked', 'locked', 'locked', 'locked', 'locked']);
   assert.equal(deriveTaskBeat(base), 'watch');
   assert.equal(deriveJourneyStops(base)[1].label, 'Bo sai ở 37:13');
 });
 
 test('checkpoint phases advance the line one stop at a time', () => {
-  assert.deepEqual(statuses({ ...base, videoPhase: 'CHECKPOINT_REACHED' }), ['done', 'done', 'current', 'locked', 'locked', 'locked']);
-  assert.deepEqual(statuses({ ...base, videoPhase: 'BO_DEBATE' }), ['done', 'done', 'done', 'current', 'locked', 'locked']);
-  assert.deepEqual(statuses({ ...base, videoPhase: 'BO_CONCEDED' }), ['done', 'done', 'done', 'done', 'current', 'locked']);
+  assert.deepEqual(statuses({ ...base, videoPhase: 'CHECKPOINT_REACHED' }), ['done', 'done', 'current', 'locked', 'locked', 'locked', 'locked']);
+  assert.deepEqual(statuses({ ...base, videoPhase: 'BO_DEBATE' }), ['done', 'done', 'done', 'current', 'locked', 'locked', 'locked']);
+  assert.deepEqual(statuses({ ...base, videoPhase: 'BO_CONCEDED' }), ['done', 'done', 'done', 'done', 'current', 'locked', 'locked']);
   assert.equal(deriveTaskBeat({ ...base, videoPhase: 'BO_DEBATE' }), 'rebut');
   assert.equal(deriveTaskBeat({ ...base, videoPhase: 'CO_LAM_CLOSURE' }), 'closure');
 });
 
-test('after Cô Lam closes the checkpoint the learner heads to the teach-back stations', () => {
+test('after Cô Lam closes the checkpoint the learner heads to the practice stations', () => {
   const resolved = { ...base, checkpointResolved: true };
-  assert.deepEqual(statuses(resolved), ['done', 'done', 'done', 'done', 'done', 'current']);
+  assert.deepEqual(statuses(resolved), ['done', 'done', 'done', 'done', 'done', 'current', 'locked']);
   assert.equal(deriveTaskBeat(resolved), 'continue');
-  assert.equal(deriveJourneyStops({ ...base, currentMode: 'worksheet' })[5].status, 'current');
+});
+
+test('Stations 2 and 3 light up "Luyện tập", never "Dạy lại Bo"', () => {
+  for (const mode of ['worksheet', 'predict_poe'] as const) {
+    const stops = deriveJourneyStops({ ...base, currentMode: mode, checkpointResolved: true });
+    const practice = stops.find((s) => s.id === 'practice')!;
+    assert.equal(practice.label, 'Luyện tập');
+    assert.equal(practice.status, 'current');
+    assert.equal(stops.find((s) => s.id === 'teach_back')!.status, 'locked');
+    assert.equal(practice.subStations!.find((s) => s.id === mode)!.status, 'current');
+  }
+  const sheet = deriveJourneyStops({ ...base, currentMode: 'worksheet' }).find((s) => s.id === 'practice')!;
+  assert.deepEqual(
+    sheet.subStations!.map((s) => [s.number, s.name, s.status, s.statusText]),
+    [
+      [2, 'Sổ tay', 'current', 'đang làm'],
+      [3, 'Đoán', 'open', 'chưa làm'],
+    ],
+  );
+});
+
+test('the practice sub-dots follow recorded completion', () => {
+  const onPoe = deriveJourneyStops({ ...base, currentMode: 'predict_poe', completedStations: { worksheet: true } });
+  assert.deepEqual(onPoe[5].subStations!.map((s) => s.status), ['done', 'current']);
+});
+
+test('Station 4 lights up "Dạy lại Bo"; "Luyện tập" is done only when both stations are', () => {
+  const onTeach = { ...base, currentMode: 'protege_teaching' as const, checkpointResolved: true };
+  assert.deepEqual(statuses(onTeach), ['done', 'done', 'done', 'done', 'done', 'open', 'current']);
+  assert.deepEqual(deriveJourneyStops(onTeach)[5].subStations!.map((s) => s.status), ['open', 'open']);
+  const allDone = { ...onTeach, completedStations: { worksheet: true, predict_poe: true } };
+  assert.deepEqual(statuses(allDone), ['done', 'done', 'done', 'done', 'done', 'done', 'current']);
+  // Finished practice shows as done even when the learner is back on Station 1.
+  assert.equal(deriveJourneyStops({ ...base, completedStations: { worksheet: true, predict_poe: true } })[5].status, 'done');
 });
 
 test('a skipped checkpoint stays open as "waiting"', () => {
@@ -71,8 +106,9 @@ test('lessonIdentity splits title and teacher from the shapes the app carries', 
 });
 
 test('jumping to a later station does not mark the checkpoint as done', () => {
-  assert.deepEqual(statuses({ ...base, currentMode: 'worksheet' }), ['open', 'open', 'open', 'open', 'open', 'current']);
-  assert.deepEqual(statuses({ ...base, currentMode: 'worksheet', checkpointResolved: true }), ['done', 'done', 'done', 'done', 'done', 'current']);
+  assert.deepEqual(statuses({ ...base, currentMode: 'worksheet' }), ['open', 'open', 'open', 'open', 'open', 'current', 'locked']);
+  assert.deepEqual(statuses({ ...base, currentMode: 'worksheet', checkpointResolved: true }), ['done', 'done', 'done', 'done', 'done', 'current', 'locked']);
+  assert.deepEqual(statuses({ ...base, currentMode: 'protege_teaching' }), ['open', 'open', 'open', 'open', 'open', 'open', 'current']);
 });
 
 test('deriveBoSteps lays out method, crux and conclusion from one claim', async () => {
@@ -84,4 +120,26 @@ test('deriveBoSteps lays out method, crux and conclusion from one claim', async 
   ]);
   assert.equal(r.conclusion, '2');
   assert.deepEqual(deriveBoSteps('Bằng √3'), { steps: [{ text: 'Bằng √3', isCrux: true }], conclusion: undefined });
+});
+
+const noBloom = { lessonStarted: false, checkpointAnswered: false, worksheetDone: false, boRefuted: false, teachBackDone: false };
+
+test('Bloom tower: nothing reached before the lesson starts', () => {
+  const p = deriveBloomProgress(noBloom);
+  assert.equal(p.reachedCount, 0);
+  assert.equal(p.highest, 0);
+  assert.equal(p.levels[3].unlockHint, 'Mở khi xong Trạm 2');
+});
+
+test('Bloom tower counts only the steps the learner actually did', () => {
+  const watched = deriveBloomProgress({ ...noBloom, lessonStarted: true });
+  assert.deepEqual(watched.levels.map((l) => l.reached), [true, true, false, false, false, false]);
+  assert.equal(watched.reachedCount, 2);
+  const refuted = deriveBloomProgress({ ...noBloom, lessonStarted: true, checkpointAnswered: true, boRefuted: true });
+  assert.deepEqual(refuted.levels.map((l) => l.reached), [true, true, true, false, true, false]);
+  assert.equal(refuted.reachedCount, 4);
+  assert.equal(refuted.highest, 5);
+  const all = deriveBloomProgress({ lessonStarted: true, checkpointAnswered: true, worksheetDone: true, boRefuted: true, teachBackDone: true });
+  assert.equal(all.reachedCount, 6);
+  assert.equal(all.highest, 6);
 });
