@@ -43,7 +43,9 @@ Câu chuyện của demo: học sinh **Chẩn đoán** chỗ sai (Diagnose), **S
    - Bạn AI trả lời nối tiếp chính câu chuyện trước đó.
    - Câu cảm ơn **không** gắn chip "có nguồn", vì câu xã giao không dựa vào bài giảng.
 4. Thu gọn thread: còn dòng "2 phản hồi ⌄" kèm avatar xếp chồng.
-5. Hỏi một câu về bài, ví dụ "vectơ AB có bằng vectơ BA không".
+5. Hỏi thêm một câu nữa. Thỉnh thoảng một bạn khác **chen vào**, gắn @tên bạn vừa trả lời và thêm một góc nhìn: Minh Khang đưa ví dụ đời sống, Linh Chi đưa mẹo nhớ, Bo nói thật chỗ mình chưa hiểu.
+6. Kéo lên đầu chat. Các trao đổi có sẵn của lớp nằm trong thread, ví dụ câu Bo hồi hộp lúc 0:22 có dòng "3 phản hồi ⌄".
+7. Hỏi một câu về bài, ví dụ "vectơ AB có bằng vectơ BA không".
    - Câu trả lời có chip **"Có nguồn bài giảng"**.
    - Bảng phấn trích đúng "vectơ AB ≠ vectơ BA".
 
@@ -97,20 +99,18 @@ Câu chuyện của demo: học sinh **Chẩn đoán** chỗ sai (Diagnose), **S
    - Các nguồn bài giảng.
    - Phần bị ẩn với tác nhân, để tác nhân không thấy lời giải.
 
-### Bước 8. War Room cho giáo viên *(đang hoàn thiện)*
+### Bước 8. War Room cho giáo viên
 
+- Mở War Room từ menu **⋯ → Công cụ giáo viên**.
 - Thẻ **Nguồn bài học**:
-  - Upload video thật, hoặc chọn một clip đã có.
-  - Bấm **Phân tích**, tiến trình chạy theo các bước thật: chép lời → đọc bảng phấn → tra kho tri thức → bàn tròn.
+  - Kéo thả hoặc chọn một video (MP4, MOV hoặc WebM, tối đa 200 MB), hoặc chọn một clip đã có.
+  - Bấm **Phân tích**. Các bước chép lời, đọc bảng phấn… chạy thật và hiện tiến trình.
+  - Nếu video hỏng, thẻ báo lỗi bằng tiếng Việt.
 - **Dòng suy luận**:
   - Mỗi tác nhân một làn màu.
-  - Bước "đang nghĩ" thu gọn thành một dòng khi xong.
-  - Mỗi lần gọi công cụ là một thẻ gồm tên, đầu vào, kết quả và thời gian.
-- **Chấm quyết định** bằng OpenAI Decisions API, cho từng đoạn video:
-  - Mức rủi ro bẫy.
-  - Ngộ nhận khớp trong kho tri thức.
-  - Bậc Bloom.
-  - Có nên đặt điểm dừng không.
+  - Bước "đang nghĩ…" thu gọn thành một dòng khi xong.
+  - Mỗi lần gọi công cụ là một thẻ gồm tên, đầu vào, kết quả, thời gian, và mở xem được JSON.
+  - Lọc được theo tác nhân hoặc theo loại sự kiện.
 
 ---
 
@@ -170,23 +170,28 @@ Câu chuyện của demo: học sinh **Chẩn đoán** chỗ sai (Diagnose), **S
 - Phiên checkpoint được khởi tạo chạy nền từ sớm.
 - Timeout: 20 giây cho session, 12 giây cho trả lời và phản biện. Quá giờ thì chuyển sang dữ liệu dự phòng mà không báo lỗi.
 
-### OpenAI Decisions API *(đang tích hợp)*
-- Endpoint riêng `POST /v1/decisions`, model `gpt-6-luna`.
-- Mỗi request gửi tối đa 400 câu hỏi, loại `score` (chấm theo mức) hoặc `choice` (chọn phương án). Mỗi câu trả về điểm, phân phối xác suất và độ tin cậy.
-- Trong DRE, mỗi đoạn video sau khi tách được chấm 4 câu: mức rủi ro bẫy, ngộ nhận khớp, bậc Bloom, có nên đặt điểm dừng.
-- Câu bị từ chối giữ trạng thái "chưa rõ". Lỗi truy cập thì hiện "chưa chấm được", không bịa điểm.
-- Lý do dùng Decisions: điểm có cấu trúc, kiểm tra được, và tài liệu nói nhanh hơn Responses khoảng 10 lần (chưa đo tại dự án).
+### Các bạn AI trả lời nhau
+- Kịch bản bài học có 7 thread thật, trong đó các bạn gắn @tên nhau. Không câu nào trước 37:13 lộ đáp án.
+- Khi chat thật, cứ lượt thứ hai trong phiên, một bạn khác chen vào trả lời câu của bạn vừa nói. Người chen vào luân phiên giữa Minh Khang, Linh Chi và Bo.
+- Câu chen vào được sinh khi tác nhân đã thấy câu trả lời trước và ngữ cảnh hội thoại.
+- Các câu nối tiếp có sẵn (Cô Lam, gợi ý của An) luôn được ưu tiên hơn câu chen vào.
+- Khi bạn trả lời trong thread, app gửi kèm chính thread đó, luôn có tin gốc. Câu nhắn riêng cho bạn nào thì đúng bạn đó trả lời.
+- Mỗi tác nhân trả thêm trường `suy_nghi`: 1–2 câu tóm tắt vì sao trả lời như vậy. Đây là bản tóm tắt, không phải chuỗi suy luận ẩn.
+
+### War Room và upload video
+- Endpoint `POST /api/extract/upload` nhận video thô, không cần thêm thư viện. Nó chặn tên có đường dẫn, đổi tên thành dạng an toàn, giới hạn 200 MB, kiểm tra chữ ký file MP4/MOV/WebM và không ghi đè file đã có.
+- Bộ tách clip có sẵn (ffmpeg, Whisper, đọc bảng phấn) chạy thật và báo tiến trình theo từng bước. Clip demo 60 giây phân tích mất khoảng 7,5 giây.
 
 ### Kiểm thử và chất lượng
 - `tsc` sạch, build OK.
-- Backend pass 202/202 test. Frontend pass 20 test cho model hành trình và Agent Map.
+- Backend pass toàn bộ test (224 test ở lần chạy gần nhất). Frontend có test cho model hành trình, Agent Map và War Room.
 - Mỗi thay đổi giao diện đều được kiểm bằng Chrome headless qua CDP: chụp màn hình và chạy đúng luồng bấm của người học.
 - Bộ dò thiết kế impeccable: 0 lỗi chặn. Hệ thiết kế ghi trong `DESIGN.md` (Lime Soft) và `PRODUCT.md`.
 
 ---
 
 ## Còn mở
-- War Room (upload, dòng suy luận mới), AI trả lời nhau trong thread, và avatar kiểu Zoom vẫn đang làm.
+- Kết quả phân tích video vừa upload chưa được đưa vào bàn tròn soạn kịch bản. Bàn tròn vẫn dùng bài đã lập chỉ mục.
 - Thẻ tổng kết còn ghi cứng "3 huy hiệu" và lời chốt cuối buổi.
 - Tiến độ Trạm 3 và Trạm 4 mất khi tải lại trang.
 - Backend chưa deploy. Bản trên Vercel mới chỉ có frontend.
