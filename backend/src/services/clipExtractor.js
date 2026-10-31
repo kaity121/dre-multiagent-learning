@@ -284,6 +284,15 @@ function hashFile(file) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0, 16);
 }
 
+/** The saved analysis of a clip on the server, or null when it has not been analysed yet. */
+export function loadAnalysedStream(name) {
+  const clipPath = resolveClip(name);
+  if (!clipPath) return null;
+  const cacheFile = path.join(CACHE_DIR, `${hashFile(clipPath)}.json`);
+  if (!fs.existsSync(cacheFile)) return null;
+  return JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+}
+
 function fallbackStream(reason) {
   const stream = JSON.parse(fs.readFileSync(FALLBACK_FIXTURE, 'utf8'));
   stream.processedBy = { ...stream.processedBy, mode: 'authored', fallbackReason: reason };

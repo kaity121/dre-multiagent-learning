@@ -295,7 +295,8 @@ const handleRoundtableStream = async (req, res) => {
   const {
     partNumber,
     streamDelayMs = 20,
-    cognitiveStream: customStream,
+    cognitiveStream: bodyStream,
+    clip,
     mode = 'live',
     runId,
     speed = 1,
@@ -307,6 +308,15 @@ const handleRoundtableStream = async (req, res) => {
   // Validate before switching to SSE so bad input gets a normal 400 response.
   if (runId !== undefined && runId !== '' && sanitizeRunId(String(runId)) !== String(runId)) {
     return res.status(400).json({ ok: false, error: 'runId không hợp lệ (chỉ chấp nhận A-Z, a-z, 0-9, "_" và "-")' });
+  }
+  // `clip` runs the council on a video analysed in the War Room; EventSource can only send it by name.
+  let customStream = bodyStream;
+  if (!isReplayMode && clip) {
+    const { loadAnalysedStream } = await import('./src/services/clipExtractor.js');
+    customStream = loadAnalysedStream(String(clip));
+    if (!customStream) {
+      return res.status(400).json({ ok: false, error: 'Video này chưa được phân tích. Bấm Phân tích trước.' });
+    }
   }
   let liveInput = null;
   if (!isReplayMode) {
