@@ -7,6 +7,15 @@ import { API_BASE_URL, type RoundtableProvenance } from './dreBackendApi';
 
 const KNOWN_PROVENANCES: ReadonlySet<string> = new Set(['live', 'replay', 'fallback_fixture']);
 
+/** The lecture a council run reads, as reported in `session_start`. */
+export interface LectureSource {
+  kind: 'clip' | 'indexed';
+  clip: string | null;
+  title: string;
+  segments: number;
+  durationSeconds: number | null;
+}
+
 export interface SSEClientOptions {
   url?: string;
   videoId?: string;
@@ -42,6 +51,8 @@ export class SSEReasoningSource implements ReasoningSource {
   private speed: number = 1.0;
   /** Set from the server's `session_start` frame; a started session is never silently re-run. */
   private provenance: RoundtableProvenance | null = null;
+  /** What the council is reading, from the same `session_start` frame. */
+  private lectureSource: LectureSource | null = null;
   private sessionStarted: boolean = false;
 
   constructor(options: SSEClientOptions = {}) {
@@ -67,6 +78,10 @@ export class SSEReasoningSource implements ReasoningSource {
 
   public getProvenance(): RoundtableProvenance | null {
     return this.provenance;
+  }
+
+  public getLectureSource(): LectureSource | null {
+    return this.lectureSource;
   }
 
   public getCurrentSpeed(): number {
@@ -202,6 +217,7 @@ export class SSEReasoningSource implements ReasoningSource {
           const info = JSON.parse(e.data);
           this.sessionStarted = true;
           this.provenance = KNOWN_PROVENANCES.has(info?.provenance) ? info.provenance : null;
+          this.lectureSource = info?.source && typeof info.source === 'object' ? info.source : null;
           this.notifyStatus();
         } catch (err) {
           console.warn('[SSEClient] Lỗi parse session_start:', err);

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import type { LectureSource } from '../../services/sseClient';
 import {
   ReasoningEvent,
   AgentName,
@@ -137,6 +138,7 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
   // Stage label shown under "Trích xuất" while a lecture video is being analysed.
   const [extractDetail, setExtractDetail] = useState<string | undefined>(undefined);
   const [streamProvenance, setStreamProvenance] = useState<RoundtableProvenance | null>(null);
+  const [lectureSource, setLectureSource] = useState<LectureSource | null>(null);
   const [isDone, setIsDone] = useState(() => {
     if (typeof window !== 'undefined') {
       const s = new URLSearchParams(window.location.search);
@@ -199,11 +201,14 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
   };
 
   useEffect(() => {
+    const readLectureSource = () => (source as { getLectureSource?: () => LectureSource | null }).getLectureSource?.() ?? null;
     setStreamProvenance(source.getProvenance?.() ?? null);
+    setLectureSource(readLectureSource());
     const unsubStatus = source.onStatusChange?.((status) => {
       setIsPlaying(status.isPlaying);
       setSpeed(status.speed);
       setStreamProvenance(status.provenance ?? null);
+      setLectureSource(readLectureSource());
     });
 
     const unsubscribe = source.subscribe((rawEvt) => {
@@ -401,6 +406,27 @@ export const WarRoomPanel: React.FC<WarRoomPanelProps> = ({
                 </button>
               )}
             </div>
+            {(lectureSource || councilClip) && (
+              <p className="mt-1 inline-flex flex-wrap items-center gap-1.5 rounded-lg border border-[#B7DB6A] bg-[#F7FBEF] px-2 py-1 text-[12px] text-[#1F4D12]">
+                <span className="font-semibold">Nguồn của lượt chạy:</span>
+                {(lectureSource?.kind ?? 'clip') === 'clip' ? (
+                  <>
+                    <span>video vừa phân tích</span>
+                    <span className="font-mono">{lectureSource?.clip ?? councilClip}</span>
+                  </>
+                ) : (
+                  <span>bài giảng đã lập chỉ mục</span>
+                )}
+                {lectureSource ? (
+                  <span>
+                    · {lectureSource.segments} đoạn
+                    {lectureSource.durationSeconds ? ` · ${lectureSource.durationSeconds} giây` : ''}
+                  </span>
+                ) : (
+                  <span>· bấm Phát suy luận để hội đồng bắt đầu đọc</span>
+                )}
+              </p>
+            )}
             <p className="text-xs text-stone-600 mt-0.5">
               Giám sát bàn tròn suy luận, tranh luận chéo và gọi công cụ thời gian thực
             </p>
