@@ -1,6 +1,8 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import { Router } from 'express';
-import { extractClip, listClips, resolveClip, STAGES } from '../services/clipExtractor.js';
+import { extractClip, listClips, resolveClip, STAGES, CLIPS_DIR } from '../services/clipExtractor.js';
+import { saveUploadedClip, UploadError, MAX_UPLOAD_BYTES } from '../services/clipUpload.js';
 
 export const extractRouter = Router();
 
@@ -19,7 +21,7 @@ const asyncRoute = (handler) => (req, res, next) => {
 
 // Optional sidecar `<clip>.json` next to the mp4 describes where the clip was cut from.
 function clipMeta(clipPath) {
-  const sidecar = clipPath.replace(/\.mp4$/i, '.json');
+  const sidecar = `${clipPath.slice(0, -path.extname(clipPath).length)}.json`;
   if (!fs.existsSync(sidecar)) return {};
   let meta;
   try {
@@ -42,10 +44,46 @@ function findClip(name) {
   return clipPath;
 }
 
-// GET /api/extract/clips — demo clips available on the server, plus the named stages
+// Display details for the clip picker; a broken sidecar only loses the title, never the listing.
+function clipDetails(name) {
+  const file = path.join(CLIPS_DIR, name);
+  let title = name;
+  let uploadedAt = null;
+  try {
+    const meta = clipMeta(file);
+    if (typeof meta.videoTitle === 'string' && meta.videoTitle.trim()) title = meta.videoTitle.trim();
+    if (typeof meta.uploadedAt === 'string') uploadedAt = meta.uploadedAt;
+  } catch {
+    // unreadable sidecar: keep the file name as the title
+  }
+  let sizeBytes = null;
+  try {
+    sizeBytes = fs.statSync(file).size;
+  } catch {
+    // removed between listing and stat
+  }
+  return { name, title, sizeBytes, uploadedAt };
+}
+
+// GET /api/extract/clips — clips available on the server, plus the named stages
 extractRouter.get('/clips', (req, res) => {
-  res.json({ ok: true, clips: listClips(), stages: STAGES });
+  const clips = listClips();
+  res.json({ ok: true, clips, items: clips.map(clipDetails), stages: STAGES, maxUploadBytes: MAX_UPLOAD_BYTES });
 });
+
+// POST /api/extract/upload?name=<file name> — raw video bytes as the body (Content-Type video/*).
+// Responds 201 with the saved clip name, which gets a -2, -3 suffix rather than replacing a clip.
+extractRouter.post(
+  '/upload',
+  asyncRoute(async (req, res) => {
+    const saved = await saveUploadedClip(req, {
+      rawName: req.query.name,
+      contentType: req.get('content-type'),
+      contentLength: req.get('content-length'),
+    });
+    res.status(201).json({ ok: true, ...saved, item: clipDetails(saved.clip), clips: listClips() });
+  }),
+);
 
 // POST /api/extract/clip { clip, refresh? } — run extraction and return the CognitiveEventStream
 extractRouter.post(
@@ -93,8 +131,9 @@ extractRouter.get(
 
 // Controlled errors for this router: JSON before a response starts, an `error` event once SSE is open.
 extractRouter.use((err, req, res, next) => {
-  const status = err instanceof HttpError ? err.status : 500;
-  const message = err instanceof HttpError ? err.message : 'Clip extraction failed';
+  const known = err instanceof HttpError || err instanceof UploadError;
+  const status = known ? err.status : 500;
+  const message = known ? err.message : 'Clip extraction failed';
   if (status >= 500) console.error('[extract]', err);
   if (res.headersSent) {
     if (!res.writableEnded) {

@@ -41,7 +41,8 @@ export const STAGES = [
   { id: 'fuse', label: 'Hợp nhất timeline' },
 ];
 
-export const CLIP_EXTENSIONS = ['.mp4'];
+// Containers ffmpeg reads and browsers can upload; clipUpload.js checks each one's file signature.
+export const CLIP_EXTENSIONS = ['.mp4', '.webm', '.mov'];
 
 function isClipFile(file) {
   if (!CLIP_EXTENSIONS.includes(path.extname(file).toLowerCase())) return false;
